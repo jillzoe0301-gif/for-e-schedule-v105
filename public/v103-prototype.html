@@ -1,7 +1,7 @@
 <!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="FOR-e">
+<meta name="apple-mobile-web-app-title" content="翻譯排程">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>
 :root{--bg:#f6f7fb;--card:#fff;--line:#d8dde8;--text:#1f2937;--muted:#6b7280;--brand:#2563eb;--brand2:#dbeafe;--danger:#dc2626;--ok:#16a34a;--warn:#f59e0b;--shadow:0 8px 22px rgba(15,23,42,.08);--theme-date-header:#efefef;--theme-person-cell:#fff7ed;--theme-person-name:#e5e7eb;--theme-person-one:#f8ee88;--theme-person-two:#bfe1f6;--theme-holiday:#e0f2fe;--theme-today:#fffbeb;--theme-event-pending:#fef9c3;--theme-event-done:#e8eef7}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:"Microsoft JhengHei",Arial,sans-serif}button{border:1px solid var(--line);border-radius:10px;background:#fff;padding:9px 12px;cursor:pointer;font-weight:700}button.primary{background:var(--brand);border-color:var(--brand);color:#fff}button.danger{background:var(--danger);border-color:var(--danger);color:#fff}button.ghost{background:transparent}button.small{padding:5px 8px;border-radius:8px;font-size:12px}input,select,textarea{border:1px solid var(--line);border-radius:10px;padding:9px;background:#fff;width:100%}textarea{min-height:76px}.hide{display:none!important}.muted{color:var(--muted);font-size:13px}.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}.login-card{width:min(520px,100%);background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:24px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{margin:10px 0}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.topbar{height:62px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:20}.brand{font-weight:900}.layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 62px)}.side{background:#fff;border-right:1px solid var(--line);padding:12px;position:sticky;top:62px;height:calc(100vh - 62px);overflow:auto}.navbtn{width:100%;text-align:left;margin:4px 0;background:transparent}.navbtn.active{background:var(--brand2);border-color:#bfdbfe;color:#1d4ed8}.main{padding:14px;overflow:hidden}.panel{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:14px;margin-bottom:12px}.section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}h2{font-size:20px;margin:0}.mini{width:auto;min-width:130px}.calendar-wrap{overflow:auto;width:100%;border:1px solid var(--line);border-radius:14px;background:#fff;max-height:72vh}.calendar-table{border-collapse:separate;border-spacing:0;width:100%;min-width:1660px;table-layout:fixed}.calendar-table th,.calendar-table td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);vertical-align:top}.calendar-table th{position:sticky;top:0;background:var(--theme-date-header);z-index:5;padding:10px;width:200px;min-width:200px;max-width:none}.calendar-table thead th{background:var(--theme-date-header)!important;color:#0f172a;font-weight:900}.person-head{position:sticky!important;left:0;top:0;z-index:30!important;width:260px!important;min-width:260px!important;max-width:260px!important;background:var(--theme-date-header)!important;box-shadow:3px 0 8px rgba(15,23,42,.08)}.person-cell{position:sticky;left:0;background:var(--theme-person-cell);z-index:20;width:260px;min-width:260px;max-width:260px;padding:10px;box-shadow:3px 0 8px rgba(15,23,42,.05)}.person-name{font-weight:900;background:var(--theme-person-name);border-radius:9px;padding:5px 7px;display:inline-block;white-space:normal;line-height:1.35;word-break:keep-all;overflow-wrap:anywhere}.person-name.group-one{background:var(--theme-person-one)!important}.person-name.group-two{background:var(--theme-person-two)!important}.person-actions{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}.person-actions button{font-size:11px;padding:3px 6px;border-radius:7px}.day-cell{width:200px;min-width:200px;max-width:none;height:112px;padding:7px;background:#fff}.weekend{background:var(--theme-holiday)!important}.outmonth{background:#f3f4f6!important;color:#9ca3af}.today{background:var(--theme-today)!important;box-shadow:inset 0 0 0 2px #f59e0b, inset 0 0 0 9999px color-mix(in srgb, var(--theme-today) 40%, transparent)}.holiday-tw{background:var(--theme-holiday)!important}.holiday-th,.holiday-ph,.holiday-vn,.holiday-id{background:inherit!important}.holiday-tags{font-size:10px;line-height:1.25;color:#475569;margin:2px 0 4px}.holiday-tags span{display:inline-block;border-radius:6px;padding:1px 4px;margin:1px 0;background:transparent!important}.holiday-tags .tw{font-weight:900;color:#1d4ed8}.holiday-tags .th{font-weight:900;color:#f97316}.holiday-tags .ph{font-weight:900;color:#16a34a}.holiday-tags .vn{font-weight:900;color:#7c3aed}.holiday-tags .id{font-weight:900;color:#ec4899}.date-num{font-size:12px;color:#6b7280;margin-bottom:4px}.event{border:1px solid #fde68a;background:var(--theme-event-pending);border-left:5px solid #f59e0b;border-radius:9px;padding:5px;margin:4px 0;font-size:12px;cursor:pointer;line-height:1.35}.event.status{background:#f5f3ff;border-color:#ddd6fe;border-left-color:#7c3aed}.event.done{opacity:1;background:var(--theme-event-done);border-color:#cbd5e1;border-left-color:#64748b}.event.cancel{background:#fef2f2;border-color:#fecaca;border-left-color:#dc2626}.event.alert{background:#fee2e2;border-color:#fecaca;border-left-color:#ef4444}.event.status-leave{background:#f3e8ff!important;border-color:#d8b4fe!important;border-left-color:#9333ea!important}.event.status-home{background:#dcfce7!important;border-color:#86efac!important;border-left-color:#16a34a!important}.event.status-meeting{background:#ccfbf1!important;border-color:#5eead4!important;border-left-color:#0d9488!important}.event.status-training{background:#fef3c7!important;border-color:#fcd34d!important;border-left-color:#d97706!important}.time{font-weight:900}.service-record{font-size:12px;font-weight:900;margin-top:2px}.field-flag{font-size:12px;font-weight:900;margin-top:2px}.field-flag.must{color:#dc2626}.field-flag.lock{color:#7c2d12}.field-location-open{position:relative;z-index:150}
@@ -47,13 +47,9 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 .drag-handle{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border:1px solid #ddd;border-radius:8px;background:#fafafa;cursor:grab;font-weight:700;color:#777}
 .sort-col{width:52px;white-space:nowrap}
 .field-detail-row td{vertical-align:top}
-
-/* V105 Production Merge：正式版登入與權限導覽 */
-#resetBtn,#quickLogin,#mobileForceLogin,#registerTab,#registerForm,.formal-login-toolbar{display:none!important}
-@media(max-width:760px){.bottom-nav{grid-template-columns:repeat(auto-fit,minmax(62px,1fr))!important}}
-
+.role-hidden{display:none!important}
 </style></head><body>
-<div id="loginView" class="login-wrap"><div class="login-card"><h1>FOR-e 共享排程系統</h1><div class="toolbar formal-login-toolbar hide"><button type="button" id="loginTab" class="primary">登入</button><button type="button" id="registerTab">註冊</button><button type="button" id="resetBtn" class="ghost">重置測試資料</button></div><div id="loginForm"><div class="field"><label>Email</label><input id="loginEmail" placeholder="請輸入 Email"></div><div class="field"><label>密碼</label><input id="loginPassword" type="password" placeholder="請輸入密碼"></div><button id="doLogin" class="primary" type="button" style="width:100%;font-size:16px;padding:12px">登入</button><button id="quickLogin" type="button" class="hide">快速登入測試帳號</button><button id="mobileForceLogin" class="hide" type="button" onclick="window.forceMobileLogin&&window.forceMobileLogin()">手機測試一鍵進入</button><div id="loginMsg" class="muted" style="margin-top:8px"></div></div><div id="registerForm" class="hide"><div class="row"><div class="field"><label>姓名</label><input id="regName"></div><div class="field"><label>角色</label><select id="regRole"><option value="staff">一般人員</option><option value="supervisor">主管</option><option value="adminStaff">行政系</option></select></div></div><div class="field"><label>Email</label><input id="regEmail"></div><div class="field"><label>密碼</label><input id="regPassword" type="password"></div><button type="button" id="doRegister" class="primary">註冊</button></div></div></div>
+<div id="loginView" class="login-wrap"><div class="login-card"><h1>FOR-e 共享排程系統</h1><div class="toolbar hide"><button type="button" id="loginTab" class="primary">登入</button><button type="button" id="registerTab">註冊</button><button type="button" id="resetBtn" class="ghost">重置測試資料</button></div><div id="loginForm"><div class="field"><label>Email</label><input id="loginEmail" value="" placeholder="name@company.com"></div><div class="field"><label>密碼</label><input id="loginPassword" type="password" value=""></div><button id="doLogin" class="primary" type="button">登入</button><button id="quickLogin" type="button" class="hide">快速登入測試帳號</button><button id="mobileForceLogin" type="button" class="hide">手機測試一鍵進入</button><div id="loginMsg" class="muted" style="margin-top:8px"></div></div><div id="registerForm" class="hide"><div class="row"><div class="field"><label>姓名</label><input id="regName"></div><div class="field"><label>角色</label><select id="regRole"><option value="staff">一般人員</option><option value="supervisor">主管</option><option value="adminStaff">行政系</option></select></div></div><div class="field"><label>Email</label><input id="regEmail"></div><div class="field"><label>密碼</label><input id="regPassword" type="password"></div><button type="button" id="doRegister" class="primary">註冊</button></div></div></div>
 <div id="appView" class="hide"><div class="topbar"><div class="brand">FOR-e 共享排程系統</div><div class="toolbar"><span id="currentUserLabel"></span><button id="logoutBtn">登出</button></div></div><div class="layout"><aside class="side"><button class="navbtn active" data-page="calendar">📅 一般行事曆</button><button class="navbtn" data-page="fieldCalendar">🚗 外務行事曆</button><button class="navbtn" data-page="fieldDetails">📋 外務明細</button><button class="navbtn" data-page="personalDetails">🗂️ 個人行程明細</button><button class="navbtn" data-page="today">📌 今日總覽</button><button class="navbtn app-only" data-page="mobile">📱 APP個人行程</button><button class="navbtn" data-page="reports">📊 統計報表</button><button class="navbtn" data-page="serviceRecords">📋 服務紀錄單</button><button class="navbtn" data-page="audit">🧾 Audit Log</button><button class="navbtn" data-page="line">💬 LINE通知</button><button class="navbtn" data-page="theme">🎨 顏色設定</button><button class="navbtn" data-page="settings">🔗 Airtable/Webhook</button><button class="navbtn" data-page="users">👥 人員/帳號</button><hr><div class="muted">雙擊空白格新增，點行程可修改。</div></aside><main class="main">
 <div class="bottom-nav"><button class="navbtn active" data-page="calendar">📅<br>一般</button><button class="navbtn" data-page="fieldCalendar">🚗<br>外務</button><button class="navbtn" data-page="fieldDetails">📋<br>明細</button><button class="navbtn" data-page="personalDetails">🗂️<br>個明</button><button class="navbtn" data-page="mobile">📱<br>個人</button><button class="navbtn" data-page="today">📌<br>今日</button><button class="navbtn" data-page="reports">📊<br>統計</button><button class="navbtn" data-page="line">💬<br>通知</button><button class="navbtn" data-page="theme">🎨<br>顏色</button></div>
 <section id="calendarPage" class="page"><div class="panel"><div class="section-title"><h2>人員名稱 × 週一～週日 / 單週檢視 / 個人按月檢視</h2><div class="toolbar"><button id="prevWeek">上一週</button><input id="weekPicker" type="date" class="mini"><button id="nextWeek">下一週</button><button id="addEventBtn" class="primary">新增行程</button><button id="exportCsvBtn">匯出 CSV</button></div></div><div class="toolbar"><select id="viewMode" class="mini"><option value="all">全部人員本週行程</option><option value="personal">BY 個人本週檢視</option><option value="personalDay">BY 個人當天檢視</option><option value="personalMonth">BY 個人按月檢視</option></select><div id="groupFilter" class="multi-select mini" data-label="全部部門/群組"></div><div id="jobFilter" class="multi-select mini" data-label="全部職務"></div><div id="personFilter" class="multi-select mini" data-label="全部人員名稱"></div><div id="typeFilter" class="multi-select mini" data-label="全部行程類型"></div><select id="statusFilter" class="mini"><option value="">全部狀態</option><option>未完成</option><option>已完成</option><option>取消</option></select><input id="keywordFilter" class="mini" placeholder="客戶/地點/關鍵字"><button id="clearFilter">清除</button></div><div id="legend" style="margin-top:8px"></div></div><div id="calendarArea"></div></section>
@@ -1201,97 +1197,104 @@ renderUsers=function(){
 
 // V15 測試版先停用 Service Worker，避免手機吃到舊快取。
 
-/* V105 Production Merge：保留 V103 完整功能，加入 V105 正式版權限導覽與刪除防呆 */
-const v105AllowedPages={
-  staff:['calendar','mobile','today'],
-  supervisor:['calendar','fieldCalendar','mobile','today','line'],
-  adminStaff:['calendar','fieldCalendar','mobile','today','line'],
-  admin:['calendar','fieldCalendar','mobile','today','reports','line']
-};
-canSeePage=function(page){
-  const r=normalizedRole();
-  return !!(v105AllowedPages[r]||v105AllowedPages.staff).includes(page);
-};
-const _v105ApplyPermissionsUI=applyPermissionsUI;
-applyPermissionsUI=function(){
-  _v105ApplyPermissionsUI();
-  document.querySelectorAll('.navbtn').forEach(btn=>{
-    const page=btn.dataset.page;
-    if(page)btn.classList.toggle('hide',!canSeePage(page));
-  });
-  if(currentPage&&!canSeePage(currentPage)){
-    currentPage=(v105AllowedPages[normalizedRole()]||v105AllowedPages.staff)[0]||'calendar';
-    document.querySelectorAll('.page').forEach(p=>p.classList.add('hide'));
-    const pg=$(currentPage+'Page');
-    if(pg)pg.classList.remove('hide');
-    document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page===currentPage));
-  }
-  if($('addUserBtn'))$('addUserBtn').classList.toggle('hide',!isAdmin());
-  if($('exportLogBtn'))$('exportLogBtn').classList.toggle('hide',!isAdmin());
-};
-function v105DeleteConfirmByScope(name,total,currentDate){
-  const choice=prompt(`此行程為重複行程，共 ${total} 筆尚未刪除。\n請選擇刪除方式：\n1：僅刪除這天\n2：刪除今日起後續行程\n3：刪除全部行程\n\n請輸入 1、2 或 3：`,'1');
-  if(choice===null)return null;
-  const c=String(choice).trim();
-  if(!['1','2','3'].includes(c)){toast('已取消刪除：請輸入 1、2 或 3');return null;}
-  if(c==='1'){
-    if(!confirm(`確認僅刪除「${name}」在 ${currentDate} 這天的行程？`))return null;
-    return 'single';
-  }
-  if(c==='2'){
-    if(!confirm(`確認刪除「${name}」自 ${currentDate} 起的後續行程？`))return null;
-    return 'future';
-  }
-  if(c==='3'){
-    if(!confirm(`確認刪除全部行程？\n\n「${name}」全部重複行程共 ${total} 筆。`))return null;
-    if(total>20){
-      const typed=prompt(`共 ${total} 筆行程即將刪除。\n為避免誤刪，請輸入 DELETE 確認：`,'');
-      if(typed!=='DELETE'){toast('已取消刪除：未輸入 DELETE');return null;}
+// V105 Production upgrade: 保留 V103 介面，新增正式版權限選單與重複行程刪除防呆
+(function(){
+  const v105RoleMap={admin:'admin',options:'admin',supervisor:'supervisor',adminStaff:'adminStaff',admin_staff:'adminStaff',staff:'staff',schedule:'staff',dispatcher:'staff',translator:'staff',sales:'staff',viewer:'staff'};
+  window.v105Role=function(){return currentUser ? (v105RoleMap[currentUser.role]||'staff') : 'staff'};
+  window.v105AllowedPages=function(){
+    const r=window.v105Role();
+    if(r==='admin') return ['calendar','fieldCalendar','mobile','today','reports','line'];
+    if(r==='supervisor'||r==='adminStaff') return ['calendar','fieldCalendar','mobile','today','line'];
+    return ['calendar','mobile','today'];
+  };
+  const oldCanSeePage=canSeePage;
+  canSeePage=function(page){
+    const allowed=window.v105AllowedPages();
+    if(['calendar','fieldCalendar','mobile','today','reports','line'].includes(page)) return allowed.includes(page);
+    // 電腦版保留 V103 其他管理頁，但仍依原本權限控管，不顯示於手機底部選單
+    return oldCanSeePage ? oldCanSeePage(page) : false;
+  };
+  window.v105ApplyNav=function(){
+    if(!currentUser)return;
+    const allowed=window.v105AllowedPages();
+    document.querySelectorAll('.bottom-nav .navbtn').forEach(btn=>{
+      const page=btn.dataset.page;
+      btn.classList.toggle('role-hidden', !allowed.includes(page));
+    });
+    // 桌機側邊欄：保留 V103 功能，但正式主要頁依權限顯示
+    document.querySelectorAll('.side .navbtn').forEach(btn=>{
+      const page=btn.dataset.page;
+      if(['calendar','fieldCalendar','mobile','today','reports','line'].includes(page)){
+        btn.classList.toggle('role-hidden', !allowed.includes(page));
+      }
+    });
+    const active=document.querySelector('.navbtn.active');
+    if(active && active.classList.contains('role-hidden')){
+      const first=[...document.querySelectorAll('.navbtn')].find(b=>!b.classList.contains('role-hidden'));
+      if(first) first.click();
     }
-    return 'all';
-  }
-  return null;
-}
-deleteEvent=function(){
-  if(!canDelete())return toast('只有管理員可以刪除行程');
-  const id=$('eventId').value;
-  const e=state.events.find(x=>x.id===id);
-  if(!e)return;
-  const seriesEvents=(e.seriesId?state.events.filter(x=>!x.deleted&&x.seriesId===e.seriesId).sort((a,b)=>a.startDate.localeCompare(b.startDate)):[]);
-  let scope='single';
-  let targets=[e];
-  if(seriesEvents.length>1){
-    const selected=v105DeleteConfirmByScope(e.name,seriesEvents.length,e.startDate);
-    if(!selected)return;
-    scope=selected;
-    if(scope==='single')targets=[e];
-    if(scope==='future')targets=seriesEvents.filter(x=>x.startDate>=e.startDate);
-    if(scope==='all')targets=seriesEvents;
-  }else{
-    if(!confirm(`確認刪除「${e.name}」這筆行程？`))return;
-  }
-  const now=new Date().toISOString();
-  const scopeText=scope==='single'?'僅刪除這天':scope==='future'?'刪除今日起後續行程':'刪除全部行程';
-  const firstBefore=clone(e);
-  targets.forEach(t=>{
-    Object.assign(t,{deleted:true,status:'取消',deletedBy:currentUser.id,deletedAt:now,deleteReason:'',deleteScope:scopeText,updatedBy:currentUser.id,updatedAt:now});
-    addLog('刪除',t.id,t.name,'deleted','false',`true，範圍：${scopeText}`)
-  });
-  state.lastLineText=lineMessage('刪除',e,firstBefore)+`\n刪除範圍：${scopeText}\n刪除筆數：${targets.length}`;
-  save();
-  closeEventModal();
-  renderAll();
-  toast(`已刪除 ${targets.length} 筆，後台仍保留資料`);
-};
-const _v105DeleteFieldEvent=deleteFieldEvent;
-deleteFieldEvent=function(){
-  if(!canDelete())return toast('目前權限不可刪除');
-  const id=$('editFieldId').value;
-  const e=(state.externalEvents||[]).find(x=>x.id===id);
-  if(!e)return;
-  if(!confirm(`確認刪除此筆外務行程？\n\n刪除後會同步取消一般行事曆中的對應行程。`))return;
-  _v105DeleteFieldEvent();
-};
+  };
+  const oldRenderAll=renderAll;
+  renderAll=function(){ oldRenderAll(); window.v105ApplyNav(); };
+
+  // 一般行程刪除：沿用 V103 軟刪除，增加「刪除全部 >20 筆需輸入 DELETE」防呆
+  const oldDeleteEvent=deleteEvent;
+  deleteEvent=function(){
+    const id=$('eventId').value; const e=state.events.find(x=>x.id===id); if(!e)return oldDeleteEvent();
+    const group=e.repeatGroupId||e.repeat_group_id||null;
+    if(group){
+      const series=state.events.filter(x=>!x.deleted && (x.repeatGroupId===group || x.repeat_group_id===group)).sort((a,b)=>String(a.startDate).localeCompare(String(b.startDate)));
+      if(series.length>1){
+        const choice=prompt(`此行程為重複行程，請選擇刪除方式：\n1：僅刪除這天\n2：刪除今日起後續行程\n3：刪除全部行程\n\n請輸入 1、2 或 3：`,'1');
+        if(!choice)return toast('已取消刪除');
+        let targets=[]; let scopeText='';
+        if(choice==='1'){targets=[e]; scopeText='僅刪除這天';}
+        else if(choice==='2'){targets=series.filter(x=>String(x.startDate)>=String(e.startDate)); scopeText='刪除今日起後續行程';}
+        else if(choice==='3'){targets=series; scopeText='刪除全部行程';}
+        else return toast('已取消刪除：請輸入 1、2 或 3');
+        if(choice==='3'){
+          if(!confirm(`確認刪除全部行程？\n\n共 ${targets.length} 筆資料將被刪除。`))return;
+          if(targets.length>20){ const code=prompt(`共 ${targets.length} 筆行程即將刪除。\n請輸入 DELETE 確認刪除：`,''); if(code!=='DELETE')return toast('已取消刪除'); }
+        } else if(!confirm(`確認${scopeText}？\n共 ${targets.length} 筆資料。`))return;
+        targets.forEach(t=>{const before=clone(t); t.deleted=true; t.deleteReason=scopeText; t.updatedBy=currentUser.id; t.updatedAt=new Date().toISOString(); addLog('刪除',t.id,t.name,'deleted','false',`true，範圍：${scopeText}`)});
+        state.lastLineText=lineMessage('刪除',e,clone(e))+`\n刪除範圍：${scopeText}\n刪除筆數：${targets.length}`;
+        save(); $('eventModal').classList.add('hide'); renderAll(); toast(`已刪除 ${targets.length} 筆`); return;
+      }
+    }
+    return oldDeleteEvent();
+  };
+
+  // 外務行程刪除：同步一般行事曆，並支援重複系列三選項
+  const oldDeleteFieldEvent=deleteFieldEvent;
+  deleteFieldEvent=function(){
+    const id=$('editFieldId').value; const e=(state.externalEvents||[]).find(x=>x.id===id); if(!e)return oldDeleteFieldEvent();
+    if(!canDelete())return toast('目前權限不可刪除');
+    const group=e.repeatGroupId||e.repeat_group_id||e.seriesId||null;
+    let targets=[e], scopeText='僅刪除這天';
+    if(group){
+      const series=(state.externalEvents||[]).filter(x=>!x.deleted&&(x.repeatGroupId===group||x.repeat_group_id===group||x.seriesId===group)).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+      if(series.length>1){
+        const choice=prompt(`此外務行程為重複行程，請選擇刪除方式：\n1：僅刪除這天\n2：刪除今日起後續行程\n3：刪除全部行程\n\n請輸入 1、2 或 3：`,'1');
+        if(!choice)return toast('已取消刪除');
+        if(choice==='1'){targets=[e]; scopeText='僅刪除這天';}
+        else if(choice==='2'){targets=series.filter(x=>String(x.date)>=String(e.date)); scopeText='刪除今日起後續行程';}
+        else if(choice==='3'){targets=series; scopeText='刪除全部行程';}
+        else return toast('已取消刪除：請輸入 1、2 或 3');
+      }
+    }
+    if(scopeText==='刪除全部行程'){
+      if(!confirm(`確認刪除全部外務行程？\n\n共 ${targets.length} 筆資料將被刪除。`))return;
+      if(targets.length>20){ const code=prompt(`共 ${targets.length} 筆外務行程即將刪除。\n請輸入 DELETE 確認刪除：`,''); if(code!=='DELETE')return toast('已取消刪除'); }
+    }else if(!confirm(`確認${scopeText}？\n共 ${targets.length} 筆外務行程。`))return;
+    targets.forEach(t=>{
+      t.deleted=true; t.deleteReason=scopeText; t.updatedBy=currentUser.id; t.updatedAt=new Date().toISOString();
+      const main=state.events.find(x=>x.externalEventId===t.id); const before=main?clone(main):null;
+      if(main){main.deleted=true; main.deleteReason=scopeText; main.updatedBy=currentUser.id; main.updatedAt=new Date().toISOString(); state.lastLineText=lineMessage('刪除',main,before);}
+      addLog('刪除','外務行程',t.purpose||t.locationName||'外務行程','外務行程','顯示',`已刪除，範圍：${scopeText}`);
+    });
+    save(); $('fieldModal').classList.add('hide'); renderAll(); toast(`已刪除 ${targets.length} 筆外務行程，並同步取消一般行事曆`);
+  };
+})();
 
 try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bindUI();bindExternalUI();/* V75：為避免看不到登入頁，取消自動登入；請每次由登入頁進入。 */ safeRemoveSession(); $('loginView')&&$('loginView').classList.remove('hide'); $('appView')&&$('appView').classList.add('hide');}catch(err){console.error(err); document.body.innerHTML='<div style="padding:24px;font-family:Arial"><h2>系統載入錯誤</h2><p>'+esc(err.message)+'</p><button onclick="localStorage.clear();location.reload()">清除暫存並重新載入</button></div>'}
 })();
