@@ -1,0 +1,27 @@
+FOR-e 共享排程系統 V103 正式版部署檢查表
+
+1. Supabase
+[ ] New Project 已建立
+[ ] Project URL 已複製
+[ ] Publishable / anon key 已複製
+[ ] Secret key 已建立並保存
+[ ] SQL Editor 已執行 supabase/schema.sql
+[ ] Table Editor 看得到資料表
+
+2. GitHub
+[ ] 新增 repository
+[ ] 上傳本專案所有檔案
+
+3. Vercel
+[ ] Import Git Repository
+[ ] Framework 偵測為 Next.js
+[ ] 已填環境變數：NEXT_PUBLIC_SUPABASE_URL
+[ ] 已填環境變數：NEXT_PUBLIC_SUPABASE_ANON_KEY
+[ ] 已填環境變數：SUPABASE_SERVICE_ROLE_KEY
+[ ] Deploy 成功
+
+4. 上線前
+[ ] 建立管理員帳號
+[ ] 匯入人員名單
+[ ] 檢查一般行事曆與外務行事曆流程
+[ ] LINE 通知第二階段設定
