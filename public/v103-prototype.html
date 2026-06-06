@@ -2067,6 +2067,83 @@ window.openIncidentModal=openIncidentModal; window.quickIncidentLog=quickInciden
   };
 })();
 
+
+
+/* V105 修正：異況下次追蹤同步到負責人/協助者行事曆、當天提醒、一般/外務自動定位登入者列 */
+(function(){
+  function v105CurrentPid(){try{return currentPersonIdSafe&&currentPersonIdSafe()||userPersonId&&userPersonId()||''}catch(e){return currentUser&&currentUser.personId||''}}
+  function v105IncidentReminderPeople(inc){return [...new Set([inc&&inc.ownerPersonId,...((inc&&inc.helperPersonIds)||[])].filter(Boolean))]}
+  function v105EnsureIncidentFollowEvent(inc){
+    try{
+      if(!inc||inc.deleted||!inc.nextFollowDate)return null;
+      if(inc.status==='已結案'||inc.status==='取消 / 誤登')return null;
+      const people=v105IncidentReminderPeople(inc);
+      if(!people.length)return null;
+      state.events=Array.isArray(state.events)?state.events:[];
+      const id='incident_follow_'+inc.id;
+      const now=new Date().toISOString();
+      let e=state.events.find(x=>x.id===id);
+      const base={
+        kind:'schedule',status:(e&&e.status&&e.status!=='取消')?e.status:'未完成',
+        startDate:inc.nextFollowDate,endDate:inc.nextFollowDate,startTime:inc.nextFollowTime||'上午',endTime:'',
+        type:'提醒事項',name:'異況追蹤：'+(inc.title||inc.workerName||inc.incidentType||''),
+        locationName:inc.customerName||'',address:inc.location||'',vehicleNo:'',meetingRoom:'不指定',
+        participants:people,assigneeIds:people,
+        note:'請追蹤異況案件，完成後新增追蹤紀錄或更新狀態。',
+        sourceType:'incidentFollow',sourceIncidentId:inc.id,sourceIncidentLogId:e&&e.sourceIncidentLogId||'',
+        incidentOwnerPersonId:inc.ownerPersonId,incidentHelperPersonIds:inc.helperPersonIds||[],
+        deleted:false,updatedBy:currentUser?currentUser.id:(inc.updatedBy||'u_admin'),updatedAt:now
+      };
+      if(e){Object.assign(e,base);}
+      else{e=Object.assign({id,seriesId:'',seriesIndex:0,createdBy:currentUser?currentUser.id:(inc.createdBy||'u_admin'),createdAt:now},base);state.events.push(e);}
+      return e;
+    }catch(err){console.warn('v105EnsureIncidentFollowEvent failed',err);return null;}
+  }
+  function v105SyncIncidentFollowEvents(){
+    try{
+      if(!state||!Array.isArray(state.incidents))return;
+      let changed=false;
+      state.incidents.forEach(inc=>{
+        const before=JSON.stringify((state.events||[]).find(e=>e.id==='incident_follow_'+inc.id)||null);
+        const ev=v105EnsureIncidentFollowEvent(inc);
+        const after=JSON.stringify((state.events||[]).find(e=>e.id==='incident_follow_'+inc.id)||null);
+        if(before!==after)changed=true;
+      });
+      if(changed&&typeof save==='function')save();
+    }catch(err){console.warn('v105SyncIncidentFollowEvents failed',err);}
+  }
+  const _v105RenderAllSync=renderAll;
+  renderAll=function(){v105SyncIncidentFollowEvents();_v105RenderAllSync();};
+  const _v105RenderIncidentsSync=renderIncidents;
+  renderIncidents=function(){v105SyncIncidentFollowEvents();_v105RenderIncidentsSync();};
+  const _v105SaveIncidentSync=saveIncident;
+  saveIncident=function(){_v105SaveIncidentSync();setTimeout(()=>{v105SyncIncidentFollowEvents();renderAll();},30);};
+  const _v105AddIncidentLogSync=addIncidentLog;
+  addIncidentLog=function(){_v105AddIncidentLogSync();setTimeout(()=>{v105SyncIncidentFollowEvents();renderAll();},30);};
+
+  function v105ScrollWrapToPersonAndToday(wrapSelector, areaSelector, dateAttr, personAttr, rowSelector){
+    try{
+      const wrap=document.querySelector(wrapSelector); if(!wrap)return;
+      const today=todayISO(); const pid=v105CurrentPid();
+      const cell=document.querySelector(`${areaSelector} .day-cell[${dateAttr}="${today}"]`)||document.querySelector(`${areaSelector} .day-cell.today, ${areaSelector} th.today`);
+      const sticky=document.querySelector(`${areaSelector} .person-head`)||document.querySelector(`${areaSelector} .person-cell`);
+      const stickyW=sticky?sticky.offsetWidth:0;
+      if(cell)wrap.scrollLeft=Math.max(0,cell.offsetLeft-stickyW-6);
+      let row=null;
+      if(pid){
+        row=document.querySelector(`${areaSelector} ${rowSelector}[data-person-id="${pid}"]`)||document.querySelector(`${areaSelector} [${personAttr}="${pid}"]`)?.closest('tr');
+      }
+      if(row){
+        const head=document.querySelector(`${areaSelector} thead`);
+        const headH=head?head.offsetHeight:0;
+        wrap.scrollTop=Math.max(0,row.offsetTop-headH-8);
+      }
+    }catch(err){console.warn('v105ScrollWrapToPersonAndToday failed',err);}
+  }
+  scrollCalendarToToday=function(){v105ScrollWrapToPersonAndToday('#calendarArea .calendar-wrap','#calendarArea','data-date','data-person','tr');};
+  scrollFieldCalendarToToday=function(){v105ScrollWrapToPersonAndToday('#fieldCalendarArea .calendar-wrap','#fieldCalendarArea','data-field-date','data-field-person','tr');};
+})();
+
 try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bindUI();bindExternalUI();/* V75：為避免看不到登入頁，取消自動登入；請每次由登入頁進入。 */ safeRemoveSession(); $('loginView')&&$('loginView').classList.remove('hide'); $('appView')&&$('appView').classList.add('hide');}catch(err){console.error(err); document.body.innerHTML='<div style="padding:24px;font-family:Arial"><h2>系統載入錯誤</h2><p>'+esc(err.message)+'</p><button onclick="localStorage.clear();location.reload()">清除暫存並重新載入</button></div>'}
 })();
 
