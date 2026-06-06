@@ -58,8 +58,7 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 <section id="fieldDetailsPage" class="page hide"><div class="panel"><div class="section-title"><h2>外務明細</h2><div class="toolbar"><button id="refreshFieldDetails" class="primary">重新整理</button><button id="exportFieldDetailsBtn">匯出外務明細 CSV</button></div></div><div class="toolbar"><label class="muted">起日</label><input id="fieldDetailStart" type="date" class="mini"><label class="muted">迄日</label><input id="fieldDetailEnd" type="date" class="mini"><select id="fieldDetailPerson" class="mini"><option value="">全部人員</option></select><select id="fieldDetailPurpose" class="mini"><option value="">全部目的</option></select><select id="fieldDetailLocation" class="mini"><option value="">全部地點</option></select><select id="fieldDetailStatus" class="mini"><option value="">全部狀態</option></select><input id="fieldDetailKeyword" class="mini" placeholder="內容/地址/關鍵字"><select id="fieldDetailSortBy" class="mini"><option value="date">依日期</option><option value="person">依人員</option><option value="purpose">依目的</option><option value="location">依地點</option><option value="status">依狀態</option></select><select id="fieldDetailSortDir" class="mini"><option value="asc">遞增</option><option value="desc">遞減</option></select><button id="applyFieldDetailSort" class="primary">一鍵排序</button><button id="clearFieldDetails">清除</button></div><div class="muted" style="margin-top:8px">顯示外務行事曆全部明細，可依日期、人員、地點、目的、狀態篩選；可用一鍵排序依所選欄位排列。</div></div><div class="panel"><div id="fieldDetailStats" class="statgrid"></div></div><div class="panel"><div style="overflow:auto"><table class="table"><thead><tr><th>日期</th><th>時間</th><th>人員</th><th>目的</th><th>地點</th><th>地址</th><th>狀態</th><th>內容</th><th>特殊提醒</th><th>現金</th><th>印章</th><th>證件</th><th>下一次領件</th><th>送件失敗原因</th></tr></thead><tbody id="fieldDetailRows"></tbody></table></div></div></section>
 <section id="personalDetailsPage" class="page hide"><div class="panel"><div class="section-title"><h2>個人行程明細｜一般行事曆</h2><div class="toolbar"><button id="refreshPersonalDetails" class="primary">重新整理</button><button id="exportPersonalDetailsBtn">匯出個人行程 CSV</button></div></div><div class="toolbar"><label class="muted">起日</label><input id="personalDetailStart" type="date" class="mini"><label class="muted">迄日</label><input id="personalDetailEnd" type="date" class="mini"><select id="personalDetailPerson" class="mini"><option value="">全部人員</option></select><select id="personalDetailType" class="mini"><option value="">全部行程類型</option></select><select id="personalDetailStatus" class="mini"><option value="">全部狀態</option><option>未完成</option><option>已完成</option><option>取消</option></select><input id="personalDetailKeyword" class="mini" placeholder="客戶/地點/行程名稱/行程內容"><select id="personalDetailSortBy" class="mini"><option value="date">依日期</option><option value="person">依人員</option><option value="type">依行程類型</option><option value="status">依狀態</option><option value="location">依客戶/地點</option></select><select id="personalDetailSortDir" class="mini"><option value="asc">遞增</option><option value="desc">遞減</option></select><button id="applyPersonalDetailSort" class="primary">一鍵排序</button><button id="clearPersonalDetails">清除</button></div><div class="muted" style="margin-top:8px">顯示一般行事曆明細，可依日期區間、人員、行程類型、狀態與關鍵字篩選。</div></div><div class="panel"><div id="personalDetailStats" class="statgrid"></div></div><div class="panel"><div style="overflow:auto"><table class="table"><thead><tr><th>日期</th><th>時間</th><th>人員</th><th>類別</th><th>行程類型</th><th>附加行程</th><th>客戶/地點</th><th>行程名稱</th><th>狀態</th><th>行程內容</th><th>公務車</th><th>服務紀錄單</th></tr></thead><tbody id="personalDetailRows"></tbody></table></div></div></section>
 <section id="mobilePage" class="page hide"><div class="mobile-hero"><div class="muted">PWA 手機版</div><h2 id="mobileHello">我的行程</h2><div id="mobileUserInfo" class="muted"></div><div class="install-tip">手機使用方式：用瀏覽器開啟後，選擇「加入主畫面」，即可像 APP 一樣開啟。</div></div><div class="panel"><div class="mobile-filter"><div><label>查看人員</label><select id="mobilePerson"></select></div><div><label>日期</label><input id="mobileDate" type="date"></div></div><div class="mobile-actions"><button id="mobileToday" class="primary">今天</button><button id="mobileTomorrow">明天</button><button id="mobileWeek">本週</button><button id="mobileAddEvent">新增行程</button></div><div id="mobileStats" class="statgrid"></div></div><div id="mobileList"></div></section>
-<section id="todayPage" class="page hide"><div class="panel"><div class="section-title"><h2>今日行程總覽</h2><button id="refreshToday">重新整理</button></div><div id="todayStats" class="statgrid"></div></div><div class="panel"><table class="table"><thead><tr><th>時間</th><th>相關人員</th><th>客戶/地點</th><th>公務車</th><th>類型</th><th>名稱</th><th>狀態</th></tr></thead><tbody id="todayRows"></tbody></table></div></section>
-
+<section id="todayPage" class="page hide"><div class="panel"><div class="section-title"><h2>今日行程總覽</h2><button id="refreshToday">重新整理</button></div><div id="todayStats" class="statgrid"></div></div><div id="mobileAlertPanel" class="panel"><div class="section-title"><h2>提醒通知</h2></div><div id="mobileAlertRows"></div></div><div class="panel"><table class="table"><thead><tr><th>時間</th><th>相關人員</th><th>客戶/地點</th><th>公務車</th><th>類型</th><th>名稱</th><th>狀態</th></tr></thead><tbody id="todayRows"></tbody></table></div></section>
 <section id="reportsPage" class="page hide"><div class="panel"><div class="section-title"><h2>統計報表｜每月/年度行程總數與分類總數</h2><div class="toolbar"><button id="calcReportBtn" class="primary">產生統計</button><button id="saveReportBtn">記錄本次統計</button><button id="exportReportBtn">匯出統計 CSV</button></div></div><div class="toolbar"><label class="muted">統計年月</label><input id="reportMonth" type="month" class="mini"><label class="muted">統計年度</label><input id="reportYear" type="number" class="mini" min="2024" max="2035" step="1"><select id="reportGroup" class="mini"></select><select id="reportPerson" class="mini"></select></div><div class="muted" style="margin-top:8px">統計方式：依行事曆實際顯示計算；同一行程若跨多日，會依每日各計 1 次；同一行程若顯示在新增者與執行者兩人行事曆，兩人各計 1 次。已刪除行程不列入，取消行程會列入狀態統計。</div></div><div class="panel"><h2>月統計總覽</h2><div id="reportMonthStats" class="statgrid"></div><div class="chart-grid"><div><h3>月分類圓餅圖</h3><canvas id="monthPieChart" width="360" height="260"></canvas></div><div><h3>年度每月曲線圖</h3><canvas id="yearLineChart" width="520" height="260"></canvas></div></div></div><div class="panel"><div class="section-title"><h2>每人每月行程總數與分類總數</h2></div><div style="overflow:auto"><table class="table"><thead id="reportMonthHead"></thead><tbody id="reportMonthRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>一部翻譯 / 二部翻譯 月數據與總計</h2></div><div style="overflow:auto"><table class="table"><thead id="reportMonthDeptHead"></thead><tbody id="reportMonthDeptRows"></tbody></table></div></div><div class="panel"><h2>年度統計總覽</h2><div id="reportYearStats" class="statgrid"></div><div class="chart-grid"><div><h3>年度分類圓餅圖</h3><canvas id="yearPieChart" width="360" height="260"></canvas></div></div></div><div class="panel"><div class="section-title"><h2>每人年度行程總數與分類總數</h2></div><div style="overflow:auto"><table class="table"><thead id="reportYearHead"></thead><tbody id="reportYearRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>一部翻譯 / 二部翻譯 年數據與總計</h2></div><div style="overflow:auto"><table class="table"><thead id="reportYearDeptHead"></thead><tbody id="reportYearDeptRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>服務紀錄單繳交狀況</h2><span class="muted">只統計一部翻譯 / 二部翻譯的四國翻譯與越南/舍監。</span></div><div class="statgrid" id="serviceOverviewStats"></div><h3>當月各人繳交狀況</h3><div style="overflow:auto"><table class="table"><thead id="serviceMonthHead"></thead><tbody id="serviceMonthRows"></tbody></table></div><h3>當年各人繳交狀況</h3><div style="overflow:auto"><table class="table"><thead id="serviceYearHead"></thead><tbody id="serviceYearRows"></tbody></table></div><h3>一部翻譯 / 二部翻譯繳交狀況</h3><div style="overflow:auto"><table class="table"><thead id="serviceDeptHead"></thead><tbody id="serviceDeptRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>外務行程數據｜目的、地點、趟數</h2><span class="muted">依照外務行事曆資料計算，可依上方月份與年度切換。</span></div><div id="fieldReportStats" class="statgrid"></div><div class="chart-grid"><div><h3>當月目的圓餅圖</h3><canvas id="fieldMonthPurposePie" width="620" height="320"></canvas></div><div><h3>當月地點圓餅圖</h3><canvas id="fieldMonthLocationPie" width="620" height="320"></canvas></div><div><h3>年度目的圓餅圖</h3><canvas id="fieldYearPurposePie" width="620" height="320"></canvas></div><div><h3>年度地點圓餅圖</h3><canvas id="fieldYearLocationPie" width="620" height="320"></canvas></div><div class="wide-chart"><h3>年度每月外務趟數曲線圖</h3><canvas id="fieldYearMonthlyLine" width="1100" height="440"></canvas></div></div><h3>送件狀況紀錄｜當月</h3><div style="overflow:auto"><table class="table"><thead><tr><th>狀態</th><th>趟數</th></tr></thead><tbody id="fieldMonthStatusRows"></tbody></table></div><h3>送件狀況紀錄｜年度</h3><div style="overflow:auto"><table class="table"><thead><tr><th>狀態</th><th>趟數</th></tr></thead><tbody id="fieldYearStatusRows"></tbody></table></div><h3>當月各人員外務趟數明細</h3><div style="overflow:auto"><table class="table"><thead><tr><th>部門</th><th>人員</th><th>趟數</th></tr></thead><tbody id="fieldMonthReportRows"></tbody></table></div><h3>年度各人員外務趟數明細</h3><div style="overflow:auto"><table class="table"><thead><tr><th>部門</th><th>人員</th><th>趟數</th></tr></thead><tbody id="fieldYearReportRows"></tbody></table></div><h3>當月各地點外務趟數</h3><div style="overflow:auto"><table class="table"><thead><tr><th>地點</th><th>趟數</th></tr></thead><tbody id="fieldMonthLocationRows"></tbody></table></div><h3>年度各地點外務趟數</h3><div style="overflow:auto"><table class="table"><thead><tr><th>地點</th><th>趟數</th></tr></thead><tbody id="fieldYearLocationRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>已記錄的統計快照</h2><span class="muted">點「記錄本次統計」後會保留當下統計結果。</span></div><table class="table"><thead><tr><th>記錄時間</th><th>記錄人</th><th>統計月份</th><th>年度</th><th>月總數</th><th>年總數</th></tr></thead><tbody id="reportSnapshotRows"></tbody></table></div></section>
 
 <section id="auditPage" class="page hide"><div class="panel"><div class="section-title"><h2>操作紀錄 Audit Log</h2><button id="exportLogBtn">匯出紀錄 CSV</button></div><table class="table"><thead><tr><th>時間</th><th>操作人</th><th>動作</th><th>行程</th><th>欄位</th><th>修改前</th><th>修改後</th></tr></thead><tbody id="auditRows"></tbody></table></div></section>
@@ -77,7 +76,24 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 (function(){'use strict';
 const KEY='translator_calendar_v81'; const $=id=>document.getElementById(id);
 const defaultEventTypes=['外務','醫療(看診、回診、住院、急診、開刀)','收送簽文件(證件、用印、簽文件)','銀行(開戶、補辦、領錢、異動)','定期 (開會)','送工(新入境、承接)','車禍處理(做筆錄、現場協調、和解、出庭)','面談','其他','逃跑通知','轉出追蹤','住變資訊','視訊/面試','上線/教育訓練','宿舍','返台提醒'];
-const alertEventTypes=['逃跑通知','轉出追蹤','住變資訊'];
+const alertEventTypes=['逃跑通知','轉出追蹤','住變資訊','返台提醒'];
+const defaultEventTypeContents = {
+  '逃跑通知': ['逃跑通報', '失聯追蹤', '警察局通知', '雇主通知'],
+  '轉出追蹤': ['轉出期滿', '協調會提醒', '媒合期追蹤', '承接日期提醒'],
+  '住變資訊': ['住宿地址變更', '住變文件提醒', '宿舍異動通知'],
+  '返台提醒': ['返台日期提醒', '居留效期提醒', '重入國提醒'],
+  '外務': ['送件', '補件', '領件', '其他外務'],
+  '醫療(看診、回診、住院、急診、開刀)': ['看診', '回診', '住院', '急診', '開刀'],
+  '收送簽文件(證件、用印、簽文件)': ['收件', '送件', '用印', '簽文件'],
+  '銀行(開戶、補辦、領錢、異動)': ['開戶', '補辦', '領錢', '資料異動'],
+  '定期 (開會)': ['內部會議', '客戶會議', '勞資會議'],
+  '送工(新入境、承接)': ['新入境送工', '承接送工'],
+  '車禍處理(做筆錄、現場協調、和解、出庭)': ['做筆錄', '現場協調', '和解', '出庭'],
+  '面談': ['工人面談', '雇主面談', '三方面談'],
+  '其他': ['其他'],
+  '視訊/面試': ['視訊', '面試'],
+  '上線/教育訓練': ['上線說明', '教育訓練'],
+  '宿舍': ['宿舍巡檢', '宿舍異常處理', '宿舍入住', '宿舍遷出']};
 const timeOptions=[{value:'',label:'不指定'},{value:'整天',label:'整天'},{value:'上午',label:'上午'},{value:'下午',label:'下午'}]; for(let h=7; h<=22; h++){ for(const m of [0,30]){ const hh=String(h).padStart(2,'0'), mm=String(m).padStart(2,'0'); timeOptions.push({value:`${hh}:${mm}`,label:`${hh}:${mm}`}); }}
 const defaultTranslatorStatusTypes=['請假','外訓','會議','返鄉','上課'];
 const defaultLangs=['泰國','印尼','菲律賓','越南','越南/舍監','宿管','宿管/外務','主管','管理員','海外','其他'];
@@ -191,7 +207,36 @@ function toast(t){let el=$('toast'); if(!el){el=document.createElement('div');el
 function copyText(text){ try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(function(){toast('已複製')}).catch(function(){fallbackCopy(text)}); } else { fallbackCopy(text); } }catch(e){fallbackCopy(text)} }
 function fallbackCopy(text){ var ta=document.createElement('textarea'); ta.value=text||''; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.focus(); ta.select(); try{document.execCommand('copy'); toast('已複製');}catch(e){toast('請手動複製');} document.body.removeChild(ta); }
 function defaultState(){return {users:[{id:'u_admin',name:'Demo ＺoeSu',email:'admin@demo.com',password:'123456',role:'admin',personId:'p20'},{id:'u_supervisor',name:'Demo 主管',email:'supervisor@demo.com',password:'123456',role:'supervisor',personId:'p15'},{id:'u_admin_staff',name:'Demo 行政',email:'admin_staff@demo.com',password:'123456',role:'admin_staff',personId:'p19'},{id:'u_staff',name:'Demo 一般人員',email:'staff@demo.com',password:'123456',role:'staff',personId:'p03'}],people:[{id:'p01',name:'廖明珮',group:'一部翻譯',lang:'泰國',active:true},{id:'p02',name:'王愛珠',group:'一部翻譯',lang:'印尼',active:true},{id:'p03',name:'范武薔薇',group:'一部翻譯',lang:'越南',active:true},{id:'p04',name:'賴黃娟',group:'一部翻譯',lang:'越南',active:true},{id:'p05',name:'黃氏玄莊',group:'一部翻譯',lang:'越南/舍監',active:true},{id:'p06',name:'賴育賢',group:'一部翻譯',lang:'宿管',active:true},{id:'p07',name:'武俊平',group:'一部翻譯',lang:'宿管/外務',active:true},{id:'p08',name:'陳恩文',group:'二部翻譯',lang:'泰國',active:true},{id:'p09',name:'卓晶晶',group:'二部翻譯',lang:'印尼',active:true},{id:'p10',name:'施明金',group:'二部翻譯',lang:'菲律賓',active:true},{id:'p11',name:'阮氏芳',group:'二部翻譯',lang:'越南',active:true},{id:'p12',name:'吳氏何江',group:'二部翻譯',lang:'越南',active:true},{id:'p13',name:'范紅等',group:'二部翻譯',lang:'越南/舍監',active:true},{id:'p14',name:'李秀玲',group:'二部翻譯',lang:'越南',active:true},{id:'p15',name:'劉月琪',group:'一部翻譯',lang:'主管',active:true},{id:'p16',name:'鄧玉荷',group:'二部翻譯',lang:'主管',active:true},{id:'p17',name:'貓姐',group:'豐海',lang:'-',active:true},{id:'p18',name:'黃靖懿',group:'營運處',lang:'管理員',active:true},{id:'p19',name:'黃明書',group:'營運處',lang:'管理員',active:true},{id:'p20',name:'蘇若儀',group:'營運處',lang:'管理員',active:true},{id:'p21',name:'林宜霈',group:'一部翻譯',lang:'海外',active:true},{id:'p22',name:'阮越偉',group:'二部翻譯',lang:'海外',active:true}],events:[],logs:[],settings:{airtableBase:'',airtableTable:'Schedules',webhookUrl:'',lineMemo:''},options:{eventTypes:defaultEventTypes,translatorStatusTypes:defaultTranslatorStatusTypes,langs:defaultLangs,groups:['一部翻譯','二部翻譯','豐海','營運處','管理','未分組'],categoryLabels:defaultCategoryLabels,vehicleNumbers:defaultVehicleNumbers},lastLineText:'尚未產生通知文字。',theme:clone(defaultTheme),reportSnapshots:[]}}
-function load(reset=false){if(reset){localStorage.removeItem(KEY);localStorage.removeItem(KEY+'_session')} const raw=localStorage.getItem(KEY); if(raw){try{state=JSON.parse(raw)}catch(e){state=defaultState()}}else state=defaultState(); if(!state.options)state.options={eventTypes:defaultEventTypes,translatorStatusTypes:defaultTranslatorStatusTypes,langs:defaultLangs,groups:[...new Set((state.people||[]).map(p=>p.group).filter(Boolean))],rooms:defaultRooms,categoryLabels:defaultCategoryLabels}; (state.users||[]).forEach(u=>{if(u.active===undefined)u.active=true;if(u.deleted===undefined)u.deleted=false}); (state.people||[]).forEach(p=>{if(p.active===undefined)p.active=true;if(p.deleted===undefined)p.deleted=false}); (state.people||[]).forEach(p=>{
+function load(reset=false){if(reset){localStorage.removeItem(KEY);localStorage.removeItem(KEY+'_session')} const raw=localStorage.getItem(KEY); if(raw){try{state=JSON.parse(raw)}catch(e){state=defaultState()}}else state=defaultState(); if(!state.options)state.options={eventTypes:defaultEventTypes,eventTypeContents:defaultEventTypeContents,alertEventTypes:alertEventTypes,translatorStatusTypes:defaultTranslatorStatusTypes,langs:defaultLangs,groups:[...new Set((state.people||[]).map(p=>p.group).filter(Boolean))],rooms:defaultRooms,categoryLabels:defaultCategoryLabels};if(!state.options.eventTypes)state.options.eventTypes=defaultEventTypes;if(!state.options.eventTypeContents)state.options.eventTypeContents=defaultEventTypeContents;if(!state.options.eventTypes){
+  state.options.eventTypes = defaultEventTypes;
+}
+
+if(!state.options.eventTypeContents){
+  state.options.eventTypeContents = defaultEventTypeContents;
+}
+
+if(!state.options.alertEventTypes){
+  state.options.alertEventTypes = alertEventTypes;
+}
+
+state.options.eventTypes = [
+  ...new Set([
+    ...(state.options.eventTypes || []),
+    ...defaultEventTypes
+  ])
+];
+
+state.options.alertEventTypes = [
+  ...new Set([
+    ...(state.options.alertEventTypes || []),
+    ...alertEventTypes
+  ])
+];
+
+state.options.eventTypeContents = {
+  ...defaultEventTypeContents,
+  ...(state.options.eventTypeContents || {})
+}; (state.users||[]).forEach(u=>{if(u.active===undefined)u.active=true;if(u.deleted===undefined)u.deleted=false}); (state.people||[]).forEach(p=>{if(p.active===undefined)p.active=true;if(p.deleted===undefined)p.deleted=false}); (state.people||[]).forEach(p=>{
   const isTranslatorJob=['泰國','菲律賓','印尼','越南','越南/舍監'].includes(p.lang);
   if(isTranslatorJob && p.group==='一部')p.group='一部翻譯';
   if(isTranslatorJob && p.group==='二部')p.group='二部翻譯';
@@ -442,6 +487,65 @@ function mobileTargetPerson(){let pid=$('mobilePerson').value; if(!pid)pid=$('pe
 function renderMobile(){if(!$('mobileDate'))return; if(!$('mobileDate').value)$('mobileDate').value=todayISO(); const currentPid=mobileTargetPerson(); const available=state.people.filter(p=>p.active!==false&&p.deleted!==true&&p.lang!=='管理'); $('mobilePerson').innerHTML=available.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join(''); $('mobilePerson').value=currentPid||''; $('mobilePerson').disabled=false; const person=getPerson(currentPid); $('mobileHello').textContent='APP 個人行程'; $('mobileUserInfo').textContent=`${person.name||''}｜${person.group||''}｜${person.lang||''}`; const base=$('mobileDate').value||todayISO(); const mode=$('mobileList').dataset.mode||'day'; let dates=[]; if(mode==='week'){const dt=new Date(base+'T00:00:00'); const offset=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-offset); for(let i=0;i<7;i++)dates.push(localISO(new Date(dt.getFullYear(),dt.getMonth(),dt.getDate()+i)));} else dates=[base]; let all=[]; dates.forEach(d=>eventsOnDateForPerson(d,currentPid).forEach(e=>all.push({...e,_displayDate:d}))); const counts={行程:all.length,未完成:all.filter(e=>e.status==='未完成').length,已完成:all.filter(e=>e.status==='已完成').length}; $('mobileStats').innerHTML=Object.entries(counts).map(([k,v])=>`<div class="stat"><div class="muted">${k}</div><b>${v}</b></div>`).join(''); if(!all.length){$('mobileList').innerHTML=`<div class="panel"><b>${mode==='week'?'本週':'當日'}無行程</b><div class="muted">可點「新增行程」建立。</div></div>`;return} let html=''; let last=''; for(const e of all.sort((a,b)=>(a._displayDate+a.startTime).localeCompare(b._displayDate+b.startTime))){if(e._displayDate!==last){last=e._displayDate;html+=`<div class="panel" style="margin-bottom:8px"><b>${weekdayFull(last)} ${fmtDate(last)}</b></div>`} const cls=[e.status==='已完成'?'done':'',alertEventTypes.includes(e.type)?'alert':'',translatorStatusClass(e)].join(' '); html+=`<div class="mobile-event-card ${cls}" data-id="${e.id}"><div class="mobile-event-title">${ampm(e.startTime)}｜${esc(displayEventType(e.type))}｜${esc(e.name)}</div><div class="mobile-meta">客戶/地點：${esc(e.locationName||'')}<br>公務車：${esc(e.vehicleNo||'')}<br>狀態：${esc(e.status)}｜最後修改：${esc(getUser(e.updatedBy||e.createdBy).name)}</div><div class="toolbar" style="margin-top:8px"><button onclick="openEventModal({eventId:'${e.id}'});">詳細/修改</button><button onclick="navigator.clipboard?.writeText(\`${esc(detailText(e)).replace(/`/g,'\\`')}\`);">複製內容</button></div></div>`} $('mobileList').innerHTML=html; document.querySelectorAll('.mobile-event-card').forEach(el=>el.ondblclick=()=>openEventModal({eventId:el.dataset.id}))}
 
 function renderToday(){const t=todayISO(); const evs=state.events.filter(e=>!e.deleted&&t>=e.startDate&&t<=e.endDate&&eventMatches(e)); const counts={全部:evs.length,未完成:evs.filter(e=>e.status==='未完成').length,已完成:evs.filter(e=>e.status==='已完成').length,取消:evs.filter(e=>e.status==='取消').length}; $('todayStats').innerHTML=Object.entries(counts).map(([k,v])=>`<div class="stat"><div class="muted">${k}</div><b>${v}</b></div>`).join(''); $('todayRows').innerHTML=evs.map(e=>`<tr><td>${ampm(e.startTime)}</td><td>${e.participants.map(id=>getPerson(id).name).join('、')}</td><td>${esc(e.locationName)}</td><td>${esc(e.vehicleNo||'')}</td><td>${esc(displayEventType(e.type))}</td><td>${esc(e.name)}</td><td>${e.status}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">今日無行程</td></tr>'}
+function renderMobileAlerts(){
+  const box = $('mobileAlertRows');
+  if(!box) return;
+
+  const alertTypes = state.options?.alertEventTypes || alertEventTypes || ['逃跑通知','轉出追蹤','住變資訊','返台提醒'];
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  const alertEvents = (state.events || [])
+    .filter(e => {
+      if(e.deleted === true) return false;
+      if(e.status === '取消') return false;
+
+      const type = e.type || '';
+      if(!alertTypes.includes(type)) return false;
+
+      if(!e.startDate) return false;
+
+      const d = new Date(e.startDate);
+      d.setHours(0,0,0,0);
+
+      const diffDays = Math.floor((d - today) / 86400000);
+
+      // 顯示今天起未來 30 天內的提醒
+      return diffDays >= 0 && diffDays <= 30;
+    })
+    .sort((a,b) => {
+      const ad = `${a.startDate || ''} ${a.startTime || ''}`;
+      const bd = `${b.startDate || ''} ${b.startTime || ''}`;
+      return ad.localeCompare(bd);
+    });
+
+  if(alertEvents.length === 0){
+    box.innerHTML = '<div class="muted">目前沒有提醒通知</div>';
+    return;
+  }
+
+  box.innerHTML = alertEvents.map(e => {
+    const type = e.type || '提醒';
+    const peopleNames = (e.participants || [])
+      .map(id => getPerson(id)?.name || '')
+      .filter(Boolean)
+      .join('、');
+
+    return `
+      <div class="mobile-alert-card">
+        <div class="mobile-alert-title">⚠️ ${esc(displayEventType(type))}</div>
+        <div class="mobile-alert-main">${esc(e.name || '')}</div>
+        <div class="mobile-alert-meta">
+          ${esc(e.startDate || '')} ${esc(e.startTime || '')}
+          ${e.locationName ? `｜${esc(e.locationName)}` : ''}
+        </div>
+        ${peopleNames ? `<div class="mobile-alert-meta">相關人員：${esc(peopleNames)}</div>` : ''}
+        ${e.note ? `<div class="mobile-alert-note">${esc(e.note)}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
 function renderAudit(){let logs=state.logs; if(currentUser.role==='translator')logs=logs.filter(l=>{const e=state.events.find(x=>x.id===l.eventId);return e&&e.participants.includes(userPersonId())}); $('auditRows').innerHTML=logs.map(l=>`<tr><td>${new Date(l.time).toLocaleString('zh-TW')}</td><td>${esc(getUser(l.userId).name)}</td><td>${esc(l.action)}</td><td>${esc(l.eventName)}</td><td>${esc(l.field)}</td><td>${esc(l.before)}</td><td>${esc(l.after)}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">尚無紀錄</td></tr>'}
 function renderLine(){$('lineText').textContent=state.lastLineText||'尚未產生通知文字。'}
 function renderSettings(){$('airtableBase').value=state.settings.airtableBase||'';$('airtableTable').value=state.settings.airtableTable||'Schedules';$('webhookUrl').value=state.settings.webhookUrl||'';$('lineMemo').value=state.settings.lineMemo||''; if($('optEventTypes')){$('optEventTypes').value=eventTypeList().join('\n');$('optTranslatorStatus').value=translatorStatusList().join('\n');$('optLangs').value=langList().join('\n');$('optGroups').value=groupList().join('\n');$('optCategories').value=categoryLabels().join('\n'); if($('optVehicleNumbers'))$('optVehicleNumbers').value=vehicleNumberList().join('\n'); const disabled=!canManageOptions(); ['optEventTypes','optTranslatorStatus','optLangs','optGroups','optCategories','optVehicleNumbers','saveOptions','resetOptions'].forEach(id=>{if($(id))$(id).disabled=disabled});}}
