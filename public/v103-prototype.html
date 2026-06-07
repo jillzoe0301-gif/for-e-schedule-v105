@@ -759,10 +759,38 @@ if(Array.isArray(state.users)){
 if(Array.isArray(state.users)){
   const staffUser = state.users.find(u=>u && String(u.email||'').toLowerCase()==='staff@demo.com');
   if(staffUser){staffUser.name='Demo 翻譯'; staffUser.role='staff'; staffUser.personId=staffUser.personId||'p03';}
-  const adminStaffUser = state.users.find(u=>u && (u.id==='u_adminstaff' || String(u.email||'').toLowerCase()==='admin_staff@demo.com'));
-  if(adminStaffUser){adminStaffUser.name='Demo 行政系'; adminStaffUser.role='adminStaff'; adminStaffUser.personId='p21';}
+  const adminStaffUser = state.users.find(u=>u && (u.id==='u_adminstaff' || String(u.email||'').toLowerCase()==='admin_staff@demo.com' || String(u.email||'').toLowerCase()==='adminstaff@demo.com'));
+  if(adminStaffUser){adminStaffUser.id='u_adminstaff'; adminStaffUser.name='Demo 行政系'; adminStaffUser.email='admin_staff@demo.com'; adminStaffUser.role='adminStaff'; adminStaffUser.personId='p21'; adminStaffUser.deleted=false; adminStaffUser.active=true;}
   const generalUser = state.users.find(u=>u && String(u.email||'').toLowerCase()==='general@demo.com');
   if(generalUser){generalUser.name='Demo 一般人員'; generalUser.role='general'; generalUser.personId='p06';}
+
+  // V105 修正：清除舊版重複產生的 Demo 行政系帳號。
+  // 原因：舊程式用 adminstaff@demo.com 判斷是否存在，但實際帳號是 admin_staff@demo.com，
+  // 每次初始化都會再新增一筆，造成前台刪不乾淨。這裡強制只保留一筆正式行政系帳號。
+  const preferredAdmin = state.users.find(u=>u && (u.id==='u_adminstaff' || String(u.email||'').toLowerCase()==='admin_staff@demo.com' || String(u.email||'').toLowerCase()==='adminstaff@demo.com'));
+  if(preferredAdmin){
+    preferredAdmin.id='u_adminstaff';
+    preferredAdmin.name='Demo 行政系';
+    preferredAdmin.email='admin_staff@demo.com';
+    preferredAdmin.password=preferredAdmin.password||'123456';
+    preferredAdmin.role='adminStaff';
+    preferredAdmin.personId='p21';
+    preferredAdmin.active=true;
+    preferredAdmin.deleted=false;
+    let keptAdmin=false;
+    state.users = state.users.filter(u=>{
+      if(!u)return false;
+      const mail=String(u.email||'').toLowerCase();
+      const isDemoAdminStaff = u.id==='u_adminstaff' || mail==='admin_staff@demo.com' || mail==='adminstaff@demo.com';
+      if(isDemoAdminStaff){
+        if(!keptAdmin && u===preferredAdmin){ keptAdmin=true; return true; }
+        if(!keptAdmin && u.id==='u_adminstaff'){ keptAdmin=true; return true; }
+        return false;
+      }
+      return true;
+    });
+    if(!state.users.includes(preferredAdmin)){ state.users.push(preferredAdmin); }
+  }
 }
 if(Array.isArray(state.people)){
   state.people.forEach(p=>{
@@ -786,7 +814,7 @@ if(Array.isArray(state.people)){
 if(state.options&&Array.isArray(state.options.groups)){
   const needed=['一部翻譯','二部翻譯','一部','二部'];
   state.options.groups=[...new Set([...(state.options.groups||[]),...needed])];
-} if(!state.options.categoryLabels||!state.options.categoryLabels.length)state.options.categoryLabels=defaultCategoryLabels; if(!state.options.vehicleNumbers||!state.options.vehicleNumbers.length)state.options.vehicleNumbers=defaultVehicleNumbers; if(!state.options.eventTypes||!state.options.eventTypes.some(t=>String(t).startsWith('醫療('))||!state.options.eventTypes.includes('視訊/面試')||!state.options.eventTypes.includes('返台提醒'))state.options.eventTypes=defaultEventTypes; if(!state.reportSnapshots)state.reportSnapshots=[]; if(!state.theme)state.theme=clone(defaultTheme); state.theme=Object.assign(clone(defaultTheme),state.theme||{}); state.theme.personOne='#f8ee88'; state.theme.personTwo='#bfe1f6'; state.theme.jobColors=Object.assign({}, defaultTheme.jobColors||{}, (state.theme&&state.theme.jobColors)||{}); applyTheme(); (state.users||[]).forEach(u=>{if(['schedule','dispatcher','translator','sales','viewer'].includes(u.role))u.role='staff'; if(u.role==='options')u.role='admin';}); if(!state.users.some(u=>u.email==='staff@demo.com'))state.users.push({id:'u_staff',name:'Demo 翻譯',email:'staff@demo.com',password:'123456',role:'staff',personId:'p03',active:true,deleted:false}); if(!state.users.some(u=>u.email==='general@demo.com'))state.users.push({id:'u_general',name:'Demo 一般人員',email:'general@demo.com',password:'123456',role:'general',personId:'p18',active:true,deleted:false}); if(!state.users.some(u=>u.email==='adminstaff@demo.com'))state.users.push({id:'u_adminstaff',name:'Demo 行政系',email:'admin_staff@demo.com',password:'123456',role:'adminStaff',personId:'p21',active:true,deleted:false}); if(!state.events.length) seed(); ensureV105FanTestEvents(); save()}
+} if(!state.options.categoryLabels||!state.options.categoryLabels.length)state.options.categoryLabels=defaultCategoryLabels; if(!state.options.vehicleNumbers||!state.options.vehicleNumbers.length)state.options.vehicleNumbers=defaultVehicleNumbers; if(!state.options.eventTypes||!state.options.eventTypes.some(t=>String(t).startsWith('醫療('))||!state.options.eventTypes.includes('視訊/面試')||!state.options.eventTypes.includes('返台提醒'))state.options.eventTypes=defaultEventTypes; if(!state.reportSnapshots)state.reportSnapshots=[]; if(!state.theme)state.theme=clone(defaultTheme); state.theme=Object.assign(clone(defaultTheme),state.theme||{}); state.theme.personOne='#f8ee88'; state.theme.personTwo='#bfe1f6'; state.theme.jobColors=Object.assign({}, defaultTheme.jobColors||{}, (state.theme&&state.theme.jobColors)||{}); applyTheme(); (state.users||[]).forEach(u=>{if(['schedule','dispatcher','translator','sales','viewer'].includes(u.role))u.role='staff'; if(u.role==='options')u.role='admin';}); if(!state.users.some(u=>u.email==='staff@demo.com'))state.users.push({id:'u_staff',name:'Demo 翻譯',email:'staff@demo.com',password:'123456',role:'staff',personId:'p03',active:true,deleted:false}); if(!state.users.some(u=>u.email==='general@demo.com'))state.users.push({id:'u_general',name:'Demo 一般人員',email:'general@demo.com',password:'123456',role:'general',personId:'p18',active:true,deleted:false}); if(!state.users.some(u=>String(u.email||'').toLowerCase()==='admin_staff@demo.com'&&u.deleted!==true))state.users.push({id:'u_adminstaff',name:'Demo 行政系',email:'admin_staff@demo.com',password:'123456',role:'adminStaff',personId:'p21',active:true,deleted:false}); if(!state.events.length) seed(); ensureV105FanTestEvents(); save()}
 
 function ensureV105FanTestEvents(){
   if(!state||!Array.isArray(state.events))return;
