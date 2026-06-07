@@ -1,4 +1,9 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統</title>
+cp public/v103-prototype-V105-remove-duplicate-mobile-filter.html public/v103-prototype.html
+npm run build
+git status
+git add public/v103-prototype.html
+git commit -m "remove duplicate mobile filter panels"
+git push<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -4195,4 +4200,56 @@ v106BindServiceRecordsUI=function(){
 try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bindUI();bindExternalUI();/* V75：為避免看不到登入頁，取消自動登入；請每次由登入頁進入。 */ safeRemoveSession(); $('loginView')&&$('loginView').classList.remove('hide'); $('appView')&&$('appView').classList.add('hide');}catch(err){console.error(err); document.body.innerHTML='<div style="padding:24px;font-family:Arial"><h2>系統載入錯誤</h2><p>'+esc(err.message)+'</p><button onclick="localStorage.clear();location.reload()">清除暫存並重新載入</button></div>'}
 })();
 
-</script></body></html>
+</script>
+<style>
+/* V117：移除手機版舊程式產生的重複篩選框，只保留正式 v116 篩選 */
+@media(max-width:760px){
+  #calendarPage .panel:first-child > details.mobile-filter-collapse:not(.v116-static-filter),
+  #fieldCalendarPage .panel:first-child > details.mobile-filter-collapse:not(.v116-static-filter),
+  #roomBookingPage .panel:first-child > details.mobile-filter-collapse:not(.v116-static-filter){
+    display:none!important;
+  }
+}
+</style>
+<script>
+/* V117：刪除最上方重複的「篩選 / 日期」「外務篩選 / 日期」收合框 */
+(function(){
+  function removeDuplicateMobileFilters(){
+    if(window.innerWidth>760)return;
+    ['#calendarPage','#fieldCalendarPage','#roomBookingPage'].forEach(sel=>{
+      const page=document.querySelector(sel);
+      if(!page)return;
+      const panel=page.querySelector('.panel');
+      if(!panel)return;
+      panel.querySelectorAll(':scope > details.mobile-filter-collapse').forEach(d=>{
+        if(d.classList.contains('v116-static-filter'))return;
+        const txt=(d.querySelector('summary')?.textContent||'').replace(/\s+/g,'');
+        if(txt.includes('篩選') || txt.includes('外務篩選') || txt.includes('會議室篩選')){
+          d.remove();
+        }
+      });
+    });
+  }
+  const oldRenderAllV117=renderAll;
+  renderAll=function(){
+    oldRenderAllV117();
+    setTimeout(removeDuplicateMobileFilters,80);
+    setTimeout(removeDuplicateMobileFilters,250);
+  };
+  const oldShowAppV117=showApp;
+  showApp=function(){
+    oldShowAppV117();
+    setTimeout(removeDuplicateMobileFilters,120);
+    setTimeout(removeDuplicateMobileFilters,400);
+  };
+  document.addEventListener('click',e=>{
+    if(e.target && e.target.closest && e.target.closest('.navbtn')){
+      setTimeout(removeDuplicateMobileFilters,120);
+      setTimeout(removeDuplicateMobileFilters,400);
+    }
+  },true);
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(removeDuplicateMobileFilters,200));
+})();
+</script>
+
+</body></html>
