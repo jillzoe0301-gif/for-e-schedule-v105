@@ -711,14 +711,108 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
   }
 }
 
+
+<style>
+/* V115：直接修改 HTML 結構，停用舊手機收合搬移造成的覆蓋 */
+.v115-mobile-add-row{width:100%;margin:0 0 8px}
+.v115-mobile-add-row button{width:auto}
+@media(min-width:761px){
+  .v115-static-filter{display:block!important;border:0!important;background:transparent!important;margin:0!important;overflow:visible!important}
+  .v115-static-filter>summary{display:none!important}
+  .v115-static-filter>.toolbar{display:flex!important;padding:0!important;border:0!important;margin-top:0!important}
+  .v115-mobile-add-row{display:inline-flex;width:auto;margin:0}
+  #calendarPage .form-top-toolbar,#fieldCalendarPage .form-top-toolbar,#roomBookingPage .form-top-toolbar{display:flex!important}
+}
+@media(max-width:760px){
+  #calendarPage .panel:first-child>.section-title,
+  #fieldCalendarPage .panel:first-child>.section-title,
+  #roomBookingPage .panel:first-child>.section-title{display:flex!important;margin-bottom:8px!important}
+
+  #calendarPage .form-top-toolbar,
+  #fieldCalendarPage .form-top-toolbar,
+  #roomBookingPage .form-top-toolbar{
+    display:grid!important;
+    grid-template-columns:auto minmax(0,1fr) auto!important;
+    gap:8px!important;
+    align-items:center!important;
+    width:100%!important;
+    margin:0 0 8px!important;
+  }
+  #calendarPage .form-top-toolbar button,
+  #fieldCalendarPage .form-top-toolbar button,
+  #roomBookingPage .form-top-toolbar button{width:auto!important;min-width:0!important;white-space:nowrap!important;flex:0 0 auto!important}
+  #calendarPage .form-top-toolbar input,
+  #fieldCalendarPage .form-top-toolbar input,
+  #roomBookingPage .form-top-toolbar input{width:100%!important;min-width:0!important}
+
+  .v115-mobile-add-row{display:block!important;width:100%!important;margin:0 0 10px!important}
+  .v115-mobile-add-row button{
+    display:block!important;
+    width:100%!important;
+    border-radius:14px!important;
+    padding:11px 12px!important;
+    font-size:15px!important;
+    background:#2563eb!important;
+    border-color:#2563eb!important;
+    color:#fff!important;
+  }
+
+  #calendarPage .calendar-operation-hint,
+  #fieldCalendarPage .calendar-operation-hint,
+  #roomBookingPage .calendar-operation-hint{margin:0 0 10px 2px!important;font-size:12px!important}
+
+  .v115-static-filter{
+    display:block!important;
+    border:1px solid var(--line)!important;
+    border-radius:14px!important;
+    background:#fff!important;
+    margin:0!important;
+    overflow:hidden!important;
+    width:100%!important;
+  }
+  .v115-static-filter>summary{
+    list-style:none!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:8px!important;
+    padding:10px 12px!important;
+    font-weight:900!important;
+    color:#0f172a!important;
+    background:#f8fafc!important;
+    cursor:pointer!important;
+  }
+  .v115-static-filter>summary::-webkit-details-marker{display:none!important}
+  .v115-static-filter>summary::after{content:'⌄';font-size:18px;color:#64748b}
+  .v115-static-filter[open]>summary::after{transform:rotate(180deg)}
+  .v115-static-filter>summary small{font-size:12px!important;color:#64748b!important;font-weight:700!important}
+
+  .v115-static-filter>.toolbar{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+    padding:10px!important;
+    border-top:1px solid var(--line)!important;
+    margin:0!important;
+    width:100%!important;
+  }
+  .v115-static-filter>.toolbar>*,
+  .v115-static-filter>.toolbar input,
+  .v115-static-filter>.toolbar select,
+  .v115-static-filter>.toolbar button,
+  .v115-static-filter>.toolbar .mini,
+  .v115-static-filter>.toolbar .multi-select{width:100%!important;min-width:0!important;max-width:100%!important}
+}
+</style>
+
 </style></head><body>
 <div id="loginView" class="login-wrap"><div class="login-card"><h1>FOR-e 共享排程系統</h1><div class="toolbar hide"><button type="button" id="loginTab" class="primary">登入</button><button type="button" id="registerTab">註冊</button><button type="button" id="resetBtn" class="ghost">重置測試資料</button></div><div id="loginForm"><div class="field"><label>Email</label><input id="loginEmail" value="" placeholder="name@company.com"></div><div class="field"><label>密碼</label><input id="loginPassword" type="password" value=""></div><button id="doLogin" class="primary" type="button">登入</button><button id="quickLogin" type="button" class="hide">快速登入測試帳號</button><button id="mobileForceLogin" type="button" class="hide">手機測試一鍵進入</button><div id="loginMsg" class="muted" style="margin-top:8px"></div></div><div id="registerForm" class="hide"><div class="row"><div class="field"><label>姓名</label><input id="regName"></div><div class="field"><label>角色</label><select id="regRole"><option value="general">一般人員</option><option value="staff">翻譯</option><option value="supervisor">主管</option><option value="adminStaff">行政系</option></select></div></div><div class="field"><label>Email</label><input id="regEmail"></div><div class="field"><label>密碼</label><input id="regPassword" type="password"></div><button type="button" id="doRegister" class="primary">註冊</button></div></div></div>
 <div id="appView" class="hide"><div class="topbar"><div class="brand">FOR-e 共享排程系統</div><div class="toolbar"><span id="currentUserLabel"></span><button id="logoutBtn">登出</button></div></div><div class="layout"><aside class="side"><button class="navbtn active" data-page="calendar"><span class="mono-ico ico-calendar"></span>行程總覽</button><button class="navbtn" data-page="fieldCalendar"><span class="mono-ico ico-car"></span>外務行程</button><button class="navbtn" data-page="roomBooking"><span class="mono-ico ico-room"></span>會議室預約</button><button class="navbtn" data-page="fieldDetails"><span class="mono-ico ico-list"></span>外務明細</button><button class="navbtn" data-page="personalDetails"><span class="mono-ico ico-star"></span>個人行程表</button><button class="navbtn" data-page="today"><span class="mono-ico ico-sun"></span>今日總覽</button><button class="navbtn" data-page="incidents"><span class="mono-ico ico-warning"></span>異況追蹤</button><button class="navbtn app-only" data-page="mobile"><span class="mono-ico ico-star"></span>APP個人行程</button><button class="navbtn" data-page="reports"><span class="mono-ico ico-chart"></span>統計報表</button><button class="navbtn" data-page="serviceRecords"><span class="mono-ico ico-clipboard"></span>服務紀錄單</button><button class="navbtn" data-page="audit"><span class="mono-ico ico-doc"></span>Audit Log</button><button class="navbtn" data-page="line"><span class="mono-ico ico-chat"></span>LINE通知</button><button class="navbtn" data-page="theme"><span class="mono-ico ico-palette"></span>顏色設定</button><button class="navbtn" data-page="settings"><span class="mono-ico ico-link"></span>Airtable/Webhook</button><button class="navbtn" data-page="users"><span class="mono-ico ico-user"></span>人員/帳號</button><hr></aside><main class="main">
 <div class="bottom-nav"><button class="navbtn active" data-page="calendar"><span class="mono-ico ico-calendar"></span>總覽</button><button class="navbtn" data-page="fieldCalendar"><span class="mono-ico ico-car"></span>外務</button><button class="navbtn" data-page="roomBooking"><span class="mono-ico ico-room"></span>會議室</button><button class="navbtn" data-page="mobile"><span class="mono-ico ico-star"></span>個人</button><button class="navbtn" data-page="today"><span class="mono-ico ico-sun"></span>今日</button><button class="navbtn" data-page="incidents"><span class="mono-ico ico-warning"></span>異況</button><button class="navbtn" data-page="reports"><span class="mono-ico ico-chart"></span>統計</button><button class="navbtn" data-page="line"><span class="mono-ico ico-chat"></span>通知</button></div>
-<section id="calendarPage" class="page"><div class="panel"><div class="section-title"><h2>行程總覽</h2></div><div class="calendar-operation-hint">操作提示：雙擊空白格新增，點行程可修改。</div><div class="toolbar form-top-toolbar"><button id="prevWeek">上一週</button><input id="weekPicker" type="date" class="mini"><button id="nextWeek">下一週</button><button id="addEventBtn" class="primary">新增行程</button><button id="exportCsvBtn" class="export-control export-control">匯出 CSV</button></div><div class="toolbar"><select id="viewMode" class="mini"><option value="all">全部人員本週行程</option><option value="personal">BY 個人本週檢視</option><option value="personalDay">BY 個人當天檢視</option><option value="personalMonth">BY 個人按月檢視</option></select><div id="groupFilter" class="multi-select mini" data-label="全部部門/群組"></div><div id="jobFilter" class="multi-select mini" data-label="全部職務"></div><div id="personFilter" class="multi-select mini" data-label="全部人員名稱"></div><div id="typeFilter" class="multi-select mini" data-label="全部行程類型"></div><select id="statusFilter" class="mini"><option value="">全部狀態</option><option>未完成</option><option>已完成</option><option>取消</option></select><input id="keywordFilter" class="mini" placeholder="地點 / 客戶/關鍵字"><button id="clearFilter">清除</button></div><div id="legend" style="margin-top:8px"></div></div><div id="calendarArea"></div></section>
+<section id="calendarPage" class="page"><div class="panel"><div class="section-title"><h2>行程總覽</h2></div><div class="toolbar form-top-toolbar"><button id="prevWeek">上一週</button><input id="weekPicker" type="date" class="mini"><button id="nextWeek">下一週</button></div><div class="v115-mobile-add-row"><button id="addEventBtn" class="primary">新增行程</button></div><div class="calendar-operation-hint">操作提示：雙擊空白格新增，點行程可修改。</div><details class="mobile-filter-collapse v115-static-filter"><summary><span>篩選 / 日期</span><small>點此展開</small></summary><div class="toolbar"><select id="viewMode" class="mini"><option value="all">全部人員本週行程</option><option value="personal">BY 個人本週檢視</option><option value="personalDay">BY 個人當天檢視</option><option value="personalMonth">BY 個人按月檢視</option></select><div id="groupFilter" class="multi-select mini" data-label="全部部門/群組"></div><div id="jobFilter" class="multi-select mini" data-label="全部職務"></div><div id="personFilter" class="multi-select mini" data-label="全部人員名稱"></div><div id="typeFilter" class="multi-select mini" data-label="全部行程類型"></div><select id="statusFilter" class="mini"><option value="">全部狀態</option><option>未完成</option><option>已完成</option><option>取消</option></select><input id="keywordFilter" class="mini" placeholder="地點 / 客戶/關鍵字"><button id="clearFilter">清除</button><button id="exportCsvBtn" class="export-control export-control">匯出 CSV</button></div></details><div id="legend" style="margin-top:8px"></div></div><div id="calendarArea"></div></section>
 
-<section id="roomBookingPage" class="page hide"><div class="panel"><div class="section-title"><h2>會議室預約</h2></div><div class="calendar-operation-hint">操作提示：雙擊空白格新增，點預約可修改。</div><div class="toolbar form-top-toolbar"><button id="roomPrevWeek">上一週</button><input id="roomBookingWeekPicker" type="date" class="mini"><button id="roomNextWeek">下一週</button><button id="addRoomBookingBtn" class="primary">新增預約</button></div><div class="toolbar"><select id="roomBookingRoomFilter" class="mini"><option value="">全部會議室</option></select><select id="roomBookingDeptFilter" class="mini"><option value="">全部部門</option></select><input id="roomBookingKeyword" class="mini" placeholder="會議名稱/部門/會議室"><button id="clearRoomBookingFilters">清除</button></div></div><div id="roomBookingArea"></div></section>
-<section id="fieldCalendarPage" class="page hide"><div class="panel"><div class="section-title"><h2>外務行程</h2></div><div class="calendar-operation-hint">操作提示：雙擊空白格新增，點行程可修改。</div><div class="toolbar form-top-toolbar"><button id="fieldPrevWeek">上一週</button><input id="fieldWeekPicker" type="date" class="mini"><button id="fieldNextWeek">下一週</button><button id="fieldAddBtn" class="primary">新增外務行程</button><button id="fieldExportBtn" class="export-control export-control">匯出外務 CSV</button></div><div class="toolbar"><select id="fieldViewMode" class="mini"><option value="allWeek">全部人員當週</option><option value="selectedWeek">依所選人員當週</option><option value="personalWeek">個人當周</option><option value="personalMonth">個人當月</option><option value="personalDay">個人當天</option></select><div id="fieldPersonFilter" class="multi-select mini" data-label="全部人員名稱"></div><div id="fieldLocationFilter" class="multi-select mini" data-label="全部地點"></div><div id="fieldPurposeFilter" class="multi-select mini" data-label="全部目的"></div><div id="fieldStatusFilter" class="multi-select mini" data-label="全部狀態"></div><button id="fieldClearFilter">清除</button></div></div><div id="fieldCalendarArea"></div></section>
+<section id="roomBookingPage" class="page hide"><div class="panel"><div class="section-title"><h2>會議室預約</h2></div><div class="toolbar form-top-toolbar"><button id="roomPrevWeek">上一週</button><input id="roomBookingWeekPicker" type="date" class="mini"><button id="roomNextWeek">下一週</button></div><div class="v115-mobile-add-row"><button id="addRoomBookingBtn" class="primary">新增預約</button></div><div class="calendar-operation-hint">操作提示：雙擊空白格新增，點預約可修改。</div><details class="mobile-filter-collapse v115-static-filter"><summary><span>會議室篩選</span><small>點此展開</small></summary><div class="toolbar"><select id="roomBookingRoomFilter" class="mini"><option value="">全部會議室</option></select><select id="roomBookingDeptFilter" class="mini"><option value="">全部部門</option></select><input id="roomBookingKeyword" class="mini" placeholder="會議名稱/部門/會議室"><button id="clearRoomBookingFilters">清除</button></div></details></div><div id="roomBookingArea"></div></section>
+<section id="fieldCalendarPage" class="page hide"><div class="panel"><div class="section-title"><h2>外務行程</h2></div><div class="toolbar form-top-toolbar"><button id="fieldPrevWeek">上一週</button><input id="fieldWeekPicker" type="date" class="mini"><button id="fieldNextWeek">下一週</button></div><div class="v115-mobile-add-row"><button id="fieldAddBtn" class="primary">新增外務行程</button></div><div class="calendar-operation-hint">操作提示：雙擊空白格新增，點行程可修改。</div><details class="mobile-filter-collapse v115-static-filter"><summary><span>外務篩選</span><small>點此展開</small></summary><div class="toolbar"><select id="fieldViewMode" class="mini"><option value="allWeek">全部人員當週</option><option value="selectedWeek">依所選人員當週</option><option value="personalWeek">個人當周</option><option value="personalMonth">個人當月</option><option value="personalDay">個人當天</option></select><div id="fieldPersonFilter" class="multi-select mini" data-label="全部人員名稱"></div><div id="fieldLocationFilter" class="multi-select mini" data-label="全部地點"></div><div id="fieldPurposeFilter" class="multi-select mini" data-label="全部目的"></div><div id="fieldStatusFilter" class="multi-select mini" data-label="全部狀態"></div><button id="fieldClearFilter">清除</button><button id="fieldExportBtn" class="export-control export-control">匯出外務 CSV</button></div></details></div><div id="fieldCalendarArea"></div></section>
 
 <section id="fieldDetailsPage" class="page hide"><div class="panel"><div class="section-title"><h2>外務明細</h2></div><div class="toolbar form-top-toolbar field-detail-actionbar"><button id="refreshFieldDetails" class="primary">重新整理</button><button id="exportFieldDetailsBtn" class="export-control export-control">匯出外務明細 CSV</button></div><div class="toolbar field-detail-filterbar"><label class="muted">起日</label><input id="fieldDetailStart" type="date" class="mini"><label class="muted">迄日</label><input id="fieldDetailEnd" type="date" class="mini"><select id="fieldDetailPerson" class="mini"><option value="">全部人員</option></select><select id="fieldDetailPurpose" class="mini hide"><option value="">全部目的</option></select><select id="fieldDetailLocation" class="mini"><option value="">全部地點</option></select><select id="fieldDetailStatus" class="mini"><option value="">全部狀態</option></select><input id="fieldDetailKeyword" class="mini" placeholder="內容/地址/關鍵字"><select id="fieldDetailSortBy" class="mini"><option value="date">依日期</option><option value="person">依人員</option><option value="purpose">依目的</option><option value="location">依地點</option><option value="status">依狀態</option></select><select id="fieldDetailSortDir" class="mini"><option value="asc">遞增</option><option value="desc">遞減</option></select><button id="applyFieldDetailSort" class="primary">一鍵排序</button><button id="clearFieldDetails">清除</button></div></div><div class="panel"><div id="fieldDetailStats" class="statgrid"></div></div><div class="panel"><div class="detail-table-wrap"><table class="table"><thead><tr><th>日期</th><th>時間</th><th>人員</th><th>目的</th><th>地點</th><th>地址</th><th>狀態</th><th>內容</th><th>特殊提醒</th><th>現金</th><th>印章</th><th>證件</th><th>下一次領件</th><th>送件失敗原因</th></tr></thead><tbody id="fieldDetailRows"></tbody></table></div></div></section>
 <section id="personalDetailsPage" class="page hide"><div class="panel"><div class="section-title"><h2>個人行程表｜行程總覽</h2><div class="toolbar"><button id="refreshPersonalDetails" class="primary">重新整理</button><button id="exportPersonalDetailsBtn" class="export-control export-control">匯出個人行程 CSV</button></div></div><div class="toolbar"><label class="muted">起日</label><input id="personalDetailStart" type="date" class="mini"><label class="muted">迄日</label><input id="personalDetailEnd" type="date" class="mini"><select id="personalDetailPerson" class="mini"><option value="">全部人員</option></select><select id="personalDetailType" class="mini"><option value="">全部行程類型</option></select><select id="personalDetailStatus" class="mini"><option value="">全部狀態</option><option>未完成</option><option>已完成</option><option>取消</option></select><input id="personalDetailKeyword" class="mini" placeholder="地點 / 客戶/辦理內容/內容說明"><select id="personalDetailSortBy" class="mini"><option value="date">依日期</option><option value="person">依人員</option><option value="type">依行程類型</option><option value="status">依狀態</option><option value="location">依地點 / 客戶</option></select><select id="personalDetailSortDir" class="mini"><option value="asc">遞增</option><option value="desc">遞減</option></select><button id="applyPersonalDetailSort" class="primary">一鍵排序</button><button id="clearPersonalDetails">清除</button></div><div class="muted" style="margin-top:8px">預設顯示登入帳號對應人員的行程；如需查看其他人，請由「人員」下拉選單切換。</div></div><div id="personalDesktopAlertPanel" class="panel"><div class="section-title"><h2>待確認 / 待通知提醒</h2><span class="muted">逃跑、轉出、住變、返台、驗證、提醒事項</span></div><div id="personalDesktopAlertRows"></div></div><div id="assignedTrackingPanel" class="panel"><div class="section-title"><h2>我指派的事項追蹤</h2><span class="muted">只追蹤你建立並指派給他人的任務，不列入個人行程表。</span></div><div class="detail-table-wrap"><table class="table"><thead><tr><th>日期</th><th>時間</th><th>執行者</th><th>行程類型</th><th>地點 / 客戶</th><th>辦理內容</th><th>狀態</th><th>操作</th></tr></thead><tbody id="assignedTrackRows"></tbody></table></div></div><div class="panel"><div id="personalDetailStats" class="statgrid"></div></div><div class="panel"><div class="detail-table-wrap"><table class="table"><thead><tr><th>日期</th><th>時間</th><th>人員</th><th>類別</th><th>行程類型</th><th>附加行程</th><th>地點 / 客戶</th><th>辦理內容</th><th>狀態</th><th>內容說明</th><th>公務車</th><th>服務紀錄單</th></tr></thead><tbody id="personalDetailRows"></tbody></table></div></div></section>
@@ -4918,6 +5012,32 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
     count++;
     if(count>24) clearInterval(timer);
   },500);
+})();
+</script>
+
+
+<script>
+/* V115：移除舊版動態 mobile-filter-collapse 空殼，避免同頁出現重複篩選 */
+(function(){
+  function cleanupV115(){
+    ['#calendarPage','#fieldCalendarPage','#roomBookingPage'].forEach(sel=>{
+      const page=document.querySelector(sel);
+      if(!page)return;
+      page.querySelectorAll('details.mobile-filter-collapse').forEach(d=>{
+        if(d.classList.contains('v115-static-filter'))return;
+        // 只移除已經空掉或只剩 summary 的舊殼，避免再出現第二個收合框
+        const meaningful=[...d.children].filter(x=>!(x.tagName&&x.tagName.toLowerCase()==='summary'));
+        if(!meaningful.length || meaningful.every(x=>!x.children.length && !String(x.textContent||'').trim())) d.remove();
+      });
+    });
+  }
+  const oldRenderAll=renderAll;
+  renderAll=function(){oldRenderAll();setTimeout(cleanupV115,80);};
+  const oldShowApp=showApp;
+  showApp=function(){oldShowApp();setTimeout(cleanupV115,100);};
+  const oldApplyPermissionsUI=applyPermissionsUI;
+  applyPermissionsUI=function(){oldApplyPermissionsUI();setTimeout(cleanupV115,80);};
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(cleanupV115,120));
 })();
 </script>
 
