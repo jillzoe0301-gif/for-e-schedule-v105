@@ -4153,83 +4153,91 @@ v106BindServiceRecordsUI=function(){
   };
 })();
 
-
-/* ===== V105 final fix：手機版行程總覽 / 外務行程刪除重複隱藏篩選，新增按鈕拉到外面 ===== */
-(function(){
-  function isForEMobile(){return window.matchMedia && window.matchMedia('(max-width: 760px)').matches;}
-  function addForEFinalStyle(){
-    if(document.getElementById('forEFinalMobileCalendarStyle'))return;
-    var st=document.createElement('style');
-    st.id='forEFinalMobileCalendarStyle';
-    st.textContent=`
-@media(max-width:760px){
-  #calendarPage .for-e-final-mobile-actions,#fieldCalendarPage .for-e-final-mobile-actions{display:grid!important;grid-template-columns:auto minmax(120px,1fr) auto!important;gap:8px!important;align-items:center!important;width:100%!important;margin:8px 0!important;}
-  #calendarPage .for-e-final-mobile-actions button,#fieldCalendarPage .for-e-final-mobile-actions button{width:100%!important;min-width:0!important;padding:9px 8px!important;font-size:13px!important;}
-  #calendarPage .for-e-final-mobile-actions input,#fieldCalendarPage .for-e-final-mobile-actions input{width:100%!important;min-width:0!important;}
-  #calendarPage .for-e-final-mobile-actions #addEventBtn,#fieldCalendarPage .for-e-final-mobile-actions #fieldAddBtn{grid-column:1/-1!important;height:42px!important;font-size:15px!important;border-radius:14px!important;}
-  #calendarPage .for-e-final-mobile-actions .export-control,#fieldCalendarPage .for-e-final-mobile-actions .export-control{display:none!important;}
-  #calendarPage details.mobile-filter-collapse:not(.for-e-final-filter),#fieldCalendarPage details.mobile-filter-collapse:not(.for-e-final-filter){display:none!important;}
-  #calendarPage .for-e-final-filter,#fieldCalendarPage .for-e-final-filter{border:1px solid var(--line)!important;border-radius:14px!important;background:#fff!important;margin:8px 0!important;overflow:hidden!important;width:100%!important;}
-  #calendarPage .for-e-final-filter summary,#fieldCalendarPage .for-e-final-filter summary{list-style:none!important;cursor:pointer!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;padding:10px 12px!important;font-weight:900!important;color:#0f172a!important;background:#f8fafc!important;}
-  #calendarPage .for-e-final-filter summary::-webkit-details-marker,#fieldCalendarPage .for-e-final-filter summary::-webkit-details-marker{display:none!important;}
-  #calendarPage .for-e-final-filter summary::after,#fieldCalendarPage .for-e-final-filter summary::after{content:'⌄';font-size:18px;color:#64748b;}
-  #calendarPage .for-e-final-filter[open] summary::after,#fieldCalendarPage .for-e-final-filter[open] summary::after{transform:rotate(180deg);}
-  #calendarPage .for-e-final-filter summary small,#fieldCalendarPage .for-e-final-filter summary small{font-size:12px;color:#64748b;font-weight:700;}
-  #calendarPage .for-e-final-filter .toolbar,#fieldCalendarPage .for-e-final-filter .toolbar{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;padding:10px!important;border-top:1px solid var(--line)!important;margin:0!important;width:100%!important;}
-  #calendarPage .for-e-final-filter .toolbar > *,#fieldCalendarPage .for-e-final-filter .toolbar > *,#calendarPage .for-e-final-filter .mini,#fieldCalendarPage .for-e-final-filter .mini,#calendarPage .for-e-final-filter input,#fieldCalendarPage .for-e-final-filter input,#calendarPage .for-e-final-filter select,#fieldCalendarPage .for-e-final-filter select,#calendarPage .for-e-final-filter button,#fieldCalendarPage .for-e-final-filter button,#calendarPage .for-e-final-filter .multi-select,#fieldCalendarPage .for-e-final-filter .multi-select{width:100%!important;min-width:0!important;max-width:100%!important;}
-  #calendarPage .for-e-final-filter .multi-panel,#fieldCalendarPage .for-e-final-filter .multi-panel{left:10px!important;right:10px!important;width:auto!important;max-width:calc(100vw - 44px)!important;}
-  #calendarPage .calendar-operation-hint,#fieldCalendarPage .calendar-operation-hint{margin:6px 0 8px 2px!important;font-size:12px!important;}
-}`;
-    document.head.appendChild(st);
-  }
-  function directDetails(panel){return Array.from(panel.querySelectorAll(':scope > details.mobile-filter-collapse'));}
-  function rebuildCalendarMobilePanel(cfg){
-    var panel=document.querySelector(cfg.panel); if(!panel)return;
-    var header=panel.querySelector(':scope > .section-title');
-    var hint=panel.querySelector(':scope > .calendar-operation-hint') || panel.querySelector('.calendar-operation-hint');
-    var addBtn=document.getElementById(cfg.addBtn);
-    var filterAnchor=document.getElementById(cfg.filterAnchor);
-    var topbar=addBtn ? addBtn.closest('.toolbar') : null;
-    var filterbar=filterAnchor ? filterAnchor.closest('.toolbar') : null;
-    if(!topbar || !filterbar)return;
-    topbar.classList.add('for-e-final-mobile-actions');
-    topbar.classList.remove('mobile-filter-toolbar');
-    filterbar.classList.remove('form-top-toolbar','for-e-final-mobile-actions');
-    directDetails(panel).forEach(function(d){ if(!d.classList.contains('for-e-final-filter'))d.remove(); });
-    var finalBox=panel.querySelector(':scope > details.for-e-final-filter');
-    if(!finalBox){
-      finalBox=document.createElement('details');
-      finalBox.className='mobile-filter-collapse for-e-final-filter';
-      finalBox.open=false;
-      var summary=document.createElement('summary');
-      summary.innerHTML='<span>'+cfg.title+'</span><small>點此展開</small>';
-      finalBox.appendChild(summary);
-    }else{
-      finalBox.className='mobile-filter-collapse for-e-final-filter';
-      var s=finalBox.querySelector('summary'); if(s)s.innerHTML='<span>'+cfg.title+'</span><small>點此展開</small>';
-    }
-    if(header && panel.firstElementChild!==header)panel.insertBefore(header,panel.firstElementChild);
-    if(header)header.insertAdjacentElement('afterend',topbar); else panel.prepend(topbar);
-    if(hint)topbar.insertAdjacentElement('afterend',hint);
-    if(hint)hint.insertAdjacentElement('afterend',finalBox); else topbar.insertAdjacentElement('afterend',finalBox);
-    finalBox.appendChild(filterbar);
-  }
-  function forEFinalMobileCalendarFix(){
-    addForEFinalStyle();
-    if(!isForEMobile())return;
-    rebuildCalendarMobilePanel({panel:'#calendarPage .panel:first-child',addBtn:'addEventBtn',filterAnchor:'viewMode',title:'篩選'});
-    rebuildCalendarMobilePanel({panel:'#fieldCalendarPage .panel:first-child',addBtn:'fieldAddBtn',filterAnchor:'fieldViewMode',title:'外務篩選'});
-  }
-  window.forEFinalMobileCalendarFix=forEFinalMobileCalendarFix;
-  function scheduleFinalFix(){setTimeout(forEFinalMobileCalendarFix,180);setTimeout(forEFinalMobileCalendarFix,420);}
-  var oldShow=showApp; showApp=function(){oldShow.apply(this,arguments);scheduleFinalFix();};
-  var oldRenderAll=renderAll; renderAll=function(){oldRenderAll.apply(this,arguments);scheduleFinalFix();};
-  var oldApply=applyPermissionsUI; applyPermissionsUI=function(){oldApply.apply(this,arguments);scheduleFinalFix();};
-  window.addEventListener('resize',scheduleFinalFix);
-  window.addEventListener('orientationchange',scheduleFinalFix);
-})();
-
 try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bindUI();bindExternalUI();/* V75：為避免看不到登入頁，取消自動登入；請每次由登入頁進入。 */ safeRemoveSession(); $('loginView')&&$('loginView').classList.remove('hide'); $('appView')&&$('appView').classList.add('hide');}catch(err){console.error(err); document.body.innerHTML='<div style="padding:24px;font-family:Arial"><h2>系統載入錯誤</h2><p>'+esc(err.message)+'</p><button onclick="localStorage.clear();location.reload()">清除暫存並重新載入</button></div>'}
 })();
 
-</script></body></html>
+</script>
+
+<style>
+/* V111：手機版會議室上方介面比照行程總覽／外務行程 */
+@media(max-width:760px){
+  #roomBookingPage .panel:first-child>.section-title{display:flex!important;order:0!important;margin-bottom:6px!important;}
+  #roomBookingPage .panel:first-child>.section-title h2{font-size:22px!important;line-height:1.25!important;margin:0!important;}
+  #roomBookingPage .form-top-toolbar.v111-room-topbar{display:grid!important;grid-template-columns:auto 1fr auto!important;gap:8px!important;align-items:center!important;margin-bottom:8px!important;}
+  #roomBookingPage .form-top-toolbar.v111-room-topbar > *{min-width:0!important;}
+  #roomBookingPage .form-top-toolbar.v111-room-topbar #roomBookingWeekPicker{width:100%!important;min-width:0!important;}
+  #roomBookingPage .v111-room-add-row{margin:0 0 10px!important;}
+  #roomBookingPage .v111-room-add-row #addRoomBookingBtn{display:block!important;width:100%!important;border-radius:14px!important;padding:11px 12px!important;font-size:15px!important;}
+  #roomBookingPage .calendar-operation-hint{margin:0 0 10px 2px!important;}
+  #roomBookingPage .mobile-filter-collapse.v111-room-filter{border:1px solid var(--line)!important;border-radius:14px!important;background:#fff!important;margin-top:0!important;overflow:hidden!important;width:100%!important;}
+  #roomBookingPage .mobile-filter-collapse.v111-room-filter summary{list-style:none!important;cursor:pointer!important;display:flex!important;align-items:center!important;justify-content:space-between!important;padding:10px 12px!important;font-weight:900!important;background:#f8fafc!important;}
+  #roomBookingPage .mobile-filter-collapse.v111-room-filter summary::-webkit-details-marker{display:none!important;}
+  #roomBookingPage .mobile-filter-collapse.v111-room-filter summary::after{content:'⌄';font-size:18px;color:#64748b;transition:.18s transform;}
+  #roomBookingPage .mobile-filter-collapse.v111-room-filter[open] summary::after{transform:rotate(180deg);}
+  #roomBookingPage .mobile-filter-collapse.v111-room-filter summary small{font-size:12px;color:#64748b;font-weight:700;}
+  #roomBookingPage .mobile-filter-collapse.v111-room-filter .toolbar{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;padding:10px!important;border-top:1px solid var(--line)!important;margin:0!important;width:100%!important;}
+  #roomBookingPage .mobile-filter-collapse.v111-room-filter .toolbar>*,
+  #roomBookingPage .mobile-filter-collapse.v111-room-filter input,
+  #roomBookingPage .mobile-filter-collapse.v111-room-filter select,
+  #roomBookingPage .mobile-filter-collapse.v111-room-filter button,
+  #roomBookingPage .mobile-filter-collapse.v111-room-filter .mini{width:100%!important;min-width:0!important;max-width:100%!important;}
+}
+</style>
+<script>
+/* V111：會議室上方介面比照總覽／外務行程 */
+(function(){
+  function isMobile(){return window.matchMedia && window.matchMedia('(max-width: 760px)').matches;}
+  function roomBookingHeaderLayout(){
+    const panel=document.querySelector('#roomBookingPage .panel:first-child');
+    if(!panel)return;
+    const header=panel.querySelector(':scope > .section-title');
+    const hint=panel.querySelector(':scope > .calendar-operation-hint');
+    const topbar=panel.querySelector(':scope > .form-top-toolbar');
+    const addBtn=$('addRoomBookingBtn');
+    if(!header||!hint||!topbar||!addBtn)return;
+
+    if(panel.firstElementChild!==header)panel.insertBefore(header,panel.firstElementChild);
+
+    topbar.classList.add('v111-room-topbar');
+    ['roomPrevWeek','roomBookingWeekPicker','roomNextWeek'].forEach(id=>{
+      const el=$(id);
+      if(el && el.parentElement===topbar) topbar.appendChild(el);
+    });
+
+    let addRow=panel.querySelector(':scope > .v111-room-add-row');
+    if(!addRow){
+      addRow=document.createElement('div');
+      addRow.className='v111-room-add-row';
+    }
+    addRow.appendChild(addBtn);
+
+    let filterBox=panel.querySelector(':scope > details.mobile-filter-collapse.v111-room-filter');
+    if(!filterBox){
+      filterBox=document.createElement('details');
+      filterBox.className='mobile-filter-collapse v108-mobile-filter v109-mobile-filter v111-room-filter';
+      filterBox.open=false;
+      const summary=document.createElement('summary');
+      summary.innerHTML='<span>會議室篩選 / 日期</span><small>點此展開</small>';
+      filterBox.appendChild(summary);
+    }
+
+    [...panel.querySelectorAll(':scope > .toolbar:not(.form-top-toolbar)')].forEach(tb=>filterBox.appendChild(tb));
+
+    header.insertAdjacentElement('afterend',topbar);
+    topbar.insertAdjacentElement('afterend',addRow);
+    addRow.insertAdjacentElement('afterend',hint);
+    hint.insertAdjacentElement('afterend',filterBox);
+  }
+
+  const _oldRenderAllV111=renderAll;
+  renderAll=function(){_oldRenderAllV111();setTimeout(roomBookingHeaderLayout,80);};
+  const _oldShowAppV111=showApp;
+  showApp=function(){_oldShowAppV111();setTimeout(roomBookingHeaderLayout,120);};
+  const _oldPermV111=applyPermissionsUI;
+  applyPermissionsUI=function(){_oldPermV111();setTimeout(roomBookingHeaderLayout,80);};
+  window.addEventListener('resize',()=>setTimeout(roomBookingHeaderLayout,100));
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(roomBookingHeaderLayout,120));
+})();
+</script>
+
+</body></html>
