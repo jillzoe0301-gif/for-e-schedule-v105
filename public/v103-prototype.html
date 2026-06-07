@@ -1504,7 +1504,7 @@ function renderMobilePersonalAlerts(pid){
     const ed=String(e.endDate||e.startDate||'');
     // 未完成提醒：過期未完成要一直顯示；未來 30 天內也顯示
     if(ed<today)return true;
-    return s<=limit;
+    return s<=today;
   }).sort((a,b)=>{
     const ao=String(a.endDate||a.startDate||'')<today?0:1;
     const bo=String(b.endDate||b.startDate||'')<today?0:1;
@@ -1554,7 +1554,7 @@ function desktopPersonalAlertRows(targetPid){
     const s=String(e.startDate||'');
     const ed=String(e.endDate||e.startDate||'');
     if(ed<today)return true;
-    return s<=limit;
+    return s<=today;
   }).sort((a,b)=>{
     const ao=String(a.endDate||a.startDate||'')<today?0:1;
     const bo=String(b.endDate||b.startDate||'')<today?0:1;
@@ -1596,7 +1596,7 @@ function renderMobileAlerts(){
       const s=String(e.startDate||'');
       const ed=String(e.endDate||e.startDate||'');
       if(ed<today)return true;
-      return s<=limit;
+      return s<=today;
     })
     .sort((a,b) => {
       const ao=String(a.endDate||a.startDate||'')<today?0:1;
@@ -4591,6 +4591,213 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
   });
   document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{fixAllIncidentTimeSelectsV124();syncAllIncidentFollowEventsV124();},200));
   setTimeout(()=>{fixAllIncidentTimeSelectsV124();syncAllIncidentFollowEventsV124();},400);
+})();
+</script>
+
+
+<script>
+/* V125：修正異況儲存關窗跳回異況頁、下次追蹤時間同步、今日提醒只顯示今天與逾期未完成 */
+(function(){
+  const pointTimes=['上午','下午','晚上','08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30','19:00','19:30','20:00','20:30','21:00','21:30','22:00'];
+  function $(id){return document.getElementById(id)}
+  function normalizeTime(v){
+    if(!v)return '';
+    if(pointTimes.includes(v))return v;
+    if(String(v).includes('-')){
+      const s=String(v).split('-')[0].trim();
+      if(pointTimes.includes(s))return s;
+    }
+    return '';
+  }
+  function opt(blank){
+    return (blank?'<option value="">不指定</option>':'')+pointTimes.map(v=>`<option value="${v}">${v}</option>`).join('');
+  }
+  function fixTimeSelect(id, blank){
+    const sel=$(id); if(!sel)return;
+    const old=normalizeTime(sel.value);
+    const values=[...sel.options].map(o=>o.value||o.textContent.trim());
+    const needFix=!values.includes('08:30') || values.some(v=>String(v).includes('-')) || sel.options.length<10;
+    if(needFix) sel.innerHTML=opt(blank);
+    if(old) sel.value=old;
+  }
+  function fixAllIncidentTimes(){
+    fixTimeSelect('incidentTime', true);
+    fixTimeSelect('incidentNextFollowTime', true);
+    fixTimeSelect('incidentEventTime', false);
+    fixTimeSelect('incidentLogNextFollowTime', true);
+  }
+  function openStatus(status){
+    const s=String(status||'');
+    return !(s.includes('結案') || s.includes('完成') || s.includes('取消') || s.includes('誤登'));
+  }
+  function unique(arr){return [...new Set(arr.filter(Boolean))]}
+  function incidentPeopleIds(inc){
+    return unique([inc&&inc.ownerPersonId, ...((inc&&inc.helperPersonIds)||[])]);
+  }
+  function incidentName(inc){
+    return (inc&&inc.title)||(inc&&inc.workerName)||(inc&&inc.customerName)||'異況追蹤';
+  }
+  function getCurrentIncident(){
+    const id=$('incidentId')&&$('incidentId').value;
+    if(!id || typeof state==='undefined' || !state.incidents)return null;
+    return state.incidents.find(x=>x.id===id)||null;
+  }
+  function findEvent(incidentId,key){
+    if(typeof state==='undefined' || !state.events)return null;
+    return state.events.find(e=>!e.deleted && e.sourceType==='incidentFollow' && e.sourceIncidentId===incidentId && e.sourceFollowKey===key)||null;
+  }
+  function upsertFollowEvent(inc,key,date,time,note){
+    if(!inc || !inc.id || !date || typeof state==='undefined' || !state.events)return null;
+    if(!openStatus(inc.status))return null;
+    const participants=incidentPeopleIds(inc);
+    if(!participants.length)return null;
+    const now=new Date().toISOString();
+    const data={
+      kind:'schedule',
+      status:'未完成',
+      startDate:date,
+      endDate:date,
+      startTime:normalizeTime(time)||'上午',
+      endTime:'',
+      type:'提醒事項',
+      name:'異況追蹤：'+incidentName(inc),
+      locationName:inc.customerName||inc.location||'',
+      address:inc.location||'',
+      vehicleNo:'',
+      meetingRoom:'不指定',
+      participants:participants,
+      assigneeIds:participants,
+      note:note||'來源：異況追蹤',
+      updatedBy:(typeof currentUser!=='undefined'&&currentUser&&currentUser.id)||'system',
+      updatedAt:now,
+      sourceType:'incidentFollow',
+      sourceIncidentId:inc.id,
+      sourceFollowKey:key,
+      deleted:false
+    };
+    let ev=findEvent(inc.id,key);
+    if(ev) Object.assign(ev,data);
+    else state.events.push(Object.assign({id:uid('ev'),seriesId:'',seriesIndex:0,createdBy:data.updatedBy,createdAt:now},data));
+  }
+  function syncIncidentFollowEvents(inc){
+    if(!inc || typeof state==='undefined')return;
+    if(inc.nextFollowDate){
+      upsertFollowEvent(
+        inc,
+        'main',
+        inc.nextFollowDate,
+        inc.nextFollowTime||'',
+        ['來源：異況下次追蹤日期', inc.workerName?'工人：'+inc.workerName:'', inc.customerName?'地點 / 客戶：'+inc.customerName:'', inc.description?'異況內容：'+inc.description:''].filter(Boolean).join('\n')
+      );
+    }
+    (state.incidentLogs||[]).filter(l=>!l.deleted && l.incidentId===inc.id && l.nextFollowDate).forEach(l=>{
+      upsertFollowEvent(
+        inc,
+        'log_'+l.id,
+        l.nextFollowDate,
+        l.nextFollowTime||'',
+        ['來源：異況追蹤紀錄的下次追蹤', l.content?'追蹤內容：'+l.content:'', inc.workerName?'工人：'+inc.workerName:'', inc.customerName?'地點 / 客戶：'+inc.customerName:''].filter(Boolean).join('\n')
+      );
+    });
+  }
+  function syncFromModal(){
+    const inc=getCurrentIncident();
+    if(!inc)return;
+    const mainTime=normalizeTime($('incidentNextFollowTime')&&$('incidentNextFollowTime').value);
+    inc.nextFollowTime=mainTime;
+    const mainDate=$('incidentNextFollow')&&$('incidentNextFollow').value;
+    if(mainDate) inc.nextFollowDate=mainDate;
+    syncIncidentFollowEvents(inc);
+    if(typeof save==='function')save();
+  }
+  function closeAndGoIncidents(){
+    const modal=$('incidentModal');
+    if(modal) modal.classList.add('hide');
+    if(typeof currentPage!=='undefined') currentPage='incidents';
+    document.querySelectorAll('.page').forEach(p=>p.classList.add('hide'));
+    const page=$('incidentsPage');
+    if(page) page.classList.remove('hide');
+    document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page==='incidents'));
+    if(typeof renderIncidents==='function')renderIncidents();
+    if(typeof renderAll==='function')setTimeout(renderAll,80);
+  }
+
+  // 儲存異況：原本 onclick 會先儲存，這裡延後補資料、關窗、跳回異況頁。
+  document.addEventListener('click',e=>{
+    const btn=e.target&&e.target.closest&&e.target.closest('button');
+    if(!btn)return;
+    if(btn.id==='saveIncidentBtn'){
+      fixAllIncidentTimes();
+      setTimeout(()=>{
+        syncFromModal();
+        closeAndGoIncidents();
+      },350);
+    }
+    if(btn.id==='addIncidentLogBtn'){
+      const incidentId=$('incidentId')&&$('incidentId').value;
+      const logTime=normalizeTime($('incidentLogNextFollowTime')&&$('incidentLogNextFollowTime').value);
+      setTimeout(()=>{
+        if(typeof state!=='undefined'){
+          const inc=(state.incidents||[]).find(x=>x.id===incidentId);
+          const log=(state.incidentLogs||[]).slice().reverse().find(x=>x.incidentId===incidentId && !x.deleted);
+          if(log)log.nextFollowTime=logTime;
+          if(inc){
+            const logDate=$('incidentLogNextFollow')&&$('incidentLogNextFollow').value;
+            if(logDate){inc.nextFollowDate=logDate; inc.nextFollowTime=logTime;}
+            syncIncidentFollowEvents(inc);
+            if(typeof save==='function')save();
+            if(typeof renderAll==='function')renderAll();
+            if(typeof renderIncidents==='function')renderIncidents();
+          }
+        }
+      },250);
+    }
+  },false);
+
+  // 今日總覽提醒：只顯示「今天」與「逾期未完成」，不顯示未來提醒。
+  function todayAlertRows(){
+    if(typeof state==='undefined')return [];
+    const alertTypes=(typeof alertEventTypeList==='function'?alertEventTypeList():[]).map(t=>typeof displayEventType==='function'?displayEventType(t):t);
+    const today=typeof todayISO==='function'?todayISO():new Date().toISOString().slice(0,10);
+    const targetPid=(typeof currentUser!=='undefined' && typeof isAdmin==='function' && typeof isSupervisor==='function' && currentUser && !isAdmin() && !isSupervisor() && typeof userPersonId==='function')?userPersonId():'';
+    return (state.events||[]).filter(e=>{
+      if(!e||e.deleted||e.status==='取消'||e.status==='已完成')return false;
+      if(targetPid && typeof executorPersonIds==='function' && !executorPersonIds(e).includes(targetPid))return false;
+      const type=typeof displayEventType==='function'?displayEventType(e.type||''):(e.type||'');
+      if(!alertTypes.includes(type))return false;
+      const s=String(e.startDate||'');
+      const ed=String(e.endDate||e.startDate||'');
+      return ed<today || s===today;
+    }).sort((a,b)=>{
+      const today=typeof todayISO==='function'?todayISO():new Date().toISOString().slice(0,10);
+      const ao=String(a.endDate||a.startDate||'')<today?0:1;
+      const bo=String(b.endDate||b.startDate||'')<today?0:1;
+      return ao-bo || String(a.startDate||'').localeCompare(String(b.startDate||'')) || String(a.startTime||'').localeCompare(String(b.startTime||''));
+    });
+  }
+  window.renderMobileAlerts=function(){
+    const box=$('mobileAlertRows'); if(!box)return;
+    const rows=todayAlertRows();
+    const today=typeof todayISO==='function'?todayISO():new Date().toISOString().slice(0,10);
+    if(!rows.length){box.innerHTML='<div class="muted">目前沒有提醒通知</div>';return;}
+    box.innerHTML=rows.map(e=>{
+      const type=e.type||'提醒';
+      const overdue=String(e.endDate||e.startDate||'')<today;
+      const names=(typeof executorPersonIds==='function'?executorPersonIds(e):[]).map(id=>typeof getPerson==='function'?(getPerson(id)?.name||''):'').filter(Boolean).join('、');
+      return `<div class="mobile-alert-card urgent ${overdue?'overdue':''}"><div class="mobile-alert-title">⚠️ ${esc(displayEventType(type))}</div>${overdue?'<div class="mobile-alert-overdue">超過時間了!!!</div>':''}<div class="mobile-alert-main">${esc(e.name||'')}</div><div class="mobile-alert-meta">${esc(e.startDate||'')} ${esc(ampm(e.startTime)||'')}${e.locationName?`｜${esc(e.locationName)}`:''}</div>${names?`<div class="mobile-alert-meta">執行者：${esc(names)}</div>`:''}</div>`;
+    }).join('');
+  };
+
+  function initV125(){
+    fixAllIncidentTimes();
+    if(typeof state!=='undefined' && state.incidents)(state.incidents||[]).forEach(syncIncidentFollowEvents);
+    if(typeof save==='function')save();
+  }
+  document.addEventListener('focusin',e=>{
+    if(e.target&&['incidentTime','incidentNextFollowTime','incidentLogNextFollowTime','incidentEventTime'].includes(e.target.id))setTimeout(fixAllIncidentTimes,20);
+  });
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(initV125,200));
+  setTimeout(initV125,500);
 })();
 </script>
 
