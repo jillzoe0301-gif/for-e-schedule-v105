@@ -627,7 +627,7 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 <div class="bottom-nav"><button class="navbtn active" data-page="calendar"><span class="mono-ico ico-calendar"></span>總覽</button><button class="navbtn" data-page="fieldCalendar"><span class="mono-ico ico-car"></span>外務</button><button class="navbtn" data-page="roomBooking"><span class="mono-ico ico-room"></span>會議室</button><button class="navbtn" data-page="mobile"><span class="mono-ico ico-star"></span>個人</button><button class="navbtn" data-page="today"><span class="mono-ico ico-sun"></span>今日</button><button class="navbtn" data-page="incidents"><span class="mono-ico ico-warning"></span>異況</button><button class="navbtn" data-page="reports"><span class="mono-ico ico-chart"></span>統計</button><button class="navbtn" data-page="line"><span class="mono-ico ico-chat"></span>通知</button></div>
 <section id="calendarPage" class="page"><div class="panel"><div class="section-title"><h2>行程總覽</h2><div class="toolbar"><button id="prevWeek">上一週</button><input id="weekPicker" type="date" class="mini"><button id="nextWeek">下一週</button><button id="addEventBtn" class="primary">新增行程</button><button id="exportCsvBtn" class="export-control export-control">匯出 CSV</button></div></div><div class="toolbar"><select id="viewMode" class="mini"><option value="all">全部人員本週行程</option><option value="personal">BY 個人本週檢視</option><option value="personalDay">BY 個人當天檢視</option><option value="personalMonth">BY 個人按月檢視</option></select><div id="groupFilter" class="multi-select mini" data-label="全部部門/群組"></div><div id="jobFilter" class="multi-select mini" data-label="全部職務"></div><div id="personFilter" class="multi-select mini" data-label="全部人員名稱"></div><div id="typeFilter" class="multi-select mini" data-label="全部行程類型"></div><select id="statusFilter" class="mini"><option value="">全部狀態</option><option>未完成</option><option>已完成</option><option>取消</option></select><input id="keywordFilter" class="mini" placeholder="地點 / 客戶/關鍵字"><button id="clearFilter">清除</button></div><div id="legend" style="margin-top:8px"></div></div><div id="calendarArea"></div></section>
 
-<section id="roomBookingPage" class="page hide"><div class="panel"><div class="section-title"><h2>會議室 BOOKING｜會議室 × 週一～週日</h2><div class="toolbar"><button id="roomPrevWeek">上一週</button><input id="roomBookingWeekPicker" type="date" class="mini"><button id="roomNextWeek">下一週</button><button id="addRoomBookingBtn" class="primary">新增BOOKING</button></div></div><div class="toolbar"><select id="roomBookingRoomFilter" class="mini"><option value="">全部會議室</option></select><select id="roomBookingDeptFilter" class="mini"><option value="">全部部門</option></select><input id="roomBookingKeyword" class="mini" placeholder="會議名稱/部門/會議室"><button id="clearRoomBookingFilters">清除</button></div></div><div id="roomBookingArea"></div></section>
+<section id="roomBookingPage" class="page hide"><div class="panel"><div class="section-title"><h2>會議室 BOOKING</h2><div class="toolbar"><button id="roomPrevWeek">上一週</button><input id="roomBookingWeekPicker" type="date" class="mini"><button id="roomNextWeek">下一週</button><button id="addRoomBookingBtn" class="primary">新增BOOKING</button></div></div><div class="toolbar"><select id="roomBookingRoomFilter" class="mini"><option value="">全部會議室</option></select><select id="roomBookingDeptFilter" class="mini"><option value="">全部部門</option></select><input id="roomBookingKeyword" class="mini" placeholder="會議名稱/部門/會議室"><button id="clearRoomBookingFilters">清除</button></div></div><div id="roomBookingArea"></div></section>
 <section id="fieldCalendarPage" class="page hide"><div class="panel"><div class="section-title"><h2>外務行程</h2></div><div class="toolbar"><button id="fieldPrevWeek">上一週</button><input id="fieldWeekPicker" type="date" class="mini"><button id="fieldNextWeek">下一週</button><button id="fieldAddBtn" class="primary">新增外務行程</button><button id="fieldExportBtn" class="export-control export-control">匯出外務 CSV</button></div><div class="toolbar"><select id="fieldViewMode" class="mini"><option value="allWeek">全部人員當週</option><option value="selectedWeek">依所選人員當週</option><option value="personalWeek">個人當周</option><option value="personalMonth">個人當月</option><option value="personalDay">個人當天</option></select><div id="fieldPersonFilter" class="multi-select mini" data-label="全部人員名稱"></div><div id="fieldLocationFilter" class="multi-select mini" data-label="全部地點"></div><div id="fieldPurposeFilter" class="multi-select mini" data-label="全部目的"></div><div id="fieldStatusFilter" class="multi-select mini" data-label="全部狀態"></div><button id="fieldClearFilter">清除</button></div></div><div id="fieldCalendarArea"></div></section>
 
 <section id="fieldDetailsPage" class="page hide"><div class="panel"><div class="section-title"><h2>外務明細</h2><div class="toolbar"><button id="refreshFieldDetails" class="primary">重新整理</button><button id="exportFieldDetailsBtn" class="export-control export-control">匯出外務明細 CSV</button></div></div><div class="toolbar"><label class="muted">起日</label><input id="fieldDetailStart" type="date" class="mini"><label class="muted">迄日</label><input id="fieldDetailEnd" type="date" class="mini"><select id="fieldDetailPerson" class="mini"><option value="">全部人員</option></select><select id="fieldDetailPurpose" class="mini"><option value="">全部目的</option></select><select id="fieldDetailLocation" class="mini"><option value="">全部地點</option></select><select id="fieldDetailStatus" class="mini"><option value="">全部狀態</option></select><input id="fieldDetailKeyword" class="mini" placeholder="內容/地址/關鍵字"><select id="fieldDetailSortBy" class="mini"><option value="date">依日期</option><option value="person">依人員</option><option value="purpose">依目的</option><option value="location">依地點</option><option value="status">依狀態</option></select><select id="fieldDetailSortDir" class="mini"><option value="asc">遞增</option><option value="desc">遞減</option></select><button id="applyFieldDetailSort" class="primary">一鍵排序</button><button id="clearFieldDetails">清除</button></div><div class="muted" style="margin-top:8px">顯示外務行程全部明細，可依日期、人員、地點、目的、狀態篩選；可用一鍵排序依所選欄位排列。</div></div><div class="panel"><div id="fieldDetailStats" class="statgrid"></div></div><div class="panel"><div class="detail-table-wrap"><table class="table"><thead><tr><th>日期</th><th>時間</th><th>人員</th><th>目的</th><th>地點</th><th>地址</th><th>狀態</th><th>內容</th><th>特殊提醒</th><th>現金</th><th>印章</th><th>證件</th><th>下一次領件</th><th>送件失敗原因</th></tr></thead><tbody id="fieldDetailRows"></tbody></table></div></div></section>
@@ -3960,6 +3960,63 @@ v106BindServiceRecordsUI=function(){
   applyPermissionsUI=function(){oldPerm();setTimeout(alignMobileBottomNav,120);};
   window.addEventListener('resize',()=>setTimeout(alignMobileBottomNav,120));
   document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{hideReportServicePanels();relocateServiceFilters();alignMobileBottomNav();},180));
+})();
+
+
+/* V105：在人員名稱下方顯示目前使用的公務車車牌 */
+(function(){
+  const css=document.createElement('style');
+  css.textContent=`
+  .person-vehicle-plate{margin-top:5px;font-size:12px;line-height:1.35;color:#334155;background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:3px 6px;display:inline-block;font-weight:800;max-width:100%;white-space:normal;word-break:break-word}
+  .person-vehicle-plate.empty{color:#94a3b8;background:#f8fafc;font-weight:700}
+  @media(max-width:760px){.person-vehicle-plate{font-size:10px;padding:2px 4px;margin-top:3px;line-height:1.25}}
+  `;
+  document.head.appendChild(css);
+  function vehicleTargetPerson(p){
+    const group=String(p&&p.group||'');
+    const lang=String(p&&p.lang||'');
+    if(lang.includes('管理'))return false;
+    return group.includes('翻譯') || lang.includes('宿管') || lang.includes('舍監') || lang.includes('外務') || lang.includes('翻譯');
+  }
+  function eventOverlapsDate(e,d){return e && d>=String(e.startDate||'') && d<=String(e.endDate||e.startDate||'');}
+  function currentVehiclePlates(pid,days){
+    const ds=(days&&days.length)?days:[todayISO()];
+    const plates=[];
+    (state.events||[]).forEach(e=>{
+      if(!e||e.deleted||e.status==='取消'||!e.vehicleNo)return;
+      if(!Array.isArray(e.participants)||!e.participants.includes(pid))return;
+      if(!ds.some(d=>eventOverlapsDate(e,d)))return;
+      String(e.vehicleNo).split(/[、,，/]/).map(x=>x.trim()).filter(Boolean).forEach(v=>{if(!plates.includes(v))plates.push(v);});
+    });
+    return plates;
+  }
+  function vehiclePlateHTML(p,days){
+    if(!vehicleTargetPerson(p))return '';
+    const plates=currentVehiclePlates(p.id,days);
+    if(!plates.length)return '<div class="person-vehicle-plate empty">公務車：未使用</div>';
+    return `<div class="person-vehicle-plate">公務車：${esc(plates.join('、'))}</div>`;
+  }
+  const oldRenderMatrix=renderMatrix;
+  renderMatrix=function(ps,days){
+    let html='<div class="calendar-wrap"><table class="calendar-table"><thead><tr><th class="person-head">人員名稱 × 日期<div class="drag-hint">可拖曳人員列調整順序</div></th>'+days.map(d=>`<th class="${dayClass(d)}"><div>${weekdayFull(d)}</div><div class="date-num">${fmtDate(d)}</div>${holidayBadgeHTML(d)}</th>`).join('')+'</tr></thead><tbody>';
+    for(const p of ps){
+      html+=`<tr draggable="${canManagePeople()}" data-person-id="${p.id}"><td class="person-cell"><div class="person-name ${personNameClass(p)}" ${personNameStyle(p)}><span class="drag-handle">☰</span>${esc(p.name)}</div><div class="muted">${esc(p.group)}｜${esc(p.lang)}</div>${vehiclePlateHTML(p,days)}</td>`;
+      for(const d of days){html+=`<td class="day-cell ${dayClass(d)}" data-date="${d}" data-person="${p.id}"><div class="date-num">${weekdayFull(d)} ${fmtDate(d)}</div>${holidayBadgeBodyHTML(d)}${eventsOnDateForPerson(d,p.id).map(eventHTML).join('')}</td>`}
+      html+='</tr>';
+    }
+    $('calendarArea').innerHTML=html+'</tbody></table></div>'; bindCalendarEvents();
+  };
+  const oldRenderFieldMatrix=renderFieldMatrix;
+  renderFieldMatrix=function(people,days){
+    let html='<div class="calendar-wrap"><table class="calendar-table"><thead><tr><th class="person-head">人員名稱</th>'+days.map(d=>`<th class="${dayClass(d)}"><div>${weekdayFull(d)}</div><div>${fmtDate(d)}</div>${holidayBadgeHTML(d)}</th>`).join('')+'</tr></thead><tbody>';
+    for(const p of people){
+      const gcls=p.group==='一部翻譯'?'group-one':p.group==='二部翻譯'?'group-two':'';
+      html+=`<tr><td class="person-cell"><span class="person-name ${gcls}">${esc(p.name)}</span><div class="muted">${esc(p.group)}｜${esc(p.lang||'')}</div>${vehiclePlateHTML(p,days)}</td>`;
+      for(const d of days){const evs=filteredExternalEventsOn(d,p.id); html+=`<td class="day-cell ${dayClass(d)}" data-field-date="${d}" data-field-person="${p.id}"><div class="date-num">${fmtDate(d)}</div>${holidayBadgeBodyHTML(d)}${evs.map(e=>renderFieldEvent(e)).join('')}</td>`}
+      html+='</tr>';
+    }
+    html+='</tbody></table></div>'; $('fieldCalendarArea').innerHTML=html; bindFieldCalendarEvents();
+  };
 })();
 
 try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bindUI();bindExternalUI();/* V75：為避免看不到登入頁，取消自動登入；請每次由登入頁進入。 */ safeRemoveSession(); $('loginView')&&$('loginView').classList.remove('hide'); $('appView')&&$('appView').classList.add('hide');}catch(err){console.error(err); document.body.innerHTML='<div style="padding:24px;font-family:Arial"><h2>系統載入錯誤</h2><p>'+esc(err.message)+'</p><button onclick="localStorage.clear();location.reload()">清除暫存並重新載入</button></div>'}
