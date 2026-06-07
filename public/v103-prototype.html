@@ -4643,4 +4643,282 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 })();
 </script>
 
+
+
+<style>
+/* V114：手機三大行事曆上方版面最終強制版 */
+@media(max-width:760px){
+  #calendarPage .panel:first-child,
+  #fieldCalendarPage .panel:first-child,
+  #roomBookingPage .panel:first-child{display:block!important;}
+
+  #calendarPage .v114-mobile-topbar,
+  #fieldCalendarPage .v114-mobile-topbar,
+  #roomBookingPage .v114-mobile-topbar{
+    display:grid!important;
+    grid-template-columns:auto minmax(0,1fr) auto!important;
+    gap:8px!important;
+    align-items:center!important;
+    width:100%!important;
+    margin:0 0 8px!important;
+  }
+  #calendarPage .v114-mobile-topbar button,
+  #fieldCalendarPage .v114-mobile-topbar button,
+  #roomBookingPage .v114-mobile-topbar button{width:auto!important;white-space:nowrap!important;min-width:0!important;}
+  #calendarPage .v114-mobile-topbar input,
+  #fieldCalendarPage .v114-mobile-topbar input,
+  #roomBookingPage .v114-mobile-topbar input{width:100%!important;min-width:0!important;}
+
+  #calendarPage .v114-mobile-add-row,
+  #fieldCalendarPage .v114-mobile-add-row,
+  #roomBookingPage .v114-mobile-add-row{width:100%!important;margin:0 0 10px!important;}
+
+  #calendarPage .v114-mobile-add-row button,
+  #fieldCalendarPage .v114-mobile-add-row button,
+  #roomBookingPage .v114-mobile-add-row button{
+    display:block!important;
+    width:100%!important;
+    border-radius:14px!important;
+    padding:11px 12px!important;
+    font-size:15px!important;
+    background:#2563eb!important;
+    border-color:#2563eb!important;
+    color:#fff!important;
+  }
+
+  #calendarPage .calendar-operation-hint,
+  #fieldCalendarPage .calendar-operation-hint,
+  #roomBookingPage .calendar-operation-hint{
+    display:block!important;
+    margin:0 0 10px 2px!important;
+    font-size:12px!important;
+    color:#64748b!important;
+    font-weight:700!important;
+  }
+
+  #calendarPage details.v114-mobile-filter,
+  #fieldCalendarPage details.v114-mobile-filter,
+  #roomBookingPage details.v114-mobile-filter{
+    display:block!important;
+    border:1px solid var(--line)!important;
+    border-radius:14px!important;
+    background:#fff!important;
+    margin:0!important;
+    overflow:hidden!important;
+    width:100%!important;
+  }
+
+  #calendarPage details.v114-mobile-filter summary,
+  #fieldCalendarPage details.v114-mobile-filter summary,
+  #roomBookingPage details.v114-mobile-filter summary{
+    list-style:none!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    padding:10px 12px!important;
+    font-weight:900!important;
+    background:#f8fafc!important;
+    color:#0f172a!important;
+    cursor:pointer!important;
+  }
+  #calendarPage details.v114-mobile-filter summary::-webkit-details-marker,
+  #fieldCalendarPage details.v114-mobile-filter summary::-webkit-details-marker,
+  #roomBookingPage details.v114-mobile-filter summary::-webkit-details-marker{display:none!important;}
+
+  #calendarPage details.v114-mobile-filter summary::after,
+  #fieldCalendarPage details.v114-mobile-filter summary::after,
+  #roomBookingPage details.v114-mobile-filter summary::after{content:'⌄';font-size:18px;color:#64748b;}
+
+  #calendarPage details.v114-mobile-filter[open] summary::after,
+  #fieldCalendarPage details.v114-mobile-filter[open] summary::after,
+  #roomBookingPage details.v114-mobile-filter[open] summary::after{transform:rotate(180deg);}
+
+  #calendarPage .v114-filter-content,
+  #fieldCalendarPage .v114-filter-content,
+  #roomBookingPage .v114-filter-content{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+    padding:10px!important;
+    border-top:1px solid var(--line)!important;
+  }
+
+  #calendarPage .v114-filter-content > *,
+  #fieldCalendarPage .v114-filter-content > *,
+  #roomBookingPage .v114-filter-content > *,
+  #calendarPage .v114-filter-content input,
+  #fieldCalendarPage .v114-filter-content input,
+  #roomBookingPage .v114-filter-content input,
+  #calendarPage .v114-filter-content select,
+  #fieldCalendarPage .v114-filter-content select,
+  #roomBookingPage .v114-filter-content select,
+  #calendarPage .v114-filter-content button,
+  #fieldCalendarPage .v114-filter-content button,
+  #roomBookingPage .v114-filter-content button,
+  #calendarPage .v114-filter-content .mini,
+  #fieldCalendarPage .v114-filter-content .mini,
+  #roomBookingPage .v114-filter-content .mini,
+  #calendarPage .v114-filter-content .multi-select,
+  #fieldCalendarPage .v114-filter-content .multi-select,
+  #roomBookingPage .v114-filter-content .multi-select{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+  }
+}
+</style>
+
+<script>
+/* V114：使用輪詢 + 點擊後重排，避免舊版函式覆蓋手機版面 */
+(function(){
+  function mobile(){ return window.innerWidth <= 760; }
+  function id(x){ return document.getElementById(x); }
+
+  function firstPanel(sel){
+    const page=document.querySelector(sel);
+    if(!page) return null;
+    return page.querySelector('.panel');
+  }
+
+  function removeOldFilterDetails(panel){
+    Array.from(panel.querySelectorAll('details.mobile-filter-collapse')).forEach(d=>{
+      if(d.classList.contains('v114-mobile-filter')) return;
+      Array.from(d.children).forEach(child=>{
+        if(child.tagName && child.tagName.toLowerCase()==='summary') return;
+        panel.appendChild(child);
+      });
+      d.remove();
+    });
+  }
+
+  function ensureSummary(box,title){
+    let summary=Array.from(box.children).find(x=>x.tagName && x.tagName.toLowerCase()==='summary');
+    if(!summary){
+      summary=document.createElement('summary');
+      box.insertBefore(summary,box.firstChild);
+    }
+    summary.innerHTML='<span>'+title+'</span><small>點此展開</small>';
+  }
+
+  function layout(cfg){
+    if(!mobile()) return;
+    const panel=firstPanel(cfg.page);
+    if(!panel) return;
+
+    const header=panel.querySelector('.section-title');
+    const hint=panel.querySelector('.calendar-operation-hint');
+    const prev=id(cfg.prev), picker=id(cfg.picker), next=id(cfg.next), add=id(cfg.add);
+    if(!header || !hint || !prev || !picker || !next || !add) return;
+
+    removeOldFilterDetails(panel);
+
+    let top=panel.querySelector('.v114-mobile-topbar');
+    if(!top){
+      top=document.createElement('div');
+      top.className='toolbar form-top-toolbar v114-mobile-topbar';
+    }
+    let addRow=panel.querySelector('.v114-mobile-add-row');
+    if(!addRow){
+      addRow=document.createElement('div');
+      addRow.className='v114-mobile-add-row';
+    }
+    let box=panel.querySelector('details.v114-mobile-filter');
+    if(!box){
+      box=document.createElement('details');
+      box.className='mobile-filter-collapse v114-mobile-filter';
+      box.open=false;
+    }
+    ensureSummary(box,cfg.title);
+
+    let content=box.querySelector('.v114-filter-content');
+    if(!content){
+      content=document.createElement('div');
+      content.className='v114-filter-content';
+      box.appendChild(content);
+    }
+
+    top.appendChild(prev);
+    top.appendChild(picker);
+    top.appendChild(next);
+    addRow.appendChild(add);
+
+    content.innerHTML='';
+    cfg.filters.forEach(fid=>{
+      const node=id(fid);
+      if(node) content.appendChild(node);
+    });
+    (cfg.extra||[]).forEach(fid=>{
+      const node=id(fid);
+      if(node) content.appendChild(node);
+    });
+
+    panel.insertBefore(header,panel.firstChild);
+    header.insertAdjacentElement('afterend',top);
+    top.insertAdjacentElement('afterend',addRow);
+    addRow.insertAdjacentElement('afterend',hint);
+    hint.insertAdjacentElement('afterend',box);
+  }
+
+  function run(){
+    if(!mobile()) return;
+    layout({
+      page:'#calendarPage',
+      prev:'prevWeek',
+      picker:'weekPicker',
+      next:'nextWeek',
+      add:'addEventBtn',
+      title:'篩選 / 日期',
+      filters:['viewMode','groupFilter','jobFilter','personFilter','typeFilter','statusFilter','keywordFilter','clearFilter'],
+      extra:['exportCsvBtn']
+    });
+    layout({
+      page:'#fieldCalendarPage',
+      prev:'fieldPrevWeek',
+      picker:'fieldWeekPicker',
+      next:'fieldNextWeek',
+      add:'fieldAddBtn',
+      title:'外務篩選',
+      filters:['fieldViewMode','fieldPersonFilter','fieldLocationFilter','fieldPurposeFilter','fieldStatusFilter','fieldClearFilter'],
+      extra:['fieldExportBtn']
+    });
+    layout({
+      page:'#roomBookingPage',
+      prev:'roomPrevWeek',
+      picker:'roomBookingWeekPicker',
+      next:'roomNextWeek',
+      add:'addRoomBookingBtn',
+      title:'會議室篩選',
+      filters:['roomBookingRoomFilter','roomBookingDeptFilter','roomBookingKeyword','clearRoomBookingFilters'],
+      extra:[]
+    });
+  }
+
+  const oldRenderAll=renderAll;
+  renderAll=function(){ oldRenderAll(); setTimeout(run,80); setTimeout(run,250); setTimeout(run,600); };
+
+  const oldShowApp=showApp;
+  showApp=function(){ oldShowApp(); setTimeout(run,100); setTimeout(run,400); setTimeout(run,900); };
+
+  const oldApply=applyPermissionsUI;
+  applyPermissionsUI=function(){ oldApply(); setTimeout(run,100); setTimeout(run,400); };
+
+  document.addEventListener('click',function(e){
+    if(e.target && e.target.closest && e.target.closest('.navbtn')){
+      setTimeout(run,120);
+      setTimeout(run,500);
+    }
+  },true);
+
+  window.addEventListener('resize',()=>setTimeout(run,150));
+  document.addEventListener('DOMContentLoaded',()=>{setTimeout(run,200);setTimeout(run,800);});
+
+  let count=0;
+  const timer=setInterval(()=>{
+    run();
+    count++;
+    if(count>24) clearInterval(timer);
+  },500);
+})();
+</script>
+
 </body></html>
