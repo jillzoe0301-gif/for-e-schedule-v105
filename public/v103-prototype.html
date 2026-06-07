@@ -502,6 +502,125 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
   .bottom-nav .mono-ico{display:flex!important;margin:0 auto!important;width:22px!important;min-width:22px!important;height:22px!important;line-height:22px!important;align-items:center!important;justify-content:center!important;}
 }
 
+
+
+/* V105：三大表單色系區分（行程總覽／外務行程／會議室） */
+:root{
+  --form-calendar:#2563eb;
+  --form-calendar-soft:#eff6ff;
+  --form-calendar-head:#dbeafe;
+  --form-field:#f97316;
+  --form-field-soft:#fff7ed;
+  --form-field-head:#ffedd5;
+  --form-room:#0f766e;
+  --form-room-soft:#ecfdf5;
+  --form-room-head:#ccfbf1;
+}
+#calendarPage>.panel:first-child{
+  border-top:8px solid var(--form-calendar)!important;
+  background:linear-gradient(180deg,var(--form-calendar-soft),#fff 72%)!important;
+}
+#fieldCalendarPage>.panel:first-child{
+  border-top:8px solid var(--form-field)!important;
+  background:linear-gradient(180deg,var(--form-field-soft),#fff 72%)!important;
+}
+#roomBookingPage>.panel:first-child{
+  border-top:8px solid var(--form-room)!important;
+  background:linear-gradient(180deg,var(--form-room-soft),#fff 72%)!important;
+}
+#calendarPage .section-title h2,
+#fieldCalendarPage .section-title h2,
+#roomBookingPage .section-title h2{display:flex!important;align-items:center;gap:8px;font-weight:900!important}
+#calendarPage .section-title h2::before,
+#fieldCalendarPage .section-title h2::before,
+#roomBookingPage .section-title h2::before{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:64px;height:26px;padding:0 10px;border-radius:999px;color:#fff;font-size:13px;font-weight:900;letter-spacing:.04em;
+}
+#calendarPage .section-title h2::before{content:'總覽';background:var(--form-calendar)}
+#fieldCalendarPage .section-title h2::before{content:'外務';background:var(--form-field)}
+#roomBookingPage .section-title h2::before{content:'會議室';background:var(--form-room)}
+#calendarPage .calendar-table thead th,
+#calendarPage .person-head{background:var(--form-calendar-head)!important;color:#0f172a!important}
+#calendarPage .person-cell{background:var(--form-calendar-soft)!important}
+#calendarPage .calendar-wrap{border-color:#bfdbfe!important;box-shadow:0 6px 18px rgba(37,99,235,.10)}
+#calendarPage .event:not(.done):not(.cancel):not(.alert):not(.status):not(.status-leave):not(.status-home):not(.status-meeting):not(.status-training){border-left-color:var(--form-calendar)!important;background:#eff6ff!important;border-color:#bfdbfe!important}
+#fieldCalendarArea .calendar-table thead th,
+#fieldCalendarArea .person-head{background:var(--form-field-head)!important;color:#7c2d12!important}
+#fieldCalendarArea .person-cell{background:var(--form-field-soft)!important}
+#fieldCalendarArea .calendar-wrap{border-color:#fed7aa!important;box-shadow:0 6px 18px rgba(249,115,22,.12)}
+#fieldCalendarArea .field-event:not(.field-status-incomplete):not(.field-status-complete):not(.field-status-sent):not(.field-status-abnormal):not(.field-status-pending-doc):not(.field-status-failed):not(.field-purpose-field-day){border-left-color:var(--form-field)!important;background:#fff7ed!important;border-color:#fed7aa!important}
+#roomBookingPage .room-week-table th,
+#roomBookingPage .room-room-head{background:var(--form-room-head)!important;color:#134e4a!important}
+#roomBookingPage .room-room-cell{background:var(--form-room-soft)!important;color:#134e4a!important}
+#roomBookingPage .room-week-wrap{border-color:#99f6e4!important;box-shadow:0 6px 18px rgba(15,118,110,.12)}
+#roomBookingPage .room-booking-item{border-left-color:var(--form-room)!important;background:#ecfdf5!important;border-color:#99f6e4!important}
+#roomBookingPage .room-booking-item.readonly{background:#f8fafc!important;border-color:#d1d5db!important;border-left-color:#94a3b8!important}
+.side .navbtn[data-page="calendar"].active,.bottom-nav .navbtn[data-page="calendar"].active{background:var(--form-calendar-soft)!important;border-color:#bfdbfe!important;color:#1d4ed8!important}
+.side .navbtn[data-page="fieldCalendar"].active,.bottom-nav .navbtn[data-page="fieldCalendar"].active{background:var(--form-field-soft)!important;border-color:#fed7aa!important;color:#c2410c!important}
+.side .navbtn[data-page="roomBooking"].active,.bottom-nav .navbtn[data-page="roomBooking"].active{background:var(--form-room-soft)!important;border-color:#99f6e4!important;color:#0f766e!important}
+.side .navbtn[data-page="calendar"].active .mono-ico,.bottom-nav .navbtn[data-page="calendar"].active .mono-ico{color:var(--form-calendar)!important}
+.side .navbtn[data-page="fieldCalendar"].active .mono-ico,.bottom-nav .navbtn[data-page="fieldCalendar"].active .mono-ico{color:var(--form-field)!important}
+.side .navbtn[data-page="roomBooking"].active .mono-ico,.bottom-nav .navbtn[data-page="roomBooking"].active .mono-ico{color:var(--form-room)!important}
+@media(max-width:760px){
+  #calendarPage>.panel:first-child,#fieldCalendarPage>.panel:first-child,#roomBookingPage>.panel:first-child{border-top-width:7px!important}
+  #calendarPage .section-title h2,#fieldCalendarPage .section-title h2,#roomBookingPage .section-title h2{font-size:20px!important;line-height:1.35!important}
+  #calendarPage .section-title h2::before,#fieldCalendarPage .section-title h2::before,#roomBookingPage .section-title h2::before{min-width:56px;height:24px;font-size:12px;padding:0 8px}
+}
+
+
+
+/* V105：柔和表單配色、會議室淡黃色、假日顯示與會議室格子壓縮 */
+:root{
+  --form-calendar:#6ea8fe;
+  --form-calendar-soft:#f4f8ff;
+  --form-calendar-head:#dbeafe;
+  --form-field:#f6a15f;
+  --form-field-soft:#fff8f1;
+  --form-field-head:#ffedd5;
+  --form-room:#d6a629;
+  --form-room-soft:#fffaf0;
+  --form-room-head:#fef3c7;
+  --for-e-holiday-bg:#fff1f2;
+  --for-e-holiday-border:#fecdd3;
+  --for-e-holiday-text:#be123c;
+}
+.weekend,.holiday-tw{background:var(--for-e-holiday-bg)!important;box-shadow:inset 0 0 0 1px rgba(254,205,211,.55)!important}
+.holiday-tags .tw{color:var(--for-e-holiday-text)!important;font-weight:900}
+.holiday-tags .tw,.holiday-tags .holiday-rest{display:inline-block;background:rgba(255,255,255,.58)!important;border:1px solid var(--for-e-holiday-border);border-radius:8px;padding:1px 5px}
+#calendarPage>.panel:first-child{border-top-color:var(--form-calendar)!important;background:linear-gradient(180deg,var(--form-calendar-soft),#fff 72%)!important}
+#fieldCalendarPage>.panel:first-child{border-top-color:var(--form-field)!important;background:linear-gradient(180deg,var(--form-field-soft),#fff 72%)!important}
+#roomBookingPage>.panel:first-child{border-top-color:var(--form-room)!important;background:linear-gradient(180deg,var(--form-room-soft),#fff 72%)!important}
+#calendarPage .calendar-table thead th,#calendarPage .person-head{background:var(--form-calendar-head)!important}
+#calendarPage .person-cell{background:var(--form-calendar-soft)!important}
+#fieldCalendarPage .calendar-table thead th,#fieldCalendarPage .person-head{background:var(--form-field-head)!important}
+#fieldCalendarPage .person-cell{background:var(--form-field-soft)!important}
+#roomBookingPage .room-week-table th,#roomBookingPage .room-room-head{background:var(--form-room-head)!important;color:#7c5b08!important}
+#roomBookingPage .room-room-cell{background:var(--form-room-soft)!important;color:#7c5b08!important}
+#roomBookingPage .room-week-wrap{border-color:#fde68a!important;box-shadow:0 6px 18px rgba(214,166,41,.10)!important}
+#roomBookingPage .room-booking-item{border-left-color:var(--form-room)!important;background:#fff7d6!important;border-color:#fde68a!important;color:#3f2f05!important}
+.side .navbtn[data-page="roomBooking"].active,.bottom-nav .navbtn[data-page="roomBooking"].active{background:#fff7d6!important;border-color:#fde68a!important;color:#7c5b08!important}
+.side .navbtn[data-page="roomBooking"].active .mono-ico,.bottom-nav .navbtn[data-page="roomBooking"].active .mono-ico{color:#d6a629!important}
+#roomBookingPage .room-week-table{min-width:920px!important;table-layout:fixed!important}
+#roomBookingPage .room-week-table th{padding:6px 5px!important;font-size:12px!important;line-height:1.25!important}
+#roomBookingPage .room-room-head{width:128px!important;min-width:128px!important;max-width:128px!important}
+#roomBookingPage .room-room-cell{width:128px!important;min-width:128px!important;max-width:128px!important;padding:7px!important;font-size:12px!important;line-height:1.35!important}
+#roomBookingPage .room-day-cell{width:112px!important;min-width:112px!important;height:86px!important;min-height:86px!important;padding:5px!important;line-height:1.25!important}
+#roomBookingPage .room-booking-item{font-size:11px!important;line-height:1.25!important;padding:4px 5px!important;margin:3px 0!important;border-radius:8px!important;border-left-width:4px!important}
+#roomBookingPage .room-booking-item .time{font-size:10.5px!important}
+#roomBookingPage .room-booking-item .room-title{font-size:11px!important;line-height:1.25!important}
+#roomBookingPage .room-booking-item .room-meta{font-size:10px!important;line-height:1.2!important}
+#roomBookingPage .room-booking-actions{gap:3px!important;margin-top:3px!important}
+#roomBookingPage .room-booking-actions button{font-size:10px!important;padding:2px 5px!important;border-radius:6px!important}
+@media(max-width:760px){
+  #roomBookingPage .room-week-table{min-width:760px!important}
+  #roomBookingPage .room-room-head{width:96px!important;min-width:96px!important;max-width:96px!important}
+  #roomBookingPage .room-room-cell{width:96px!important;min-width:96px!important;max-width:96px!important;padding:5px!important;font-size:11px!important}
+  #roomBookingPage .room-day-cell{width:95px!important;min-width:95px!important;height:82px!important;min-height:82px!important;padding:4px!important}
+  #roomBookingPage .room-booking-item{font-size:10px!important;padding:3px 4px!important}
+  #roomBookingPage .room-booking-item .room-meta{display:none!important}
+}
+
 </style></head><body>
 <div id="loginView" class="login-wrap"><div class="login-card"><h1>FOR-e 共享排程系統</h1><div class="toolbar hide"><button type="button" id="loginTab" class="primary">登入</button><button type="button" id="registerTab">註冊</button><button type="button" id="resetBtn" class="ghost">重置測試資料</button></div><div id="loginForm"><div class="field"><label>Email</label><input id="loginEmail" value="" placeholder="name@company.com"></div><div class="field"><label>密碼</label><input id="loginPassword" type="password" value=""></div><button id="doLogin" class="primary" type="button">登入</button><button id="quickLogin" type="button" class="hide">快速登入測試帳號</button><button id="mobileForceLogin" type="button" class="hide">手機測試一鍵進入</button><div id="loginMsg" class="muted" style="margin-top:8px"></div></div><div id="registerForm" class="hide"><div class="row"><div class="field"><label>姓名</label><input id="regName"></div><div class="field"><label>角色</label><select id="regRole"><option value="general">一般人員</option><option value="staff">翻譯</option><option value="supervisor">主管</option><option value="adminStaff">行政系</option></select></div></div><div class="field"><label>Email</label><input id="regEmail"></div><div class="field"><label>密碼</label><input id="regPassword" type="password"></div><button type="button" id="doRegister" class="primary">註冊</button></div></div></div>
 <div id="appView" class="hide"><div class="topbar"><div class="brand">FOR-e 共享排程系統</div><div class="toolbar"><span id="currentUserLabel"></span><button id="logoutBtn">登出</button></div></div><div class="layout"><aside class="side"><button class="navbtn active" data-page="calendar"><span class="mono-ico ico-calendar"></span>行程總覽</button><button class="navbtn" data-page="fieldCalendar"><span class="mono-ico ico-car"></span>外務行程</button><button class="navbtn" data-page="roomBooking"><span class="mono-ico ico-room"></span>會議室BOOKING</button><button class="navbtn" data-page="fieldDetails"><span class="mono-ico ico-list"></span>外務明細</button><button class="navbtn" data-page="personalDetails"><span class="mono-ico ico-star"></span>個人行程表</button><button class="navbtn" data-page="today"><span class="mono-ico ico-sun"></span>今日總覽</button><button class="navbtn" data-page="incidents"><span class="mono-ico ico-warning"></span>異況追蹤</button><button class="navbtn app-only" data-page="mobile"><span class="mono-ico ico-star"></span>APP個人行程</button><button class="navbtn" data-page="reports"><span class="mono-ico ico-chart"></span>統計報表</button><button class="navbtn" data-page="serviceRecords"><span class="mono-ico ico-clipboard"></span>服務紀錄單</button><button class="navbtn" data-page="audit"><span class="mono-ico ico-doc"></span>Audit Log</button><button class="navbtn" data-page="line"><span class="mono-ico ico-chat"></span>LINE通知</button><button class="navbtn" data-page="theme"><span class="mono-ico ico-palette"></span>顏色設定</button><button class="navbtn" data-page="settings"><span class="mono-ico ico-link"></span>Airtable/Webhook</button><button class="navbtn" data-page="users"><span class="mono-ico ico-user"></span>人員/帳號</button><hr></aside><main class="main">
@@ -644,10 +763,12 @@ const HOLIDAYS_2026={
 function holidaysOn(d){return HOLIDAYS_2026[d]||[]}
 function countryClass(c){return ({'台':'tw','泰':'th','菲':'ph','越':'vn','印':'id'}[c]||'')}
 function hasCountryHoliday(d,c){return holidaysOn(d).some(h=>h.c===c)}
-function holidayBadgeHTML(d){const hs=holidaysOn(d); if(!hs.length)return ''; return '<div class="holiday-tags">'+hs.map(h=>`<span class="${countryClass(h.c)}">${esc(h.c)}:${esc(h.n)}</span>`).join('<br>')+'</div>'}
-function holidayBadgeBodyHTML(d){const hs=holidaysOn(d).filter(h=>h.c==='台'); if(!hs.length)return ''; return '<div class="holiday-tags">'+hs.map(h=>`<span class="${countryClass(h.c)}">${esc(h.c)}:${esc(h.n)}</span>`).join('<br>')+'</div>'}
-function holidayClasses(d){return hasCountryHoliday(d,'台')?'holiday-tw':''}
-function dayClass(d){const wk=[0,6].includes(new Date(d+'T00:00:00').getDay())?'weekend':''; return `${wk} ${holidayClasses(d)} ${d===todayISO()?'today':''}`}
+function isWeekendDate(d){return [0,6].includes(new Date(d+'T00:00:00').getDay())}
+function taiwanHolidayText(d){const hs=holidaysOn(d).filter(h=>h.c==='台'); if(hs.length)return hs.map(h=>h.n).join('、'); return isWeekendDate(d)?'休假日':''}
+function holidayBadgeHTML(d){const tw=taiwanHolidayText(d); const others=holidaysOn(d).filter(h=>h.c!=='台'); if(!tw&&!others.length)return ''; return '<div class="holiday-tags">'+(tw?`<span class="tw">台:${esc(tw)}</span>`:'')+(tw&&others.length?'<br>':'')+others.map(h=>`<span class="${countryClass(h.c)}">${esc(h.c)}:${esc(h.n)}</span>`).join('<br>')+'</div>'}
+function holidayBadgeBodyHTML(d){const tw=taiwanHolidayText(d); if(!tw)return ''; return '<div class="holiday-tags"><span class="tw">台:'+esc(tw)+'</span></div>'}
+function holidayClasses(d){return (hasCountryHoliday(d,'台')||isWeekendDate(d))?'holiday-tw':''}
+function dayClass(d){const wk=isWeekendDate(d)?'weekend':''; return `${wk} ${holidayClasses(d)} ${d===todayISO()?'today':''}`}
 
 const roleNames={admin:'管理員',supervisor:'主管',adminStaff:'行政系',admin_staff:'行政系',general:'一般人員',staff:'翻譯',schedule:'翻譯',dispatcher:'翻譯',translator:'翻譯',sales:'翻譯',options:'管理員',viewer:'翻譯'};
 const noteTemplates={
@@ -2677,17 +2798,22 @@ window.openIncidentModal=openIncidentModal; window.quickIncidentLog=quickInciden
     const days=v105RoomWeekDays(($('roomBookingWeekPicker')&&$('roomBookingWeekPicker').value)||todayISO());
     const rooms=roomList().filter(Boolean); const rf=$('roomBookingRoomFilter')?$('roomBookingRoomFilter').value:''; const dep=$('roomBookingDeptFilter')?$('roomBookingDeptFilter').value:''; const kw=($('roomBookingKeyword')?$('roomBookingKeyword').value:'').trim().toLowerCase();
     const useRooms=rf?rooms.filter(r=>r===rf):rooms;
-    let html='<div class="room-week-wrap"><table class="room-week-table"><thead><tr><th class="room-room-head">會議室</th>'+days.map(d=>`<th class="${d===todayISO()?'today':''}">${esc(d)}<br>${['日','一','二','三','四','五','六'][new Date(d+'T00:00:00').getDay()]}</th>`).join('')+'</tr></thead><tbody>';
+    let html='<div class="room-week-wrap"><table class="room-week-table"><thead><tr><th class="room-room-head">會議室</th>'+days.map(d=>{
+      const w=['日','一','二','三','四','五','六'][new Date(d+'T00:00:00').getDay()];
+      return `<th class="${dayClass(d)}"><div>${w}</div><div class="date-num">${fmtDate(d)}</div>${holidayBadgeBodyHTML(d)}</th>`;
+    }).join('')+'</tr></thead><tbody>';
     useRooms.forEach(room=>{
       html+=`<tr data-room-name="${esc(room)}"><td class="room-room-cell">${v105RoomBookingRowLabel(room)}</td>`;
       days.forEach(day=>{
         let bookings=(state.roomBookings||[]).filter(b=>!b.deleted&&b.room===room&&b.date===day);
         if(dep)bookings=bookings.filter(b=>b.department===dep); if(kw)bookings=bookings.filter(b=>[b.room,b.department,b.title,b.date,b.startTime,b.endTime].join(' ').toLowerCase().includes(kw));
         bookings.sort((a,b)=>String(a.startTime+' '+a.title).localeCompare(String(b.startTime+' '+b.title)));
-        html+=`<td class="room-day-cell ${day===todayISO()?'today':''}" data-room="${esc(room)}" data-room-date="${esc(day)}" ondblclick="openRoomBookingModal({date:'${esc(day)}',room:'${esc(room)}'})">`+bookings.map(b=>{
-          const can=v105BookingCanEdit(b); const creator=getUser(b.createdBy).name||'';
-          return `<div class="room-booking-item ${can?'':'readonly'}" onclick="event.stopPropagation();openRoomBookingModal('${b.id}')"><div class="time">${esc(b.startTime)}-${esc(b.endTime)}</div><div class="room-title">${esc(b.title)}</div><div class="room-meta">${esc(b.department||'')}｜BOOKING：${esc(creator)}</div>${can?`<div class="room-booking-actions"><button class="small" onclick="event.stopPropagation();openRoomBookingModal('${b.id}')">修改</button><button class="small danger" onclick="event.stopPropagation();deleteRoomBookingById('${b.id}')">刪除</button></div>`:''}</div>`;
-        }).join('')+'</td>';
+        html+=`<td class="room-day-cell ${dayClass(day)}" data-room="${esc(room)}" data-room-date="${esc(day)}" ondblclick="openRoomBookingModal({date:'${esc(day)}',room:'${esc(room)}'})">`+
+          `<div class="date-num">${fmtDate(day)}</div>${holidayBadgeBodyHTML(day)}`+
+          bookings.map(b=>{
+            const can=v105BookingCanEdit(b); const creator=getUser(b.createdBy).name||'';
+            return `<div class="room-booking-item ${can?'':'readonly'}" onclick="event.stopPropagation();openRoomBookingModal('${b.id}')"><div class="time">${esc(b.startTime)}-${esc(b.endTime)}</div><div class="room-title">${esc(b.title)}</div><div class="room-meta">${esc(b.department||'')}｜BOOKING：${esc(creator)}</div>${can?`<div class="room-booking-actions"><button class="small" onclick="event.stopPropagation();openRoomBookingModal('${b.id}')">修改</button><button class="small danger" onclick="event.stopPropagation();deleteRoomBookingById('${b.id}')">刪除</button></div>`:''}</div>`;
+          }).join('')+'</td>';
       });
       html+='</tr>';
     });
