@@ -789,7 +789,7 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 <section id="usersPage" class="page hide"><div class="panel"><div class="section-title"><h2>帳號</h2><div class="toolbar"><span class="muted">管理員可建立帳號、查看帳號並修改密碼與角色。所有人皆可新增/修改行程；人員名單與帳號設定依權限限制。</span><button id="addUserBtn" class="primary">新增帳號</button></div></div><table class="table"><thead><tr><th>姓名</th><th>Email</th><th>密碼</th><th>LINE ID</th><th>角色</th><th>對應人員</th><th>帳號狀態</th><th>操作</th></tr></thead><tbody id="userRows"></tbody></table></div><div class="panel"><div class="section-title"><h2>人員名稱</h2><button id="addPersonBtn" class="primary">新增人員名稱</button></div><table class="table"><thead><tr><th>姓名</th><th>部門</th><th>群組</th><th>職務</th><th>LINE ID</th><th>狀態</th><th>操作</th></tr></thead><tbody id="personRows"></tbody></table></div></section>
 </main></div></div>
 
-<div id="incidentModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="incidentModalTitle">新增異況</h2><button id="closeIncidentX" class="ghost">✕</button></div><input type="hidden" id="incidentId"><div class="row"><div class="field"><label>發生日期</label><input id="incidentDate" type="date"></div><div class="field"><label>發生時間</label><select id="incidentTime"><option value="">不指定</option><option value="上午">上午</option><option value="下午">下午</option><option value="晚上">晚上</option><option value="08:00">08:00</option><option value="08:30">08:30</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option></select></div></div><div class="row"><div class="field"><label>異況類型</label><select id="incidentType"></select></div><div class="field"><label>緊急程度</label><select id="incidentUrgency"><option>一般</option><option>需追蹤</option><option>緊急</option><option>重大異況</option></select></div></div><div class="row"><div class="field"><label>地點 / 客戶</label><input id="incidentCustomer" placeholder="例如：宏志祥 / 宿舍名稱"></div><div class="field"><label>發生地點</label><input id="incidentLocation" placeholder="工廠 / 宿舍 / 醫院 / 其他"></div></div><div class="row"><div class="field"><label>工人姓名</label><input id="incidentWorkerName"></div><div class="field"><label>證件號碼</label><input id="incidentWorkerId" placeholder="護照號 / 居留證號，可留空"></div></div><div class="row"><div class="field"><label>負責人</label><select id="incidentOwner"></select></div><div class="field"><label>目前狀態</label><select id="incidentStatus"><option>待處理</option><option>處理中</option><option>待追蹤</option><option>已建立行程</option><option>已結案</option><option>取消 / 誤登</option></select></div></div><div class="row"><div class="field"><label>下次追蹤日期</label><input id="incidentNextFollow" type="date"></div><div class="field"><label>下次追蹤時間</label><select id="incidentNextFollowTime"><option value="上午">上午</option><option value="下午">下午</option><option value="晚上">晚上</option></select></div></div><div class="field"><label>協助人員</label><div id="incidentHelpers" class="checkbox-list"></div></div><div class="field"><label>異況標題</label><input id="incidentTitle" placeholder="例如：工人未到工廠 / 宿舍衝突 / 雇主客訴"></div><div class="field"><label>異況內容</label><textarea id="incidentDescription" placeholder="請記錄發生原因、目前狀況、已通知對象等"></textarea></div><div class="field"><label>結案說明</label><textarea id="incidentCloseNote" placeholder="結案時填寫處理結果"></textarea></div><div class="incident-event-actions"><div class="section-title"><h2 style="font-size:16px">從異況建立行程</h2><span class="muted">會建立到執行者行程總覽，並保留來源異況紀錄。</span></div><div class="row"><div class="field"><label>行程類型</label><select id="incidentEventType"></select></div><div class="field"><label>執行者</label><select id="incidentEventPerson"></select></div></div><div class="row"><div class="field"><label>日期</label><input id="incidentEventDate" type="date"></div><div class="field"><label>時間</label><select id="incidentEventTime"><option value="上午">上午</option><option value="下午">下午</option><option value="晚上">晚上</option><option value="08:00">08:00</option><option value="08:30">08:30</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option></select></div></div><div class="row"><div class="field"><label>辦理內容</label><input id="incidentEventName"></div><div class="field"><label>地點 / 客戶</label><input id="incidentEventLocation"></div></div><div class="field"><label>內容說明</label><textarea id="incidentEventNote"></textarea></div><button id="createIncidentEventBtn" class="primary" type="button">建立到執行者行事曆</button></div><div class="panel" style="box-shadow:none;margin-top:12px"><div class="section-title"><h2 style="font-size:16px">追蹤紀錄</h2><span class="muted">可往下新增，永久保存在異況案件中。</span></div><div id="incidentLogList" class="incident-log-list"></div><div class="field"><label>新增追蹤內容</label><textarea id="incidentLogContent" placeholder="例如：已聯繫工人未接，已通知雇主，明日再追蹤。"></textarea></div><div class="row"><div class="field"><label>本次追蹤後狀態</label><select id="incidentLogStatus"><option>待處理</option><option>處理中</option><option>待追蹤</option><option>已建立行程</option><option>已結案</option><option>取消 / 誤登</option></select></div><div class="field"><label>下次追蹤日期</label><input id="incidentLogNextFollow" type="date"></div><div class="field"><label>下次追蹤時間</label><select id="incidentLogNextFollowTime"><option value="上午">上午</option><option value="下午">下午</option><option value="晚上">晚上</option><option value="08:00">08:00</option><option value="08:30">08:30</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option></select></div></div><button id="addIncidentLogBtn" type="button">新增追蹤紀錄</button></div><div class="modal-actions"><button id="deleteIncidentBtn" class="danger hide">刪除</button><button id="closeIncidentBtn">取消</button><button id="saveIncidentBtn" class="primary">儲存異況</button></div></div></div>
+<div id="incidentModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="incidentModalTitle">新增異況</h2><button id="closeIncidentX" class="ghost">✕</button></div><input type="hidden" id="incidentId"><div class="row"><div class="field"><label>發生日期</label><input id="incidentDate" type="date"></div><div class="field"><label>發生時間</label><select id="incidentTime"><option value="">不指定</option><option value="上午">上午</option><option value="下午">下午</option><option value="晚上">晚上</option><option value="08:00">08:00</option><option value="08:30">08:30</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option></select></div></div><div class="row"><div class="field"><label>異況類型</label><select id="incidentType"></select></div><div class="field"><label>緊急程度</label><select id="incidentUrgency"><option>一般</option><option>需追蹤</option><option>緊急</option><option>重大異況</option></select></div></div><div class="row"><div class="field"><label>地點 / 客戶</label><input id="incidentCustomer" placeholder="例如：宏志祥 / 宿舍名稱"></div><div class="field"><label>發生地點</label><input id="incidentLocation" placeholder="工廠 / 宿舍 / 醫院 / 其他"></div></div><div class="row"><div class="field"><label>工人姓名</label><input id="incidentWorkerName"></div><div class="field"><label>證件號碼</label><input id="incidentWorkerId" placeholder="護照號 / 居留證號，可留空"></div></div><div class="row"><div class="field"><label>負責人</label><select id="incidentOwner"></select></div><div class="field"><label>目前狀態</label><select id="incidentStatus"><option>待處理</option><option>處理中</option><option>待追蹤</option><option>已建立行程</option><option>已結案</option><option>取消 / 誤登</option></select></div></div><div class="row"><div class="field"><label>下次追蹤日期</label><input id="incidentNextFollow" type="date"></div><div class="field"><label>下次追蹤時間</label><select id="incidentNextFollowTime"><option value="">不指定</option><option value="上午">上午</option><option value="下午">下午</option><option value="晚上">晚上</option><option value="08:00">08:00</option><option value="08:30">08:30</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option></select></div></div><div class="field"><label>協助人員</label><div id="incidentHelpers" class="checkbox-list"></div></div><div class="field"><label>異況標題</label><input id="incidentTitle" placeholder="例如：工人未到工廠 / 宿舍衝突 / 雇主客訴"></div><div class="field"><label>異況內容</label><textarea id="incidentDescription" placeholder="請記錄發生原因、目前狀況、已通知對象等"></textarea></div><div class="field"><label>結案說明</label><textarea id="incidentCloseNote" placeholder="結案時填寫處理結果"></textarea></div><div class="incident-event-actions"><div class="section-title"><h2 style="font-size:16px">從異況建立行程</h2><span class="muted">會建立到執行者行程總覽，並保留來源異況紀錄。</span></div><div class="row"><div class="field"><label>行程類型</label><select id="incidentEventType"></select></div><div class="field"><label>執行者</label><select id="incidentEventPerson"></select></div></div><div class="row"><div class="field"><label>日期</label><input id="incidentEventDate" type="date"></div><div class="field"><label>時間</label><select id="incidentEventTime"><option value="上午">上午</option><option value="下午">下午</option><option value="晚上">晚上</option><option value="08:00">08:00</option><option value="08:30">08:30</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option></select></div></div><div class="row"><div class="field"><label>辦理內容</label><input id="incidentEventName"></div><div class="field"><label>地點 / 客戶</label><input id="incidentEventLocation"></div></div><div class="field"><label>內容說明</label><textarea id="incidentEventNote"></textarea></div><button id="createIncidentEventBtn" class="primary" type="button">建立到執行者行事曆</button></div><div class="panel" style="box-shadow:none;margin-top:12px"><div class="section-title"><h2 style="font-size:16px">追蹤紀錄</h2><span class="muted">可往下新增，永久保存在異況案件中。</span></div><div id="incidentLogList" class="incident-log-list"></div><div class="field"><label>新增追蹤內容</label><textarea id="incidentLogContent" placeholder="例如：已聯繫工人未接，已通知雇主，明日再追蹤。"></textarea></div><div class="row"><div class="field"><label>本次追蹤後狀態</label><select id="incidentLogStatus"><option>待處理</option><option>處理中</option><option>待追蹤</option><option>已建立行程</option><option>已結案</option><option>取消 / 誤登</option></select></div><div class="field"><label>下次追蹤日期</label><input id="incidentLogNextFollow" type="date"></div><div class="field"><label>下次追蹤時間</label><select id="incidentLogNextFollowTime"><option value="">不指定</option><option value="上午">上午</option><option value="下午">下午</option><option value="晚上">晚上</option><option value="08:00">08:00</option><option value="08:30">08:30</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option></select></div></div><button id="addIncidentLogBtn" type="button">新增追蹤紀錄</button></div><div class="modal-actions"><button id="deleteIncidentBtn" class="danger hide">刪除</button><button id="closeIncidentBtn">取消</button><button id="saveIncidentBtn" class="primary">儲存異況</button></div></div></div>
 <div id="eventModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="eventModalTitle">新增行程</h2><button id="closeEventX" class="ghost">✕</button></div><input type="hidden" id="eventId"><div class="row"><div class="field"><label>類別</label><select id="eventKind"></select></div><div class="field"><label>行程狀態</label><select id="eventStatus"><option>未完成</option><option>已完成</option><option>取消</option></select></div></div><div class="row"><div class="field"><label>起日</label><input id="startDate" type="date"></div><div class="field"><label>迄日</label><input id="endDate" type="date"></div></div><div class="row"><div class="field"><label>開始時間</label><select id="startTime"></select></div><div class="field"><label>結束時間</label><select id="endTime"></select></div></div><div class="row"><div class="field"><label>地點 / 客戶</label><input id="locationName" placeholder="例如：宏志祥 / 桃園醫院"></div><div class="field"><label>地址</label><input id="address"></div></div><div class="field"><label>行程類型 / 翻譯狀態</label><select id="eventType"></select></div><div class="field"><label>辦理內容</label><input id="eventName" placeholder="例如：體檢陪同 / 協調會翻譯"></div><div class="row"><div class="field"><label>附加行程類型選項</label><select id="additionalType"></select></div><div class="field"><label>附加行程備註</label><input id="additionalNote" placeholder="補充說明" maxlength="60"></div></div><div class="field"><label>內容說明</label><textarea id="note" placeholder="請輸入內容說明 / 補充說明"></textarea></div><div id="serviceRecordBox" class="panel hide" style="box-shadow:none;margin:8px 0;background:#fff8f1"><div class="row"><div class="field"><label><input id="serviceRecordSubmitted" type="checkbox" style="width:auto"> 服務紀錄單已繳交</label><div class="muted">銀行、定期、送工(新入境、承接)、車禍處理、面談、醫療、上線/教育訓練需勾選並填繳交日期後才能選擇已完成。</div></div><div class="field"><label>服務紀錄單繳交日期</label><input id="serviceRecordDate" type="date"></div></div><div id="medicalFollowupBox" class="hide"><div class="row"><div class="field"><label>下次回診日期</label><input id="followupDate" type="date"></div><div class="field"><label>下次回診時間</label><select id="followupTime"></select></div></div><div class="row"><div class="field"><label>下次服務人員</label><select id="followupPerson"></select><div class="muted">選擇後會將下次回診行程加入該人員行事曆。</div></div><div class="field"><label>掛號號碼</label><input id="followupRegNo" placeholder="例如：123號 / 掛號序號"></div></div></div></div><div class="row"><div class="field"><label>公務車調整（選擇調整後的車號）</label><select id="vehicleNo"></select></div><div class="field"><label class="muted">提醒</label><div class="muted" style="padding:9px 0">請從下拉選單選擇調整後車號；會議室選項已取消。</div></div></div><div class="row"><div class="field"><label>新增、挪動給哪位人員/相關人員</label><div id="participantsBox" class="checkbox-list"></div></div><div class="field"><label>連續/重複</label><select id="repeatWeeks"><option value="1">只新增本次</option><option value="4">每週（連續一個月）</option><option value="13">每週（連續三個月）</option><option value="26">每週（連續六個月）</option><option value="custom">每週指定日期區間</option></select><div id="repeatCustomBox" class="hide" style="margin-top:10px"><div class="row"><div><label>每週起日</label><input id="repeatStartDate" type="date"></div><div><label>每週迄日</label><input id="repeatEndDate" type="date"></div></div><div class="muted">例：2026/06/01～2026/08/31，系統會每週建立一筆。</div></div></div></div><div class="modal-actions"><button id="deleteEventBtn" class="danger hide">刪除/取消顯示</button><button id="closeEventBtn">取消</button><button id="saveEventBtn" class="primary">儲存</button></div></div></div>
 <div id="fieldModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="fieldModalTitle">新增外務行程</h2><button id="closeFieldX" class="ghost">✕</button></div><input type="hidden" id="editFieldId"><div class="row"><div class="field"><label>人員名稱</label><select id="fieldPerson"></select></div><div class="field"><label>日期</label><input id="fieldDate" type="date"></div></div><div class="row"><div class="field"><label>時間</label><select id="fieldTime"></select></div><div class="field"><label>行程狀態</label><select id="fieldStatus"><option selected>未完成</option><option>已完成</option><option>已送件</option><option>異常</option><option>要補件</option><option>送件失敗</option></select></div></div><div class="field" id="fieldFailureBox"><label>送件失敗原因</label><input id="fieldFailureReason" placeholder="若送件失敗，請填寫原因"></div><div class="row"><div class="field"><label>地點</label><select id="fieldLocation"></select></div><div class="field"><label>地址</label><input id="fieldAddress" placeholder="依地點自動帶出，可手動修改"></div></div><div class="row"><div class="field"><label>目的</label><select id="fieldPurpose"></select></div><div class="field"><label>連續/重複性</label><select id="fieldRepeat"><option value="1">只新增本次</option><option value="4">每週（連續一個月）</option><option value="13">每週（連續三個月）</option><option value="26">每週（連續六個月）</option><option value="custom">每週指定日期區間</option></select><div id="fieldRepeatCustomBox" class="hide" style="margin-top:10px"><div class="row"><div><label>每週起日</label><input id="fieldRepeatStart" type="date"></div><div><label>每週迄日</label><input id="fieldRepeatEnd" type="date"></div></div></div></div></div><div class="field"><label>內容</label><textarea id="fieldNote"></textarea></div><div class="row"><div class="field"><label>現金</label><input id="fieldCash" placeholder="例：有 / 無 / 金額"></div><div class="field"><label>印章</label><input id="fieldStamp" placeholder="例：有 / 無 / 需帶"></div></div><div class="row"><div class="field"><label>證件</label><input id="fieldDocument" placeholder="例：ARC / 護照 / 公司大小章"></div><div class="field"><label>特殊提醒</label><label class="checkline"><input id="fieldMustSend" type="checkbox"> 必送件</label><label class="checkline"><input id="fieldCannotChange" type="checkbox"> 無法更換外務</label></div></div><div class="row"><div class="field"><label>下一次領件日期</label><input id="fieldPickupDate" type="date"></div><div class="field"><label>下一次領件外務人員</label><select id="fieldPickupPerson"></select><div class="muted">填寫後會自動在該日期與人員行程內新增「領件」。</div></div></div><div class="modal-actions"><button id="deleteFieldBtn" class="danger hide">刪除</button><button id="closeFieldBtn">取消</button><button id="saveFieldBtn" class="primary">儲存</button></div></div></div>
 <div id="personModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="personModalTitle">新增人員名稱</h2><button id="closePersonX" class="ghost">✕</button></div><input type="hidden" id="editPersonId"><div class="row"><div class="field"><label>姓名</label><input id="newPersonName"></div><div class="field"><label>職務</label><select id="newPersonLang"><option>越南</option><option>印尼</option><option>泰國</option><option>菲律賓</option><option>其他</option></select></div></div><div class="row"><div class="field"><label>部門</label><select id="newPersonDept"></select></div><div class="field"><label>群組</label><input id="newPersonGroup" placeholder="一部翻譯 / 二部翻譯 / 營運處"></div></div><div class="row"><div class="field"><label>狀態</label><select id="newPersonActive"><option value="true">啟用</option><option value="false">停用</option></select></div><div class="field"></div></div><div class="field"><label>LINE ID</label><input id="newPersonLineId" placeholder="可填 LINE User ID / 群組 ID / 備註代碼"></div><div class="modal-actions"><button id="closePersonBtn">取消</button><button id="savePersonBtn" class="primary">儲存</button></div></div></div><div id="userModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="userModalTitle">修改帳號</h2><button id="closeUserX" class="ghost">✕</button></div><input type="hidden" id="editUserId"><div class="row"><div class="field"><label>姓名</label><input id="editUserName"></div><div class="field"><label>Email / 帳號</label><input id="editUserEmail"></div></div><div class="field"><label>LINE ID</label><input id="editUserLineId" placeholder="可填 LINE User ID / 群組 ID / 備註代碼"></div><div class="row"><div class="field"><label>密碼</label><input id="editUserPassword"></div><div class="field"><label>角色</label><select id="editUserRole"><option value="admin">系統管理員</option><option value="supervisor">主管</option><option value="adminStaff">行政系</option><option value="general">一般人員</option><option value="staff">翻譯</option></select></div></div><div class="row"><div class="field"><label>對應人員</label><select id="editUserPerson"></select></div><div class="field"><label>帳號狀態</label><select id="editUserActive"><option value="true">啟用</option><option value="false">停用</option></select><div class="muted">停用後不可登入；刪除後不顯示於帳號清單。</div></div></div><div class="modal-actions"><button id="closeUserBtn">取消</button><button id="saveUserBtn" class="primary">儲存帳號</button></div></div></div>
@@ -4336,6 +4336,261 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
   });
   document.addEventListener('DOMContentLoaded',()=>setTimeout(fixAllIncidentTimeSelects,120));
   setTimeout(fixAllIncidentTimeSelects,300);
+})();
+</script>
+
+
+<script>
+/* V124：異況時間全面同步 + 下次追蹤自動顯示於負責人/協助者行事曆 + 儲存後回異況頁 */
+(function(){
+  const incidentPointTimesV124=['上午','下午','晚上','08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30','19:00','19:30','20:00','20:30','21:00','21:30','22:00'];
+  function timeOptionsV124(blank){
+    return (blank?'<option value="">不指定</option>':'')+incidentPointTimesV124.map(v=>`<option value="${v}">${v}</option>`).join('');
+  }
+  function normalizeIncidentTimeV124(v){
+    if(!v)return '';
+    if(incidentPointTimesV124.includes(v))return v;
+    if(String(v).includes('-')){
+      const s=String(v).split('-')[0].trim();
+      if(incidentPointTimesV124.includes(s))return s;
+    }
+    return '';
+  }
+  function fixIncidentTimeSelectV124(id,blank){
+    const sel=document.getElementById(id);
+    if(!sel)return;
+    const old=normalizeIncidentTimeV124(sel.value);
+    const vals=[...sel.options].map(o=>o.value||o.textContent.trim());
+    const has0830=vals.includes('08:30');
+    const hasRange=vals.some(v=>String(v).includes('-'));
+    if(!has0830 || hasRange || sel.options.length<10){
+      sel.innerHTML=timeOptionsV124(blank);
+    }
+    if(old)sel.value=old;
+  }
+  function fixAllIncidentTimeSelectsV124(){
+    fixIncidentTimeSelectV124('incidentTime',true);
+    fixIncidentTimeSelectV124('incidentNextFollowTime',true);
+    fixIncidentTimeSelectV124('incidentEventTime',false);
+    fixIncidentTimeSelectV124('incidentLogNextFollowTime',true);
+  }
+  function incidentOpenStatusV124(status){
+    const s=String(status||'');
+    return !(s.includes('結案') || s.includes('完成') || s.includes('取消') || s.includes('誤登'));
+  }
+  function incidentParticipantsV124(inc){
+    const arr=[];
+    if(inc&&inc.ownerPersonId)arr.push(inc.ownerPersonId);
+    (inc&&inc.helperPersonIds||[]).forEach(x=>{if(x)arr.push(x);});
+    return [...new Set(arr)];
+  }
+  function incidentTitleV124(inc){
+    return (inc&&inc.title)|| (inc&&inc.workerName) || (inc&&inc.customerName) || '異況追蹤';
+  }
+  function findIncidentEventV124(incidentId,key){
+    return (state.events||[]).find(e=>!e.deleted && e.sourceType==='incidentFollow' && e.sourceIncidentId===incidentId && e.sourceFollowKey===key);
+  }
+  function upsertIncidentFollowEventV124(inc,key,date,time,note){
+    if(!inc||!inc.id||!date)return;
+    const participants=incidentParticipantsV124(inc);
+    if(!participants.length)return;
+    if(!incidentOpenStatusV124(inc.status))return;
+    const now=new Date().toISOString();
+    let ev=findIncidentEventV124(inc.id,key);
+    const data={
+      kind:'schedule',
+      status:'未完成',
+      startDate:date,
+      endDate:date,
+      startTime:normalizeIncidentTimeV124(time)||'上午',
+      endTime:'',
+      type:'提醒事項',
+      name:'異況追蹤：'+incidentTitleV124(inc),
+      locationName:inc.customerName||inc.location||'',
+      address:inc.location||'',
+      vehicleNo:'',
+      meetingRoom:'不指定',
+      participants,
+      assigneeIds:participants,
+      note:note||[
+        '來源：異況追蹤',
+        inc.workerName?'工人：'+inc.workerName:'',
+        inc.customerName?'地點 / 客戶：'+inc.customerName:'',
+        inc.description?'異況內容：'+inc.description:''
+      ].filter(Boolean).join('\n'),
+      updatedBy:(currentUser&&currentUser.id)||'system',
+      updatedAt:now,
+      sourceType:'incidentFollow',
+      sourceIncidentId:inc.id,
+      sourceFollowKey:key,
+      deleted:false
+    };
+    if(ev){
+      Object.assign(ev,data);
+    }else{
+      ev=Object.assign({id:uid('ev'),seriesId:'',seriesIndex:0,createdBy:(currentUser&&currentUser.id)||'system',createdAt:now},data);
+      state.events.push(ev);
+    }
+    return ev;
+  }
+  function syncOneIncidentFollowEventsV124(inc){
+    if(!inc||inc.deleted)return;
+    const mainTime=inc.nextFollowTime||'';
+    if(inc.nextFollowDate){
+      upsertIncidentFollowEventV124(
+        inc,
+        'main',
+        inc.nextFollowDate,
+        mainTime,
+        [
+          '來源：異況下次追蹤日期',
+          inc.workerName?'工人：'+inc.workerName:'',
+          inc.customerName?'地點 / 客戶：'+inc.customerName:'',
+          inc.description?'異況內容：'+inc.description:''
+        ].filter(Boolean).join('\n')
+      );
+    }
+    (state.incidentLogs||[]).filter(l=>!l.deleted&&l.incidentId===inc.id&&l.nextFollowDate).forEach(l=>{
+      upsertIncidentFollowEventV124(
+        inc,
+        'log_'+l.id,
+        l.nextFollowDate,
+        l.nextFollowTime||'',
+        [
+          '來源：異況追蹤紀錄的下次追蹤',
+          l.content?'追蹤內容：'+l.content:'',
+          inc.workerName?'工人：'+inc.workerName:'',
+          inc.customerName?'地點 / 客戶：'+inc.customerName:''
+        ].filter(Boolean).join('\n')
+      );
+    });
+  }
+  function syncAllIncidentFollowEventsV124(){
+    if(!state||!state.incidents)return;
+    (state.incidents||[]).forEach(syncOneIncidentFollowEventsV124);
+  }
+  function goIncidentsPageV124(){
+    if(window.innerWidth>760)return;
+    setTimeout(()=>{
+      const modal=document.getElementById('incidentModal');
+      if(modal)modal.classList.add('hide');
+      const btn=document.querySelector('.bottom-nav .navbtn[data-page="incidents"], .side .navbtn[data-page="incidents"]');
+      if(btn){btn.click();return;}
+      if(typeof currentPage!=='undefined'){
+        currentPage='incidents';
+        document.querySelectorAll('.page').forEach(p=>p.classList.add('hide'));
+        const page=document.getElementById('incidentsPage');
+        if(page)page.classList.remove('hide');
+        document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page==='incidents'));
+        if(typeof renderIncidents==='function')renderIncidents();
+      }
+    },180);
+  }
+
+  const oldOpenIncidentModalV124=typeof openIncidentModal==='function'?openIncidentModal:null;
+  if(oldOpenIncidentModalV124){
+    openIncidentModal=function(id){
+      const result=oldOpenIncidentModalV124.apply(this,arguments);
+      setTimeout(()=>{
+        fixAllIncidentTimeSelectsV124();
+        const inc=id?(state.incidents||[]).find(x=>x.id===id):null;
+        const f=document.getElementById('incidentNextFollowTime');
+        if(f&&inc)f.value=normalizeIncidentTimeV124(inc.nextFollowTime||'');
+      },40);
+      setTimeout(fixAllIncidentTimeSelectsV124,180);
+      return result;
+    };
+  }
+
+  const oldSaveIncidentV124=typeof saveIncident==='function'?saveIncident:null;
+  if(oldSaveIncidentV124){
+    saveIncident=function(){
+      fixAllIncidentTimeSelectsV124();
+      const beforeIds=new Set((state.incidents||[]).map(x=>x.id));
+      const oldId=document.getElementById('incidentId')?.value||'';
+      const nextFollowTime=normalizeIncidentTimeV124(document.getElementById('incidentNextFollowTime')?.value||'');
+      const result=oldSaveIncidentV124.apply(this,arguments);
+      let inc=oldId?(state.incidents||[]).find(x=>x.id===oldId):null;
+      if(!inc){
+        inc=(state.incidents||[]).slice().reverse().find(x=>!beforeIds.has(x.id));
+      }
+      if(inc){
+        inc.nextFollowTime=nextFollowTime;
+        syncOneIncidentFollowEventsV124(inc);
+        save();
+        if(typeof renderAll==='function')renderAll();
+        if(typeof renderIncidents==='function')renderIncidents();
+        const modal=document.getElementById('incidentModal');
+        if(modal)modal.classList.add('hide');
+        goIncidentsPageV124();
+      }
+      return result;
+    };
+  }
+
+  const oldAddIncidentLogV124=typeof addIncidentLog==='function'?addIncidentLog:null;
+  if(oldAddIncidentLogV124){
+    addIncidentLog=function(){
+      fixAllIncidentTimeSelectsV124();
+      const incidentId=document.getElementById('incidentId')?.value||'';
+      const logDate=document.getElementById('incidentLogNextFollow')?.value||'';
+      const logTime=normalizeIncidentTimeV124(document.getElementById('incidentLogNextFollowTime')?.value||'');
+      const beforeIds=new Set((state.incidentLogs||[]).map(x=>x.id));
+      const result=oldAddIncidentLogV124.apply(this,arguments);
+      const inc=(state.incidents||[]).find(x=>x.id===incidentId);
+      const log=(state.incidentLogs||[]).slice().reverse().find(x=>!beforeIds.has(x.id)&&x.incidentId===incidentId);
+      if(log){
+        log.nextFollowTime=logTime;
+      }
+      if(inc){
+        if(logDate){
+          inc.nextFollowDate=logDate;
+          inc.nextFollowTime=logTime;
+          const nf=document.getElementById('incidentNextFollow'); if(nf)nf.value=logDate;
+          const nft=document.getElementById('incidentNextFollowTime'); if(nft)nft.value=logTime;
+        }
+        syncOneIncidentFollowEventsV124(inc);
+        save();
+        if(typeof renderAll==='function')renderAll();
+        if(typeof renderIncidents==='function')renderIncidents();
+      }
+      return result;
+    };
+  }
+
+  const oldCreateEventFromIncidentV124=typeof createEventFromIncident==='function'?createEventFromIncident:null;
+  if(oldCreateEventFromIncidentV124){
+    createEventFromIncident=function(){
+      fixAllIncidentTimeSelectsV124();
+      const result=oldCreateEventFromIncidentV124.apply(this,arguments);
+      // 原函式已用 incidentEventPerson 建立到執行者行事曆；這裡只補 render 確認。
+      if(typeof renderAll==='function')setTimeout(renderAll,80);
+      return result;
+    };
+  }
+
+  const oldRenderAllV124=typeof renderAll==='function'?renderAll:null;
+  if(oldRenderAllV124){
+    renderAll=function(){
+      oldRenderAllV124();
+      setTimeout(()=>{fixAllIncidentTimeSelectsV124();syncAllIncidentFollowEventsV124();},120);
+    };
+  }
+  const oldShowAppV124=typeof showApp==='function'?showApp:null;
+  if(oldShowAppV124){
+    showApp=function(){
+      oldShowAppV124();
+      setTimeout(()=>{fixAllIncidentTimeSelectsV124();syncAllIncidentFollowEventsV124();},160);
+    };
+  }
+
+  document.addEventListener('focusin',e=>{
+    if(e.target&&['incidentTime','incidentNextFollowTime','incidentLogNextFollowTime','incidentEventTime'].includes(e.target.id)){
+      setTimeout(fixAllIncidentTimeSelectsV124,20);
+    }
+  });
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{fixAllIncidentTimeSelectsV124();syncAllIncidentFollowEventsV124();},200));
+  setTimeout(()=>{fixAllIncidentTimeSelectsV124();syncAllIncidentFollowEventsV124();},400);
 })();
 </script>
 
