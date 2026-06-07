@@ -750,6 +750,33 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 }
 </style>
 
+
+<style>
+/* V119：手機週切換列日期欄位縮短，避免日期與下一週重疊 */
+@media(max-width:760px){
+  #calendarPage .v116-week-row,
+  #fieldCalendarPage .v116-week-row,
+  #roomBookingPage .v116-week-row{
+    grid-template-columns:66px minmax(112px,1fr) 66px!important;
+    gap:6px!important;
+  }
+  #calendarPage .v116-week-row button,
+  #fieldCalendarPage .v116-week-row button,
+  #roomBookingPage .v116-week-row button{
+    padding:9px 8px!important;
+    font-size:13px!important;
+    border-radius:10px!important;
+  }
+  #calendarPage .v116-week-row input,
+  #fieldCalendarPage .v116-week-row input,
+  #roomBookingPage .v116-week-row input{
+    padding:9px 8px!important;
+    font-size:13px!important;
+    text-align:center!important;
+  }
+}
+</style>
+
 </style></head><body>
 <div id="loginView" class="login-wrap"><div class="login-card"><h1>FOR-e 共享排程系統</h1><div class="toolbar hide"><button type="button" id="loginTab" class="primary">登入</button><button type="button" id="registerTab">註冊</button><button type="button" id="resetBtn" class="ghost">重置測試資料</button></div><div id="loginForm"><div class="field"><label>Email</label><input id="loginEmail" value="" placeholder="name@company.com"></div><div class="field"><label>密碼</label><input id="loginPassword" type="password" value=""></div><button id="doLogin" class="primary" type="button">登入</button><button id="quickLogin" type="button" class="hide">快速登入測試帳號</button><button id="mobileForceLogin" type="button" class="hide">手機測試一鍵進入</button><div id="loginMsg" class="muted" style="margin-top:8px"></div></div><div id="registerForm" class="hide"><div class="row"><div class="field"><label>姓名</label><input id="regName"></div><div class="field"><label>角色</label><select id="regRole"><option value="general">一般人員</option><option value="staff">翻譯</option><option value="supervisor">主管</option><option value="adminStaff">行政系</option></select></div></div><div class="field"><label>Email</label><input id="regEmail"></div><div class="field"><label>密碼</label><input id="regPassword" type="password"></div><button type="button" id="doRegister" class="primary">註冊</button></div></div></div>
 <div id="appView" class="hide"><div class="topbar"><div class="brand">FOR-e 共享排程系統</div><div class="toolbar"><span id="currentUserLabel"></span><button id="logoutBtn">登出</button></div></div><div class="layout"><aside class="side"><button class="navbtn active" data-page="calendar"><span class="mono-ico ico-calendar"></span>行程總覽</button><button class="navbtn" data-page="fieldCalendar"><span class="mono-ico ico-car"></span>外務行程</button><button class="navbtn" data-page="roomBooking"><span class="mono-ico ico-room"></span>會議室預約</button><button class="navbtn" data-page="fieldDetails"><span class="mono-ico ico-list"></span>外務明細</button><button class="navbtn" data-page="personalDetails"><span class="mono-ico ico-star"></span>個人行程表</button><button class="navbtn" data-page="today"><span class="mono-ico ico-sun"></span>今日總覽</button><button class="navbtn" data-page="incidents"><span class="mono-ico ico-warning"></span>異況追蹤</button><button class="navbtn app-only" data-page="mobile"><span class="mono-ico ico-star"></span>APP個人行程</button><button class="navbtn" data-page="reports"><span class="mono-ico ico-chart"></span>統計報表</button><button class="navbtn" data-page="serviceRecords"><span class="mono-ico ico-clipboard"></span>服務紀錄單</button><button class="navbtn" data-page="audit"><span class="mono-ico ico-doc"></span>Audit Log</button><button class="navbtn" data-page="line"><span class="mono-ico ico-chat"></span>LINE通知</button><button class="navbtn" data-page="theme"><span class="mono-ico ico-palette"></span>顏色設定</button><button class="navbtn" data-page="settings"><span class="mono-ico ico-link"></span>Airtable/Webhook</button><button class="navbtn" data-page="users"><span class="mono-ico ico-user"></span>人員/帳號</button><hr></aside><main class="main">
@@ -4196,54 +4223,218 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 })();
 
 </script>
-<style>
-/* V117：移除手機版舊程式產生的重複篩選框，只保留正式 v116 篩選 */
-@media(max-width:760px){
-  #calendarPage .panel:first-child > details.mobile-filter-collapse:not(.v116-static-filter),
-  #fieldCalendarPage .panel:first-child > details.mobile-filter-collapse:not(.v116-static-filter),
-  #roomBookingPage .panel:first-child > details.mobile-filter-collapse:not(.v116-static-filter){
-    display:none!important;
-  }
-}
-</style>
 <script>
-/* V117：刪除最上方重複的「篩選 / 日期」「外務篩選 / 日期」收合框 */
+/* V119：異況表單時間改為時段；儲存後回主畫面 */
 (function(){
-  function removeDuplicateMobileFilters(){
-    if(window.innerWidth>760)return;
-    ['#calendarPage','#fieldCalendarPage','#roomBookingPage'].forEach(sel=>{
-      const page=document.querySelector(sel);
-      if(!page)return;
-      const panel=page.querySelector('.panel');
-      if(!panel)return;
-      panel.querySelectorAll(':scope > details.mobile-filter-collapse').forEach(d=>{
-        if(d.classList.contains('v116-static-filter'))return;
-        const txt=(d.querySelector('summary')?.textContent||'').replace(/\s+/g,'');
-        if(txt.includes('篩選') || txt.includes('外務篩選') || txt.includes('會議室篩選')){
-          d.remove();
-        }
-      });
+  const incidentTimeSlots=[
+    '上午',
+    '下午',
+    '晚上',
+    '08:00-09:00',
+    '09:00-10:00',
+    '10:00-11:00',
+    '11:00-12:00',
+    '12:00-13:00',
+    '13:00-14:00',
+    '14:00-15:00',
+    '15:00-16:00',
+    '16:00-17:00',
+    '17:00-18:00',
+    '18:00-19:00',
+    '19:00-20:00',
+    '20:00-21:00',
+    '21:00-22:00'
+  ];
+  function isIncidentTimeSelect(sel){
+    if(!sel || sel.tagName!=='SELECT')return false;
+    const id=(sel.id||'').toLowerCase();
+    const name=(sel.getAttribute('name')||'').toLowerCase();
+    const labelText=(sel.closest('.field')?.querySelector('label')?.textContent||'');
+    const optionText=[...sel.options].map(o=>o.textContent.trim()).join('|');
+    const looksTime = id.includes('time') || name.includes('time') || labelText.includes('時間') || labelText.includes('時段');
+    const oldOptions = optionText.includes('上午') && optionText.includes('下午') && optionText.includes('晚上');
+    const inIncident = !!sel.closest('#incidentModal,#incidentForm,#incidentsPage,.incident-event-actions');
+    return inIncident && looksTime && oldOptions;
+  }
+  function upgradeIncidentTimeSelects(){
+    document.querySelectorAll('select').forEach(sel=>{
+      if(!isIncidentTimeSelect(sel))return;
+      const old=sel.value;
+      sel.innerHTML='<option value="">請選擇時段</option>'+incidentTimeSlots.map(v=>`<option value="${v}">${v}</option>`).join('');
+      if(incidentTimeSlots.includes(old))sel.value=old;
     });
   }
-  const oldRenderAllV117=renderAll;
+
+  function goMobileMainAfterIncidentSave(){
+    const isMobile=window.innerWidth<=760;
+    if(!isMobile)return;
+    setTimeout(()=>{
+      const mobileBtn=document.querySelector('.bottom-nav .navbtn[data-page="mobile"], .side .navbtn[data-page="mobile"]');
+      if(mobileBtn){mobileBtn.click();return;}
+      if(typeof currentPage!=='undefined'){
+        currentPage='mobile';
+        document.querySelectorAll('.page').forEach(p=>p.classList.add('hide'));
+        const p=document.getElementById('mobilePage');
+        if(p)p.classList.remove('hide');
+        document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page==='mobile'));
+        if(typeof renderAll==='function')renderAll();
+      }
+    },180);
+  }
+
+  const oldRenderAll119=renderAll;
   renderAll=function(){
-    oldRenderAllV117();
-    setTimeout(removeDuplicateMobileFilters,80);
-    setTimeout(removeDuplicateMobileFilters,250);
+    oldRenderAll119();
+    setTimeout(upgradeIncidentTimeSelects,80);
   };
-  const oldShowAppV117=showApp;
+  const oldShowApp119=showApp;
   showApp=function(){
-    oldShowAppV117();
-    setTimeout(removeDuplicateMobileFilters,120);
-    setTimeout(removeDuplicateMobileFilters,400);
+    oldShowApp119();
+    setTimeout(upgradeIncidentTimeSelects,120);
   };
+
+  // 若有 saveIncident 函式，直接包起來；否則用按鈕點擊偵測。
+  if(typeof saveIncident==='function'){
+    const oldSaveIncident119=saveIncident;
+    saveIncident=function(){
+      const result=oldSaveIncident119.apply(this,arguments);
+      goMobileMainAfterIncidentSave();
+      return result;
+    };
+  }
+  if(typeof saveIncidentLog==='function'){
+    const oldSaveIncidentLog119=saveIncidentLog;
+    saveIncidentLog=function(){
+      const result=oldSaveIncidentLog119.apply(this,arguments);
+      goMobileMainAfterIncidentSave();
+      return result;
+    };
+  }
+
   document.addEventListener('click',e=>{
-    if(e.target && e.target.closest && e.target.closest('.navbtn')){
-      setTimeout(removeDuplicateMobileFilters,120);
-      setTimeout(removeDuplicateMobileFilters,400);
+    const btn=e.target&&e.target.closest&&e.target.closest('button');
+    if(!btn)return;
+    const txt=(btn.textContent||'').trim();
+    const id=(btn.id||'').toLowerCase();
+    if((id.includes('incident') || btn.closest('#incidentModal,#incidentForm,.incident-event-actions')) && (txt==='儲存' || txt.includes('儲存'))){
+      setTimeout(upgradeIncidentTimeSelects,80);
+      setTimeout(goMobileMainAfterIncidentSave,260);
     }
   },true);
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(removeDuplicateMobileFilters,200));
+
+  document.addEventListener('focusin',e=>{
+    if(e.target && e.target.tagName==='SELECT')setTimeout(upgradeIncidentTimeSelects,20);
+  });
+
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(upgradeIncidentTimeSelects,150));
+  setTimeout(upgradeIncidentTimeSelects,300);
+})();
+</script>
+
+
+<script>
+/* V120：異況時間改用系統相同時間區間；儲存後回異況主畫面 */
+(function(){
+  function buildSameTimeOptions(){
+    // 與一般行程常用時間區間一致：上午 / 下午 / 晚上 + 30分鐘時段
+    const slots=['上午','下午','晚上'];
+    for(let h=8; h<=21; h++){
+      for(const m of [0,30]){
+        const startH=String(h).padStart(2,'0');
+        const startM=String(m).padStart(2,'0');
+        let eh=h, em=m+30;
+        if(em>=60){em=0; eh=h+1;}
+        if(eh>22) continue;
+        slots.push(`${startH}:${startM}-${String(eh).padStart(2,'0')}:${String(em).padStart(2,'0')}`);
+      }
+    }
+    return slots;
+  }
+  const incidentTimeSlotsV120=buildSameTimeOptions();
+
+  function isIncidentTimeSelectV120(sel){
+    if(!sel || sel.tagName!=='SELECT')return false;
+    const id=(sel.id||'').toLowerCase();
+    const name=(sel.getAttribute('name')||'').toLowerCase();
+    const labelText=(sel.closest('.field')?.querySelector('label')?.textContent||'');
+    const optionText=[...sel.options].map(o=>o.textContent.trim()).join('|');
+    const inIncident=!!sel.closest('#incidentModal,#incidentForm,#incidentsPage,.incident-event-actions');
+    const looksTime=id.includes('time') || name.includes('time') || labelText.includes('時間') || labelText.includes('時段');
+    const oldIncidentOptions=optionText.includes('上午') && optionText.includes('下午') && optionText.includes('晚上');
+    return inIncident && looksTime && oldIncidentOptions;
+  }
+
+  function upgradeIncidentTimeSelectsV120(){
+    document.querySelectorAll('select').forEach(sel=>{
+      if(!isIncidentTimeSelectV120(sel))return;
+      const old=sel.value;
+      sel.innerHTML='<option value="">請選擇時間</option>'+incidentTimeSlotsV120.map(v=>`<option value="${v}">${v}</option>`).join('');
+      if(incidentTimeSlotsV120.includes(old))sel.value=old;
+    });
+  }
+
+  function goIncidentMainV120(){
+    if(window.innerWidth>760)return;
+    setTimeout(()=>{
+      const incidentBtn=document.querySelector('.bottom-nav .navbtn[data-page="incidents"], .side .navbtn[data-page="incidents"]');
+      if(incidentBtn){incidentBtn.click();return;}
+      if(typeof currentPage!=='undefined'){
+        currentPage='incidents';
+        document.querySelectorAll('.page').forEach(p=>p.classList.add('hide'));
+        const p=document.getElementById('incidentsPage');
+        if(p)p.classList.remove('hide');
+        document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page==='incidents'));
+        if(typeof renderAll==='function')renderAll();
+      }
+    },180);
+  }
+
+  if(typeof saveIncident==='function'){
+    const oldSaveIncidentV120=saveIncident;
+    saveIncident=function(){
+      const result=oldSaveIncidentV120.apply(this,arguments);
+      goIncidentMainV120();
+      return result;
+    };
+  }
+  if(typeof saveIncidentLog==='function'){
+    const oldSaveIncidentLogV120=saveIncidentLog;
+    saveIncidentLog=function(){
+      const result=oldSaveIncidentLogV120.apply(this,arguments);
+      goIncidentMainV120();
+      return result;
+    };
+  }
+
+  const oldRenderAllV120=renderAll;
+  renderAll=function(){
+    oldRenderAllV120();
+    setTimeout(upgradeIncidentTimeSelectsV120,80);
+    setTimeout(upgradeIncidentTimeSelectsV120,250);
+  };
+  const oldShowAppV120=showApp;
+  showApp=function(){
+    oldShowAppV120();
+    setTimeout(upgradeIncidentTimeSelectsV120,120);
+    setTimeout(upgradeIncidentTimeSelectsV120,400);
+  };
+
+  document.addEventListener('click',e=>{
+    const btn=e.target&&e.target.closest&&e.target.closest('button');
+    if(!btn)return;
+    const txt=(btn.textContent||'').trim();
+    const inIncident=!!btn.closest('#incidentModal,#incidentForm,#incidentsPage,.incident-event-actions');
+    if(inIncident && (txt==='儲存' || txt.includes('儲存'))){
+      setTimeout(upgradeIncidentTimeSelectsV120,80);
+      setTimeout(goIncidentMainV120,260);
+    }
+  },true);
+
+  document.addEventListener('focusin',e=>{
+    if(e.target && e.target.tagName==='SELECT')setTimeout(upgradeIncidentTimeSelectsV120,20);
+  });
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(upgradeIncidentTimeSelectsV120,150));
+  setTimeout(upgradeIncidentTimeSelectsV120,300);
 })();
 </script>
 
