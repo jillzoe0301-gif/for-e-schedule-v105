@@ -621,6 +621,12 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
   #roomBookingPage .room-booking-item .room-meta{display:none!important}
 }
 
+
+/* V105：行事曆人員名稱下方不顯示公務車；放大休假日 / 國定假日文字 */
+.holiday-tags{font-size:13px!important;line-height:1.45!important;margin:4px 0 6px!important}
+.holiday-tags span{font-size:13px!important;font-weight:900!important;padding:2px 6px!important;border-radius:8px!important}
+.holiday-tags .tw{font-size:13px!important;font-weight:900!important}
+@media(max-width:760px){.holiday-tags{font-size:11.5px!important;line-height:1.35!important;margin:3px 0 5px!important}.holiday-tags span,.holiday-tags .tw{font-size:11.5px!important;padding:2px 5px!important}}
 </style></head><body>
 <div id="loginView" class="login-wrap"><div class="login-card"><h1>FOR-e 共享排程系統</h1><div class="toolbar hide"><button type="button" id="loginTab" class="primary">登入</button><button type="button" id="registerTab">註冊</button><button type="button" id="resetBtn" class="ghost">重置測試資料</button></div><div id="loginForm"><div class="field"><label>Email</label><input id="loginEmail" value="" placeholder="name@company.com"></div><div class="field"><label>密碼</label><input id="loginPassword" type="password" value=""></div><button id="doLogin" class="primary" type="button">登入</button><button id="quickLogin" type="button" class="hide">快速登入測試帳號</button><button id="mobileForceLogin" type="button" class="hide">手機測試一鍵進入</button><div id="loginMsg" class="muted" style="margin-top:8px"></div></div><div id="registerForm" class="hide"><div class="row"><div class="field"><label>姓名</label><input id="regName"></div><div class="field"><label>角色</label><select id="regRole"><option value="general">一般人員</option><option value="staff">翻譯</option><option value="supervisor">主管</option><option value="adminStaff">行政系</option></select></div></div><div class="field"><label>Email</label><input id="regEmail"></div><div class="field"><label>密碼</label><input id="regPassword" type="password"></div><button type="button" id="doRegister" class="primary">註冊</button></div></div></div>
 <div id="appView" class="hide"><div class="topbar"><div class="brand">FOR-e 共享排程系統</div><div class="toolbar"><span id="currentUserLabel"></span><button id="logoutBtn">登出</button></div></div><div class="layout"><aside class="side"><button class="navbtn active" data-page="calendar"><span class="mono-ico ico-calendar"></span>行程總覽</button><button class="navbtn" data-page="fieldCalendar"><span class="mono-ico ico-car"></span>外務行程</button><button class="navbtn" data-page="roomBooking"><span class="mono-ico ico-room"></span>會議室BOOKING</button><button class="navbtn" data-page="fieldDetails"><span class="mono-ico ico-list"></span>外務明細</button><button class="navbtn" data-page="personalDetails"><span class="mono-ico ico-star"></span>個人行程表</button><button class="navbtn" data-page="today"><span class="mono-ico ico-sun"></span>今日總覽</button><button class="navbtn" data-page="incidents"><span class="mono-ico ico-warning"></span>異況追蹤</button><button class="navbtn app-only" data-page="mobile"><span class="mono-ico ico-star"></span>APP個人行程</button><button class="navbtn" data-page="reports"><span class="mono-ico ico-chart"></span>統計報表</button><button class="navbtn" data-page="serviceRecords"><span class="mono-ico ico-clipboard"></span>服務紀錄單</button><button class="navbtn" data-page="audit"><span class="mono-ico ico-doc"></span>Audit Log</button><button class="navbtn" data-page="line"><span class="mono-ico ico-chat"></span>LINE通知</button><button class="navbtn" data-page="theme"><span class="mono-ico ico-palette"></span>顏色設定</button><button class="navbtn" data-page="settings"><span class="mono-ico ico-link"></span>Airtable/Webhook</button><button class="navbtn" data-page="users"><span class="mono-ico ico-user"></span>人員/帳號</button><hr></aside><main class="main">
@@ -694,7 +700,7 @@ const defaultTranslatorStatusTypes=['請假','外訓','會議','返鄉','上課'
 const defaultLangs=['泰國','印尼','菲律賓','越南','越南/舍監','宿管','宿管/外務','主管','管理員','海外','其他'];
 const defaultRooms=['大會議室716','小會議室300'];
 const defaultDepartments=['營運一部','營運二部','營運處','營管處','業務部'];
-const defaultVehicleNumbers=['不指定','RDG-7626｜黃娟 113/12/09開始用','RFB-6952｜何江 114/03/03開始使用','RFB-6953｜阿芳 114/08/29開始用','RFB-8733｜珮珮 114/9/22開始使用','RFE-0681｜阿雪 112/12/18開始用','RFE-0682｜玄莊 115/03/02開始用','RFF-3563｜愛珠','RFL-0797｜思涵','RFL-1780｜薔薇','RFL-3935｜阿平 114/02/11開始用','RFL-3950｜紅筠 113/09/23開始用','RFL-5712｜阿香 114/08/29開始用','RFL-6162｜晶晶 115/05/25開始用','RFS-7217｜恩文 114/09/12開始使用','RFT-3072｜明金 115/05/25開始使用','RGE-6736｜玉智 115/05/26開始用'];
+const defaultVehicleNumbers=['不指定','RDG-7626｜賴黃娟 113/12/09開始用','RFB-6952｜吳氏何江 114/03/03開始使用','RFB-6953｜阮氏芳 114/08/29開始用','RFB-8733｜廖明珮 114/9/22開始使用','RFE-0681｜賴育賢 112/12/18開始用','RFE-0682｜黃氏玄莊 115/03/02開始用','RFF-3563｜王愛珠','RFL-0797｜黃思涵','RFL-1780｜范武薔薇','RFL-3935｜武俊平 114/02/11開始用','RFL-3950｜范紅筠 113/09/23開始用','RFL-5712｜陳氏香 114/08/29開始用','RFL-6162｜卓晶晶 115/05/25開始用','RFS-7217｜陳恩文 114/09/12開始使用','RFT-3072｜施明金 115/05/25開始使用','RGE-6736｜鄧玉荀 115/05/26開始用'];
 const defaultCategoryLabels=['行程','翻譯狀態'];
 const defaultTheme={dateHeader:'#efefef',personCell:'#fff7ed',personName:'#e5e7eb',personOne:'#f8ee88',personTwo:'#bfe1f6',holiday:'#e0f2fe',today:'#fffbeb',eventPending:'#fef9c3',eventDone:'#e8eef7',jobColors:{}};
 
@@ -935,7 +941,7 @@ if(Array.isArray(state.people)){
 if(state.options&&Array.isArray(state.options.groups)){
   const needed=['一部翻譯','二部翻譯','一部','二部'];
   state.options.groups=[...new Set([...(state.options.groups||[]),...needed])];
-} if(!state.options.categoryLabels||!state.options.categoryLabels.length)state.options.categoryLabels=defaultCategoryLabels; if(!state.options.vehicleNumbers||!state.options.vehicleNumbers.length)state.options.vehicleNumbers=defaultVehicleNumbers; if(!state.options.eventTypes||!state.options.eventTypes.some(t=>String(t).startsWith('醫療('))||!state.options.eventTypes.includes('視訊/面試')||!state.options.eventTypes.includes('返台提醒'))state.options.eventTypes=defaultEventTypes; if(!state.reportSnapshots)state.reportSnapshots=[]; if(!state.theme)state.theme=clone(defaultTheme); state.theme=Object.assign(clone(defaultTheme),state.theme||{}); state.theme.personOne='#f8ee88'; state.theme.personTwo='#bfe1f6'; state.theme.jobColors=Object.assign({}, defaultTheme.jobColors||{}, (state.theme&&state.theme.jobColors)||{}); applyTheme(); (state.users||[]).forEach(u=>{if(['schedule','dispatcher','translator','sales','viewer'].includes(u.role))u.role='staff'; if(u.role==='options')u.role='admin';}); if(!state.users.some(u=>u.email==='staff@demo.com'))state.users.push({id:'u_staff',name:'Demo 翻譯',email:'staff@demo.com',password:'123456',role:'staff',personId:'p03',active:true,deleted:false}); if(!state.users.some(u=>u.email==='general@demo.com'))state.users.push({id:'u_general',name:'Demo 一般人員',email:'general@demo.com',password:'123456',role:'general',personId:'p18',active:true,deleted:false}); if(!state.users.some(u=>String(u.email||'').toLowerCase()==='admin_staff@demo.com'&&u.deleted!==true))state.users.push({id:'u_adminstaff',name:'Demo 行政系',email:'admin_staff@demo.com',password:'123456',role:'adminStaff',personId:'p21',active:true,deleted:false}); if(!state.events.length) seed(); ensureV105FanTestEvents(); save()}
+} if(!state.options.categoryLabels||!state.options.categoryLabels.length)state.options.categoryLabels=defaultCategoryLabels; state.options.vehicleNumbers=defaultVehicleNumbers; if(!state.options.eventTypes||!state.options.eventTypes.some(t=>String(t).startsWith('醫療('))||!state.options.eventTypes.includes('視訊/面試')||!state.options.eventTypes.includes('返台提醒'))state.options.eventTypes=defaultEventTypes; if(!state.reportSnapshots)state.reportSnapshots=[]; if(!state.theme)state.theme=clone(defaultTheme); state.theme=Object.assign(clone(defaultTheme),state.theme||{}); state.theme.personOne='#f8ee88'; state.theme.personTwo='#bfe1f6'; state.theme.jobColors=Object.assign({}, defaultTheme.jobColors||{}, (state.theme&&state.theme.jobColors)||{}); applyTheme(); (state.users||[]).forEach(u=>{if(['schedule','dispatcher','translator','sales','viewer'].includes(u.role))u.role='staff'; if(u.role==='options')u.role='admin';}); if(!state.users.some(u=>u.email==='staff@demo.com'))state.users.push({id:'u_staff',name:'Demo 翻譯',email:'staff@demo.com',password:'123456',role:'staff',personId:'p03',active:true,deleted:false}); if(!state.users.some(u=>u.email==='general@demo.com'))state.users.push({id:'u_general',name:'Demo 一般人員',email:'general@demo.com',password:'123456',role:'general',personId:'p18',active:true,deleted:false}); if(!state.users.some(u=>String(u.email||'').toLowerCase()==='admin_staff@demo.com'&&u.deleted!==true))state.users.push({id:'u_adminstaff',name:'Demo 行政系',email:'admin_staff@demo.com',password:'123456',role:'adminStaff',personId:'p21',active:true,deleted:false}); if(!state.events.length) seed(); ensureV105FanTestEvents(); save()}
 
 function ensureV105FanTestEvents(){
   if(!state||!Array.isArray(state.events))return;
@@ -3978,15 +3984,34 @@ v106BindServiceRecordsUI=function(){
     if(lang.includes('管理'))return false;
     return group.includes('翻譯') || lang.includes('宿管') || lang.includes('舍監') || lang.includes('外務') || lang.includes('翻譯');
   }
+  function vehiclePlateOnly(v){
+    return String(v||'').split('｜')[0].trim();
+  }
+  function vehicleOptionOwner(v){
+    const right=String(v||'').split('｜')[1]||'';
+    return right.replace(/\s*\d{2,3}[/\-年].*$/,'').replace(/開始使用|開始用/g,'').trim();
+  }
+  function assignedVehiclePlatesByPersonName(personName){
+    const name=String(personName||'').trim();
+    const plates=[];
+    vehicleNumberList().forEach(v=>{
+      const plate=vehiclePlateOnly(v);
+      if(!plate||plate==='不指定')return;
+      if(vehicleOptionOwner(v)===name && !plates.includes(plate))plates.push(plate);
+    });
+    return plates;
+  }
   function eventOverlapsDate(e,d){return e && d>=String(e.startDate||'') && d<=String(e.endDate||e.startDate||'');}
   function currentVehiclePlates(pid,days){
     const ds=(days&&days.length)?days:[todayISO()];
     const plates=[];
+    const p=getPerson(pid)||{};
+    assignedVehiclePlatesByPersonName(p.name).forEach(v=>{if(!plates.includes(v))plates.push(v);});
     (state.events||[]).forEach(e=>{
       if(!e||e.deleted||e.status==='取消'||!e.vehicleNo)return;
       if(!Array.isArray(e.participants)||!e.participants.includes(pid))return;
       if(!ds.some(d=>eventOverlapsDate(e,d)))return;
-      String(e.vehicleNo).split(/[、,，/]/).map(x=>x.trim()).filter(Boolean).forEach(v=>{if(!plates.includes(v))plates.push(v);});
+      String(e.vehicleNo).split(/[、,，/]/).map(x=>vehiclePlateOnly(x.trim())).filter(Boolean).forEach(v=>{if(v!=='不指定'&&!plates.includes(v))plates.push(v);});
     });
     return plates;
   }
@@ -4000,7 +4025,7 @@ v106BindServiceRecordsUI=function(){
   renderMatrix=function(ps,days){
     let html='<div class="calendar-wrap"><table class="calendar-table"><thead><tr><th class="person-head">人員名稱 × 日期<div class="drag-hint">可拖曳人員列調整順序</div></th>'+days.map(d=>`<th class="${dayClass(d)}"><div>${weekdayFull(d)}</div><div class="date-num">${fmtDate(d)}</div>${holidayBadgeHTML(d)}</th>`).join('')+'</tr></thead><tbody>';
     for(const p of ps){
-      html+=`<tr draggable="${canManagePeople()}" data-person-id="${p.id}"><td class="person-cell"><div class="person-name ${personNameClass(p)}" ${personNameStyle(p)}><span class="drag-handle">☰</span>${esc(p.name)}</div><div class="muted">${esc(p.group)}｜${esc(p.lang)}</div>${vehiclePlateHTML(p,days)}</td>`;
+      html+=`<tr draggable="${canManagePeople()}" data-person-id="${p.id}"><td class="person-cell"><div class="person-name ${personNameClass(p)}" ${personNameStyle(p)}><span class="drag-handle">☰</span>${esc(p.name)}</div><div class="muted">${esc(p.group)}｜${esc(p.lang)}</div></td>`;
       for(const d of days){html+=`<td class="day-cell ${dayClass(d)}" data-date="${d}" data-person="${p.id}"><div class="date-num">${weekdayFull(d)} ${fmtDate(d)}</div>${holidayBadgeBodyHTML(d)}${eventsOnDateForPerson(d,p.id).map(eventHTML).join('')}</td>`}
       html+='</tr>';
     }
@@ -4011,7 +4036,7 @@ v106BindServiceRecordsUI=function(){
     let html='<div class="calendar-wrap"><table class="calendar-table"><thead><tr><th class="person-head">人員名稱</th>'+days.map(d=>`<th class="${dayClass(d)}"><div>${weekdayFull(d)}</div><div>${fmtDate(d)}</div>${holidayBadgeHTML(d)}</th>`).join('')+'</tr></thead><tbody>';
     for(const p of people){
       const gcls=p.group==='一部翻譯'?'group-one':p.group==='二部翻譯'?'group-two':'';
-      html+=`<tr><td class="person-cell"><span class="person-name ${gcls}">${esc(p.name)}</span><div class="muted">${esc(p.group)}｜${esc(p.lang||'')}</div>${vehiclePlateHTML(p,days)}</td>`;
+      html+=`<tr><td class="person-cell"><span class="person-name ${gcls}">${esc(p.name)}</span><div class="muted">${esc(p.group)}｜${esc(p.lang||'')}</div></td>`;
       for(const d of days){const evs=filteredExternalEventsOn(d,p.id); html+=`<td class="day-cell ${dayClass(d)}" data-field-date="${d}" data-field-person="${p.id}"><div class="date-num">${fmtDate(d)}</div>${holidayBadgeBodyHTML(d)}${evs.map(e=>renderFieldEvent(e)).join('')}</td>`}
       html+='</tr>';
     }
