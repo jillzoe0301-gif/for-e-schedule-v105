@@ -4240,4 +4240,124 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 })();
 </script>
 
+
+
+<style>
+/* V112：手機版三大行事曆上方介面統一，新增按鈕固定顯示 */
+@media(max-width:760px){
+  .v112-mobile-topbar{display:grid!important;grid-template-columns:auto 1fr auto!important;gap:8px!important;align-items:center!important;margin-bottom:8px!important;width:100%!important;}
+  .v112-mobile-topbar > *{min-width:0!important;}
+  .v112-mobile-topbar input[type="date"],
+  .v112-mobile-topbar .mini{width:100%!important;min-width:0!important;}
+  .v112-mobile-add-row{margin:0 0 10px!important;width:100%!important;}
+  .v112-mobile-add-row .primary,
+  .v112-mobile-add-row button{display:block!important;width:100%!important;border-radius:14px!important;padding:11px 12px!important;font-size:15px!important;}
+  .mobile-filter-collapse.v112-mobile-filter{border:1px solid var(--line)!important;border-radius:14px!important;background:#fff!important;margin-top:0!important;overflow:hidden!important;width:100%!important;}
+  .mobile-filter-collapse.v112-mobile-filter summary{list-style:none!important;cursor:pointer!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;padding:10px 12px!important;font-weight:900!important;background:#f8fafc!important;color:#0f172a!important;}
+  .mobile-filter-collapse.v112-mobile-filter summary::-webkit-details-marker{display:none!important;}
+  .mobile-filter-collapse.v112-mobile-filter summary::after{content:'⌄';font-size:18px;color:#64748b;transition:.18s transform;}
+  .mobile-filter-collapse.v112-mobile-filter[open] summary::after{transform:rotate(180deg);}
+  .mobile-filter-collapse.v112-mobile-filter summary small{font-size:12px;color:#64748b;font-weight:700;}
+  .mobile-filter-collapse.v112-mobile-filter .toolbar{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;padding:10px!important;border-top:1px solid var(--line)!important;margin:0!important;width:100%!important;}
+  .mobile-filter-collapse.v112-mobile-filter .toolbar>*,
+  .mobile-filter-collapse.v112-mobile-filter input,
+  .mobile-filter-collapse.v112-mobile-filter select,
+  .mobile-filter-collapse.v112-mobile-filter button,
+  .mobile-filter-collapse.v112-mobile-filter .mini,
+  .mobile-filter-collapse.v112-mobile-filter .multi-select{width:100%!important;min-width:0!important;max-width:100%!important;}
+  .mobile-filter-collapse.v112-mobile-filter .v112-extra-toolbar{padding-top:0!important;}
+}
+</style>
+<script>
+/* V112：行程總覽／外務行程／會議室 手機上方介面一致 */
+(function(){
+  function isMobile(){return window.matchMedia && window.matchMedia('(max-width: 760px)').matches;}
+  function byId(id){return document.getElementById(id);} 
+  function insertAfter(target, node){ if(target && node) target.insertAdjacentElement('afterend', node); }
+
+  function setupMobileCalendarPanel(cfg){
+    const panel=document.querySelector(cfg.panelSelector);
+    if(!panel)return;
+    const header=panel.querySelector(':scope > .section-title');
+    const hint=panel.querySelector(':scope > .calendar-operation-hint');
+    const formTop=panel.querySelector(':scope > .form-top-toolbar');
+    if(!header || !hint || !formTop)return;
+
+    const prev=byId(cfg.prevId), picker=byId(cfg.pickerId), next=byId(cfg.nextId), addBtn=byId(cfg.addBtnId);
+    if(!prev || !picker || !next || !addBtn)return;
+    const extraButtons=(cfg.extraButtonIds||[]).map(byId).filter(Boolean);
+
+    let mobileTop=panel.querySelector(':scope > .v112-mobile-topbar');
+    if(!mobileTop){mobileTop=document.createElement('div'); mobileTop.className='toolbar form-top-toolbar v112-mobile-topbar';}
+    let addRow=panel.querySelector(':scope > .v112-mobile-add-row');
+    if(!addRow){addRow=document.createElement('div'); addRow.className='v112-mobile-add-row';}
+    let filterBox=panel.querySelector(':scope > details.mobile-filter-collapse.v112-mobile-filter');
+    if(!filterBox){
+      filterBox=document.createElement('details');
+      filterBox.className='mobile-filter-collapse v112-mobile-filter';
+      filterBox.open=false;
+      const summary=document.createElement('summary');
+      summary.innerHTML='<span>'+cfg.filterTitle+'</span><small>點此展開</small>';
+      filterBox.appendChild(summary);
+    }
+    let extraBar=filterBox.querySelector(':scope > .toolbar.v112-extra-toolbar');
+    if(!extraBar){extraBar=document.createElement('div'); extraBar.className='toolbar v112-extra-toolbar';}
+
+    if(isMobile()){
+      if(panel.firstElementChild!==header) panel.insertBefore(header,panel.firstElementChild);
+      mobileTop.append(prev,picker,next);
+      addRow.appendChild(addBtn);
+      extraButtons.forEach(btn=>extraBar.appendChild(btn));
+      [...panel.querySelectorAll(':scope > .toolbar:not(.form-top-toolbar):not(.v112-extra-toolbar)')].forEach(tb=>filterBox.appendChild(tb));
+      if(extraBar.children.length){
+        const summary=filterBox.querySelector('summary');
+        if(summary) summary.insertAdjacentElement('afterend', extraBar);
+        else filterBox.prepend(extraBar);
+      }
+      insertAfter(header,mobileTop);
+      insertAfter(mobileTop,addRow);
+      insertAfter(addRow,hint);
+      insertAfter(hint,filterBox);
+    }else{
+      if(panel.firstElementChild!==header) panel.insertBefore(header,panel.firstElementChild);
+      insertAfter(header,hint);
+      insertAfter(hint,formTop);
+      formTop.append(prev,picker,next,addBtn);
+      extraButtons.forEach(btn=>formTop.appendChild(btn));
+      const nonTop=[...filterBox.querySelectorAll(':scope > .toolbar:not(.v112-extra-toolbar)')];
+      let anchor=formTop;
+      nonTop.forEach(tb=>{insertAfter(anchor,tb); anchor=tb;});
+      if(extraBar && !extraBar.children.length && extraBar.parentElement===filterBox) extraBar.remove();
+    }
+  }
+
+  function unifyAllMobileHeaders(){
+    setupMobileCalendarPanel({
+      panelSelector:'#calendarPage .panel:first-child',
+      prevId:'prevWeek', pickerId:'weekPicker', nextId:'nextWeek', addBtnId:'addEventBtn',
+      extraButtonIds:['exportCsvBtn'], filterTitle:'篩選 / 日期'
+    });
+    setupMobileCalendarPanel({
+      panelSelector:'#fieldCalendarPage .panel:first-child',
+      prevId:'fieldPrevWeek', pickerId:'fieldWeekPicker', nextId:'fieldNextWeek', addBtnId:'fieldAddBtn',
+      extraButtonIds:['fieldExportBtn'], filterTitle:'外務篩選'
+    });
+    setupMobileCalendarPanel({
+      panelSelector:'#roomBookingPage .panel:first-child',
+      prevId:'roomPrevWeek', pickerId:'roomBookingWeekPicker', nextId:'roomNextWeek', addBtnId:'addRoomBookingBtn',
+      extraButtonIds:[], filterTitle:'會議室篩選'
+    });
+  }
+
+  const _v112RenderAll = renderAll;
+  renderAll = function(){ _v112RenderAll(); setTimeout(unifyAllMobileHeaders, 80); };
+  const _v112ShowApp = showApp;
+  showApp = function(){ _v112ShowApp(); setTimeout(unifyAllMobileHeaders, 120); };
+  const _v112ApplyPerm = applyPermissionsUI;
+  applyPermissionsUI = function(){ _v112ApplyPerm(); setTimeout(unifyAllMobileHeaders, 80); };
+  window.addEventListener('resize', ()=>setTimeout(unifyAllMobileHeaders, 100));
+  document.addEventListener('DOMContentLoaded', ()=>setTimeout(unifyAllMobileHeaders, 120));
+})();
+</script>
+
 </body></html>
