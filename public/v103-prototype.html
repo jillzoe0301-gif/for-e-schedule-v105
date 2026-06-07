@@ -4887,4 +4887,38 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 })();
 </script>
 
+
+<style>
+/* V127：手機版三大行事曆抬頭靠左，移除標題前小標籤 */
+@media(max-width:760px){
+  #calendarPage .panel:first-child > .section-title,
+  #fieldCalendarPage .panel:first-child > .section-title,
+  #roomBookingPage .panel:first-child > .section-title{
+    justify-content:flex-start!important;
+    align-items:center!important;
+    text-align:left!important;
+    margin-bottom:10px!important;
+  }
+
+  #calendarPage .panel:first-child > .section-title h2,
+  #fieldCalendarPage .panel:first-child > .section-title h2,
+  #roomBookingPage .panel:first-child > .section-title h2{
+    display:block!important;
+    text-align:left!important;
+    justify-content:flex-start!important;
+    margin:0!important;
+    width:100%!important;
+    font-size:22px!important;
+    line-height:1.25!important;
+  }
+
+  #calendarPage .section-title h2::before,
+  #fieldCalendarPage .section-title h2::before,
+  #roomBookingPage .section-title h2::before{
+    display:none!important;
+    content:none!important;
+  }
+}
+</style>
+
 </body></html>
