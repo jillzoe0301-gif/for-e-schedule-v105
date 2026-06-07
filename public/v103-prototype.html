@@ -4801,4 +4801,90 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 })();
 </script>
 
+
+<style>
+/* V126：移除舊版手機函式產生的重複篩選框 */
+@media(max-width:760px){
+  #calendarPage .panel:first-child > details.mobile-filter-collapse:not(.v116-static-filter),
+  #fieldCalendarPage .panel:first-child > details.mobile-filter-collapse:not(.v116-static-filter),
+  #roomBookingPage .panel:first-child > details.mobile-filter-collapse:not(.v116-static-filter){
+    display:none!important;
+  }
+}
+</style>
+
+<script>
+/* V126：清掉「篩選 / 日期」「外務篩選 / 日期」重複收合框 */
+(function(){
+  function removeOldDuplicateFiltersV126(){
+    if(window.innerWidth>760)return;
+
+    ['#calendarPage','#fieldCalendarPage','#roomBookingPage'].forEach(pageSelector=>{
+      const page=document.querySelector(pageSelector);
+      if(!page)return;
+      const panel=page.querySelector('.panel');
+      if(!panel)return;
+
+      panel.querySelectorAll(':scope > details.mobile-filter-collapse').forEach(d=>{
+        if(d.classList.contains('v116-static-filter'))return;
+
+        const summaryText=(d.querySelector('summary')?.textContent||'').replace(/\s+/g,'');
+        const isOldCalendarFilter =
+          summaryText.includes('篩選/日期') ||
+          summaryText.includes('外務篩選/日期') ||
+          summaryText.includes('會議室篩選/日期') ||
+          summaryText.includes('篩選') ||
+          summaryText.includes('外務篩選') ||
+          summaryText.includes('會議室篩選');
+
+        if(isOldCalendarFilter){
+          d.remove();
+        }
+      });
+    });
+  }
+
+  const oldRenderAllV126=typeof renderAll==='function'?renderAll:null;
+  if(oldRenderAllV126){
+    renderAll=function(){
+      oldRenderAllV126();
+      setTimeout(removeOldDuplicateFiltersV126,60);
+      setTimeout(removeOldDuplicateFiltersV126,200);
+      setTimeout(removeOldDuplicateFiltersV126,600);
+    };
+  }
+
+  const oldShowAppV126=typeof showApp==='function'?showApp:null;
+  if(oldShowAppV126){
+    showApp=function(){
+      oldShowAppV126();
+      setTimeout(removeOldDuplicateFiltersV126,100);
+      setTimeout(removeOldDuplicateFiltersV126,400);
+      setTimeout(removeOldDuplicateFiltersV126,900);
+    };
+  }
+
+  const oldApplyPermissionsV126=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
+  if(oldApplyPermissionsV126){
+    applyPermissionsUI=function(){
+      oldApplyPermissionsV126();
+      setTimeout(removeOldDuplicateFiltersV126,80);
+      setTimeout(removeOldDuplicateFiltersV126,300);
+    };
+  }
+
+  document.addEventListener('click',e=>{
+    if(e.target&&e.target.closest&&e.target.closest('.navbtn')){
+      setTimeout(removeOldDuplicateFiltersV126,100);
+      setTimeout(removeOldDuplicateFiltersV126,350);
+      setTimeout(removeOldDuplicateFiltersV126,800);
+    }
+  },true);
+
+  window.addEventListener('resize',()=>setTimeout(removeOldDuplicateFiltersV126,120));
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(removeOldDuplicateFiltersV126,200));
+  setTimeout(removeOldDuplicateFiltersV126,500);
+})();
+</script>
+
 </body></html>
