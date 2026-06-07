@@ -485,6 +485,23 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
   .bottom-nav .navbtn{flex:0 0 auto!important;width:auto!important;min-width:56px!important;display:inline-flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:2px!important;font-size:10.5px!important;line-height:1.05!important;padding:6px 6px!important;}
   .bottom-nav .navbtn.hide,.bottom-nav .navbtn.role-hidden{display:none!important;}
 }
+
+
+/* V110：服務紀錄單分區篩選與手機底部選單齊平 */
+.v110-service-scope-filter{margin:10px 0 12px;padding:10px;border:1px solid var(--line);border-radius:14px;background:#f8fafc;align-items:flex-end}
+.v110-filter-item{display:flex;flex-direction:column;gap:4px;font-weight:700;color:#334155;font-size:12px}
+.v110-filter-item .mini{min-width:130px}
+.v110-service-clear{height:38px;align-self:flex-end}
+@media(max-width:760px){
+  .v110-service-scope-filter{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:end}
+  .v110-filter-item .mini,.v110-service-clear{width:100%;min-width:0}
+  .v110-service-clear{grid-column:1/-1}
+  .bottom-nav{display:grid!important;grid-template-columns:repeat(var(--for-e-mobile-nav-count,6),minmax(50px,1fr))!important;align-items:stretch;overflow-x:auto;overflow-y:hidden;padding:0 0 calc(env(safe-area-inset-bottom,0px));}
+  .bottom-nav .navbtn{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:3px!important;text-align:center!important;min-height:62px!important;height:62px!important;width:auto!important;min-width:50px!important;margin:0!important;padding:7px 2px!important;line-height:1.1!important;font-size:11px!important;white-space:nowrap!important;}
+  .bottom-nav .navbtn.hide,.bottom-nav .navbtn.role-hidden{display:none!important}
+  .bottom-nav .mono-ico{display:flex!important;margin:0 auto!important;width:22px!important;min-width:22px!important;height:22px!important;line-height:22px!important;align-items:center!important;justify-content:center!important;}
+}
+
 </style></head><body>
 <div id="loginView" class="login-wrap"><div class="login-card"><h1>FOR-e 共享排程系統</h1><div class="toolbar hide"><button type="button" id="loginTab" class="primary">登入</button><button type="button" id="registerTab">註冊</button><button type="button" id="resetBtn" class="ghost">重置測試資料</button></div><div id="loginForm"><div class="field"><label>Email</label><input id="loginEmail" value="" placeholder="name@company.com"></div><div class="field"><label>密碼</label><input id="loginPassword" type="password" value=""></div><button id="doLogin" class="primary" type="button">登入</button><button id="quickLogin" type="button" class="hide">快速登入測試帳號</button><button id="mobileForceLogin" type="button" class="hide">手機測試一鍵進入</button><div id="loginMsg" class="muted" style="margin-top:8px"></div></div><div id="registerForm" class="hide"><div class="row"><div class="field"><label>姓名</label><input id="regName"></div><div class="field"><label>角色</label><select id="regRole"><option value="general">一般人員</option><option value="staff">翻譯</option><option value="supervisor">主管</option><option value="adminStaff">行政系</option></select></div></div><div class="field"><label>Email</label><input id="regEmail"></div><div class="field"><label>密碼</label><input id="regPassword" type="password"></div><button type="button" id="doRegister" class="primary">註冊</button></div></div></div>
 <div id="appView" class="hide"><div class="topbar"><div class="brand">FOR-e 共享排程系統</div><div class="toolbar"><span id="currentUserLabel"></span><button id="logoutBtn">登出</button></div></div><div class="layout"><aside class="side"><button class="navbtn active" data-page="calendar"><span class="mono-ico ico-calendar"></span>行程總覽</button><button class="navbtn" data-page="fieldCalendar"><span class="mono-ico ico-car"></span>外務行程</button><button class="navbtn" data-page="roomBooking"><span class="mono-ico ico-room"></span>會議室BOOKING</button><button class="navbtn" data-page="fieldDetails"><span class="mono-ico ico-list"></span>外務明細</button><button class="navbtn" data-page="personalDetails"><span class="mono-ico ico-star"></span>個人行程表</button><button class="navbtn" data-page="today"><span class="mono-ico ico-sun"></span>今日總覽</button><button class="navbtn" data-page="incidents"><span class="mono-ico ico-warning"></span>異況追蹤</button><button class="navbtn app-only" data-page="mobile"><span class="mono-ico ico-star"></span>APP個人行程</button><button class="navbtn" data-page="reports"><span class="mono-ico ico-chart"></span>統計報表</button><button class="navbtn" data-page="serviceRecords"><span class="mono-ico ico-clipboard"></span>服務紀錄單</button><button class="navbtn" data-page="audit"><span class="mono-ico ico-doc"></span>Audit Log</button><button class="navbtn" data-page="line"><span class="mono-ico ico-chat"></span>LINE通知</button><button class="navbtn" data-page="theme"><span class="mono-ico ico-palette"></span>顏色設定</button><button class="navbtn" data-page="settings"><span class="mono-ico ico-link"></span>Airtable/Webhook</button><button class="navbtn" data-page="users"><span class="mono-ico ico-user"></span>人員/帳號</button><hr></aside><main class="main">
@@ -3656,6 +3673,139 @@ v106BindServiceRecordsUI=function(){
   applyPermissionsUI=function(){oldPerm();setTimeout(()=>{mobileLayout();bottomNav();},60);};
   window.addEventListener('resize',()=>setTimeout(()=>{mobileLayout();bottomNav();},80));
   document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{mobileLayout();bottomNav();},120));
+})();
+
+
+
+/* V110：服務紀錄單分頁區塊化篩選、移除上下文字、手機底部圖示齊平 */
+(function(){
+  const SERVICE_FILTER_MAP={
+    overview:['serviceMonth','serviceYear','serviceGroup','servicePerson','serviceStatus'],
+    pending:['serviceMonth','serviceGroup','servicePerson'],
+    month:['serviceMonth','serviceGroup','servicePerson','serviceStatus'],
+    year:['serviceYear','serviceGroup','servicePerson','serviceStatus']
+  };
+  const LABELS={
+    serviceMonth:'統計年月',serviceYear:'統計年度',serviceGroup:'部門',servicePerson:'翻譯',serviceStatus:'繳交狀態'
+  };
+  function real(id){return document.getElementById(id)}
+  function cleanServiceTitles(){
+    const page=document.querySelector('#serviceRecordsPage'); if(!page)return;
+    page.querySelectorAll('h2').forEach(h=>{
+      h.textContent=h.textContent.replace(/^上方\s*｜\s*/,'').replace(/^下方\s*｜\s*/,'');
+    });
+    const intro=page.querySelector(':scope > .panel:first-child .muted[style]');
+    if(intro)intro.textContent='此頁統一放服務紀錄單相關數據；各表格上方可依需要篩選統計年月、年度、部門、翻譯與繳交狀態。';
+  }
+  function hideTopServiceToolbar(){
+    const page=document.querySelector('#serviceRecordsPage'); if(!page)return;
+    const top=page.querySelector(':scope > .panel:first-child'); if(!top)return;
+    const tb=top.querySelector(':scope > .toolbar');
+    if(tb){tb.classList.add('hide'); tb.dataset.v110Hidden='1';}
+  }
+  function ensureRealControls(){
+    if(real('serviceMonth') && !real('serviceMonth').value) real('serviceMonth').value=monthISO();
+    if(real('serviceYear') && !real('serviceYear').value) real('serviceYear').value=(real('serviceMonth')?.value||monthISO()).slice(0,4);
+  }
+  function makeControl(id){
+    const src=real(id); if(!src)return '';
+    const val=src.value||'';
+    if(src.tagName==='SELECT'){
+      const opts=[...src.options].map(o=>`<option value="${esc(o.value)}" ${o.value===val?'selected':''}>${esc(o.textContent)}</option>`).join('');
+      return `<label class="v110-filter-item"><span>${LABELS[id]||id}</span><select class="mini v110-service-filter" data-sync="${id}">${opts}</select></label>`;
+    }
+    const type=src.getAttribute('type')||'text';
+    const min=src.getAttribute('min')?` min="${esc(src.getAttribute('min'))}"`:'';
+    const max=src.getAttribute('max')?` max="${esc(src.getAttribute('max'))}"`:'';
+    const step=src.getAttribute('step')?` step="${esc(src.getAttribute('step'))}"`:'';
+    return `<label class="v110-filter-item"><span>${LABELS[id]||id}</span><input class="mini v110-service-filter" data-sync="${id}" type="${esc(type)}" value="${esc(val)}"${min}${max}${step}></label>`;
+  }
+  function ensureFilter(panel,key){
+    if(!panel || !SERVICE_FILTER_MAP[key])return;
+    let box=panel.querySelector(':scope > .v110-service-scope-filter');
+    const html=SERVICE_FILTER_MAP[key].map(makeControl).join('')+`<button type="button" class="small v110-service-clear" data-key="${key}">清除篩選</button>`;
+    if(!box){
+      box=document.createElement('div');
+      box.className='toolbar v110-service-scope-filter';
+      const h=panel.querySelector(':scope > h2, :scope > .section-title');
+      if(h)h.insertAdjacentElement('afterend',box); else panel.prepend(box);
+    }
+    box.innerHTML=html;
+    box.querySelectorAll('.v110-service-filter').forEach(el=>{
+      el.addEventListener('input',()=>syncFromScoped(el));
+      el.addEventListener('change',()=>syncFromScoped(el));
+    });
+    const clear=box.querySelector('.v110-service-clear');
+    if(clear)clear.onclick=()=>clearScoped(key);
+  }
+  function syncFromScoped(el){
+    const id=el.dataset.sync; const target=real(id); if(!target)return;
+    target.value=el.value;
+    if(id==='serviceMonth' && real('serviceYear') && (!real('serviceYear').value || String(real('serviceYear').value).length<4)) real('serviceYear').value=el.value.slice(0,4);
+    if(id==='serviceGroup' && typeof fillServicePersonOptions==='function'){
+      try{fillServicePersonOptions()}catch(e){}
+    }
+    if(typeof renderServiceRecords==='function')renderServiceRecords();
+  }
+  function clearScoped(key){
+    const ids=SERVICE_FILTER_MAP[key]||[];
+    ids.forEach(id=>{
+      const target=real(id); if(!target)return;
+      if(id==='serviceMonth')target.value=monthISO();
+      else if(id==='serviceYear')target.value=(real('serviceMonth')?.value||monthISO()).slice(0,4);
+      else target.value='';
+    });
+    if(typeof fillServicePersonOptions==='function')try{fillServicePersonOptions()}catch(e){}
+    if(typeof renderServiceRecords==='function')renderServiceRecords();
+  }
+  function relocateServiceFilters(){
+    const page=document.querySelector('#serviceRecordsPage'); if(!page)return;
+    ensureRealControls(); cleanServiceTitles(); hideTopServiceToolbar();
+    const overview=document.getElementById('serviceStatusOverviewPanel')||document.getElementById('serviceRecordOverviewStats')?.closest('.panel')||document.getElementById('serviceOverviewStats')?.closest('.panel');
+    const pending=document.getElementById('serviceMonthPendingStats')?.closest('.panel');
+    const month=document.getElementById('serviceMonthDetailRows')?.closest('.panel');
+    const year=document.getElementById('serviceYearDetailRows')?.closest('.panel');
+    ensureFilter(overview,'overview'); ensureFilter(pending,'pending'); ensureFilter(month,'month'); ensureFilter(year,'year');
+    cleanServiceTitles();
+  }
+  function hideReportServicePanels(){
+    const reportPage=document.querySelector('#reportsPage'); if(!reportPage)return;
+    [...reportPage.querySelectorAll('.panel')].forEach(panel=>{
+      const txt=(panel.textContent||'').trim();
+      if(txt.includes('服務紀錄單繳交狀況') || panel.querySelector('#serviceMonthHead,#serviceYearHead,#serviceDeptHead,#serviceOverviewStats')) panel.classList.add('hide');
+    });
+  }
+  function syncScopedValues(){
+    document.querySelectorAll('.v110-service-filter').forEach(el=>{
+      const t=real(el.dataset.sync); if(!t)return;
+      if(el.tagName==='SELECT'){
+        const current=el.value;
+        el.innerHTML=[...t.options].map(o=>`<option value="${esc(o.value)}" ${o.value===t.value?'selected':''}>${esc(o.textContent)}</option>`).join('');
+        if([...el.options].some(o=>o.value===current) && current===t.value)el.value=current;
+      }else el.value=t.value||'';
+    });
+  }
+  function alignMobileBottomNav(){
+    const nav=document.querySelector('.bottom-nav'); if(!nav)return;
+    const visible=[...nav.querySelectorAll('.navbtn')].filter(b=>getComputedStyle(b).display!=='none'&&!b.classList.contains('hide')&&!b.classList.contains('role-hidden'));
+    nav.style.setProperty('--for-e-mobile-nav-count',String(Math.max(visible.length,1)));
+  }
+  const oldRenderSR=renderServiceRecords;
+  renderServiceRecords=function(){
+    oldRenderSR();
+    relocateServiceFilters();
+    syncScopedValues();
+  };
+  const oldRenderReports=renderReports;
+  renderReports=function(){oldRenderReports();hideReportServicePanels();relocateServiceFilters();};
+  const oldRenderAll=renderAll;
+  renderAll=function(){oldRenderAll();setTimeout(()=>{hideReportServicePanels();relocateServiceFilters();alignMobileBottomNav();},120);};
+  const oldShowApp=showApp;
+  showApp=function(){oldShowApp();setTimeout(()=>{hideReportServicePanels();relocateServiceFilters();alignMobileBottomNav();},160);};
+  const oldPerm=applyPermissionsUI;
+  applyPermissionsUI=function(){oldPerm();setTimeout(alignMobileBottomNav,120);};
+  window.addEventListener('resize',()=>setTimeout(alignMobileBottomNav,120));
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{hideReportServicePanels();relocateServiceFilters();alignMobileBottomNav();},180));
 })();
 
 try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bindUI();bindExternalUI();/* V75：為避免看不到登入頁，取消自動登入；請每次由登入頁進入。 */ safeRemoveSession(); $('loginView')&&$('loginView').classList.remove('hide'); $('appView')&&$('appView').classList.add('hide');}catch(err){console.error(err); document.body.innerHTML='<div style="padding:24px;font-family:Arial"><h2>系統載入錯誤</h2><p>'+esc(err.message)+'</p><button onclick="localStorage.clear();location.reload()">清除暫存並重新載入</button></div>'}
