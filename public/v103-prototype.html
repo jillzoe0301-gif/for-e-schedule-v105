@@ -4360,4 +4360,287 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 })();
 </script>
 
+
+
+<style>
+/* V113：強制修正手機三大行事曆上方版面 */
+@media(max-width:760px){
+  #calendarPage .panel:first-child,
+  #fieldCalendarPage .panel:first-child,
+  #roomBookingPage .panel:first-child{
+    display:block!important;
+  }
+  #calendarPage .v113-mobile-topbar,
+  #fieldCalendarPage .v113-mobile-topbar,
+  #roomBookingPage .v113-mobile-topbar{
+    display:grid!important;
+    grid-template-columns:auto 1fr auto!important;
+    gap:8px!important;
+    align-items:center!important;
+    width:100%!important;
+    margin:0 0 8px!important;
+  }
+  #calendarPage .v113-mobile-topbar button,
+  #fieldCalendarPage .v113-mobile-topbar button,
+  #roomBookingPage .v113-mobile-topbar button{
+    width:auto!important;
+    min-width:0!important;
+    white-space:nowrap!important;
+  }
+  #calendarPage .v113-mobile-topbar input,
+  #fieldCalendarPage .v113-mobile-topbar input,
+  #roomBookingPage .v113-mobile-topbar input{
+    width:100%!important;
+    min-width:0!important;
+  }
+  #calendarPage .v113-mobile-add-row,
+  #fieldCalendarPage .v113-mobile-add-row,
+  #roomBookingPage .v113-mobile-add-row{
+    width:100%!important;
+    margin:0 0 10px!important;
+  }
+  #calendarPage .v113-mobile-add-row button,
+  #fieldCalendarPage .v113-mobile-add-row button,
+  #roomBookingPage .v113-mobile-add-row button{
+    display:block!important;
+    width:100%!important;
+    border-radius:14px!important;
+    padding:11px 12px!important;
+    font-size:15px!important;
+  }
+  #calendarPage .calendar-operation-hint,
+  #fieldCalendarPage .calendar-operation-hint,
+  #roomBookingPage .calendar-operation-hint{
+    display:block!important;
+    margin:0 0 10px 2px!important;
+    font-size:12px!important;
+  }
+  #calendarPage details.v113-mobile-filter,
+  #fieldCalendarPage details.v113-mobile-filter,
+  #roomBookingPage details.v113-mobile-filter{
+    display:block!important;
+    border:1px solid var(--line)!important;
+    border-radius:14px!important;
+    background:#fff!important;
+    margin:0!important;
+    overflow:hidden!important;
+    width:100%!important;
+  }
+  #calendarPage details.v113-mobile-filter summary,
+  #fieldCalendarPage details.v113-mobile-filter summary,
+  #roomBookingPage details.v113-mobile-filter summary{
+    list-style:none!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    padding:10px 12px!important;
+    font-weight:900!important;
+    background:#f8fafc!important;
+    color:#0f172a!important;
+    cursor:pointer!important;
+  }
+  #calendarPage details.v113-mobile-filter summary::-webkit-details-marker,
+  #fieldCalendarPage details.v113-mobile-filter summary::-webkit-details-marker,
+  #roomBookingPage details.v113-mobile-filter summary::-webkit-details-marker{display:none!important}
+  #calendarPage details.v113-mobile-filter summary::after,
+  #fieldCalendarPage details.v113-mobile-filter summary::after,
+  #roomBookingPage details.v113-mobile-filter summary::after{
+    content:'⌄';
+    font-size:18px;
+    color:#64748b;
+  }
+  #calendarPage details.v113-mobile-filter[open] summary::after,
+  #fieldCalendarPage details.v113-mobile-filter[open] summary::after,
+  #roomBookingPage details.v113-mobile-filter[open] summary::after{
+    transform:rotate(180deg);
+  }
+  #calendarPage details.v113-mobile-filter summary small,
+  #fieldCalendarPage details.v113-mobile-filter summary small,
+  #roomBookingPage details.v113-mobile-filter summary small{
+    font-size:12px!important;
+    color:#64748b!important;
+    font-weight:700!important;
+  }
+  #calendarPage .v113-filter-content,
+  #fieldCalendarPage .v113-filter-content,
+  #roomBookingPage .v113-filter-content{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+    padding:10px!important;
+    border-top:1px solid var(--line)!important;
+  }
+  #calendarPage .v113-filter-content > *,
+  #fieldCalendarPage .v113-filter-content > *,
+  #roomBookingPage .v113-filter-content > *,
+  #calendarPage .v113-filter-content input,
+  #fieldCalendarPage .v113-filter-content input,
+  #roomBookingPage .v113-filter-content input,
+  #calendarPage .v113-filter-content select,
+  #fieldCalendarPage .v113-filter-content select,
+  #roomBookingPage .v113-filter-content select,
+  #calendarPage .v113-filter-content button,
+  #fieldCalendarPage .v113-filter-content button,
+  #roomBookingPage .v113-filter-content button,
+  #calendarPage .v113-filter-content .mini,
+  #fieldCalendarPage .v113-filter-content .mini,
+  #roomBookingPage .v113-filter-content .mini,
+  #calendarPage .v113-filter-content .multi-select,
+  #fieldCalendarPage .v113-filter-content .multi-select,
+  #roomBookingPage .v113-filter-content .multi-select{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+  }
+}
+</style>
+
+<script>
+/* V113：不管舊版是否已把工具列包進 details，都強制重排 */
+(function(){
+  function isMobile(){
+    return window.matchMedia && window.matchMedia('(max-width: 760px)').matches;
+  }
+  function el(id){ return document.getElementById(id); }
+  function cleanOldDetails(panel){
+    panel.querySelectorAll('details.mobile-filter-collapse').forEach(d=>{
+      if(!d.classList.contains('v113-mobile-filter')){
+        while(d.firstChild){
+          const child=d.firstChild;
+          if(child.tagName && child.tagName.toLowerCase()==='summary'){ d.removeChild(child); continue; }
+          panel.appendChild(child);
+        }
+        d.remove();
+      }
+    });
+  }
+  function makeDiv(panel, cls){
+    let node=panel.querySelector(':scope > .'+cls);
+    if(!node){
+      node=document.createElement('div');
+      node.className=cls;
+    }
+    return node;
+  }
+  function makeFilter(panel, title){
+    let box=panel.querySelector(':scope > details.v113-mobile-filter');
+    if(!box){
+      box=document.createElement('details');
+      box.className='mobile-filter-collapse v113-mobile-filter';
+      box.open=false;
+      const summary=document.createElement('summary');
+      summary.innerHTML='<span>'+title+'</span><small>點此展開</small>';
+      box.appendChild(summary);
+      const content=document.createElement('div');
+      content.className='v113-filter-content';
+      box.appendChild(content);
+    }else{
+      const summary=box.querySelector('summary');
+      if(summary) summary.innerHTML='<span>'+title+'</span><small>點此展開</small>';
+      if(!box.querySelector(':scope > .v113-filter-content')){
+        const content=document.createElement('div');
+        content.className='v113-filter-content';
+        box.appendChild(content);
+      }
+    }
+    return box;
+  }
+  function moveMany(target, ids){
+    ids.forEach(id=>{
+      const node=el(id);
+      if(node) target.appendChild(node);
+    });
+  }
+  function ensureToolbarForLooseControls(panel, ids){
+    const tb=document.createElement('div');
+    tb.className='toolbar v113-generated-filter-toolbar';
+    moveMany(tb, ids);
+    if(tb.children.length) return tb;
+    return null;
+  }
+  function layoutOne(cfg){
+    const panel=document.querySelector(cfg.panel);
+    if(!panel) return;
+    const header=panel.querySelector('.section-title');
+    const hint=panel.querySelector('.calendar-operation-hint');
+    const prev=el(cfg.prev), picker=el(cfg.picker), next=el(cfg.next), add=el(cfg.add);
+    if(!header || !hint || !prev || !picker || !next || !add) return;
+
+    cleanOldDetails(panel);
+
+    const topbar=makeDiv(panel,'v113-mobile-topbar');
+    const addrow=makeDiv(panel,'v113-mobile-add-row');
+    const filter=makeFilter(panel,cfg.title);
+    const content=filter.querySelector(':scope > .v113-filter-content');
+
+    topbar.append(prev,picker,next);
+    addrow.appendChild(add);
+
+    content.innerHTML='';
+    const generated=ensureToolbarForLooseControls(panel,cfg.filterIds);
+    if(generated) content.appendChild(generated);
+
+    (cfg.extraIds||[]).forEach(id=>{
+      const node=el(id);
+      if(node){
+        const wrap=document.createElement('div');
+        wrap.className='toolbar v113-extra-toolbar';
+        wrap.appendChild(node);
+        content.appendChild(wrap);
+      }
+    });
+
+    if(panel.firstElementChild!==header) panel.insertBefore(header,panel.firstElementChild);
+    header.insertAdjacentElement('afterend',topbar);
+    topbar.insertAdjacentElement('afterend',addrow);
+    addrow.insertAdjacentElement('afterend',hint);
+    hint.insertAdjacentElement('afterend',filter);
+  }
+  function layoutAll(){
+    if(!isMobile()) return;
+    layoutOne({
+      panel:'#calendarPage .panel:first-child',
+      prev:'prevWeek',
+      picker:'weekPicker',
+      next:'nextWeek',
+      add:'addEventBtn',
+      title:'篩選 / 日期',
+      filterIds:['viewMode','groupFilter','jobFilter','personFilter','typeFilter','statusFilter','keywordFilter','clearFilter'],
+      extraIds:['exportCsvBtn']
+    });
+    layoutOne({
+      panel:'#fieldCalendarPage .panel:first-child',
+      prev:'fieldPrevWeek',
+      picker:'fieldWeekPicker',
+      next:'fieldNextWeek',
+      add:'fieldAddBtn',
+      title:'外務篩選',
+      filterIds:['fieldViewMode','fieldPersonFilter','fieldLocationFilter','fieldPurposeFilter','fieldStatusFilter','fieldClearFilter'],
+      extraIds:['fieldExportBtn']
+    });
+    layoutOne({
+      panel:'#roomBookingPage .panel:first-child',
+      prev:'roomPrevWeek',
+      picker:'roomBookingWeekPicker',
+      next:'roomNextWeek',
+      add:'addRoomBookingBtn',
+      title:'會議室篩選',
+      filterIds:['roomBookingRoomFilter','roomBookingDeptFilter','roomBookingKeyword','clearRoomBookingFilters'],
+      extraIds:[]
+    });
+  }
+
+  const oldRenderAll=renderAll;
+  renderAll=function(){ oldRenderAll(); setTimeout(layoutAll,120); };
+  const oldShowApp=showApp;
+  showApp=function(){ oldShowApp(); setTimeout(layoutAll,180); };
+  const oldApply=applyPermissionsUI;
+  applyPermissionsUI=function(){ oldApply(); setTimeout(layoutAll,120); };
+
+  window.addEventListener('resize',()=>setTimeout(layoutAll,150));
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(layoutAll,180));
+  setTimeout(layoutAll,300);
+})();
+</script>
+
 </body></html>
