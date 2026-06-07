@@ -442,6 +442,49 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
   .room-day-cell{width:130px!important;min-width:130px!important;}
 }
 
+
+
+/* V108 mobile incident / field compact final override */
+@media(max-width:760px){
+  .mobile-filter-collapse.v108-mobile-filter{border:1px solid var(--line)!important;border-radius:14px!important;background:#fff!important;margin-top:8px!important;overflow:hidden!important;width:100%!important;}
+  .mobile-filter-collapse.v108-mobile-filter summary{list-style:none!important;cursor:pointer!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;padding:10px 12px!important;font-weight:900!important;background:#f8fafc!important;color:#0f172a!important;}
+  .mobile-filter-collapse.v108-mobile-filter summary::-webkit-details-marker{display:none!important;}
+  .mobile-filter-collapse.v108-mobile-filter summary::after{content:'⌄';font-size:18px;color:#64748b;}
+  .mobile-filter-collapse.v108-mobile-filter[open] summary::after{transform:rotate(180deg);}
+  .mobile-filter-collapse.v108-mobile-filter summary small{font-size:12px;color:#64748b;font-weight:700;}
+  .mobile-filter-collapse.v108-mobile-filter .toolbar,
+  .mobile-filter-collapse.v108-mobile-filter .incident-toolbar{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;padding:10px!important;border-top:1px solid var(--line)!important;margin:0!important;width:100%!important;}
+  .mobile-filter-collapse.v108-mobile-filter .toolbar > *,
+  .mobile-filter-collapse.v108-mobile-filter .incident-toolbar > *,
+  .mobile-filter-collapse.v108-mobile-filter input,
+  .mobile-filter-collapse.v108-mobile-filter select,
+  .mobile-filter-collapse.v108-mobile-filter button,
+  .mobile-filter-collapse.v108-mobile-filter .mini,
+  .mobile-filter-collapse.v108-mobile-filter .multi-select{width:100%!important;min-width:0!important;max-width:100%!important;}
+  .mobile-filter-collapse.v108-mobile-filter label.muted{font-size:12px!important;align-self:center!important;}
+  #fieldCalendarPage .panel:first-child>.section-title{display:flex!important;order:0!important;margin-bottom:6px!important;}
+  #fieldCalendarPage .panel:first-child>.section-title h2{font-size:22px!important;line-height:1.25!important;margin:0!important;}
+  .bottom-nav{display:flex!important;overflow-x:auto!important;overflow-y:hidden!important;grid-template-columns:none!important;white-space:nowrap!important;-webkit-overflow-scrolling:touch!important;gap:3px!important;padding:4px 6px!important;}
+  .bottom-nav .navbtn{flex:0 0 auto!important;width:auto!important;min-width:56px!important;display:inline-flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:2px!important;font-size:10.5px!important;line-height:1.05!important;padding:6px 6px!important;white-space:nowrap!important;}
+  .bottom-nav .navbtn.hide,.bottom-nav .navbtn.role-hidden{display:none!important;}
+}
+
+
+/* V109 final mobile layout CSS */
+@media(max-width:760px){
+  .mobile-filter-collapse.v109-mobile-filter{border:1px solid var(--line)!important;border-radius:14px!important;background:#fff!important;margin-top:8px!important;overflow:hidden!important;width:100%!important;}
+  .mobile-filter-collapse.v109-mobile-filter summary{list-style:none!important;cursor:pointer!important;display:flex!important;align-items:center!important;justify-content:space-between!important;padding:10px 12px!important;font-weight:900!important;background:#f8fafc!important;}
+  .mobile-filter-collapse.v109-mobile-filter summary::-webkit-details-marker{display:none!important;}
+  .mobile-filter-collapse.v109-mobile-filter summary::after{content:'⌄';font-size:18px;color:#64748b;}
+  .mobile-filter-collapse.v109-mobile-filter[open] summary::after{transform:rotate(180deg);}
+  .mobile-filter-collapse.v109-mobile-filter .toolbar,.mobile-filter-collapse.v109-mobile-filter .incident-toolbar{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;padding:10px!important;border-top:1px solid var(--line)!important;margin:0!important;width:100%!important;}
+  .mobile-filter-collapse.v109-mobile-filter .toolbar>*,.mobile-filter-collapse.v109-mobile-filter .incident-toolbar>*,.mobile-filter-collapse.v109-mobile-filter input,.mobile-filter-collapse.v109-mobile-filter select,.mobile-filter-collapse.v109-mobile-filter button,.mobile-filter-collapse.v109-mobile-filter .mini,.mobile-filter-collapse.v109-mobile-filter .multi-select{width:100%!important;min-width:0!important;max-width:100%!important;}
+  #fieldCalendarPage .panel:first-child>.section-title{display:flex!important;order:0!important;margin-bottom:6px!important;}
+  #fieldCalendarPage .panel:first-child>.section-title h2{font-size:22px!important;line-height:1.25!important;margin:0!important;}
+  .bottom-nav{display:flex!important;overflow-x:auto!important;grid-template-columns:none!important;white-space:nowrap!important;-webkit-overflow-scrolling:touch!important;gap:3px!important;padding:4px 6px!important;}
+  .bottom-nav .navbtn{flex:0 0 auto!important;width:auto!important;min-width:56px!important;display:inline-flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:2px!important;font-size:10.5px!important;line-height:1.05!important;padding:6px 6px!important;}
+  .bottom-nav .navbtn.hide,.bottom-nav .navbtn.role-hidden{display:none!important;}
+}
 </style></head><body>
 <div id="loginView" class="login-wrap"><div class="login-card"><h1>FOR-e 共享排程系統</h1><div class="toolbar hide"><button type="button" id="loginTab" class="primary">登入</button><button type="button" id="registerTab">註冊</button><button type="button" id="resetBtn" class="ghost">重置測試資料</button></div><div id="loginForm"><div class="field"><label>Email</label><input id="loginEmail" value="" placeholder="name@company.com"></div><div class="field"><label>密碼</label><input id="loginPassword" type="password" value=""></div><button id="doLogin" class="primary" type="button">登入</button><button id="quickLogin" type="button" class="hide">快速登入測試帳號</button><button id="mobileForceLogin" type="button" class="hide">手機測試一鍵進入</button><div id="loginMsg" class="muted" style="margin-top:8px"></div></div><div id="registerForm" class="hide"><div class="row"><div class="field"><label>姓名</label><input id="regName"></div><div class="field"><label>角色</label><select id="regRole"><option value="general">一般人員</option><option value="staff">翻譯</option><option value="supervisor">主管</option><option value="adminStaff">行政系</option></select></div></div><div class="field"><label>Email</label><input id="regEmail"></div><div class="field"><label>密碼</label><input id="regPassword" type="password"></div><button type="button" id="doRegister" class="primary">註冊</button></div></div></div>
 <div id="appView" class="hide"><div class="topbar"><div class="brand">FOR-e 共享排程系統</div><div class="toolbar"><span id="currentUserLabel"></span><button id="logoutBtn">登出</button></div></div><div class="layout"><aside class="side"><button class="navbtn active" data-page="calendar"><span class="mono-ico ico-calendar"></span>行程總覽</button><button class="navbtn" data-page="fieldCalendar"><span class="mono-ico ico-car"></span>外務行程</button><button class="navbtn" data-page="roomBooking"><span class="mono-ico ico-room"></span>會議室BOOKING</button><button class="navbtn" data-page="fieldDetails"><span class="mono-ico ico-list"></span>外務明細</button><button class="navbtn" data-page="personalDetails"><span class="mono-ico ico-star"></span>個人行程表</button><button class="navbtn" data-page="today"><span class="mono-ico ico-sun"></span>今日總覽</button><button class="navbtn" data-page="incidents"><span class="mono-ico ico-warning"></span>異況追蹤</button><button class="navbtn app-only" data-page="mobile"><span class="mono-ico ico-star"></span>APP個人行程</button><button class="navbtn" data-page="reports"><span class="mono-ico ico-chart"></span>統計報表</button><button class="navbtn" data-page="serviceRecords"><span class="mono-ico ico-clipboard"></span>服務紀錄單</button><button class="navbtn" data-page="audit"><span class="mono-ico ico-doc"></span>Audit Log</button><button class="navbtn" data-page="line"><span class="mono-ico ico-chat"></span>LINE通知</button><button class="navbtn" data-page="theme"><span class="mono-ico ico-palette"></span>顏色設定</button><button class="navbtn" data-page="settings"><span class="mono-ico ico-link"></span>Airtable/Webhook</button><button class="navbtn" data-page="users"><span class="mono-ico ico-user"></span>人員/帳號</button><hr></aside><main class="main">
@@ -449,7 +492,7 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 <section id="calendarPage" class="page"><div class="panel"><div class="section-title"><h2>行程總覽</h2><div class="toolbar"><button id="prevWeek">上一週</button><input id="weekPicker" type="date" class="mini"><button id="nextWeek">下一週</button><button id="addEventBtn" class="primary">新增行程</button><button id="exportCsvBtn" class="export-control export-control">匯出 CSV</button></div></div><div class="toolbar"><select id="viewMode" class="mini"><option value="all">全部人員本週行程</option><option value="personal">BY 個人本週檢視</option><option value="personalDay">BY 個人當天檢視</option><option value="personalMonth">BY 個人按月檢視</option></select><div id="groupFilter" class="multi-select mini" data-label="全部部門/群組"></div><div id="jobFilter" class="multi-select mini" data-label="全部職務"></div><div id="personFilter" class="multi-select mini" data-label="全部人員名稱"></div><div id="typeFilter" class="multi-select mini" data-label="全部行程類型"></div><select id="statusFilter" class="mini"><option value="">全部狀態</option><option>未完成</option><option>已完成</option><option>取消</option></select><input id="keywordFilter" class="mini" placeholder="地點 / 客戶/關鍵字"><button id="clearFilter">清除</button></div><div id="legend" style="margin-top:8px"></div></div><div id="calendarArea"></div></section>
 
 <section id="roomBookingPage" class="page hide"><div class="panel"><div class="section-title"><h2>會議室 BOOKING｜會議室 × 週一～週日</h2><div class="toolbar"><button id="roomPrevWeek">上一週</button><input id="roomBookingWeekPicker" type="date" class="mini"><button id="roomNextWeek">下一週</button><button id="addRoomBookingBtn" class="primary">新增BOOKING</button></div></div><div class="toolbar"><select id="roomBookingRoomFilter" class="mini"><option value="">全部會議室</option></select><select id="roomBookingDeptFilter" class="mini"><option value="">全部部門</option></select><input id="roomBookingKeyword" class="mini" placeholder="會議名稱/部門/會議室"><button id="clearRoomBookingFilters">清除</button></div></div><div id="roomBookingArea"></div></section>
-<section id="fieldCalendarPage" class="page hide"><div class="panel"><div class="section-title"><h2>外務行程</h2><div class="toolbar"><button id="fieldPrevWeek">上一週</button><input id="fieldWeekPicker" type="date" class="mini"><button id="fieldNextWeek">下一週</button><button id="fieldAddBtn" class="primary">新增外務行程</button><button id="fieldExportBtn" class="export-control export-control">匯出外務 CSV</button></div></div><div class="toolbar"><select id="fieldViewMode" class="mini"><option value="allWeek">全部人員當週</option><option value="selectedWeek">依所選人員當週</option><option value="personalWeek">個人當周</option><option value="personalMonth">個人當月</option><option value="personalDay">個人當天</option></select><div id="fieldPersonFilter" class="multi-select mini" data-label="全部人員名稱"></div><div id="fieldLocationFilter" class="multi-select mini" data-label="全部地點"></div><div id="fieldPurposeFilter" class="multi-select mini" data-label="全部目的"></div><div id="fieldStatusFilter" class="multi-select mini" data-label="全部狀態"></div><button id="fieldClearFilter">清除</button></div></div><div id="fieldCalendarArea"></div></section>
+<section id="fieldCalendarPage" class="page hide"><div class="panel"><div class="section-title"><h2>外務行程</h2></div><div class="toolbar"><button id="fieldPrevWeek">上一週</button><input id="fieldWeekPicker" type="date" class="mini"><button id="fieldNextWeek">下一週</button><button id="fieldAddBtn" class="primary">新增外務行程</button><button id="fieldExportBtn" class="export-control export-control">匯出外務 CSV</button></div><div class="toolbar"><select id="fieldViewMode" class="mini"><option value="allWeek">全部人員當週</option><option value="selectedWeek">依所選人員當週</option><option value="personalWeek">個人當周</option><option value="personalMonth">個人當月</option><option value="personalDay">個人當天</option></select><div id="fieldPersonFilter" class="multi-select mini" data-label="全部人員名稱"></div><div id="fieldLocationFilter" class="multi-select mini" data-label="全部地點"></div><div id="fieldPurposeFilter" class="multi-select mini" data-label="全部目的"></div><div id="fieldStatusFilter" class="multi-select mini" data-label="全部狀態"></div><button id="fieldClearFilter">清除</button></div></div><div id="fieldCalendarArea"></div></section>
 
 <section id="fieldDetailsPage" class="page hide"><div class="panel"><div class="section-title"><h2>外務明細</h2><div class="toolbar"><button id="refreshFieldDetails" class="primary">重新整理</button><button id="exportFieldDetailsBtn" class="export-control export-control">匯出外務明細 CSV</button></div></div><div class="toolbar"><label class="muted">起日</label><input id="fieldDetailStart" type="date" class="mini"><label class="muted">迄日</label><input id="fieldDetailEnd" type="date" class="mini"><select id="fieldDetailPerson" class="mini"><option value="">全部人員</option></select><select id="fieldDetailPurpose" class="mini"><option value="">全部目的</option></select><select id="fieldDetailLocation" class="mini"><option value="">全部地點</option></select><select id="fieldDetailStatus" class="mini"><option value="">全部狀態</option></select><input id="fieldDetailKeyword" class="mini" placeholder="內容/地址/關鍵字"><select id="fieldDetailSortBy" class="mini"><option value="date">依日期</option><option value="person">依人員</option><option value="purpose">依目的</option><option value="location">依地點</option><option value="status">依狀態</option></select><select id="fieldDetailSortDir" class="mini"><option value="asc">遞增</option><option value="desc">遞減</option></select><button id="applyFieldDetailSort" class="primary">一鍵排序</button><button id="clearFieldDetails">清除</button></div><div class="muted" style="margin-top:8px">顯示外務行程全部明細，可依日期、人員、地點、目的、狀態篩選；可用一鍵排序依所選欄位排列。</div></div><div class="panel"><div id="fieldDetailStats" class="statgrid"></div></div><div class="panel"><div class="detail-table-wrap"><table class="table"><thead><tr><th>日期</th><th>時間</th><th>人員</th><th>目的</th><th>地點</th><th>地址</th><th>狀態</th><th>內容</th><th>特殊提醒</th><th>現金</th><th>印章</th><th>證件</th><th>下一次領件</th><th>送件失敗原因</th></tr></thead><tbody id="fieldDetailRows"></tbody></table></div></div></section>
 <section id="personalDetailsPage" class="page hide"><div class="panel"><div class="section-title"><h2>個人行程表｜行程總覽</h2><div class="toolbar"><button id="refreshPersonalDetails" class="primary">重新整理</button><button id="exportPersonalDetailsBtn" class="export-control export-control">匯出個人行程 CSV</button></div></div><div class="toolbar"><label class="muted">起日</label><input id="personalDetailStart" type="date" class="mini"><label class="muted">迄日</label><input id="personalDetailEnd" type="date" class="mini"><select id="personalDetailPerson" class="mini"><option value="">全部人員</option></select><select id="personalDetailType" class="mini"><option value="">全部行程類型</option></select><select id="personalDetailStatus" class="mini"><option value="">全部狀態</option><option>未完成</option><option>已完成</option><option>取消</option></select><input id="personalDetailKeyword" class="mini" placeholder="地點 / 客戶/辦理內容/內容說明"><select id="personalDetailSortBy" class="mini"><option value="date">依日期</option><option value="person">依人員</option><option value="type">依行程類型</option><option value="status">依狀態</option><option value="location">依地點 / 客戶</option></select><select id="personalDetailSortDir" class="mini"><option value="asc">遞增</option><option value="desc">遞減</option></select><button id="applyPersonalDetailSort" class="primary">一鍵排序</button><button id="clearPersonalDetails">清除</button></div><div class="muted" style="margin-top:8px">預設顯示登入帳號對應人員的行程；如需查看其他人，請由「人員」下拉選單切換。</div></div><div id="personalDesktopAlertPanel" class="panel"><div class="section-title"><h2>待確認 / 待通知提醒</h2><span class="muted">逃跑、轉出、住變、返台、驗證、提醒事項</span></div><div id="personalDesktopAlertRows"></div></div><div id="assignedTrackingPanel" class="panel"><div class="section-title"><h2>我指派的事項追蹤</h2><span class="muted">只追蹤你建立並指派給他人的任務，不列入個人行程表。</span></div><div class="detail-table-wrap"><table class="table"><thead><tr><th>日期</th><th>時間</th><th>執行者</th><th>行程類型</th><th>地點 / 客戶</th><th>辦理內容</th><th>狀態</th><th>操作</th></tr></thead><tbody id="assignedTrackRows"></tbody></table></div></div><div class="panel"><div id="personalDetailStats" class="statgrid"></div></div><div class="panel"><div class="detail-table-wrap"><table class="table"><thead><tr><th>日期</th><th>時間</th><th>人員</th><th>類別</th><th>行程類型</th><th>附加行程</th><th>地點 / 客戶</th><th>辦理內容</th><th>狀態</th><th>內容說明</th><th>公務車</th><th>服務紀錄單</th></tr></thead><tbody id="personalDetailRows"></tbody></table></div></div></section>
@@ -457,13 +500,12 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 <section id="todayPage" class="page hide"><div class="panel"><div class="section-title"><h2>今日行程總覽</h2><button id="refreshToday">重新整理</button></div><div id="todayStats" class="statgrid"></div></div><div id="mobileAlertPanel" class="panel"><div class="section-title"><h2>提醒通知</h2></div><div id="mobileAlertRows"></div></div><div class="panel"><div class="detail-table-wrap today-detail-wrap"><table class="table today-table"><thead><tr><th class="today-executor-th">執行者</th><th class="today-time-th">時間</th><th>類型</th><th>地點 / 客戶</th><th>辦理內容</th><th>狀態</th><th>公務車</th></tr></thead><tbody id="todayRows"></tbody></table></div></div></section>
 
 <section id="incidentsPage" class="page hide"><div class="panel"><div class="section-title"><h2>異況紀錄追蹤</h2><div class="toolbar"><button id="addIncidentBtn" class="primary">新增異況</button><button id="exportIncidentsBtn" class="export-control export-control">匯出異況 CSV</button></div></div><div class="incident-toolbar"><label class="muted">發生起日</label><input id="incidentStart" type="date" class="mini"><label class="muted">發生迄日</label><input id="incidentEnd" type="date" class="mini"><select id="incidentTypeFilter" class="mini"><option value="">全部異況類型</option></select><select id="incidentStatusFilter" class="mini"><option value="">全部狀態</option></select><select id="incidentOwnerFilter" class="mini"><option value="">全部負責人</option></select><select id="incidentClosedFilter" class="mini"><option value="open">未結案</option><option value="all">全部</option><option value="closed">已結案</option><option value="overdue">逾期未追蹤</option></select><input id="incidentKeyword" class="mini" placeholder="工人/客戶/地點/關鍵字"><button id="clearIncidentFilters">清除</button></div><div class="muted" style="margin-top:8px">異況是案件本體，可往下新增追蹤紀錄；若最後變成逃跑、轉出、住變、返台、驗證或提醒事項，可直接建立到執行者行事曆。</div></div><div class="panel"><div id="incidentStats" class="incident-kpi"></div></div><div class="panel"><div class="incident-table-wrap"><table class="table incident-table"><thead><tr><th>發生日期</th><th>緊急程度</th><th>異況類型</th><th>地點 / 客戶</th><th>工人</th><th>異況標題</th><th>負責人</th><th>狀態</th><th>下次追蹤日</th><th>最後追蹤</th><th>操作</th></tr></thead><tbody id="incidentRows"></tbody></table></div></div></section>
-<section id="reportsPage" class="page hide"><div class="panel"><div class="section-title"><h2>統計報表｜每月/年度行程總數與分類總數</h2><div class="toolbar"><button id="calcReportBtn" class="primary">產生統計</button><button id="saveReportBtn">記錄本次統計</button><button id="exportReportBtn" class="export-control export-control">匯出統計 CSV</button></div></div><div class="toolbar"><label class="muted">統計年月</label><input id="reportMonth" type="month" class="mini"><label class="muted">統計年度</label><input id="reportYear" type="number" class="mini" min="2024" max="2035" step="1"><select id="reportGroup" class="mini"></select><select id="reportPerson" class="mini"></select></div><div class="muted" style="margin-top:8px">統計方式：依行事曆實際顯示計算；同一行程若跨多日，會依每日各計 1 次；同一行程若顯示在新增者與執行者兩人行事曆，兩人各計 1 次。已刪除行程不列入，取消行程會列入狀態統計。</div></div><div class="panel"><h2>月統計總覽</h2><div id="reportMonthStats" class="statgrid"></div><div class="chart-grid"><div><h3>月分類圓餅圖</h3><canvas id="monthPieChart" width="360" height="260"></canvas></div><div><h3>年度每月曲線圖</h3><canvas id="yearLineChart" width="520" height="260"></canvas></div></div></div><div class="panel"><div class="section-title"><h2>每人每月行程總數與分類總數</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportMonthHead"></thead><tbody id="reportMonthRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>一部翻譯 / 二部翻譯 月數據與總計</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportMonthDeptHead"></thead><tbody id="reportMonthDeptRows"></tbody></table></div></div><div class="panel"><h2>年度統計總覽</h2><div id="reportYearStats" class="statgrid"></div><div class="chart-grid"><div><h3>年度分類圓餅圖</h3><canvas id="yearPieChart" width="360" height="260"></canvas></div></div></div><div class="panel"><div class="section-title"><h2>每人年度行程總數與分類總數</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportYearHead"></thead><tbody id="reportYearRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>一部翻譯 / 二部翻譯 年數據與總計</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportYearDeptHead"></thead><tbody id="reportYearDeptRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>服務紀錄單繳交狀況</h2><span class="muted">只統計一部翻譯 / 二部翻譯的四國翻譯與越南/舍監。</span></div><div class="statgrid" id="serviceOverviewStats"></div><h3>當月各人繳交狀況</h3><div class="detail-table-wrap"><table class="table"><thead id="serviceMonthHead"></thead><tbody id="serviceMonthRows"></tbody></table></div><h3>當年各人繳交狀況</h3><div class="detail-table-wrap"><table class="table"><thead id="serviceYearHead"></thead><tbody id="serviceYearRows"></tbody></table></div><h3>一部翻譯 / 二部翻譯繳交狀況</h3><div class="detail-table-wrap"><table class="table"><thead id="serviceDeptHead"></thead><tbody id="serviceDeptRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>外務行程數據｜目的、地點、趟數</h2><span class="muted">依照外務行程資料計算，可依上方月份與年度切換。</span></div><div id="fieldReportStats" class="statgrid"></div><div class="chart-grid"><div><h3>當月目的圓餅圖</h3><canvas id="fieldMonthPurposePie" width="620" height="320"></canvas></div><div><h3>當月地點圓餅圖</h3><canvas id="fieldMonthLocationPie" width="620" height="320"></canvas></div><div><h3>年度目的圓餅圖</h3><canvas id="fieldYearPurposePie" width="620" height="320"></canvas></div><div><h3>年度地點圓餅圖</h3><canvas id="fieldYearLocationPie" width="620" height="320"></canvas></div><div class="wide-chart"><h3>年度每月外務趟數曲線圖</h3><canvas id="fieldYearMonthlyLine" width="1100" height="440"></canvas></div></div><h3>送件狀況紀錄｜當月</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>狀態</th><th>趟數</th></tr></thead><tbody id="fieldMonthStatusRows"></tbody></table></div><h3>送件狀況紀錄｜年度</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>狀態</th><th>趟數</th></tr></thead><tbody id="fieldYearStatusRows"></tbody></table></div><h3>當月各人員外務趟數明細</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>部門</th><th>人員</th><th>趟數</th></tr></thead><tbody id="fieldMonthReportRows"></tbody></table></div><h3>年度各人員外務趟數明細</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>部門</th><th>人員</th><th>趟數</th></tr></thead><tbody id="fieldYearReportRows"></tbody></table></div><h3>當月各地點外務趟數</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>地點</th><th>趟數</th></tr></thead><tbody id="fieldMonthLocationRows"></tbody></table></div><h3>年度各地點外務趟數</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>地點</th><th>趟數</th></tr></thead><tbody id="fieldYearLocationRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>已記錄的統計快照</h2><span class="muted">點「記錄本次統計」後會保留當下統計結果。</span></div><table class="table"><thead><tr><th>記錄時間</th><th>記錄人</th><th>統計月份</th><th>年度</th><th>月總數</th><th>年總數</th></tr></thead><tbody id="reportSnapshotRows"></tbody></table></div></section>
+<section id="reportsPage" class="page hide"><div class="panel"><div class="section-title"><h2>統計報表｜每月/年度行程總數與分類總數</h2><div class="toolbar"><button id="calcReportBtn" class="primary">產生統計</button><button id="saveReportBtn">記錄本次統計</button><button id="exportReportBtn" class="export-control export-control">匯出統計 CSV</button></div></div><div class="toolbar"><label class="muted">統計年月</label><input id="reportMonth" type="month" class="mini"><label class="muted">統計年度</label><input id="reportYear" type="number" class="mini" min="2024" max="2035" step="1"><select id="reportGroup" class="mini"></select><select id="reportPerson" class="mini"></select></div><div class="muted" style="margin-top:8px">統計方式：依行事曆實際顯示計算；同一行程若跨多日，會依每日各計 1 次；同一行程若顯示在新增者與執行者兩人行事曆，兩人各計 1 次。已刪除行程不列入，取消行程會列入狀態統計。</div></div><div class="panel"><h2>月統計總覽</h2><div id="reportMonthStats" class="statgrid"></div><div class="chart-grid"><div><h3>月分類圓餅圖</h3><canvas id="monthPieChart" width="360" height="260"></canvas></div><div><h3>年度每月曲線圖</h3><canvas id="yearLineChart" width="520" height="260"></canvas></div></div></div><div class="panel"><div class="section-title"><h2>每人每月行程總數與分類總數</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportMonthHead"></thead><tbody id="reportMonthRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>一部翻譯 / 二部翻譯 月數據與總計</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportMonthDeptHead"></thead><tbody id="reportMonthDeptRows"></tbody></table></div></div><div class="panel"><h2>年度統計總覽</h2><div id="reportYearStats" class="statgrid"></div><div class="chart-grid"><div><h3>年度分類圓餅圖</h3><canvas id="yearPieChart" width="360" height="260"></canvas></div></div></div><div class="panel"><div class="section-title"><h2>每人年度行程總數與分類總數</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportYearHead"></thead><tbody id="reportYearRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>一部翻譯 / 二部翻譯 年數據與總計</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportYearDeptHead"></thead><tbody id="reportYearDeptRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>外務行程數據｜目的、地點、趟數</h2><span class="muted">依照外務行程資料計算，可依上方月份與年度切換。</span></div><div id="fieldReportStats" class="statgrid"></div><div class="chart-grid"><div><h3>當月目的圓餅圖</h3><canvas id="fieldMonthPurposePie" width="620" height="320"></canvas></div><div><h3>當月地點圓餅圖</h3><canvas id="fieldMonthLocationPie" width="620" height="320"></canvas></div><div><h3>年度目的圓餅圖</h3><canvas id="fieldYearPurposePie" width="620" height="320"></canvas></div><div><h3>年度地點圓餅圖</h3><canvas id="fieldYearLocationPie" width="620" height="320"></canvas></div><div class="wide-chart"><h3>年度每月外務趟數曲線圖</h3><canvas id="fieldYearMonthlyLine" width="1100" height="440"></canvas></div></div><h3>送件狀況紀錄｜當月</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>狀態</th><th>趟數</th></tr></thead><tbody id="fieldMonthStatusRows"></tbody></table></div><h3>送件狀況紀錄｜年度</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>狀態</th><th>趟數</th></tr></thead><tbody id="fieldYearStatusRows"></tbody></table></div><h3>當月各人員外務趟數明細</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>部門</th><th>人員</th><th>趟數</th></tr></thead><tbody id="fieldMonthReportRows"></tbody></table></div><h3>年度各人員外務趟數明細</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>部門</th><th>人員</th><th>趟數</th></tr></thead><tbody id="fieldYearReportRows"></tbody></table></div><h3>當月各地點外務趟數</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>地點</th><th>趟數</th></tr></thead><tbody id="fieldMonthLocationRows"></tbody></table></div><h3>年度各地點外務趟數</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>地點</th><th>趟數</th></tr></thead><tbody id="fieldYearLocationRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>已記錄的統計快照</h2><span class="muted">點「記錄本次統計」後會保留當下統計結果。</span></div><table class="table"><thead><tr><th>記錄時間</th><th>記錄人</th><th>統計月份</th><th>年度</th><th>月總數</th><th>年總數</th></tr></thead><tbody id="reportSnapshotRows"></tbody></table></div></section>
 
 <section id="auditPage" class="page hide"><div class="panel"><div class="section-title"><h2>操作紀錄 Audit Log</h2><button id="exportLogBtn" class="export-control export-control">匯出紀錄 CSV</button></div><table class="table"><thead><tr><th>時間</th><th>操作人</th><th>動作</th><th>行程</th><th>欄位</th><th>修改前</th><th>修改後</th></tr></thead><tbody id="auditRows"></tbody></table></div></section>
 <section id="linePage" class="page hide"><div class="panel"><div class="section-title"><h2>LINE 通知文字</h2><button id="copyLineBtn" class="primary">複製文字</button></div><pre id="lineText"></pre></div></section>
 <section id="themePage" class="page hide"><div class="panel"><div class="section-title"><h2>顏色設定</h2><span class="muted">所有權限皆可調整背景色；儲存後會套用在目前瀏覽器。</span></div><div class="row"><div class="field"><label>日期欄位背景色</label><div class="color-setting"><input id="themeDateHeader" type="color"><span class="color-swatch" data-swatch="themeDateHeader"></span><span class="color-code" data-code="themeDateHeader"></span></div></div><div class="field"><label>人員名稱欄位背景色</label><div class="color-setting"><input id="themePersonCell" type="color"><span class="color-swatch" data-swatch="themePersonCell"></span><span class="color-code" data-code="themePersonCell"></span></div></div></div><div class="row"><div class="field"><label>人員職務/名字顯示背景色（預設）</label><div class="color-setting"><input id="themePersonName" type="color"><span class="color-swatch" data-swatch="themePersonName"></span><span class="color-code" data-code="themePersonName"></span></div></div><div class="field"><label>一部翻譯人員名稱背景色</label><div class="color-setting"><input id="themePersonOne" type="color"><span class="color-swatch" data-swatch="themePersonOne"></span><span class="color-code" data-code="themePersonOne"></span></div></div></div><div class="row"><div class="field"><label>二部翻譯人員名稱背景色</label><div class="color-setting"><input id="themePersonTwo" type="color"><span class="color-swatch" data-swatch="themePersonTwo"></span><span class="color-code" data-code="themePersonTwo"></span></div></div><div class="field"><label>假日/星期六日背景色</label><div class="color-setting"><input id="themeHoliday" type="color"><span class="color-swatch" data-swatch="themeHoliday"></span><span class="color-code" data-code="themeHoliday"></span></div></div></div><div class="row"><div class="field"><label>當日行程/今天背景色</label><div class="color-setting"><input id="themeToday" type="color"><span class="color-swatch" data-swatch="themeToday"></span><span class="color-code" data-code="themeToday"></span></div></div><div class="field"><label>未完成行程背景色</label><div class="color-setting"><input id="themeEventPending" type="color"><span class="color-swatch" data-swatch="themeEventPending"></span><span class="color-code" data-code="themeEventPending"></span></div></div></div><div class="row"><div class="field"><label>已完成行程背景色</label><div class="color-setting"><input id="themeEventDone" type="color"><span class="color-swatch" data-swatch="themeEventDone"></span><span class="color-code" data-code="themeEventDone"></span></div></div><div class="field"><label>預覽</label><div style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 0"><span class="badge" style="background:var(--theme-date-header)">日期</span><span class="badge" style="background:var(--theme-person-one)">一部翻譯</span><span class="badge" style="background:var(--theme-person-two)">二部翻譯</span><span class="badge" style="background:var(--theme-holiday)">假日</span><span class="badge" style="background:var(--theme-today)">今天</span><span class="badge" style="background:var(--theme-event-pending)">未完成</span><span class="badge" style="background:var(--theme-event-done)">已完成</span><span class="badge" style="background:var(--theme-person-name)">職務預設</span></div></div></div><div class="panel" style="box-shadow:none;margin-top:12px"><div class="section-title"><h2>職務顏色設定</h2><span class="muted">可針對不同職務設定人員名稱背景色；儲存後會套用在行事曆左側人員名稱。</span></div><div id="jobColorSettings"></div></div><div class="toolbar"><button id="saveTheme" class="primary">儲存顏色設定</button><button id="resetTheme">還原預設顏色</button></div></div></section>
-<section id="serviceRecordsPage" class="page hide"><div class="panel"><div class="section-title"><h2>未交服務紀錄單明細</h2><div class="toolbar"><button id="refreshServiceRecords" class="primary">重新整理</button><button id="exportServiceRecordsBtn" class="export-control export-control">匯出未交 CSV</button></div></div><div class="toolbar"><label class="muted">統計年月</label><input id="serviceMonth" type="month" class="mini"><label class="muted">統計年度</label><input id="serviceYear" type="number" class="mini" min="2024" max="2035" step="1"><select id="serviceGroup" class="mini"><option value="">一部翻譯＋二部翻譯</option><option>一部翻譯</option><option>二部翻譯</option></select></div><div class="muted" style="margin-top:8px">此頁只列出一部翻譯 / 二部翻譯的四國翻譯及越南/舍監，且行程類型需服務紀錄單但尚未完成繳交的明細。</div></div><div class="panel"><h2>當月未交明細</h2><div id="serviceMonthStats" class="statgrid"></div><div class="detail-table-wrap"><table class="table"><thead><tr><th>日期</th><th>部門</th><th>人員</th><th>職務</th><th>行程類型</th><th>辦理內容</th><th>地點 / 客戶</th><th>狀態</th><th>繳交狀態</th></tr></thead><tbody id="serviceMonthDetailRows"></tbody></table></div></div><div class="panel"><h2>當年未交明細</h2><div id="serviceYearStats" class="statgrid"></div><div class="detail-table-wrap"><table class="table"><thead><tr><th>日期</th><th>部門</th><th>人員</th><th>職務</th><th>行程類型</th><th>辦理內容</th><th>地點 / 客戶</th><th>狀態</th><th>繳交狀態</th></tr></thead><tbody id="serviceYearDetailRows"></tbody></table></div></div></section>
-<section id="settingsPage" class="page hide"><div class="panel"><h2>Airtable / Webhook 設定</h2><div class="row"><div class="field"><label>Airtable Base ID</label><input id="airtableBase"></div><div class="field"><label>Table Name</label><input id="airtableTable"></div></div><div class="field"><label>Webhook URL</label><input id="webhookUrl"></div><div class="field"><label>LINE 備註</label><textarea id="lineMemo"></textarea></div><div class="toolbar"><button id="saveSettings" class="primary">儲存設定</button><button id="simulateWebhook">產生 Webhook 模擬通知</button></div></div><div class="panel"><div class="section-title"><h2>管理員｜下拉選項維護</h2><span class="muted">每行一個選項，儲存後會同步到新增/篩選下拉。</span></div><div class="row"><div class="field"><label>行程類型</label><textarea id="optEventTypes"></textarea></div><div class="field"><label>翻譯狀態</label><textarea id="optTranslatorStatus"></textarea></div></div><div class="row"><div class="field"><label>提醒通知類型（每行一項）</label><textarea id="optAlertEventTypes" placeholder="逃跑通知
+<section id="serviceRecordsPage" class="page hide"><div class="panel"><div class="section-title"><h2>服務紀錄單</h2><div class="toolbar"><button id="refreshServiceRecords" class="primary">重新整理</button><button id="exportServiceRecordsBtn" class="export-control export-control">匯出服務紀錄 CSV</button></div></div><div class="toolbar"><label class="muted">統計年月</label><input id="serviceMonth" type="month" class="mini"><label class="muted">統計年度</label><input id="serviceYear" type="number" class="mini" min="2024" max="2035" step="1"><label class="muted">部門</label><select id="serviceGroup" class="mini"><option value="">全部部門</option><option>一部翻譯</option><option>二部翻譯</option></select><label class="muted">翻譯</label><select id="servicePerson" class="mini"><option value="">全部翻譯</option></select><select id="serviceStatus" class="mini"><option value="">全部繳交狀態</option><option value="submitted">已繳交</option><option value="unsubmitted">未繳交</option></select></div><div class="muted" style="margin-top:8px">此頁統一放服務紀錄單相關數據；可依年度、部門、翻譯與繳交狀態篩選，已繳交與未繳交都會列出。</div></div><div class="panel"><div class="section-title"><h2>服務紀錄單繳交狀況</h2><span class="muted">依上方統計年月、年度、部門、翻譯與繳交狀態篩選。</span></div><div class="statgrid" id="serviceOverviewStats"></div><h3>當月各人繳交狀況</h3><div class="detail-table-wrap"><table class="table"><thead id="serviceMonthHead"></thead><tbody id="serviceMonthRows"></tbody></table></div><h3>當年各人繳交狀況</h3><div class="detail-table-wrap"><table class="table"><thead id="serviceYearHead"></thead><tbody id="serviceYearRows"></tbody></table></div><h3>一部翻譯 / 二部翻譯繳交狀況</h3><div class="detail-table-wrap"><table class="table"><thead id="serviceDeptHead"></thead><tbody id="serviceDeptRows"></tbody></table></div></div><div class="panel"><h2>當月各翻譯尚未繳交數字</h2><div id="serviceMonthPendingStats" class="statgrid"></div></div><div class="panel"><h2>當月服務紀錄單明細</h2><div id="serviceMonthStats" class="statgrid"></div><div class="detail-table-wrap"><table class="table"><thead><tr><th>日期</th><th>部門</th><th>翻譯</th><th>職務</th><th>行程類型</th><th>辦理內容</th><th>地點 / 客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead><tbody id="serviceMonthDetailRows"></tbody></table></div></div><div class="panel"><h2>當年度服務紀錄單明細</h2><div id="serviceYearStats" class="statgrid"></div><div class="detail-table-wrap"><table class="table"><thead><tr><th>月份</th><th>日期</th><th>部門</th><th>翻譯</th><th>職務</th><th>行程類型</th><th>辦理內容</th><th>地點 / 客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead><tbody id="serviceYearDetailRows"></tbody></table></div></div></section><section id="settingsPage" class="page hide"><div class="panel"><h2>Airtable / Webhook 設定</h2><div class="row"><div class="field"><label>Airtable Base ID</label><input id="airtableBase"></div><div class="field"><label>Table Name</label><input id="airtableTable"></div></div><div class="field"><label>Webhook URL</label><input id="webhookUrl"></div><div class="field"><label>LINE 備註</label><textarea id="lineMemo"></textarea></div><div class="toolbar"><button id="saveSettings" class="primary">儲存設定</button><button id="simulateWebhook">產生 Webhook 模擬通知</button></div></div><div class="panel"><div class="section-title"><h2>管理員｜下拉選項維護</h2><span class="muted">每行一個選項，儲存後會同步到新增/篩選下拉。</span></div><div class="row"><div class="field"><label>行程類型</label><textarea id="optEventTypes"></textarea></div><div class="field"><label>翻譯狀態</label><textarea id="optTranslatorStatus"></textarea></div></div><div class="row"><div class="field"><label>提醒通知類型（每行一項）</label><textarea id="optAlertEventTypes" placeholder="逃跑通知
 轉出追蹤
 住變資訊
 返台提醒
@@ -1479,7 +1521,7 @@ function serviceRecordsInRange(start,end,peopleOverride){const people=peopleOver
 function buildServiceData(start,end){const people=personReportList(); const details=serviceRecordsInRange(start,end,people); const rows=people.map(p=>{const mine=details.filter(x=>x.person.id===p.id); return {person:p,total:mine.length,submitted:mine.filter(x=>x.submitted).length,unsubmitted:mine.filter(x=>!x.submitted).length}}); const dept={'一部翻譯':{submitted:0,unsubmitted:0,total:0},'二部翻譯':{submitted:0,unsubmitted:0,total:0},'總計':{submitted:0,unsubmitted:0,total:0}}; details.forEach(x=>{const g=x.person.group; dept[g].total++; dept['總計'].total++; if(x.submitted){dept[g].submitted++;dept['總計'].submitted++}else{dept[g].unsubmitted++;dept['總計'].unsubmitted++}}); return {rows,details,dept,total:details.length,submitted:details.filter(x=>x.submitted).length,unsubmitted:details.filter(x=>!x.submitted).length}}
 function renderServiceTable(prefix,data){if(!$(prefix+'Head'))return; $(prefix+'Head').innerHTML='<tr><th>人員名稱</th><th>部門</th><th>職務</th><th>需繳交總數</th><th>已交</th><th>未交</th></tr>'; $(prefix+'Rows').innerHTML=data.rows.map(r=>`<tr><td>${esc(r.person.name)}</td><td>${esc(r.person.group)}</td><td>${esc(r.person.lang)}</td><td><b>${r.total}</b></td><td>${r.submitted}</td><td>${r.unsubmitted}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">沒有資料</td></tr>'}
 function renderServiceDept(data){if(!$('serviceDeptHead'))return; $('serviceDeptHead').innerHTML='<tr><th>部門</th><th>需繳交總數</th><th>已交</th><th>未交</th></tr>'; $('serviceDeptRows').innerHTML=['一部翻譯','二部翻譯','總計'].map(g=>{const r=data.dept[g]; return `<tr><td><b>${g}</b></td><td><b>${r.total}</b></td><td>${r.submitted}</td><td>${r.unsubmitted}</td></tr>`}).join('')}
-function renderReports(){if(!$('reportMonth'))return; initReportFilters(); const ym=$('reportMonth').value||monthISO(); const year=Number($('reportYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym); const monthData=buildReportData(ms,me); const yearData=buildReportData(`${year}-01-01`,`${year}-12-31`); $('reportMonthStats').innerHTML=statCards(monthData); $('reportYearStats').innerHTML=statCards(yearData); renderReportTable('reportMonth',monthData); renderReportTable('reportYear',yearData); renderDeptReportTable('reportMonth',monthData); renderDeptReportTable('reportYear',yearData); drawPieChart('monthPieChart',monthData.totals.byType); drawPieChart('yearPieChart',yearData.totals.byType); drawLineChart('yearLineChart',monthlyTotalsForYear(year),year); const sm=buildServiceData(ms,me), sy=buildServiceData(`${year}-01-01`,`${year}-12-31`); if($('serviceOverviewStats'))$('serviceOverviewStats').innerHTML=`<div class="stat"><div class="muted">當月需繳交</div><b>${sm.total}</b></div><div class="stat"><div class="muted">當月已交</div><b>${sm.submitted}</b></div><div class="stat"><div class="muted">當月未交</div><b>${sm.unsubmitted}</b></div><div class="stat"><div class="muted">當年需繳交</div><b>${sy.total}</b></div><div class="stat"><div class="muted">當年已交</div><b>${sy.submitted}</b></div><div class="stat"><div class="muted">當年未交</div><b>${sy.unsubmitted}</b></div>`; renderServiceTable('serviceMonth',sm); renderServiceTable('serviceYear',sy); renderServiceDept(sy); renderFieldReports(); const snaps=state.reportSnapshots||[]; $('reportSnapshotRows').innerHTML=snaps.map(s=>`<tr><td>${new Date(s.time).toLocaleString('zh-TW')}</td><td>${esc(getUser(s.userId).name)}</td><td>${esc(s.month)}</td><td>${esc(s.year)}</td><td>${s.monthTotal}</td><td>${s.yearTotal}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">尚未記錄統計快照</td></tr>'}
+function renderReports(){if(!$('reportMonth'))return; initReportFilters(); const ym=$('reportMonth').value||monthISO(); const year=Number($('reportYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym); const monthData=buildReportData(ms,me); const yearData=buildReportData(`${year}-01-01`,`${year}-12-31`); $('reportMonthStats').innerHTML=statCards(monthData); $('reportYearStats').innerHTML=statCards(yearData); renderReportTable('reportMonth',monthData); renderReportTable('reportYear',yearData); renderDeptReportTable('reportMonth',monthData); renderDeptReportTable('reportYear',yearData); drawPieChart('monthPieChart',monthData.totals.byType); drawPieChart('yearPieChart',yearData.totals.byType); drawLineChart('yearLineChart',monthlyTotalsForYear(year),year); renderFieldReports(); const snaps=state.reportSnapshots||[]; $('reportSnapshotRows').innerHTML=snaps.map(s=>`<tr><td>${new Date(s.time).toLocaleString('zh-TW')}</td><td>${esc(getUser(s.userId).name)}</td><td>${esc(s.month)}</td><td>${esc(s.year)}</td><td>${s.monthTotal}</td><td>${s.yearTotal}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">尚未記錄統計快照</td></tr>'}
 function currentReportSnapshot(){const ym=$('reportMonth').value||monthISO(); const year=Number($('reportYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym); const monthData=buildReportData(ms,me); const yearData=buildReportData(`${year}-01-01`,`${year}-12-31`); return {id:uid('rep'),time:new Date().toISOString(),userId:currentUser?currentUser.id:'system',month:ym,year,group:$('reportGroup').value||'一部翻譯＋二部翻譯',person:$('reportPerson').value||'全部',monthTotal:monthData.totals.total,yearTotal:yearData.totals.total,monthRows:monthData.rows.map(r=>({person:r.person.name,total:r.total,done:r.done,undone:r.undone,cancel:r.cancel,byType:r.byType})),yearRows:yearData.rows.map(r=>({person:r.person.name,total:r.total,done:r.done,undone:r.undone,cancel:r.cancel,byType:r.byType}))}}
 function saveReportSnapshot(){if(!$('reportMonth'))return; const snap=currentReportSnapshot(); if(!state.reportSnapshots)state.reportSnapshots=[]; state.reportSnapshots.unshift(snap); addLog('新增','統計報表',`統計快照 ${snap.month}`,'統計資料','',`月總數:${snap.monthTotal}／年總數:${snap.yearTotal}`); save(); renderReports(); toast('已記錄本次統計')}
 function exportReports(){if(!$('reportMonth'))return; const ym=$('reportMonth').value||monthISO(); const year=Number($('reportYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym); const monthData=buildReportData(ms,me); const yearData=buildReportData(`${year}-01-01`,`${year}-12-31`); const rows=[['區間','部門','人員名稱','職務','總數','未完成','已完成','取消','分類','分類數']]; function addRows(label,data){const activeTypes=data.types.filter(t=>data.rows.some(r=>(r.byType[t]||0)>0)); data.rows.forEach(r=>{rows.push([label,r.person.group,r.person.name,r.person.lang,r.total,r.undone,r.done,r.cancel,'全部',r.total]); activeTypes.forEach(t=>rows.push([label,r.person.group,r.person.name,r.person.lang,r.total,r.undone,r.done,r.cancel,t,r.byType[t]||0]));}); ['一部翻譯','二部翻譯','總計'].forEach(g=>{const r=data.dept[g]; rows.push([label,g,'部門總計','',r.total,r.undone,r.done,r.cancel,'全部',r.total]);});} addRows(`月統計 ${ym}`,monthData); addRows(`年度統計 ${year}`,yearData); exportCsv(rows,`行程統計_${ym}_${year}.csv`)}
@@ -2898,6 +2940,723 @@ renderRoomBookings=function(){
   if(currentPage==='roomBooking' && window.innerWidth<=760)setTimeout(v105ScrollRoomBookingToToday,80);
 };
 window.renderRoomBookings=renderRoomBookings;
+
+
+
+/* V105：外務行程標題固定在手機收合篩選上方 */
+function v105EnsureFieldTitleOnTop(){
+  try{
+    const panel=document.querySelector('#fieldCalendarPage .panel:first-child');
+    if(!panel)return;
+    const header=panel.querySelector(':scope > .section-title');
+    const box=panel.querySelector(':scope > .mobile-filter-collapse');
+    if(header && box && box.previousElementSibling!==header){
+      panel.insertBefore(header, box);
+    }
+  }catch(e){console.warn('v105EnsureFieldTitleOnTop failed',e);}
+}
+const _v105MobileCompactFiltersTitleTop = v105MobileCompactFilters;
+v105MobileCompactFilters=function(){
+  _v105MobileCompactFiltersTitleTop();
+  v105EnsureFieldTitleOnTop();
+};
+window.addEventListener('resize',()=>setTimeout(v105EnsureFieldTitleOnTop,100));
+
+/* V105：外務明細增加當年度服務紀錄單明細與本月各翻譯未繳交數字 */
+function v105ServicePeopleForField(){
+  let people=(state.people||[]).filter(reportEligiblePerson);
+  const g=$('fieldServiceGroup')?$('fieldServiceGroup').value:'';
+  const pid=$('fieldServicePerson')?$('fieldServicePerson').value:'';
+  if(g)people=people.filter(p=>p.group===g);
+  if(pid)people=people.filter(p=>p.id===pid);
+  return people;
+}
+function v105InitFieldServiceFilters(){
+  if(!$('fieldServiceYear'))return;
+  if(!$('fieldServiceYear').value)$('fieldServiceYear').value=String(new Date().getFullYear());
+  const curG=$('fieldServiceGroup').value||'';
+  const curP=$('fieldServicePerson').value||'';
+  const groups=[...new Set((state.people||[]).filter(reportEligiblePerson).map(p=>p.group).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'zh-Hant'));
+  $('fieldServiceGroup').innerHTML='<option value="">全部部門</option>'+groups.map(g=>`<option value="${escAttr(g)}">${esc(g)}</option>`).join('');
+  if(groups.includes(curG))$('fieldServiceGroup').value=curG;
+  const selectedGroup=$('fieldServiceGroup').value||'';
+  const people=(state.people||[]).filter(reportEligiblePerson).filter(p=>!selectedGroup||p.group===selectedGroup).sort((a,b)=>(a.group+a.name).localeCompare(b.group+b.name,'zh-Hant'));
+  $('fieldServicePerson').innerHTML='<option value="">全部翻譯</option>'+people.map(p=>`<option value="${p.id}">${esc(p.name)}${p.group?'｜'+esc(p.group):''}</option>`).join('');
+  if(people.some(p=>p.id===curP))$('fieldServicePerson').value=curP;
+}
+function v105FieldServiceRows(start,end,people){
+  return serviceRecordsInRange(start,end,people).sort((a,b)=>(a.date+a.person.group+a.person.name).localeCompare(b.date+b.person.group+b.person.name,'zh-Hant',{numeric:true}));
+}
+function v105FieldServiceStatusText(x){return x.submitted?'已繳交':'未繳交';}
+function renderFieldServiceRecordsPanel(){
+  if(!$('fieldServiceRecordPanel')||!currentUser)return;
+  v105InitFieldServiceFilters();
+  const year=Number($('fieldServiceYear').value||new Date().getFullYear());
+  const status=$('fieldServiceStatus')?$('fieldServiceStatus').value:'';
+  const people=v105ServicePeopleForField();
+  const ys=`${year}-01-01`, ye=`${year}-12-31`;
+  let yearRows=v105FieldServiceRows(ys,ye,people);
+  if(status==='submitted')yearRows=yearRows.filter(x=>x.submitted);
+  if(status==='unsubmitted')yearRows=yearRows.filter(x=>!x.submitted);
+  const [ms,me]=monthRange(monthISO());
+  const monthRows=v105FieldServiceRows(ms,me,people).filter(x=>!x.submitted);
+  const byPerson={};
+  people.forEach(p=>{byPerson[p.id]={person:p,count:0};});
+  monthRows.forEach(x=>{if(!byPerson[x.person.id])byPerson[x.person.id]={person:x.person,count:0}; byPerson[x.person.id].count++;});
+  const monthCards=Object.values(byPerson).filter(x=>x.count>0).sort((a,b)=>(a.person.group+a.person.name).localeCompare(b.person.group+b.person.name,'zh-Hant')).map(x=>`<div class="stat"><div class="muted">${esc(x.person.group)}｜${esc(x.person.name)}</div><b>${x.count}</b><div class="muted">本月未繳交</div></div>`).join('');
+  $('fieldServiceMonthPendingStats').innerHTML=monthCards||'<div class="stat"><div class="muted">本月各翻譯未繳交</div><b>0</b><div class="muted">目前沒有未繳交</div></div>';
+  $('fieldServiceYearRows').innerHTML=yearRows.map(x=>`<tr><td>${esc(x.date.slice(0,7))}</td><td>${esc(x.date)}</td><td>${esc(x.person.group)}</td><td>${esc(x.person.name)}</td><td>${esc(x.person.lang||'')}</td><td>${esc(displayEventType(x.event.type))}</td><td>${esc(x.event.name||'')}</td><td>${esc(x.event.locationName||'')}</td><td>${esc(x.event.status||'')}</td><td><span class="badge">${x.submitted?'🟢 已繳交':'🔴 未繳交'}</span></td><td>${esc(x.event.serviceRecordDate||'')}</td></tr>`).join('')||'<tr><td colspan="11" class="muted">沒有服務紀錄單明細</td></tr>';
+}
+function exportFieldServiceRecords(){
+  if(!$('fieldServiceYear'))return;
+  v105InitFieldServiceFilters();
+  const year=Number($('fieldServiceYear').value||new Date().getFullYear());
+  const status=$('fieldServiceStatus')?$('fieldServiceStatus').value:'';
+  let rowsData=v105FieldServiceRows(`${year}-01-01`,`${year}-12-31`,v105ServicePeopleForField());
+  if(status==='submitted')rowsData=rowsData.filter(x=>x.submitted);
+  if(status==='unsubmitted')rowsData=rowsData.filter(x=>!x.submitted);
+  const rows=[['月份','日期','部門','翻譯','職務','行程類型','辦理內容','地點 / 客戶','行程狀態','服務紀錄單','繳交日期']];
+  rowsData.forEach(x=>rows.push([x.date.slice(0,7),x.date,x.person.group,x.person.name,x.person.lang||'',displayEventType(x.event.type),x.event.name||'',x.event.locationName||'',x.event.status||'',v105FieldServiceStatusText(x),x.event.serviceRecordDate||'']));
+  exportCsv(rows,`外務明細_服務紀錄單_${year}.csv`);
+}
+function bindFieldServiceRecordsUI(){
+  if(!$('fieldServiceRecordPanel'))return;
+  ['fieldServiceYear','fieldServiceGroup','fieldServicePerson','fieldServiceStatus'].forEach(id=>{const el=$(id); if(el&&!el.dataset.v105Service){el.dataset.v105Service='1'; el.addEventListener('input',renderFieldServiceRecordsPanel); el.addEventListener('change',renderFieldServiceRecordsPanel);}});
+  if($('refreshFieldServiceRecords')&&!$('refreshFieldServiceRecords').dataset.v105Service){$('refreshFieldServiceRecords').dataset.v105Service='1'; $('refreshFieldServiceRecords').onclick=renderFieldServiceRecordsPanel;}
+  if($('exportFieldServiceRecordsBtn')&&!$('exportFieldServiceRecordsBtn').dataset.v105Service){$('exportFieldServiceRecordsBtn').dataset.v105Service='1'; $('exportFieldServiceRecordsBtn').onclick=exportFieldServiceRecords;}
+}
+const _v105RenderFieldDetailsService = renderFieldDetails;
+renderFieldDetails=function(){
+  _v105RenderFieldDetailsService();
+  bindFieldServiceRecordsUI();
+  renderFieldServiceRecordsPanel();
+};
+const _v105RenderAllFieldService = renderAll;
+renderAll=function(){
+  _v105RenderAllFieldService();
+  bindFieldServiceRecordsUI();
+  renderFieldServiceRecordsPanel();
+  setTimeout(v105EnsureFieldTitleOnTop,80);
+};
+
+
+
+/* V106：外務行程標題置於篩選上方、手機異況篩選收合、手機選單排序、服務紀錄單集中於服務紀錄單頁 */
+function v106EnsureTitleAboveFilters(){
+  try{
+    const panel=document.querySelector('#fieldCalendarPage .panel:first-child');
+    if(!panel)return;
+    let header=panel.querySelector(':scope > .section-title');
+    if(header && panel.firstElementChild!==header)panel.insertBefore(header,panel.firstElementChild);
+  }catch(e){console.warn('v106EnsureTitleAboveFilters failed',e)}
+}
+function v106MobileCompactFilters(){
+  if(window.innerWidth>760)return;
+  const configs=[
+    {panel:'#calendarPage .panel:first-child', title:'篩選 / 日期', selector:':scope > .toolbar'},
+    {panel:'#fieldCalendarPage .panel:first-child', title:'外務篩選 / 日期', selector:':scope > .toolbar'},
+    {panel:'#incidentsPage .panel:first-child', title:'異況篩選', selector:':scope > .incident-toolbar'}
+  ];
+  configs.forEach(cfg=>{
+    const panel=document.querySelector(cfg.panel);
+    if(!panel)return;
+    if(panel.dataset.v106CompactFilter==='1')return;
+    // 若舊版已處理總覽 / 外務，仍補異況；外務另外確保標題在最上方
+    if(panel.dataset.v105CompactFilter==='1' && cfg.panel!=='#incidentsPage .panel:first-child')return;
+    panel.dataset.v106CompactFilter='1';
+    const header=panel.querySelector(':scope > .section-title');
+    const toolbars=[...panel.querySelectorAll(cfg.selector)];
+    if(!toolbars.length)return;
+    const box=document.createElement('details');
+    box.className='mobile-filter-collapse';
+    box.open=false;
+    const summary=document.createElement('summary');
+    summary.innerHTML=`<span>${cfg.title}</span><small>點此展開</small>`;
+    box.appendChild(summary);
+    toolbars.forEach(tb=>box.appendChild(tb));
+    if(header)header.insertAdjacentElement('afterend',box); else panel.prepend(box);
+  });
+  v106EnsureTitleAboveFilters();
+}
+const _v106MobileCompactFiltersOld = typeof v105MobileCompactFilters==='function' ? v105MobileCompactFilters : function(){};
+v105MobileCompactFilters=function(){_v106MobileCompactFiltersOld();v106MobileCompactFilters();v106EnsureTitleAboveFilters();};
+
+function v106MobileBottomNavByRole(){
+  const nav=document.querySelector('.bottom-nav');
+  if(!nav||!currentUser)return;
+  const r=normalizedRole();
+  const rolePages={
+    admin:['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line','reports'],
+    supervisor:['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'],
+    adminStaff:['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'],
+    general:['mobile','calendar','roomBooking','line'],
+    staff:['mobile','calendar','line']
+  };
+  const allowed=rolePages[r]||rolePages.staff;
+  allowed.forEach(page=>{const btn=nav.querySelector(`.navbtn[data-page="${page}"]`); if(btn)nav.appendChild(btn);});
+  nav.querySelectorAll('.navbtn').forEach(btn=>{
+    const ok=allowed.includes(btn.dataset.page);
+    btn.classList.toggle('hide',!ok);
+    btn.style.display=ok?'':'none';
+  });
+  if(window.innerWidth<=760 && currentPage && !allowed.includes(currentPage)){
+    currentPage='mobile';
+    document.querySelectorAll('.page').forEach(p=>p.classList.add('hide'));
+    if($('mobilePage'))$('mobilePage').classList.remove('hide');
+    document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page==='mobile'));
+  }
+}
+v105MobileBottomNavByRole=v106MobileBottomNavByRole;
+
+canSeePage=function(page){
+  const r=normalizedRole();
+  if(page==='mobile'||page==='calendar'||page==='line'||page==='personalDetails')return true;
+  if(page==='theme'||page==='users')return true;
+  if(page==='roomBooking')return ['admin','supervisor','adminStaff','general'].includes(r);
+  if(page==='fieldCalendar')return ['admin','supervisor','adminStaff'].includes(r);
+  if(page==='today'||page==='incidents')return ['admin','supervisor','adminStaff'].includes(r);
+  if(page==='reports')return r==='admin';
+  if(page==='fieldDetails')return ['admin','adminStaff'].includes(r);
+  if(page==='serviceRecords')return ['admin','supervisor','adminStaff'].includes(r);
+  if(page==='settings'||page==='audit')return r==='admin';
+  return false;
+};
+
+function v106ServiceEligiblePeople(){return (state.people||[]).filter(reportEligiblePerson).sort((a,b)=>(a.group+a.name).localeCompare(b.group+b.name,'zh-Hant'));}
+function v106InitServiceFilters(){
+  if(!$('serviceMonth'))return;
+  if(!$('serviceMonth').value)$('serviceMonth').value=monthISO();
+  if(!$('serviceYear').value)$('serviceYear').value=($('serviceMonth').value||monthISO()).slice(0,4);
+  const curG=$('serviceGroup')?$('serviceGroup').value:'';
+  const curP=$('servicePerson')?$('servicePerson').value:'';
+  const groups=[...new Set(v106ServiceEligiblePeople().map(p=>p.group).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'zh-Hant'));
+  if($('serviceGroup')){
+    $('serviceGroup').innerHTML='<option value="">全部部門</option>'+groups.map(g=>`<option value="${escAttr(g)}">${esc(g)}</option>`).join('');
+    if(groups.includes(curG))$('serviceGroup').value=curG;
+  }
+  const g=$('serviceGroup')?$('serviceGroup').value:'';
+  const people=v106ServiceEligiblePeople().filter(p=>!g||p.group===g);
+  if($('servicePerson')){
+    $('servicePerson').innerHTML='<option value="">全部翻譯</option>'+people.map(p=>`<option value="${p.id}">${esc(p.name)}${p.group?'｜'+esc(p.group):''}</option>`).join('');
+    if(people.some(p=>p.id===curP))$('servicePerson').value=curP;
+  }
+}
+function v106ServiceFilterPeople(){
+  v106InitServiceFilters();
+  const g=$('serviceGroup')?$('serviceGroup').value:'';
+  const pid=$('servicePerson')?$('servicePerson').value:'';
+  return v106ServiceEligiblePeople().filter(p=>(!g||p.group===g)&&(!pid||p.id===pid));
+}
+function v106ServiceStats(rows){
+  const submitted=rows.filter(x=>x.submitted).length, unsubmitted=rows.filter(x=>!x.submitted).length;
+  const one=rows.filter(x=>x.person.group==='一部翻譯').length, two=rows.filter(x=>x.person.group==='二部翻譯').length;
+  return `<div class="stat"><div class="muted">總數</div><b>${rows.length}</b></div><div class="stat"><div class="muted">已繳交</div><b>${submitted}</b></div><div class="stat"><div class="muted">未繳交</div><b>${unsubmitted}</b></div><div class="stat"><div class="muted">一部翻譯</div><b>${one}</b></div><div class="stat"><div class="muted">二部翻譯</div><b>${two}</b></div>`;
+}
+function v106ServiceRowHtml(rows, annual=false){
+  return rows.sort((a,b)=>(a.date+a.person.group+a.person.name).localeCompare(b.date+b.person.group+b.person.name,'zh-Hant',{numeric:true})).map(x=>{
+    const status=x.submitted?'🟢 已繳交':'🔴 未繳交';
+    const month=annual?`<td>${esc(x.date.slice(0,7))}</td>`:'';
+    return `<tr>${month}<td>${esc(x.date)}</td><td>${esc(x.person.group)}</td><td>${esc(x.person.name)}</td><td>${esc(x.person.lang||'')}</td><td>${esc(displayEventType(x.event.type))}</td><td>${esc(x.event.name||'')}</td><td>${esc(x.event.locationName||'')}</td><td>${esc(x.event.status||'')}</td><td><span class="badge">${status}</span></td><td>${esc(x.event.serviceRecordDate||'')}</td></tr>`;
+  }).join('') || `<tr><td colspan="${annual?11:10}" class="muted">沒有服務紀錄單明細</td></tr>`;
+}
+renderServiceRecords=function(){
+  if(!$('serviceMonth'))return;
+  v106InitServiceFilters();
+  const ym=$('serviceMonth').value||monthISO();
+  const year=Number($('serviceYear').value||ym.slice(0,4));
+  const [ms,me]=monthRange(ym);
+  const people=v106ServiceFilterPeople();
+  const filter=$('serviceStatus')?$('serviceStatus').value:'';
+  let md=serviceRecordsInRange(ms,me,people);
+  let yd=serviceRecordsInRange(`${year}-01-01`,`${year}-12-31`,people);
+  if(filter==='submitted'){md=md.filter(x=>x.submitted);yd=yd.filter(x=>x.submitted);}
+  if(filter==='unsubmitted'){md=md.filter(x=>!x.submitted);yd=yd.filter(x=>!x.submitted);}
+  const monthUnsubmitted=serviceRecordsInRange(ms,me,people).filter(x=>!x.submitted);
+  const byPerson={}; people.forEach(p=>byPerson[p.id]={person:p,count:0});
+  monthUnsubmitted.forEach(x=>{if(!byPerson[x.person.id])byPerson[x.person.id]={person:x.person,count:0};byPerson[x.person.id].count++;});
+  const cards=Object.values(byPerson).filter(x=>x.count>0).sort((a,b)=>(a.person.group+a.person.name).localeCompare(b.person.group+b.person.name,'zh-Hant')).map(x=>`<div class="stat"><div class="muted">${esc(x.person.group)}｜${esc(x.person.name)}</div><b>${x.count}</b><div class="muted">本月未繳交</div></div>`).join('');
+  if($('serviceMonthPendingStats'))$('serviceMonthPendingStats').innerHTML=cards||'<div class="stat"><div class="muted">本月各翻譯未繳交</div><b>0</b><div class="muted">目前沒有未繳交</div></div>';
+  if($('serviceMonthStats'))$('serviceMonthStats').innerHTML=v106ServiceStats(md);
+  if($('serviceYearStats'))$('serviceYearStats').innerHTML=v106ServiceStats(yd);
+  if($('serviceMonthDetailRows'))$('serviceMonthDetailRows').innerHTML=v106ServiceRowHtml(md,false);
+  if($('serviceYearDetailRows'))$('serviceYearDetailRows').innerHTML=v106ServiceRowHtml(yd,true);
+};
+exportServiceRecords=function(){
+  if(!$('serviceMonth'))return;
+  v106InitServiceFilters();
+  const ym=$('serviceMonth').value||monthISO();
+  const year=Number($('serviceYear').value||ym.slice(0,4));
+  const filter=$('serviceStatus')?$('serviceStatus').value:'';
+  let rowsData=serviceRecordsInRange(`${year}-01-01`,`${year}-12-31`,v106ServiceFilterPeople());
+  if(filter==='submitted')rowsData=rowsData.filter(x=>x.submitted);
+  if(filter==='unsubmitted')rowsData=rowsData.filter(x=>!x.submitted);
+  const rows=[['月份','日期','部門','翻譯','職務','行程類型','辦理內容','地點 / 客戶','行程狀態','服務紀錄單','繳交日期']];
+  rowsData.sort((a,b)=>(a.date+a.person.group+a.person.name).localeCompare(b.date+b.person.group+b.person.name,'zh-Hant',{numeric:true})).forEach(x=>rows.push([x.date.slice(0,7),x.date,x.person.group,x.person.name,x.person.lang||'',displayEventType(x.event.type),x.event.name||'',x.event.locationName||'',x.event.status||'',x.submitted?'已繳交':'未繳交',x.event.serviceRecordDate||'']));
+  exportCsv(rows,`服務紀錄單明細_${year}.csv`);
+};
+function v106BindServiceRecordsUI(){
+  ['serviceMonth','serviceYear','serviceGroup','servicePerson','serviceStatus'].forEach(id=>{const el=$(id); if(el&&!el.dataset.v106Service){el.dataset.v106Service='1'; el.addEventListener('input',renderServiceRecords); el.addEventListener('change',renderServiceRecords);}});
+  if($('refreshServiceRecords')&&!$('refreshServiceRecords').dataset.v106Service){$('refreshServiceRecords').dataset.v106Service='1'; $('refreshServiceRecords').onclick=renderServiceRecords;}
+  if($('exportServiceRecordsBtn')&&!$('exportServiceRecordsBtn').dataset.v106Service){$('exportServiceRecordsBtn').dataset.v106Service='1'; $('exportServiceRecordsBtn').onclick=exportServiceRecords;}
+}
+const _v106RenderAll=renderAll;
+renderAll=function(){_v106RenderAll();v106EnsureTitleAboveFilters();v106MobileCompactFilters();v106MobileBottomNavByRole();v106BindServiceRecordsUI();renderServiceRecords();};
+const _v106ShowApp=showApp;
+showApp=function(){_v106ShowApp();setTimeout(()=>{v106EnsureTitleAboveFilters();v106MobileCompactFilters();v106MobileBottomNavByRole();v106BindServiceRecordsUI();renderServiceRecords();},100);};
+const _v106ApplyPermissionsUI=applyPermissionsUI;
+applyPermissionsUI=function(){_v106ApplyPermissionsUI();v106MobileBottomNavByRole();setTimeout(v106MobileCompactFilters,60);};
+window.addEventListener('resize',()=>setTimeout(()=>{v106EnsureTitleAboveFilters();v106MobileCompactFilters();v106MobileBottomNavByRole();},100));
+
+
+
+/* V107：統計報表的服務紀錄單繳交狀況移至服務紀錄單分頁，並增加繳交狀態篩選 */
+function v107MoveServiceStatusToServiceTab(){
+  try{
+    const reportPage=document.querySelector('#reportsPage');
+    if(reportPage){
+      [...reportPage.querySelectorAll('.panel')].forEach(panel=>{
+        const h=panel.querySelector('h2');
+        if(h && h.textContent.trim()==='服務紀錄單繳交狀況')panel.classList.add('hide');
+      });
+    }
+    const page=document.querySelector('#serviceRecordsPage');
+    if(!page)return;
+    const firstPanel=page.querySelector(':scope > .panel');
+    if(firstPanel){
+      const note=firstPanel.querySelector('.muted[style]');
+      if(note)note.textContent='此頁統一放服務紀錄單相關數據；上方為繳交狀況統計，下方為明細，可依統計年月、年度、部門、翻譯與繳交狀態篩選。';
+    }
+    if(!document.getElementById('serviceStatusOverviewPanel') && firstPanel){
+      const panel=document.createElement('div');
+      panel.className='panel';
+      panel.id='serviceStatusOverviewPanel';
+      panel.innerHTML=`
+        <div class="section-title"><h2>上方｜服務紀錄單繳交狀況</h2><span class="muted">原統計報表中的服務紀錄單繳交狀況已集中到此分頁。</span></div>
+        <div class="muted" style="margin-bottom:8px">此區會跟上方篩選連動；「繳交狀態」可篩選全部、已繳交或未繳交。</div>
+        <div class="statgrid" id="serviceRecordOverviewStats"></div>
+        <h3>當月各人繳交狀況</h3>
+        <div class="detail-table-wrap"><table class="table"><thead id="serviceRecordMonthStatusHead"></thead><tbody id="serviceRecordMonthStatusRows"></tbody></table></div>
+        <h3>當年各人繳交狀況</h3>
+        <div class="detail-table-wrap"><table class="table"><thead id="serviceRecordYearStatusHead"></thead><tbody id="serviceRecordYearStatusRows"></tbody></table></div>
+        <h3>部門繳交狀況</h3>
+        <div class="detail-table-wrap"><table class="table"><thead id="serviceRecordDeptStatusHead"></thead><tbody id="serviceRecordDeptStatusRows"></tbody></table></div>
+      `;
+      firstPanel.insertAdjacentElement('afterend',panel);
+    }
+    const pendingPanel=document.getElementById('serviceMonthPendingStats')?.closest('.panel');
+    if(pendingPanel){
+      const h=pendingPanel.querySelector('h2');
+      if(h)h.textContent='下方｜當月各翻譯尚未繳交數字';
+    }
+    const monthRows=document.getElementById('serviceMonthDetailRows');
+    if(monthRows){
+      const h=monthRows.closest('.panel')?.querySelector('h2');
+      if(h)h.textContent='下方｜當月服務紀錄單明細（已繳交 / 未繳交）';
+    }
+    const yearRows=document.getElementById('serviceYearDetailRows');
+    if(yearRows){
+      const h=yearRows.closest('.panel')?.querySelector('h2');
+      if(h)h.textContent='下方｜當年度服務紀錄單明細（已繳交 / 未繳交）';
+    }
+  }catch(e){console.warn('v107MoveServiceStatusToServiceTab failed',e)}
+}
+function v107ApplyServiceStatusFilter(rows){
+  const filter=$('serviceStatus')?$('serviceStatus').value:'';
+  if(filter==='submitted')return rows.filter(x=>x.submitted);
+  if(filter==='unsubmitted')return rows.filter(x=>!x.submitted);
+  return rows;
+}
+function v107BuildServiceDataFromRows(rows,people){
+  const grouped={};
+  (people||[]).forEach(p=>grouped[p.id]={person:p,total:0,submitted:0,unsubmitted:0});
+  rows.forEach(x=>{
+    if(!grouped[x.person.id])grouped[x.person.id]={person:x.person,total:0,submitted:0,unsubmitted:0};
+    grouped[x.person.id].total++;
+    if(x.submitted)grouped[x.person.id].submitted++; else grouped[x.person.id].unsubmitted++;
+  });
+  const list=Object.values(grouped).filter(r=>r.total>0).sort((a,b)=>(a.person.group+a.person.name).localeCompare(b.person.group+b.person.name,'zh-Hant'));
+  const dept={};
+  ['一部翻譯','二部翻譯','總計'].forEach(g=>dept[g]={total:0,submitted:0,unsubmitted:0});
+  rows.forEach(x=>{
+    const g=x.person.group||'未分組';
+    if(!dept[g])dept[g]={total:0,submitted:0,unsubmitted:0};
+    [g,'總計'].forEach(k=>{
+      dept[k].total++;
+      if(x.submitted)dept[k].submitted++; else dept[k].unsubmitted++;
+    });
+  });
+  return {rows:list,dept,total:rows.length,submitted:rows.filter(x=>x.submitted).length,unsubmitted:rows.filter(x=>!x.submitted).length};
+}
+function v107RenderServiceStatusTable(prefix,data){
+  const head=$(prefix+'Head'), body=$(prefix+'Rows');
+  if(!head||!body)return;
+  head.innerHTML='<tr><th>人員名稱</th><th>部門</th><th>職務</th><th>篩選後總數</th><th>已繳交</th><th>未繳交</th></tr>';
+  body.innerHTML=data.rows.map(r=>`<tr><td>${esc(r.person.name)}</td><td>${esc(r.person.group)}</td><td>${esc(r.person.lang||'')}</td><td><b>${r.total}</b></td><td>${r.submitted}</td><td>${r.unsubmitted}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">沒有符合篩選的繳交狀況資料</td></tr>';
+}
+function v107RenderServiceDeptStatus(data){
+  const head=$('serviceRecordDeptStatusHead'), body=$('serviceRecordDeptStatusRows');
+  if(!head||!body)return;
+  head.innerHTML='<tr><th>部門</th><th>篩選後總數</th><th>已繳交</th><th>未繳交</th></tr>';
+  const keys=['一部翻譯','二部翻譯','總計'].filter(k=>data.dept[k]);
+  body.innerHTML=keys.map(g=>{const r=data.dept[g];return `<tr><td><b>${esc(g)}</b></td><td><b>${r.total}</b></td><td>${r.submitted}</td><td>${r.unsubmitted}</td></tr>`}).join('')||'<tr><td colspan="4" class="muted">沒有資料</td></tr>';
+}
+function v107RenderServiceStatusOverview(monthRows,yearRows,people){
+  if(!$('serviceRecordOverviewStats'))return;
+  const md=v107BuildServiceDataFromRows(monthRows,people);
+  const yd=v107BuildServiceDataFromRows(yearRows,people);
+  const label=$('serviceStatus')?.selectedOptions?.[0]?.textContent||'全部繳交狀態';
+  $('serviceRecordOverviewStats').innerHTML=`
+    <div class="stat"><div class="muted">目前篩選</div><b style="font-size:16px">${esc(label)}</b></div>
+    <div class="stat"><div class="muted">當月篩選後總數</div><b>${md.total}</b></div>
+    <div class="stat"><div class="muted">當月已繳交</div><b>${md.submitted}</b></div>
+    <div class="stat"><div class="muted">當月未繳交</div><b>${md.unsubmitted}</b></div>
+    <div class="stat"><div class="muted">當年篩選後總數</div><b>${yd.total}</b></div>
+    <div class="stat"><div class="muted">當年已繳交</div><b>${yd.submitted}</b></div>
+    <div class="stat"><div class="muted">當年未繳交</div><b>${yd.unsubmitted}</b></div>`;
+  v107RenderServiceStatusTable('serviceRecordMonthStatus',md);
+  v107RenderServiceStatusTable('serviceRecordYearStatus',yd);
+  v107RenderServiceDeptStatus(yd);
+}
+
+const _v107RenderServiceRecordsBase = renderServiceRecords;
+renderServiceRecords=function(){
+  v107MoveServiceStatusToServiceTab();
+  if(!$('serviceMonth'))return;
+  v106InitServiceFilters();
+  const ym=$('serviceMonth').value||monthISO();
+  const year=Number($('serviceYear').value||ym.slice(0,4));
+  const [ms,me]=monthRange(ym);
+  const people=v106ServiceFilterPeople();
+  const monthAll=serviceRecordsInRange(ms,me,people);
+  const yearAll=serviceRecordsInRange(`${year}-01-01`,`${year}-12-31`,people);
+  const md=v107ApplyServiceStatusFilter(monthAll);
+  const yd=v107ApplyServiceStatusFilter(yearAll);
+
+  v107RenderServiceStatusOverview(md,yd,people);
+
+  const monthUnsubmitted=monthAll.filter(x=>!x.submitted);
+  const byPerson={}; people.forEach(p=>byPerson[p.id]={person:p,count:0});
+  monthUnsubmitted.forEach(x=>{if(!byPerson[x.person.id])byPerson[x.person.id]={person:x.person,count:0};byPerson[x.person.id].count++;});
+  const cards=Object.values(byPerson).filter(x=>x.count>0).sort((a,b)=>(a.person.group+a.person.name).localeCompare(b.person.group+b.person.name,'zh-Hant')).map(x=>`<div class="stat"><div class="muted">${esc(x.person.group)}｜${esc(x.person.name)}</div><b>${x.count}</b><div class="muted">本月未繳交</div></div>`).join('');
+  if($('serviceMonthPendingStats'))$('serviceMonthPendingStats').innerHTML=cards||'<div class="stat"><div class="muted">本月各翻譯未繳交</div><b>0</b><div class="muted">目前沒有未繳交</div></div>';
+  if($('serviceMonthStats'))$('serviceMonthStats').innerHTML=v106ServiceStats(md);
+  if($('serviceYearStats'))$('serviceYearStats').innerHTML=v106ServiceStats(yd);
+  if($('serviceMonthDetailRows'))$('serviceMonthDetailRows').innerHTML=v106ServiceRowHtml(md,false);
+  if($('serviceYearDetailRows'))$('serviceYearDetailRows').innerHTML=v106ServiceRowHtml(yd,true);
+};
+
+const _v107RenderReportsBase = renderReports;
+renderReports=function(){
+  _v107RenderReportsBase();
+  v107MoveServiceStatusToServiceTab();
+};
+
+const _v107BindServiceRecordsUIBase = v106BindServiceRecordsUI;
+v106BindServiceRecordsUI=function(){
+  _v107BindServiceRecordsUIBase();
+  v107MoveServiceStatusToServiceTab();
+  ['serviceMonth','serviceYear','serviceGroup','servicePerson','serviceStatus'].forEach(id=>{const el=$(id); if(el&&!el.dataset.v107Service){el.dataset.v107Service='1'; el.addEventListener('input',renderServiceRecords); el.addEventListener('change',renderServiceRecords);}});
+};
+
+
+
+/* V108：補修手機版面與底部選單排序（外務標題、異況篩選收合、角色按鈕順序） */
+(function(){
+  const MOBILE_Q='(max-width: 760px)';
+  function v108IsMobile(){return window.matchMedia && window.matchMedia(MOBILE_Q).matches;}
+  function v108FieldTitleOnTop(){
+    const panel=document.querySelector('#fieldCalendarPage .panel:first-child');
+    if(!panel)return;
+    const header=panel.querySelector(':scope > .section-title');
+    if(header && panel.firstElementChild!==header)panel.insertBefore(header,panel.firstElementChild);
+  }
+  function v108WrapPanelFilters(panelSelector,title,toolbarSelector){
+    const panel=document.querySelector(panelSelector);
+    if(!panel)return;
+    const header=panel.querySelector(':scope > .section-title');
+    const targets=[...panel.querySelectorAll(toolbarSelector)].filter(el=>el.parentElement===panel);
+    if(!targets.length)return;
+    let box=panel.querySelector(':scope > details.mobile-filter-collapse.v108-mobile-filter');
+    if(!box){
+      box=document.createElement('details');
+      box.className='mobile-filter-collapse v108-mobile-filter';
+      box.open=false;
+      const summary=document.createElement('summary');
+      summary.innerHTML=`<span>${title}</span><small>點此展開</small>`;
+      box.appendChild(summary);
+    }
+    targets.forEach(tb=>box.appendChild(tb));
+    if(header)header.insertAdjacentElement('afterend',box); else panel.prepend(box);
+  }
+  function v108MobileFilters(){
+    v108FieldTitleOnTop();
+    if(!v108IsMobile())return;
+    v108WrapPanelFilters('#fieldCalendarPage .panel:first-child','外務篩選 / 日期',':scope > .toolbar');
+    v108WrapPanelFilters('#incidentsPage .panel:first-child','異況篩選',':scope > .incident-toolbar');
+    v108WrapPanelFilters('#calendarPage .panel:first-child','篩選 / 日期',':scope > .toolbar');
+    v108FieldTitleOnTop();
+  }
+  function v108Role(){
+    if(typeof normalizedRole==='function')return normalizedRole();
+    const r=currentUser&&currentUser.role||'staff';
+    if(r==='translator'||r==='schedule'||r==='staff')return 'staff';
+    return r;
+  }
+  function v108AllowedBottomPages(){
+    const r=v108Role();
+    if(r==='admin')return ['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line','reports'];
+    if(r==='supervisor')return ['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'];
+    if(r==='adminStaff')return ['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'];
+    if(r==='general')return ['mobile','calendar','roomBooking','line'];
+    return ['mobile','calendar','line'];
+  }
+  window.v105AllowedPages=function(){
+    const r=v108Role();
+    if(r==='admin')return ['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line','reports'];
+    if(r==='supervisor')return ['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'];
+    if(r==='adminStaff')return ['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'];
+    if(r==='general')return ['mobile','calendar','roomBooking','line'];
+    return ['mobile','calendar','line'];
+  };
+  const v108CanSeePageBase=typeof canSeePage==='function'?canSeePage:null;
+  canSeePage=function(page){
+    const r=v108Role();
+    if(['mobile','calendar','line'].includes(page))return true;
+    if(page==='roomBooking')return ['admin','supervisor','adminStaff','general'].includes(r);
+    if(page==='fieldCalendar')return ['admin','supervisor','adminStaff'].includes(r);
+    if(page==='today'||page==='incidents')return ['admin','supervisor','adminStaff'].includes(r);
+    if(page==='reports')return r==='admin';
+    if(page==='fieldDetails')return ['admin','adminStaff'].includes(r);
+    if(page==='serviceRecords')return ['admin','supervisor','adminStaff'].includes(r);
+    if(page==='personalDetails')return true;
+    if(page==='theme')return true;
+    if(page==='users')return true;
+    if(page==='settings'||page==='audit')return r==='admin';
+    return v108CanSeePageBase?v108CanSeePageBase(page):false;
+  };
+  function v108BottomNav(){
+    const nav=document.querySelector('.bottom-nav');
+    if(!nav||!currentUser)return;
+    const allowed=v108AllowedBottomPages();
+    const labels={mobile:'個人',calendar:'總覽',fieldCalendar:'外務',today:'今日',incidents:'異況',roomBooking:'會議室',line:'通知',reports:'統計'};
+    allowed.forEach(page=>{
+      const btn=nav.querySelector(`.navbtn[data-page="${page}"]`);
+      if(btn){
+        nav.appendChild(btn);
+        btn.classList.remove('hide','role-hidden');
+        btn.style.display='';
+        const ico=btn.querySelector('.mono-ico');
+        btn.innerHTML='';
+        if(ico)btn.appendChild(ico);
+        btn.appendChild(document.createTextNode(labels[page]||btn.dataset.page));
+      }
+    });
+    [...nav.querySelectorAll('.navbtn')].forEach(btn=>{
+      const ok=allowed.includes(btn.dataset.page);
+      btn.classList.toggle('hide',!ok);
+      btn.classList.toggle('role-hidden',!ok);
+      if(!ok)btn.style.display='none'; else btn.style.display='';
+    });
+    if(v108IsMobile() && typeof currentPage!=='undefined' && !allowed.includes(currentPage)){
+      const first='mobile';
+      const btn=nav.querySelector(`.navbtn[data-page="${first}"]`);
+      if(btn)btn.click();
+    }
+  }
+  window.v105MobileBottomNavByRole=v108BottomNav;
+  window.v106MobileBottomNavByRole=v108BottomNav;
+  window.v105MobileCompactFilters=function(){v108MobileFilters();};
+  window.v106MobileCompactFilters=function(){v108MobileFilters();};
+  window.v105ApplyNav=function(){
+    const allowed=(window.v105AllowedPages?window.v105AllowedPages():v108AllowedBottomPages());
+    document.querySelectorAll('.bottom-nav .navbtn').forEach(btn=>btn.classList.toggle('role-hidden',!allowed.includes(btn.dataset.page)));
+    document.querySelectorAll('.side .navbtn').forEach(btn=>{
+      const page=btn.dataset.page;
+      if(['calendar','fieldCalendar','roomBooking','mobile','today','incidents','reports','line'].includes(page))btn.classList.toggle('role-hidden',!allowed.includes(page));
+    });
+    v108BottomNav();
+  };
+  const oldRenderAllV108=renderAll;
+  renderAll=function(){oldRenderAllV108();setTimeout(()=>{v108FieldTitleOnTop();v108MobileFilters();v108BottomNav();},80);};
+  const oldShowAppV108=showApp;
+  showApp=function(){oldShowAppV108();setTimeout(()=>{v108FieldTitleOnTop();v108MobileFilters();v108BottomNav();},120);};
+  const oldApplyPermissionsV108=applyPermissionsUI;
+  applyPermissionsUI=function(){oldApplyPermissionsV108();setTimeout(()=>{v108MobileFilters();v108BottomNav();},80);};
+  window.addEventListener('resize',()=>setTimeout(()=>{v108MobileFilters();v108BottomNav();},100));
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{v108MobileFilters();v108BottomNav();},120));
+})();
+
+
+
+/* V109 final fix: 手機版面、底部選單、服務紀錄單分頁統一補修 */
+(function(){
+  const MOBILE_Q='(max-width: 760px)';
+  function isMobile(){return window.matchMedia && window.matchMedia(MOBILE_Q).matches;}
+  function role(){
+    if(typeof normalizedRole==='function') return normalizedRole();
+    const r=(currentUser&&currentUser.role)||'staff';
+    if(['translator','schedule','staff'].includes(r))return 'staff';
+    return r;
+  }
+  function bottomOrder(){
+    const r=role();
+    if(r==='admin')return ['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line','reports'];
+    if(r==='supervisor'||r==='adminStaff')return ['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'];
+    if(r==='general')return ['mobile','calendar','roomBooking','line'];
+    return ['mobile','calendar','line'];
+  }
+  window.v105AllowedPages=function(){return bottomOrder();};
+  const baseCanSee=typeof canSeePage==='function'?canSeePage:null;
+  canSeePage=function(page){
+    const r=role();
+    if(['mobile','calendar','line'].includes(page))return true;
+    if(page==='roomBooking')return ['admin','supervisor','adminStaff','general'].includes(r);
+    if(page==='fieldCalendar')return ['admin','supervisor','adminStaff'].includes(r);
+    if(page==='today'||page==='incidents')return ['admin','supervisor','adminStaff'].includes(r);
+    if(page==='reports')return r==='admin';
+    if(page==='serviceRecords')return ['admin','supervisor','adminStaff'].includes(r);
+    if(page==='fieldDetails')return ['admin','adminStaff'].includes(r);
+    if(page==='personalDetails')return true;
+    if(page==='theme')return true;
+    if(page==='users')return true;
+    if(page==='settings'||page==='audit')return r==='admin';
+    return baseCanSee?baseCanSee(page):false;
+  };
+  function fieldTitleTop(){
+    const panel=document.querySelector('#fieldCalendarPage .panel:first-child');
+    if(!panel)return;
+    let header=panel.querySelector(':scope > .section-title');
+    if(!header){
+      header=document.createElement('div');
+      header.className='section-title';
+      header.innerHTML='<h2>外務行程</h2>';
+      panel.prepend(header);
+    }
+    const h2=header.querySelector('h2');
+    if(h2)h2.textContent='外務行程';
+    if(panel.firstElementChild!==header)panel.insertBefore(header,panel.firstElementChild);
+  }
+  function wrapMobile(panelSelector,title,selector){
+    const panel=document.querySelector(panelSelector); if(!panel)return;
+    const header=panel.querySelector(':scope > .section-title');
+    const targets=[...panel.querySelectorAll(selector)].filter(el=>el.parentElement===panel);
+    if(!targets.length)return;
+    let box=panel.querySelector(':scope > details.mobile-filter-collapse.v109-mobile-filter');
+    if(!box){
+      box=document.createElement('details');
+      box.className='mobile-filter-collapse v108-mobile-filter v109-mobile-filter';
+      box.open=false;
+      const summary=document.createElement('summary');
+      summary.innerHTML='<span>'+title+'</span><small>點此展開</small>';
+      box.appendChild(summary);
+    }
+    targets.forEach(el=>box.appendChild(el));
+    if(header)header.insertAdjacentElement('afterend',box); else panel.prepend(box);
+  }
+  function mobileLayout(){
+    fieldTitleTop();
+    if(!isMobile())return;
+    wrapMobile('#fieldCalendarPage .panel:first-child','外務篩選 / 日期',':scope > .toolbar');
+    wrapMobile('#incidentsPage .panel:first-child','異況篩選',':scope > .incident-toolbar');
+  }
+  function bottomNav(){
+    const nav=document.querySelector('.bottom-nav'); if(!nav||!currentUser)return;
+    const labels={mobile:'個人',calendar:'總覽',fieldCalendar:'外務',today:'今日',incidents:'異況',roomBooking:'會議室',line:'通知',reports:'統計'};
+    const icons={mobile:'ico-star',calendar:'ico-calendar',fieldCalendar:'ico-car',today:'ico-sun',incidents:'ico-warning',roomBooking:'ico-room',line:'ico-chat',reports:'ico-chart'};
+    const order=bottomOrder();
+    order.forEach(page=>{
+      let btn=nav.querySelector(`.navbtn[data-page="${page}"]`);
+      if(!btn){btn=document.createElement('button');btn.className='navbtn';btn.dataset.page=page;nav.appendChild(btn);}
+      btn.innerHTML=`<span class="mono-ico ${icons[page]||'ico-calendar'}"></span>${labels[page]||page}`;
+      btn.classList.remove('hide','role-hidden');btn.style.display='';nav.appendChild(btn);
+    });
+    [...nav.querySelectorAll('.navbtn')].forEach(btn=>{
+      const ok=order.includes(btn.dataset.page);
+      btn.classList.toggle('hide',!ok); btn.classList.toggle('role-hidden',!ok); btn.style.display=ok?'':'none';
+    });
+    document.querySelectorAll('.side .navbtn').forEach(btn=>{
+      const p=btn.dataset.page;
+      if(['calendar','fieldCalendar','roomBooking','mobile','today','incidents','reports','line'].includes(p)){
+        btn.classList.toggle('role-hidden',!canSeePage(p));
+      }
+    });
+  }
+  function filteredServiceRows(start,end,people){
+    const status=$('serviceStatus')?$('serviceStatus').value:'';
+    let rows=serviceRecordsInRange(start,end,people);
+    if(status==='submitted')rows=rows.filter(x=>x.submitted);
+    if(status==='unsubmitted')rows=rows.filter(x=>!x.submitted);
+    return rows;
+  }
+  window.buildServiceDataFromDetails=function(details,people){
+    const rows=people.map(p=>{const mine=details.filter(x=>x.person.id===p.id);return {person:p,total:mine.length,submitted:mine.filter(x=>x.submitted).length,unsubmitted:mine.filter(x=>!x.submitted).length};});
+    const dept={'一部翻譯':{submitted:0,unsubmitted:0,total:0},'二部翻譯':{submitted:0,unsubmitted:0,total:0},'總計':{submitted:0,unsubmitted:0,total:0}};
+    details.forEach(x=>{const g=dept[x.person.group]?x.person.group:'總計'; if(dept[g])dept[g].total++; dept['總計'].total++; if(x.submitted){if(dept[g])dept[g].submitted++;dept['總計'].submitted++;}else{if(dept[g])dept[g].unsubmitted++;dept['總計'].unsubmitted++;}});
+    return {rows,details,dept,total:details.length,submitted:details.filter(x=>x.submitted).length,unsubmitted:details.filter(x=>!x.submitted).length};
+  };
+  serviceFilterPeople=function(){
+    let people=(state.people||[]).filter(reportEligiblePerson);
+    const g=$('serviceGroup')?$('serviceGroup').value:'';
+    const pid=$('servicePerson')?$('servicePerson').value:'';
+    if(g)people=people.filter(p=>p.group===g);
+    if(pid)people=people.filter(p=>p.id===pid);
+    return people;
+  };
+  function fillServicePersonOptions(){
+    const sel=$('servicePerson'); if(!sel)return;
+    const old=sel.value;
+    const g=$('serviceGroup')?$('serviceGroup').value:'';
+    let people=(state.people||[]).filter(reportEligiblePerson);
+    if(g)people=people.filter(p=>p.group===g);
+    sel.innerHTML='<option value="">全部翻譯</option>'+people.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}｜${esc(p.group||'')}</option>`).join('');
+    if([...sel.options].some(o=>o.value===old))sel.value=old;
+  }
+  renderServiceRecords=function(){
+    if(!$('serviceMonth'))return; initServiceFilters(); fillServicePersonOptions();
+    const ym=$('serviceMonth').value||monthISO(); const year=Number($('serviceYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym);
+    const people=serviceFilterPeople();
+    const mRows=filteredServiceRows(ms,me,people), yRows=filteredServiceRows(`${year}-01-01`,`${year}-12-31`,people);
+    const sm=buildServiceDataFromDetails(mRows,people), sy=buildServiceDataFromDetails(yRows,people);
+    if($('serviceOverviewStats'))$('serviceOverviewStats').innerHTML=`<div class="stat"><div class="muted">當月需繳交</div><b>${sm.total}</b></div><div class="stat"><div class="muted">當月已交</div><b>${sm.submitted}</b></div><div class="stat"><div class="muted">當月未交</div><b>${sm.unsubmitted}</b></div><div class="stat"><div class="muted">當年需繳交</div><b>${sy.total}</b></div><div class="stat"><div class="muted">當年已交</div><b>${sy.submitted}</b></div><div class="stat"><div class="muted">當年未交</div><b>${sy.unsubmitted}</b></div>`;
+    renderServiceTable('serviceMonth',sm); renderServiceTable('serviceYear',sy); renderServiceDept(sy);
+    const monthUnsubmitted=serviceRecordsInRange(ms,me,people).filter(x=>!x.submitted);
+    if($('serviceMonthPendingStats')){
+      const by={}; monthUnsubmitted.forEach(x=>by[x.person.name]=(by[x.person.name]||0)+1);
+      $('serviceMonthPendingStats').innerHTML=Object.keys(by).sort().map(n=>`<div class="stat"><div class="muted">${esc(n)}</div><b>${by[n]}</b></div>`).join('')||'<div class="muted">本月沒有未繳交資料</div>';
+    }
+    function statusText(x){return x.submitted?'🟢 已繳交':'🔴 未繳交'}
+    function submitDate(x){return x.event.serviceRecordDate||''}
+    function monthHtml(rows){return rows.sort((a,b)=>(a.date+a.person.group+a.person.name).localeCompare(b.date+b.person.group+b.person.name)).map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.person.group)}</td><td>${esc(x.person.name)}</td><td>${esc(x.person.lang)}</td><td>${esc(displayEventType(x.event.type))}</td><td>${esc(x.event.name)}</td><td>${esc(x.event.locationName||'')}</td><td>${esc(x.event.status)}</td><td>${statusText(x)}</td><td>${esc(submitDate(x))}</td></tr>`).join('')||'<tr><td colspan="10" class="muted">沒有符合條件的明細</td></tr>'}
+    function yearHtml(rows){return rows.sort((a,b)=>(a.date+a.person.group+a.person.name).localeCompare(b.date+b.person.group+b.person.name)).map(x=>`<tr><td>${esc(x.date.slice(0,7))}</td><td>${esc(x.date)}</td><td>${esc(x.person.group)}</td><td>${esc(x.person.name)}</td><td>${esc(x.person.lang)}</td><td>${esc(displayEventType(x.event.type))}</td><td>${esc(x.event.name)}</td><td>${esc(x.event.locationName||'')}</td><td>${esc(x.event.status)}</td><td>${statusText(x)}</td><td>${esc(submitDate(x))}</td></tr>`).join('')||'<tr><td colspan="11" class="muted">沒有符合條件的明細</td></tr>'}
+    if($('serviceMonthStats'))$('serviceMonthStats').innerHTML=`<div class="stat"><div class="muted">當月明細筆數</div><b>${mRows.length}</b></div><div class="stat"><div class="muted">已繳交</div><b>${sm.submitted}</b></div><div class="stat"><div class="muted">未繳交</div><b>${sm.unsubmitted}</b></div>`;
+    if($('serviceYearStats'))$('serviceYearStats').innerHTML=`<div class="stat"><div class="muted">當年度明細筆數</div><b>${yRows.length}</b></div><div class="stat"><div class="muted">已繳交</div><b>${sy.submitted}</b></div><div class="stat"><div class="muted">未繳交</div><b>${sy.unsubmitted}</b></div>`;
+    if($('serviceMonthDetailRows'))$('serviceMonthDetailRows').innerHTML=monthHtml(mRows);
+    if($('serviceYearDetailRows'))$('serviceYearDetailRows').innerHTML=yearHtml(yRows);
+  };
+  exportServiceRecords=function(){
+    if(!$('serviceMonth'))return; initServiceFilters();
+    const ym=$('serviceMonth').value||monthISO(); const year=Number($('serviceYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym); const people=serviceFilterPeople();
+    const rows=[['區間','日期','部門','翻譯','職務','行程類型','辦理內容','地點 / 客戶','行程狀態','繳交狀態','繳交日期']];
+    filteredServiceRows(ms,me,people).forEach(x=>rows.push(['當月',x.date,x.person.group,x.person.name,x.person.lang,displayEventType(x.event.type),x.event.name,x.event.locationName||'',x.event.status,x.submitted?'已繳交':'未繳交',x.event.serviceRecordDate||'']));
+    filteredServiceRows(`${year}-01-01`,`${year}-12-31`,people).forEach(x=>rows.push(['當年度',x.date,x.person.group,x.person.name,x.person.lang,displayEventType(x.event.type),x.event.name,x.event.locationName||'',x.event.status,x.submitted?'已繳交':'未繳交',x.event.serviceRecordDate||'']));
+    exportCsv(rows,`服務紀錄單_${ym}_${year}.csv`);
+  };
+  const oldBind=bindUI;
+  bindUI=function(){
+    oldBind();
+    ['serviceMonth','serviceYear','serviceGroup','servicePerson','serviceStatus'].forEach(id=>{const el=$(id); if(el&&!el.dataset.v109){el.dataset.v109='1'; el.addEventListener('input',()=>{if(id==='serviceGroup')fillServicePersonOptions(); renderServiceRecords();}); el.addEventListener('change',()=>{if(id==='serviceGroup')fillServicePersonOptions(); renderServiceRecords();});}});
+    const ref=$('refreshServiceRecords'); if(ref&&!ref.dataset.v109){ref.dataset.v109='1';ref.onclick=renderServiceRecords;}
+    const exp=$('exportServiceRecordsBtn'); if(exp&&!exp.dataset.v109){exp.dataset.v109='1';exp.onclick=exportServiceRecords;}
+  };
+  const oldRender=renderAll;
+  renderAll=function(){oldRender();setTimeout(()=>{mobileLayout();bottomNav();renderServiceRecords();},60);};
+  const oldShow=showApp;
+  showApp=function(){oldShow();setTimeout(()=>{mobileLayout();bottomNav();renderServiceRecords();},100);};
+  const oldPerm=applyPermissionsUI;
+  applyPermissionsUI=function(){oldPerm();setTimeout(()=>{mobileLayout();bottomNav();},60);};
+  window.addEventListener('resize',()=>setTimeout(()=>{mobileLayout();bottomNav();},80));
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{mobileLayout();bottomNav();},120));
+})();
 
 try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bindUI();bindExternalUI();/* V75：為避免看不到登入頁，取消自動登入；請每次由登入頁進入。 */ safeRemoveSession(); $('loginView')&&$('loginView').classList.remove('hide'); $('appView')&&$('appView').classList.add('hide');}catch(err){console.error(err); document.body.innerHTML='<div style="padding:24px;font-family:Arial"><h2>系統載入錯誤</h2><p>'+esc(err.message)+'</p><button onclick="localStorage.clear();location.reload()">清除暫存並重新載入</button></div>'}
 })();
