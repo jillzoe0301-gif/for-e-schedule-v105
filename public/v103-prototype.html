@@ -5839,4 +5839,259 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 })();
 </script>
 
+
+<style>
+/* V138：三大行事曆電腦版篩選恢復，匯出 CSV 統一右上角 */
+@media(min-width:761px){
+  #calendarPage .v116-static-filter,
+  #fieldCalendarPage .v116-static-filter,
+  #roomBookingPage .v116-static-filter{
+    display:block!important;
+    visibility:visible!important;
+    opacity:1!important;
+    border:0!important;
+    background:transparent!important;
+    margin:8px 0 0!important;
+    overflow:visible!important;
+    width:100%!important;
+  }
+  #calendarPage .v116-static-filter > summary,
+  #fieldCalendarPage .v116-static-filter > summary,
+  #roomBookingPage .v116-static-filter > summary{
+    display:none!important;
+  }
+  #calendarPage .v116-static-filter > .toolbar,
+  #fieldCalendarPage .v116-static-filter > .toolbar,
+  #roomBookingPage .v116-static-filter > .toolbar{
+    display:flex!important;
+    flex-wrap:wrap!important;
+    gap:8px!important;
+    align-items:center!important;
+    width:100%!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+  }
+  #calendarPage .section-title,
+  #fieldCalendarPage .section-title,
+  #roomBookingPage .section-title{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:10px!important;
+  }
+  #calendarPage .section-title h2,
+  #fieldCalendarPage .section-title h2,
+  #roomBookingPage .section-title h2{
+    margin:0!important;
+  }
+}
+#exportCsvBtn,
+#fieldExportBtn{
+  display:none!important;
+}
+.v138-export-inline{
+  display:inline-flex!important;
+  flex-wrap:wrap!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:6px!important;
+  margin-left:auto!important;
+}
+.v138-export-inline .mini{
+  width:auto!important;
+  min-width:82px!important;
+  max-width:145px!important;
+  height:30px!important;
+  padding:4px 8px!important;
+  font-size:12px!important;
+  border-radius:8px!important;
+}
+.v138-export-inline button{
+  height:30px!important;
+  padding:4px 10px!important;
+  font-size:12px!important;
+  border-radius:8px!important;
+  white-space:nowrap!important;
+}
+.v138-export-inline .v138-day-only,
+.v138-export-inline .v138-month-only,
+.v138-export-inline .v138-year-only,
+.v138-export-inline .v138-range-only{display:none!important}
+.v138-export-inline[data-mode="day"] .v138-day-only{display:inline-flex!important}
+.v138-export-inline[data-mode="month"] .v138-month-only{display:inline-flex!important}
+.v138-export-inline[data-mode="year"] .v138-year-only{display:inline-flex!important}
+.v138-export-inline[data-mode="range"] .v138-range-only{display:inline-flex!important}
+@media(max-width:760px){
+  .v138-export-inline{display:none!important}
+}
+</style>
+<script>
+/* V138：三大行事曆匯出 CSV，支援全部 / 年 / 月 / 日 / 區間 */
+(function(){
+  const configs=[
+    {pageId:'calendarPage', label:'行程總覽', type:'calendar'},
+    {pageId:'fieldCalendarPage', label:'外務行程', type:'field'},
+    {pageId:'roomBookingPage', label:'會議室預約', type:'room'}
+  ];
+  function $(id){return document.getElementById(id)}
+  function today(){return typeof todayISO==='function'?todayISO():new Date().toISOString().slice(0,10)}
+  function ym(){return today().slice(0,7)}
+  function yyyy(){return today().slice(0,4)}
+  function monthRangeLocal(m){
+    if(typeof monthRange==='function')return monthRange(m);
+    const y=Number(m.slice(0,4)), mon=Number(m.slice(5,7));
+    return [m+'-01',m+'-'+String(new Date(y,mon,0).getDate()).padStart(2,'0')];
+  }
+  function getPersonName(id){
+    try{return typeof getPerson==='function'?(getPerson(id).name||''):''}
+    catch(e){const p=(state.people||[]).find(x=>x.id===id);return p?p.name:''}
+  }
+  function getUserName(id){
+    try{return typeof getUser==='function'?(getUser(id).name||''):''}
+    catch(e){const u=(state.users||[]).find(x=>x.id===id);return u?u.name:''}
+  }
+  function displayType(t){
+    try{return typeof displayEventType==='function'?displayEventType(t):String(t||'')}
+    catch(e){return String(t||'')}
+  }
+  function overlaps(e,start,end){
+    try{return typeof eventOverlapsRange==='function'?eventOverlapsRange(e,start,end):((e.startDate||'')<=end && (e.endDate||e.startDate||'')>=start)}
+    catch(err){return false}
+  }
+  function ensureToolbar(page){
+    const panel=page.querySelector(':scope > .panel:first-child');
+    if(!panel)return null;
+    const title=panel.querySelector(':scope > .section-title');
+    if(!title)return null;
+    let tb=title.querySelector(':scope > .toolbar.v138-export-toolbar');
+    if(!tb){
+      tb=document.createElement('div');
+      tb.className='toolbar v138-export-toolbar';
+      title.appendChild(tb);
+    }
+    tb.style.marginLeft='auto';
+    tb.style.justifyContent='flex-end';
+    return tb;
+  }
+  function setupExportControl(cfg){
+    const page=$(cfg.pageId);
+    if(!page)return;
+    page.querySelectorAll('.v138-export-inline').forEach(x=>x.remove());
+    const tb=ensureToolbar(page);
+    if(!tb)return;
+    const box=document.createElement('div');
+    box.className='v138-export-inline';
+    box.dataset.mode='month';
+    box.innerHTML=`
+      <select class="mini v138-mode" title="匯出方式">
+        <option value="all">全部</option>
+        <option value="year">年</option>
+        <option value="month" selected>月</option>
+        <option value="day">日</option>
+        <option value="range">區間</option>
+      </select>
+      <input class="mini v138-year-only v138-year" type="number" min="2024" max="2035" value="${yyyy()}" title="年度">
+      <input class="mini v138-month-only v138-month" type="month" value="${ym()}" title="月份">
+      <input class="mini v138-day-only v138-day" type="date" value="${today()}" title="日期">
+      <input class="mini v138-range-only v138-start" type="date" value="${today()}" title="起日">
+      <input class="mini v138-range-only v138-end" type="date" value="${today()}" title="迄日">
+      <button class="primary v138-export-btn" type="button">匯出CSV</button>
+    `;
+    tb.appendChild(box);
+    const mode=box.querySelector('.v138-mode');
+    mode.addEventListener('change',()=>box.dataset.mode=mode.value);
+    box.querySelector('.v138-export-btn').addEventListener('click',()=>exportPage(cfg));
+  }
+  function getRange(pageId){
+    const box=$(pageId)?.querySelector('.v138-export-inline');
+    const mode=box?.querySelector('.v138-mode')?.value||'month';
+    if(mode==='all')return {start:'0000-01-01',end:'9999-12-31',label:'全部'};
+    if(mode==='year'){
+      const y=box.querySelector('.v138-year').value||yyyy();
+      return {start:y+'-01-01',end:y+'-12-31',label:y};
+    }
+    if(mode==='day'){
+      const d=box.querySelector('.v138-day').value||today();
+      return {start:d,end:d,label:d};
+    }
+    if(mode==='range'){
+      const s=box.querySelector('.v138-start').value||today();
+      const e=box.querySelector('.v138-end').value||s;
+      return {start:s,end:e,label:s+'_to_'+e};
+    }
+    const m=box.querySelector('.v138-month').value||ym();
+    const [s,e]=monthRangeLocal(m);
+    return {start:s,end:e,label:m};
+  }
+  function downloadCsv(rows,filename){
+    if(typeof exportCsv==='function'){exportCsv(rows,filename);return}
+    const body=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob=new Blob(['\ufeff'+body],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=filename;
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),500);
+  }
+  function calendarRows(start,end){
+    const rows=[['ID','起日','迄日','時間','類型','行程名稱','地點/客戶','地址','狀態','人員','建立者','更新時間','備註']];
+    (state.events||[]).filter(e=>!e.deleted&&overlaps(e,start,end)).sort((a,b)=>String((a.startDate||'')+(a.startTime||'')).localeCompare(String((b.startDate||'')+(b.startTime||'')))).forEach(e=>{
+      rows.push([e.id||'',e.startDate||'',e.endDate||'',e.startTime||'',displayType(e.type||''),e.name||'',e.locationName||'',e.address||'',e.status||'',(e.participants||[]).map(getPersonName).filter(Boolean).join('、'),getUserName(e.createdBy)||'',e.updatedAt||'',e.note||'']);
+    });
+    return rows;
+  }
+  function fieldRows(start,end){
+    const rows=[['ID','日期','時間','人員','目的','地點','地址','狀態','內容/備註','建立者','更新時間']];
+    (state.externalEvents||[]).filter(e=>!e.deleted&&(e.date||'')>=start&&(e.date||'')<=end).sort((a,b)=>String((a.date||'')+(a.time||'')+(a.personId||'')).localeCompare(String((b.date||'')+(b.time||'')+(b.personId||'')))).forEach(e=>{
+      rows.push([e.id||'',e.date||'',e.time||'',getPersonName(e.personId)||'',e.purpose||'',e.locationName||'',e.address||'',e.status||'',e.note||'',getUserName(e.createdBy)||'',e.updatedAt||'']);
+    });
+    return rows;
+  }
+  function roomRows(start,end){
+    const rows=[['ID','日期','時間','會議室','部門','會議名稱','建立者','更新時間']];
+    (state.roomBookings||[]).filter(b=>!b.deleted&&(b.date||'')>=start&&(b.date||'')<=end).sort((a,b)=>String((a.date||'')+(a.startTime||'')+(a.room||'')).localeCompare(String((b.date||'')+(b.startTime||'')+(b.room||'')))).forEach(b=>{
+      rows.push([b.id||'',b.date||'',(b.startTime||'')+'-'+(b.endTime||''),b.room||'',b.department||'',b.title||'',getUserName(b.createdBy)||'',b.updatedAt||'']);
+    });
+    return rows;
+  }
+  function exportPage(cfg){
+    const r=getRange(cfg.pageId);
+    const rows=cfg.type==='calendar'?calendarRows(r.start,r.end):(cfg.type==='field'?fieldRows(r.start,r.end):roomRows(r.start,r.end));
+    downloadCsv(rows,`${cfg.label}_${r.label}.csv`);
+  }
+  function restoreDesktopFilters(){
+    ['calendarPage','fieldCalendarPage','roomBookingPage'].forEach(id=>{
+      const page=$(id);
+      if(!page)return;
+      const details=page.querySelector('.v116-static-filter');
+      if(!details)return;
+      details.classList.remove('hide');
+      details.style.display='block';
+      details.style.visibility='visible';
+      if(window.innerWidth>760)details.open=true;
+      const toolbar=details.querySelector(':scope > .toolbar');
+      if(toolbar){
+        toolbar.classList.remove('hide');
+        toolbar.style.display=window.innerWidth>760?'flex':'grid';
+      }
+    });
+  }
+  const oldRenderAll=typeof renderAll==='function'?renderAll:null;
+  if(oldRenderAll){
+    renderAll=function(){
+      oldRenderAll();
+      restoreDesktopFilters();
+      configs.forEach(setupExportControl);
+    };
+  }
+  function init(){
+    restoreDesktopFilters();
+    configs.forEach(setupExportControl);
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(init,200));
+  setTimeout(init,500);
+})();
+</script>
+
 </body></html>
