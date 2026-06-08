@@ -6265,6 +6265,18 @@ body.role-staff #srStaffPage{display:block!important}
 
     // 移除前幾版如果曾新增過的翻譯獨立服務紀錄單頁面與按鈕
     all('.navbtn[data-page="translatorService"]').forEach(btn=>btn.remove());
+
+    // 翻譯帳號：隱藏所有匯出相關元素
+    const isTranslator2=(roleV156()==='translator');
+    if(isTranslator2){
+      const exportIds=['exportCsvBtn','fieldExportBtn','exportFieldDetailsBtn',
+        'exportPersonalDetailsBtn','exportIncidentsBtn','exportReportBtn',
+        'exportLogBtn','exportServiceRecordsBtn'];
+      exportIds.forEach(id=>{const el=document.getElementById(id);if(el)el.style.setProperty('display','none','important');});
+      all('.v138-export-inline').forEach(el=>el.style.setProperty('display','none','important'));
+      all('.v141-box').forEach(el=>el.style.setProperty('display','none','important'));
+      all('.export-control').forEach(el=>el.style.setProperty('display','none','important'));
+    }
     const tp=$('translatorServicePage');
     if(tp)tp.remove();
 
@@ -6356,7 +6368,17 @@ body.role-staff #srStaffPage{display:block!important}
 /* 翻譯帳號：隱藏所有匯出功能 */
 body.role-staff .v141-box,
 body.role-staff .v138-export-inline,
-body.role-staff .export-control { display:none!important; }
+body.role-staff .export-control,
+body.role-staff #exportCsvBtn,
+body.role-staff #fieldExportBtn,
+body.role-staff #exportFieldDetailsBtn,
+body.role-staff #exportPersonalDetailsBtn,
+body.role-staff #exportIncidentsBtn,
+body.role-staff #exportReportBtn,
+body.role-staff #exportLogBtn,
+body.role-staff #exportServiceRecordsBtn { display:none!important; }
+/* V138 動態插入的匯出 widget 也隱藏 */
+body.role-staff .v138-export-inline { display:none!important; }
 </style></body></html>
 <style>
 /* V150：翻譯版服務紀錄單 */
