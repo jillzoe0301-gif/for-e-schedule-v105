@@ -4889,36 +4889,422 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 
 
 <style>
-/* V127：手機版三大行事曆抬頭靠左，移除標題前小標籤 */
+/* V128：移除三大行事曆標題前小標籤 / 小圖示 */
+#calendarPage .section-title h2::before,
+#fieldCalendarPage .section-title h2::before,
+#roomBookingPage .section-title h2::before{
+  display:none!important;
+  content:none!important;
+  min-width:0!important;
+  width:0!important;
+  height:0!important;
+  padding:0!important;
+  margin:0!important;
+}
+
+/* V128：異況視窗補強 */
+#incidentModal .modal-card{position:relative}
+#closeIncidentX{
+  display:inline-flex!important;align-items:center;justify-content:center;
+  width:34px;height:34px;border-radius:10px;border:1px solid var(--line);
+  background:#fff;color:#334155;font-size:18px;font-weight:900;cursor:pointer;
+}
+#incidentSaveHint{
+  display:none;margin:10px 0 6px;padding:10px 12px;border-radius:12px;
+  background:#ecfdf5;border:1px solid #86efac;color:#166534;font-weight:800
+}
+#incidentSaveHint.show{display:block}
+.incident-follow-note{
+  margin:10px 0 12px;padding:10px 12px;border-radius:12px;
+  background:#fff7ed;border:1px solid #fdba74;color:#9a3412;font-size:13px;line-height:1.45
+}
+.incident-current-follow{
+  margin:8px 0 12px;padding:10px 12px;border-radius:12px;
+  background:#eff6ff;border:1px solid #93c5fd;color:#1d4ed8;font-size:13px;line-height:1.45;font-weight:800
+}
+.follow-helper-wrap{margin-top:10px}
+.follow-helper-wrap .helper-title{font-weight:800;color:#334155;margin:0 0 6px}
+.follow-helper-box{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+  gap:6px;padding:10px;border:1px solid var(--line);border-radius:12px;background:#fff
+}
+.follow-helper-box label{
+  display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:10px;
+  background:#f8fafc;border:1px solid #e2e8f0;font-size:13px;color:#334155
+}
 @media(max-width:760px){
-  #calendarPage .panel:first-child > .section-title,
-  #fieldCalendarPage .panel:first-child > .section-title,
-  #roomBookingPage .panel:first-child > .section-title{
-    justify-content:flex-start!important;
-    align-items:center!important;
-    text-align:left!important;
-    margin-bottom:10px!important;
-  }
-
-  #calendarPage .panel:first-child > .section-title h2,
-  #fieldCalendarPage .panel:first-child > .section-title h2,
-  #roomBookingPage .panel:first-child > .section-title h2{
-    display:block!important;
-    text-align:left!important;
-    justify-content:flex-start!important;
-    margin:0!important;
-    width:100%!important;
-    font-size:22px!important;
-    line-height:1.25!important;
-  }
-
-  #calendarPage .section-title h2::before,
-  #fieldCalendarPage .section-title h2::before,
-  #roomBookingPage .section-title h2::before{
-    display:none!important;
-    content:none!important;
-  }
+  .follow-helper-box{grid-template-columns:1fr 1fr}
 }
 </style>
+
+<script>
+/* V128：異況追蹤補強 */
+(function(){
+  function uidLike(prefix){
+    return (typeof uid==='function') ? uid(prefix) : (prefix+'_'+Math.random().toString(36).slice(2,10));
+  }
+  function activePeopleV128(){
+    return ((typeof state!=='undefined' && state.people) ? state.people : []).filter(p=>p && p.active!==false);
+  }
+  function personNameV128(id){
+    try{
+      if(typeof getPerson==='function') return (getPerson(id)||{}).name||'';
+    }catch(e){}
+    const p=activePeopleV128().find(x=>x.id===id);
+    return p ? p.name : '';
+  }
+  function uniqV128(arr){ return [...new Set((arr||[]).filter(Boolean))]; }
+  function formatFollowSummaryV128(date,time,helpers){
+    const helperNames=(helpers||[]).map(personNameV128).filter(Boolean).join('、');
+    return [date||'', time||'', helperNames?('協助：'+helperNames):''].filter(Boolean).join('｜');
+  }
+
+  function ensureIncidentEnhanceUIV128(){
+    const modal=document.getElementById('incidentModal');
+    if(!modal) return;
+    const card=modal.querySelector('.modal-card');
+    if(!card) return;
+
+    const head=card.querySelector('.modal-head');
+    if(head && !document.getElementById('incidentSaveHint')){
+      const hint=document.createElement('div');
+      hint.id='incidentSaveHint';
+      hint.textContent='異況已儲存，可繼續補充追蹤內容；完成後可按右上角 X 關閉。';
+      head.insertAdjacentElement('afterend', hint);
+    }
+
+    if(!document.getElementById('incidentCurrentFollowHint')){
+      const target=document.getElementById('incidentLogList');
+      if(target){
+        const box=document.createElement('div');
+        box.id='incidentCurrentFollowHint';
+        box.className='incident-current-follow hide';
+        target.parentNode.insertBefore(box, target);
+      }
+    }
+
+    if(!document.getElementById('incidentLogSectionNote')){
+      const logBtn=document.getElementById('addIncidentLogBtn');
+      if(logBtn){
+        const note=document.createElement('div');
+        note.id='incidentLogSectionNote';
+        note.className='incident-follow-note';
+        note.innerHTML='提醒：<b>上方「下次追蹤日期 / 時間」</b>是目前主設定；<b>下方「新增追蹤紀錄」</b>是另外新增一筆追蹤內容，兩者用途不同。';
+        logBtn.parentNode.insertBefore(note, logBtn);
+      }
+    }
+
+    const mainTimeField=document.getElementById('incidentNextFollowTime') && document.getElementById('incidentNextFollowTime').closest('.field');
+    if(mainTimeField && !document.getElementById('incidentNextFollowHelpersWrap')){
+      const wrap=document.createElement('div');
+      wrap.id='incidentNextFollowHelpersWrap';
+      wrap.className='field follow-helper-wrap';
+      wrap.innerHTML='<label>下次追蹤協助人員</label><div class="helper-title"></div><div id="incidentNextFollowHelpers" class="follow-helper-box"></div>';
+      const row=mainTimeField.parentElement;
+      if(row && row.classList.contains('row')) row.insertAdjacentElement('afterend', wrap);
+      else mainTimeField.insertAdjacentElement('afterend', wrap);
+    }
+
+    const logTimeField=document.getElementById('incidentLogNextFollowTime') && document.getElementById('incidentLogNextFollowTime').closest('.field');
+    if(logTimeField && !document.getElementById('incidentLogNextFollowHelpersWrap')){
+      const wrap=document.createElement('div');
+      wrap.id='incidentLogNextFollowHelpersWrap';
+      wrap.className='field follow-helper-wrap';
+      wrap.innerHTML='<label>本次追蹤的下次追蹤協助人員</label><div class="helper-title"></div><div id="incidentLogNextFollowHelpers" class="follow-helper-box"></div>';
+      const row=logTimeField.parentElement;
+      if(row && row.classList.contains('row')) row.insertAdjacentElement('afterend', wrap);
+      else logTimeField.insertAdjacentElement('afterend', wrap);
+    }
+
+    const closeX=document.getElementById('closeIncidentX');
+    if(closeX && !closeX.dataset.v128Bound){
+      closeX.dataset.v128Bound='1';
+      closeX.onclick=function(){
+        document.getElementById('incidentModal').classList.add('hide');
+      };
+    }
+  }
+
+  function renderHelperChecksV128(containerId, checkedIds){
+    const box=document.getElementById(containerId);
+    if(!box) return;
+    const people=activePeopleV128();
+    box.innerHTML=people.map(p=>'<label><input type="checkbox" value="'+p.id+'"> <span>'+((typeof esc==='function')?esc(p.name):p.name)+'</span></label>').join('') || '<div class="muted">尚無可選人員</div>';
+    const checked=new Set(checkedIds||[]);
+    box.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=checked.has(cb.value));
+  }
+  function getCheckedIdsV128(containerId){
+    const box=document.getElementById(containerId);
+    if(!box) return [];
+    return [...box.querySelectorAll('input[type=checkbox]:checked')].map(cb=>cb.value);
+  }
+  function currentIncidentV128(){
+    const id=(document.getElementById('incidentId')||{}).value||'';
+    if(!id || typeof state==='undefined' || !state.incidents) return null;
+    return state.incidents.find(x=>x.id===id) || null;
+  }
+  function guessIncidentV128(snapshot){
+    if(typeof state==='undefined' || !state.incidents) return null;
+    if(snapshot && snapshot.id){
+      const exact=state.incidents.find(x=>x.id===snapshot.id);
+      if(exact) return exact;
+    }
+    const list=(state.incidents||[]).filter(x=>!x.deleted);
+    if(snapshot){
+      const same=list.slice().reverse().find(x=>
+        (x.title||'')===(snapshot.title||'') &&
+        (x.workerName||'')===(snapshot.workerName||'') &&
+        (x.customerName||'')===(snapshot.customerName||'')
+      );
+      if(same) return same;
+    }
+    return list.slice().reverse()[0] || null;
+  }
+  function updateCurrentFollowHintV128(inc){
+    const box=document.getElementById('incidentCurrentFollowHint');
+    if(!box) return;
+    const date=inc && inc.nextFollowDate || '';
+    const time=inc && inc.nextFollowTime || '';
+    const helpers=inc && (inc.nextFollowHelperPersonIds||[]) || [];
+    if(date){
+      box.classList.remove('hide');
+      box.innerHTML='目前主設定的下次追蹤：'+((typeof esc==='function')?esc(formatFollowSummaryV128(date,time,helpers)):formatFollowSummaryV128(date,time,helpers));
+    }else{
+      box.classList.add('hide');
+      box.innerHTML='';
+    }
+  }
+  function syncHelperUIFromIncidentV128(inc){
+    ensureIncidentEnhanceUIV128();
+    const topHelpers=(inc && inc.nextFollowHelperPersonIds && inc.nextFollowHelperPersonIds.length) ? inc.nextFollowHelperPersonIds : (inc && inc.helperPersonIds || []);
+    renderHelperChecksV128('incidentNextFollowHelpers', topHelpers);
+    renderHelperChecksV128('incidentLogNextFollowHelpers', topHelpers);
+    updateCurrentFollowHintV128(inc);
+  }
+
+  function ensureMainFollowLogV128(inc){
+    if(!inc || typeof state==='undefined') return;
+    state.incidentLogs = state.incidentLogs || [];
+    const logId='ilog_main_follow_'+inc.id;
+    let log=state.incidentLogs.find(x=>x.id===logId);
+    if(inc.nextFollowDate){
+      const now=new Date().toISOString();
+      const helperIds=uniqV128((inc.nextFollowHelperPersonIds && inc.nextFollowHelperPersonIds.length) ? inc.nextFollowHelperPersonIds : (inc.helperPersonIds||[]));
+      const helperText=helperIds.map(personNameV128).filter(Boolean).join('、');
+      const content='【主設定】已設定下次追蹤：'+[inc.nextFollowDate, inc.nextFollowTime||'', helperText?('協助：'+helperText):''].filter(Boolean).join(' ');
+      if(!log){
+        log={id:logId,incidentId:inc.id,createdAt:now,createdBy:(typeof currentUser!=='undefined'&&currentUser?currentUser.id:'system'),content:content,statusAfter:inc.status||'待追蹤',nextFollowDate:inc.nextFollowDate,nextFollowTime:inc.nextFollowTime||'',nextFollowHelperPersonIds:helperIds,systemType:'mainFollow',deleted:false};
+        state.incidentLogs.push(log);
+      }else{
+        log.content=content;
+        log.statusAfter=inc.status||log.statusAfter;
+        log.nextFollowDate=inc.nextFollowDate;
+        log.nextFollowTime=inc.nextFollowTime||'';
+        log.nextFollowHelperPersonIds=helperIds;
+        log.deleted=false;
+      }
+    }else if(log){
+      log.deleted=true;
+    }
+  }
+
+  function followParticipantsV128(inc, helperIds){
+    const extra=(helperIds && helperIds.length) ? helperIds : (inc && inc.helperPersonIds || []);
+    return uniqV128([inc && inc.ownerPersonId, ...extra]);
+  }
+  function upsertFollowEventV128(inc,key,date,time,helperIds,note){
+    if(!inc || !date || typeof state==='undefined') return;
+    state.events = state.events || [];
+    let ev=state.events.find(e=>!e.deleted && e.sourceType==='incidentFollow' && e.sourceIncidentId===inc.id && e.sourceFollowKey===key);
+    const now=new Date().toISOString();
+    const participants=followParticipantsV128(inc, helperIds);
+    const data={
+      kind:'schedule',
+      status:'未完成',
+      startDate:date,
+      endDate:date,
+      startTime:time||'上午',
+      endTime:'',
+      type:'提醒事項',
+      name:'異況追蹤：'+(inc.title||inc.workerName||inc.customerName||'未命名異況'),
+      locationName:inc.customerName||inc.location||'',
+      address:inc.location||'',
+      vehicleNo:'',
+      meetingRoom:'不指定',
+      participants:participants,
+      assigneeIds:participants,
+      note:note||'來源：異況追蹤',
+      updatedBy:(typeof currentUser!=='undefined'&&currentUser?currentUser.id:'system'),
+      updatedAt:now,
+      sourceType:'incidentFollow',
+      sourceIncidentId:inc.id,
+      sourceFollowKey:key,
+      deleted:false
+    };
+    if(ev) Object.assign(ev,data);
+    else state.events.push(Object.assign({id:uidLike('ev'),seriesId:'',seriesIndex:0,createdBy:data.updatedBy,createdAt:now},data));
+  }
+  function syncFollowEventsV128(inc){
+    if(!inc || typeof state==='undefined') return;
+    if(inc.nextFollowDate){
+      upsertFollowEventV128(
+        inc,
+        'main',
+        inc.nextFollowDate,
+        inc.nextFollowTime||'',
+        inc.nextFollowHelperPersonIds||[],
+        '來源：異況主設定下次追蹤'
+      );
+    }
+    (state.incidentLogs||[]).filter(l=>!l.deleted && l.incidentId===inc.id && l.nextFollowDate).forEach(l=>{
+      upsertFollowEventV128(
+        inc,
+        'log_'+l.id,
+        l.nextFollowDate,
+        l.nextFollowTime||'',
+        l.nextFollowHelperPersonIds||[],
+        '來源：異況追蹤紀錄的下次追蹤'
+      );
+    });
+  }
+
+  function showSavedHintV128(text){
+    const hint=document.getElementById('incidentSaveHint');
+    if(!hint) return;
+    hint.textContent=text;
+    hint.classList.add('show');
+    clearTimeout(window.__incidentSaveHintTimer);
+    window.__incidentSaveHintTimer=setTimeout(()=>hint.classList.remove('show'), 3500);
+  }
+
+  const oldOpenIncidentModalV128 = (typeof openIncidentModal==='function') ? openIncidentModal : null;
+  if(oldOpenIncidentModalV128){
+    openIncidentModal=function(id){
+      const result=oldOpenIncidentModalV128.apply(this, arguments);
+      setTimeout(()=>{
+        ensureIncidentEnhanceUIV128();
+        const inc=id && typeof state!=='undefined' ? (state.incidents||[]).find(x=>x.id===id) : currentIncidentV128();
+        syncHelperUIFromIncidentV128(inc||null);
+      },60);
+      return result;
+    };
+  }
+
+  const oldSaveIncidentV128 = (typeof saveIncident==='function') ? saveIncident : null;
+  if(oldSaveIncidentV128){
+    saveIncident=function(){
+      ensureIncidentEnhanceUIV128();
+      const snapshot={
+        id:(document.getElementById('incidentId')||{}).value||'',
+        title:(document.getElementById('incidentTitle')||{}).value||'',
+        workerName:(document.getElementById('incidentWorkerName')||{}).value||'',
+        customerName:(document.getElementById('incidentCustomerName')||{}).value||''
+      };
+      const topHelperIds=getCheckedIdsV128('incidentNextFollowHelpers');
+      const result=oldSaveIncidentV128.apply(this, arguments);
+      setTimeout(()=>{
+        const inc=guessIncidentV128(snapshot);
+        if(!inc) return;
+        inc.nextFollowHelperPersonIds=topHelperIds;
+        ensureMainFollowLogV128(inc);
+        syncFollowEventsV128(inc);
+        if(typeof save==='function') save();
+        if(typeof renderIncidentLogList==='function') renderIncidentLogList(inc.id);
+        if(typeof renderIncidents==='function') renderIncidents();
+        if(typeof renderAll==='function') renderAll();
+      },120);
+      return result;
+    };
+  }
+
+  const oldAddIncidentLogV128 = (typeof addIncidentLog==='function') ? addIncidentLog : null;
+  if(oldAddIncidentLogV128){
+    addIncidentLog=function(){
+      ensureIncidentEnhanceUIV128();
+      const incidentId=(document.getElementById('incidentId')||{}).value||'';
+      const topDate=(document.getElementById('incidentNextFollow')||{}).value||'';
+      const topTime=(document.getElementById('incidentNextFollowTime')||{}).value||'';
+      const logHelperIds=getCheckedIdsV128('incidentLogNextFollowHelpers');
+      const result=oldAddIncidentLogV128.apply(this, arguments);
+      setTimeout(()=>{
+        if(typeof state==='undefined') return;
+        const inc=(state.incidents||[]).find(x=>x.id===incidentId);
+        if(!inc) return;
+        const latest=(state.incidentLogs||[]).slice().reverse().find(x=>!x.deleted && x.incidentId===incidentId && x.id!=='ilog_main_follow_'+incidentId);
+        if(latest){
+          latest.nextFollowHelperPersonIds=logHelperIds;
+        }
+        if(inc.nextFollowDate && !topDate){
+          // if lower section set a next follow date, keep main section synced for visibility
+        }
+        if(latest && latest.nextFollowDate){
+          inc.nextFollowDate=latest.nextFollowDate;
+          inc.nextFollowTime=latest.nextFollowTime||inc.nextFollowTime||'';
+          inc.nextFollowHelperPersonIds=logHelperIds;
+          const topDateEl=document.getElementById('incidentNextFollow'); if(topDateEl) topDateEl.value=inc.nextFollowDate||'';
+          const topTimeEl=document.getElementById('incidentNextFollowTime'); if(topTimeEl) topTimeEl.value=inc.nextFollowTime||'';
+        }
+        ensureMainFollowLogV128(inc);
+        syncFollowEventsV128(inc);
+        if(typeof save==='function') save();
+        if(typeof renderIncidentLogList==='function') renderIncidentLogList(inc.id);
+        syncHelperUIFromIncidentV128(inc);
+      },120);
+      return result;
+    };
+  }
+
+  // 抵銷先前版本「儲存後自動關閉」行為：儲存後重新打開同筆異況，顯示已儲存提示
+  document.addEventListener('click', function(e){
+    const btn=e.target && e.target.closest && e.target.closest('#saveIncidentBtn');
+    if(!btn) return;
+    const snapshot={
+      id:(document.getElementById('incidentId')||{}).value||'',
+      title:(document.getElementById('incidentTitle')||{}).value||'',
+      workerName:(document.getElementById('incidentWorkerName')||{}).value||'',
+      customerName:(document.getElementById('incidentCustomerName')||{}).value||''
+    };
+    const isNew=!snapshot.id;
+    setTimeout(function(){
+      const inc=guessIncidentV128(snapshot);
+      if(!inc || typeof openIncidentModal!=='function') return;
+      openIncidentModal(inc.id);
+      setTimeout(function(){
+        syncHelperUIFromIncidentV128(inc);
+        showSavedHintV128(isNew?'異況已新增，可繼續補充追蹤內容；完成後請按右上角 X 關閉。':'異況已儲存，可繼續補充追蹤內容；完成後請按右上角 X 關閉。');
+      },120);
+    },520);
+  }, true);
+
+  // 當主設定下次追蹤日期改變時，讓下方新增追蹤紀錄區同步帶入預設值，避免誤會
+  function mirrorMainFollowToLogV128(){
+    const d=(document.getElementById('incidentNextFollow')||{}).value||'';
+    const t=(document.getElementById('incidentNextFollowTime')||{}).value||'';
+    const logD=document.getElementById('incidentLogNextFollow');
+    const logT=document.getElementById('incidentLogNextFollowTime');
+    if(logD && !logD.value) logD.value=d;
+    if(logT && !logT.value) logT.value=t;
+    const inc=currentIncidentV128();
+    updateCurrentFollowHintV128(inc || {nextFollowDate:d,nextFollowTime:t,nextFollowHelperPersonIds:getCheckedIdsV128('incidentNextFollowHelpers')});
+  }
+  document.addEventListener('change', function(e){
+    if(!e.target) return;
+    if(['incidentNextFollow','incidentNextFollowTime'].includes(e.target.id)){
+      mirrorMainFollowToLogV128();
+    }
+  });
+
+  // 初始執行
+  function initV128(){
+    ensureIncidentEnhanceUIV128();
+    try{
+      const inc=currentIncidentV128();
+      syncHelperUIFromIncidentV128(inc);
+    }catch(e){}
+  }
+  document.addEventListener('DOMContentLoaded', function(){ setTimeout(initV128, 200); });
+  setTimeout(initV128, 500);
+})();
+</script>
 
 </body></html>
