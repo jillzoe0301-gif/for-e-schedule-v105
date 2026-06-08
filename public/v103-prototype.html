@@ -6502,16 +6502,16 @@ body.role-staff #srStaffPage{display:block!important}
 <script>
 /* V142：五大頁面匯出 widget (v141-box) 事件綁定 */
 (function(){
-  function tod(){ return typeof todayISO==='function'?todayISO():new Date().toISOString().slice(0,10); }
-  function ym0(){ return tod().slice(0,7); }
-  function yr0(){ return tod().slice(0,4); }
-  function mRng(m){ return typeof monthRange==='function'?monthRange(m):[m+'-01',m+'-31']; }
-  function dType(t){ try{return typeof displayEventType==='function'?displayEventType(t):String(t||'')}catch(e){return String(t||'')} }
-  function pName(id){ try{return typeof getPerson==='function'?(getPerson(id)||{}).name||'':''}catch(e){return ''} }
+  function tod(){return typeof todayISO==='function'?todayISO():new Date().toISOString().slice(0,10);}
+  function ym0(){return tod().slice(0,7);}
+  function yr0(){return tod().slice(0,4);}
+  function mRng(m){return typeof monthRange==='function'?monthRange(m):[m+'-01',m+'-31'];}
+  function dType(t){try{return typeof displayEventType==='function'?displayEventType(t):String(t||'')}catch(e){return String(t||'')}}
+  function pName(id){try{return typeof getPerson==='function'?(getPerson(id)||{}).name||'':''}catch(e){return ''}}
 
   function canExport(){
-    if(typeof currentUser==='undefined'||!currentUser) return false;
-    if(typeof normalizedRole!=='function') return false;
+    if(typeof currentUser==='undefined'||!currentUser)return false;
+    if(typeof normalizedRole!=='function')return false;
     return ['admin','supervisor','adminStaff'].includes(normalizedRole());
   }
 
@@ -6524,7 +6524,7 @@ body.role-staff #srStaffPage{display:block!important}
   }
 
   function doPersonal(s,e,fn){
-    if(typeof personalDetailRowsFiltered!=='function') return;
+    if(typeof personalDetailRowsFiltered!=='function')return;
     const ps=document.getElementById('personalDetailStart'),pe=document.getElementById('personalDetailEnd');
     const os=ps&&ps.value,oe=pe&&pe.value;
     if(ps)ps.value=s;if(pe)pe.value=e;
@@ -6543,7 +6543,7 @@ body.role-staff #srStaffPage{display:block!important}
   }
 
   function doIncidents(s,e,fn){
-    if(typeof state==='undefined') return;
+    if(typeof state==='undefined')return;
     const rows=[['發生日期','異況類型','緊急程度','地點/客戶','工人','異況標題','負責人','狀態','下次追蹤日','最後追蹤']];
     (state.incidents||[]).filter(i=>!i.deleted&&(i.occurrenceDate||'')>=s&&(i.occurrenceDate||'')<=e)
       .sort((a,b)=>String(a.occurrenceDate||'').localeCompare(b.occurrenceDate||''))
@@ -6559,7 +6559,7 @@ body.role-staff #srStaffPage{display:block!important}
   }
 
   function doReports(s,e,fn){
-    if(typeof buildReportData!=='function') return;
+    if(typeof buildReportData!=='function')return;
     const data=buildReportData(s,e);
     const activeTypes=(data.types||[]).filter(t=>(data.rows||[]).some(r=>(r.byType&&r.byType[t]||0)>0));
     const out=[['部門','人員','職務','總數','未完成','已完成','取消',...activeTypes]];
@@ -6575,7 +6575,7 @@ body.role-staff #srStaffPage{display:block!important}
   }
 
   function doService(s,e,fn){
-    if(typeof serviceRecordsInRange!=='function'||typeof personReportList!=='function') return;
+    if(typeof serviceRecordsInRange!=='function'||typeof personReportList!=='function')return;
     const rows=[['日期','部門','翻譯','職務','行程類型','辦理內容','地點/客戶','行程狀態','服務紀錄單','繳交日期']];
     serviceRecordsInRange(s,e,personReportList()).forEach(x=>{
       rows.push([x.date,x.person.group,x.person.name,x.person.lang||'',
@@ -6586,7 +6586,7 @@ body.role-staff #srStaffPage{display:block!important}
   }
 
   function doFieldDetails(s,e,fn){
-    if(typeof state==='undefined') return;
+    if(typeof state==='undefined')return;
     const rows=[['日期','時間','人員','目的','地點','地址','狀態','備註','特殊提醒','現金','印章','證件','下一次領件日','送件失敗原因']];
     (state.externalEvents||[]).filter(ev=>!ev.deleted&&(ev.date||'')>=s&&(ev.date||'')<=e)
       .sort((a,b)=>String((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||'')))
@@ -6605,24 +6605,24 @@ body.role-staff #srStaffPage{display:block!important}
   };
 
   function updateBoxVis(box,mode){
-    box.querySelector('.v141-year').style.display  = mode==='year'  ?'inline-flex':'none';
-    box.querySelector('.v141-month').style.display = mode==='month' ?'inline-flex':'none';
-    box.querySelector('.v141-day').style.display   = mode==='day'   ?'inline-flex':'none';
-    box.querySelector('.v141-start').style.display = mode==='range' ?'inline-flex':'none';
-    box.querySelector('.v141-end').style.display   = mode==='range' ?'inline-flex':'none';
+    box.querySelector('.v141-year').style.display  =mode==='year'  ?'inline-flex':'none';
+    box.querySelector('.v141-month').style.display =mode==='month' ?'inline-flex':'none';
+    box.querySelector('.v141-day').style.display   =mode==='day'   ?'inline-flex':'none';
+    box.querySelector('.v141-start').style.display =mode==='range' ?'inline-flex':'none';
+    box.querySelector('.v141-end').style.display   =mode==='range' ?'inline-flex':'none';
   }
 
   function initBoxes(){
     const y=yr0(),m=ym0(),d=tod();
     document.querySelectorAll('.v141-box').forEach(box=>{
-      if(box.dataset.init) return;
+      if(box.dataset.init)return;
       box.dataset.init='1';
       box.querySelector('.v141-year').value=y;
       box.querySelector('.v141-month').value=m;
       box.querySelector('.v141-day').value=d;
       box.querySelector('.v141-start').value=d;
       box.querySelector('.v141-end').value=d;
-      updateBoxVis(box, box.dataset.mode||'month');
+      updateBoxVis(box,box.dataset.mode||'month');
       box.querySelector('.v141-sel').addEventListener('change',function(){
         box.dataset.mode=this.value;
         updateBoxVis(box,this.value);
@@ -6631,7 +6631,7 @@ body.role-staff #srStaffPage{display:block!important}
         if(!canExport()){if(typeof toast==='function')toast('此權限無法匯出');return;}
         const label=box.dataset.label||'';
         const fn=fnMap[label];
-        if(!fn) return;
+        if(!fn)return;
         const mode=box.dataset.mode||'month';
         let s,e,suffix;
         if(mode==='all'){s='0000-01-01';e='9999-12-31';suffix='全部';}
@@ -6644,11 +6644,10 @@ body.role-staff #srStaffPage{display:block!important}
     });
   }
 
-  // 登入後才初始化
   const _sa=typeof showApp==='function'?showApp:null;
-  if(_sa){ showApp=function(){ _sa(); setTimeout(initBoxes,300); }; }
+  if(_sa){showApp=function(){_sa();setTimeout(initBoxes,300);};}
   const _ap=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
-  if(_ap){ applyPermissionsUI=function(){ _ap(); setTimeout(initBoxes,100); }; }
+  if(_ap){applyPermissionsUI=function(){_ap();setTimeout(initBoxes,100);};}
 })();
 </script>
 </body>
