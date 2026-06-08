@@ -1847,7 +1847,7 @@ function saveReportSnapshot(){if(!$('reportMonth'))return; const snap=currentRep
 function exportReports(){if(!$('reportMonth'))return; const ym=$('reportMonth').value||monthISO(); const year=Number($('reportYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym); const monthData=buildReportData(ms,me); const yearData=buildReportData(`${year}-01-01`,`${year}-12-31`); const rows=[['區間','部門','人員名稱','職務','總數','未完成','已完成','取消','分類','分類數']]; function addRows(label,data){const activeTypes=data.types.filter(t=>data.rows.some(r=>(r.byType[t]||0)>0)); data.rows.forEach(r=>{rows.push([label,r.person.group,r.person.name,r.person.lang,r.total,r.undone,r.done,r.cancel,'全部',r.total]); activeTypes.forEach(t=>rows.push([label,r.person.group,r.person.name,r.person.lang,r.total,r.undone,r.done,r.cancel,t,r.byType[t]||0]));}); ['一部翻譯','二部翻譯','總計'].forEach(g=>{const r=data.dept[g]; rows.push([label,g,'部門總計','',r.total,r.undone,r.done,r.cancel,'全部',r.total]);});} addRows(`月統計 ${ym}`,monthData); addRows(`年度統計 ${year}`,yearData); exportCsv(rows,`行程統計_${ym}_${year}.csv`)}
 function initServiceFilters(){if(!$('serviceMonth'))return; if(!$('serviceMonth').value)$('serviceMonth').value=monthISO(); if(!$('serviceYear').value)$('serviceYear').value=($('serviceMonth').value||monthISO()).slice(0,4)}
 function serviceFilterPeople(){let people=state.people.filter(reportEligiblePerson); const g=$('serviceGroup')?$('serviceGroup').value:''; if(g)people=people.filter(p=>p.group===g); return people}
-function renderServiceRecords(){if(typeof normalizedRole==='function'&&normalizedRole()==='staff'){return;}if(!$('serviceMonth'))return; initServiceFilters(); const ym=$('serviceMonth').value||monthISO(); const year=Number($('serviceYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym); const people=serviceFilterPeople(); const md=serviceRecordsInRange(ms,me,people).filter(x=>!x.submitted); const yd=serviceRecordsInRange(`${year}-01-01`,`${year}-12-31`,people).filter(x=>!x.submitted); function stats(rows){const one=rows.filter(x=>x.person.group==='一部翻譯').length,two=rows.filter(x=>x.person.group==='二部翻譯').length; return `<div class="stat"><div class="muted">未交總數</div><b>${rows.length}</b></div><div class="stat"><div class="muted">一部翻譯未交</div><b>${one}</b></div><div class="stat"><div class="muted">二部翻譯未交</div><b>${two}</b></div>`} if($('serviceMonthStats'))$('serviceMonthStats').innerHTML=stats(md); if($('serviceYearStats'))$('serviceYearStats').innerHTML=stats(yd); const rowHtml=rows=>rows.sort((a,b)=>(a.date+a.person.group+a.person.name).localeCompare(b.date+b.person.group+b.person.name)).map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.person.group)}</td><td>${esc(x.person.name)}</td><td>${esc(x.person.lang)}</td><td>${esc(displayEventType(x.event.type))}</td><td>${esc(x.event.name)}</td><td>${esc(x.event.locationName||'')}</td><td>${esc(x.event.status)}</td><td>🔴 未交</td></tr>`).join('')||'<tr><td colspan="9" class="muted">沒有未交明細</td></tr>'; if($('serviceMonthDetailRows'))$('serviceMonthDetailRows').innerHTML=rowHtml(md); if($('serviceYearDetailRows'))$('serviceYearDetailRows').innerHTML=rowHtml(yd)}
+function renderServiceRecords(){if(typeof normalizedRole==='function'&&normalizedRole()==='staff'){if(window._applyServicePageMode)window._applyServicePageMode();return;}if(!$('serviceMonth'))return; initServiceFilters(); const ym=$('serviceMonth').value||monthISO(); const year=Number($('serviceYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym); const people=serviceFilterPeople(); const md=serviceRecordsInRange(ms,me,people).filter(x=>!x.submitted); const yd=serviceRecordsInRange(`${year}-01-01`,`${year}-12-31`,people).filter(x=>!x.submitted); function stats(rows){const one=rows.filter(x=>x.person.group==='一部翻譯').length,two=rows.filter(x=>x.person.group==='二部翻譯').length; return `<div class="stat"><div class="muted">未交總數</div><b>${rows.length}</b></div><div class="stat"><div class="muted">一部翻譯未交</div><b>${one}</b></div><div class="stat"><div class="muted">二部翻譯未交</div><b>${two}</b></div>`} if($('serviceMonthStats'))$('serviceMonthStats').innerHTML=stats(md); if($('serviceYearStats'))$('serviceYearStats').innerHTML=stats(yd); const rowHtml=rows=>rows.sort((a,b)=>(a.date+a.person.group+a.person.name).localeCompare(b.date+b.person.group+b.person.name)).map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.person.group)}</td><td>${esc(x.person.name)}</td><td>${esc(x.person.lang)}</td><td>${esc(displayEventType(x.event.type))}</td><td>${esc(x.event.name)}</td><td>${esc(x.event.locationName||'')}</td><td>${esc(x.event.status)}</td><td>🔴 未交</td></tr>`).join('')||'<tr><td colspan="9" class="muted">沒有未交明細</td></tr>'; if($('serviceMonthDetailRows'))$('serviceMonthDetailRows').innerHTML=rowHtml(md); if($('serviceYearDetailRows'))$('serviceYearDetailRows').innerHTML=rowHtml(yd)}
 function exportServiceRecords(){if(!$('serviceMonth'))return; initServiceFilters(); const ym=$('serviceMonth').value||monthISO(); const [ms,me]=monthRange(ym); const people=serviceFilterPeople(); const rows=[['日期','部門','人員','職務','行程類型','辦理內容','地點 / 客戶','狀態','繳交狀態']]; serviceRecordsInRange(ms,me,people).filter(x=>!x.submitted).forEach(x=>rows.push([x.date,x.person.group,x.person.name,x.person.lang,displayEventType(x.event.type),x.event.name,x.event.locationName||'',x.event.status,'未交'])); exportCsv(rows,`未交服務紀錄單_${ym}.csv`)}
 
 function exportEvents(){const rows=[['行程ID','類別','狀態','起日','迄日','開始時間','結束時間','類型','附加行程類型','附加行程備註','辦理內容','地點 / 客戶','地址','公務車調整','相關人員','建立人','建立時間','最後修改人','最後修改時間','是否刪除','刪除原因','服務紀錄單','繳交日期','下次回診日期','下次回診時間','下次回診人員','掛號號碼','內容說明']]; state.events.forEach(e=>rows.push([e.id,e.kind,e.status,e.startDate,e.endDate,e.startTime,e.endTime,e.type,e.additionalType||'',e.additionalNote||'',e.name,e.locationName,e.address,e.vehicleNo||'',e.participants.map(id=>getPerson(id).name).join('、'),getUser(e.createdBy).name,e.createdAt,getUser(e.updatedBy).name,e.updatedAt,e.deleted?'是':'否',e.deleteReason||'',requiresServiceRecord(e)?(e.serviceRecordSubmitted?'已交':'未交'):'',e.serviceRecordDate||'',e.followupDate||'',e.followupTime||'',e.followupPersonId?getPerson(e.followupPersonId).name:'',e.followupRegNo||'',e.note])); exportCsv(rows,'翻譯行程匯出.csv')}
@@ -3485,7 +3485,7 @@ function v106ServiceRowHtml(rows, annual=false){
   }).join('') || `<tr><td colspan="${annual?11:10}" class="muted">沒有服務紀錄單明細</td></tr>`;
 }
 renderServiceRecords=function(){
-  if(typeof normalizedRole==='function'&&normalizedRole()==='staff'){return;}
+  if(typeof normalizedRole==='function'&&normalizedRole()==='staff'){if(window._applyServicePageMode)window._applyServicePageMode();return;}
   if(!$('serviceMonth'))return;
   v106InitServiceFilters();
   const ym=$('serviceMonth').value||monthISO();
@@ -3646,6 +3646,7 @@ function v107RenderServiceStatusOverview(monthRows,yearRows,people){
 
 const _v107RenderServiceRecordsBase = renderServiceRecords;
 renderServiceRecords=function(){
+  if(typeof normalizedRole==='function'&&normalizedRole()==='staff'){if(window._applyServicePageMode)window._applyServicePageMode();return;}
   v107MoveServiceStatusToServiceTab();
   if(!$('serviceMonth'))return;
   v106InitServiceFilters();
@@ -3938,7 +3939,7 @@ v106BindServiceRecordsUI=function(){
     if([...sel.options].some(o=>o.value===old))sel.value=old;
   }
   renderServiceRecords=function(){
-    if(typeof normalizedRole==='function'&&normalizedRole()==='staff'){return;}
+    if(typeof normalizedRole==='function'&&normalizedRole()==='staff'){if(window._applyServicePageMode)window._applyServicePageMode();return;}
     if(!$('serviceMonth'))return; initServiceFilters(); fillServicePersonOptions();
     const ym=$('serviceMonth').value||monthISO(); const year=Number($('serviceYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym);
     const people=serviceFilterPeople();
@@ -4102,7 +4103,7 @@ v106BindServiceRecordsUI=function(){
   }
   const oldRenderSR=renderServiceRecords;
   renderServiceRecords=function(){
-    if(typeof normalizedRole==='function'&&normalizedRole()==='staff'){applyServicePageMode&&applyServicePageMode();return;}
+    if(typeof normalizedRole==='function'&&normalizedRole()==='staff'){if(window._applyServicePageMode)window._applyServicePageMode();return;}
     oldRenderSR();
     relocateServiceFilters();
     syncScopedValues();
@@ -6502,7 +6503,7 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
   }
 
   /* 3. 切換服務紀錄單頁面顯示模式 */
-  window.applyServicePageMode = function applyServicePageMode(){
+  window._applyServicePageMode = function applyServicePageMode(){
     const adminSection = document.getElementById('srAdminSection');
     const staffSection = document.getElementById('srStaffPage');
     if(!adminSection || !staffSection) return;
