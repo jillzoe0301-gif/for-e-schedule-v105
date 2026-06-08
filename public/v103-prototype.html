@@ -3485,6 +3485,7 @@ function v106ServiceRowHtml(rows, annual=false){
   }).join('') || `<tr><td colspan="${annual?11:10}" class="muted">沒有服務紀錄單明細</td></tr>`;
 }
 renderServiceRecords=function(){
+  if(typeof normalizedRole==='function'&&normalizedRole()==='staff'){return;}
   if(!$('serviceMonth'))return;
   v106InitServiceFilters();
   const ym=$('serviceMonth').value||monthISO();
@@ -3937,6 +3938,7 @@ v106BindServiceRecordsUI=function(){
     if([...sel.options].some(o=>o.value===old))sel.value=old;
   }
   renderServiceRecords=function(){
+    if(typeof normalizedRole==='function'&&normalizedRole()==='staff'){return;}
     if(!$('serviceMonth'))return; initServiceFilters(); fillServicePersonOptions();
     const ym=$('serviceMonth').value||monthISO(); const year=Number($('serviceYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym);
     const people=serviceFilterPeople();
@@ -4100,6 +4102,7 @@ v106BindServiceRecordsUI=function(){
   }
   const oldRenderSR=renderServiceRecords;
   renderServiceRecords=function(){
+    if(typeof normalizedRole==='function'&&normalizedRole()==='staff'){applyServicePageMode&&applyServicePageMode();return;}
     oldRenderSR();
     relocateServiceFilters();
     syncScopedValues();
@@ -6499,7 +6502,7 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
   }
 
   /* 3. 切換服務紀錄單頁面顯示模式 */
-  function applyServicePageMode(){
+  window.applyServicePageMode = function applyServicePageMode(){
     const adminSection = document.getElementById('srAdminSection');
     const staffSection = document.getElementById('srStaffPage');
     if(!adminSection || !staffSection) return;
@@ -6517,7 +6520,6 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
   if(_v150ShowApp){
     showApp = function(){
       _v150ShowApp();
-      applyServicePageMode();
       setTimeout(()=>{
         applyServicePageMode();
         // 更新選單顯示
@@ -6536,8 +6538,7 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
   if(_v150RenderAll){
     renderAll = function(){
       _v150RenderAll();
-      applyServicePageMode();
-      setTimeout(applyServicePageMode, 200);
+      setTimeout(applyServicePageMode, 80);
     };
   }
 
