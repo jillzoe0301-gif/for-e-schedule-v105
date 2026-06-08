@@ -6463,47 +6463,133 @@ body.role-staff #srStaffPage{display:block!important}
     if(!box) return;
     const today = typeof todayISO==='function' ? todayISO() : new Date().toISOString().slice(0,10);
     const thisMonth = today.slice(0,7);
-    const thisYear = today.slice(0,4);
-    const dType = t => typeof displayEventType==='function' ? displayEventType(t) : t;
-    const es = s => typeof esc==='function' ? esc(s) : String(s||'').replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+    const thisYear  = today.slice(0,4);
+    const es  = s => typeof esc==='function' ? esc(s) : String(s||'').replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+    const dT  = t => typeof displayEventType==='function' ? displayEventType(t) : String(t||'');
     const pid = typeof userPersonId==='function' ? userPersonId() : null;
-    if(!pid || typeof state==='undefined'){box.innerHTML='<div class="panel"><div class="muted">無法載入資料</div></div>';return;}
+    if(!pid || typeof state==='undefined'){
+      box.innerHTML='<div class="panel"><div class="muted">無法載入資料</div></div>'; return;
+    }
 
-    const allRows = (state.events||[]).filter(e=>{
-      if(e.deleted||e.kind==='translatorStatus')return false;
-      if(typeof requiresServiceRecord!=='function'||!requiresServiceRecord(e))return false;
+    // 取自己所有需繳交行程
+    const all = (state.events||[]).filter(e=>{
+      if(e.deleted || e.kind==='translatorStatus') return false;
+      if(typeof requiresServiceRecord!=='function' || !requiresServiceRecord(e)) return false;
       return (e.participants||[]).includes(pid);
     });
 
-    const monthRows = allRows.filter(e=>(e.endDate||e.startDate||'').slice(0,7)===thisMonth||(e.startDate||'').slice(0,7)===thisMonth).sort((a,b)=>String(a.startDate||'').localeCompare(b.startDate||''));
-    const yearRows  = allRows.filter(e=>(e.endDate||e.startDate||'').slice(0,4)===thisYear ||(e.startDate||'').slice(0,4)===thisYear ).sort((a,b)=>String(a.startDate||'').localeCompare(b.startDate||''));
-
-    function dl(e){ const dt=new Date((e.endDate||e.startDate||today)+'T00:00:00'); dt.setDate(dt.getDate()+7); return dt.toISOString().slice(0,10); }
-    function srCell(e){
-      if(e.serviceRecordSubmitted&&e.serviceRecordDate) return '<span style="color:#16a34a;font-weight:900">✅ 已繳交</span>';
-      if(today>dl(e)) return '<span style="color:#dc2626;font-weight:900;background:#fef08a;padding:2px 6px;border-radius:6px">🚨 逾期未繳</span>';
-      return '<span style="color:#f59e0b;font-weight:900">⏳ 未繳交</span>';
+    // 截止日 = endDate + 7天
+    function deadline(e){
+      const dt = new Date((e.endDate||e.startDate||today)+'T00:00:00');
+      dt.setDate(dt.getDate()+7);
+      return dt.toISOString().slice(0,10);
     }
-    function rowBg(e){ if(e.serviceRecordSubmitted&&e.serviceRecordDate)return ''; if(today>dl(e))return 'background:#fffde7'; return 'background:#fffbeb'; }
+    function submitted(e){ return !!(e.serviceRecordSubmitted && e.serviceRecordDate); }
+
+    // 提醒：已結束但未繳交
+    const reminders = all.filter(e=>{
+      if(submitted(e)) return false;
+      const end = e.endDate || e.startDate || '';
+      return end <= today; // 行程已結束
+    }).sort((a,b)=>String(deadline(a)).localeCompare(deadline(b)));
+
+    const within7  = reminders.filter(e => today <= deadline(e));   // 一周內
+    const overdue  = reminders.filter(e => today >  deadline(e));   // 超過一周
+
+    // 當月明細（已繳+未繳）
+    const monthAll = all.filter(e=>(e.startDate||'').slice(0,7)===thisMonth)
+                        .sort((a,b)=>String(a.startDate).localeCompare(b.startDate));
+    // 當年明細（已繳+未繳）
+    const yearAll  = all.filter(e=>(e.startDate||'').slice(0,4)===thisYear)
+                        .sort((a,b)=>String(a.startDate).localeCompare(b.startDate));
+
+    function srBadge(e){
+      if(submitted(e))          return '<span style="color:#16a34a;font-weight:900">✅ 已繳交</span>';
+      if(today > deadline(e))   return '<span style="color:#dc2626;font-weight:900;background:#fef08a;padding:2px 6px;border-radius:6px">🚨 逾期未繳</span>';
+      if((e.endDate||e.startDate) <= today) return '<span style="color:#f59e0b;font-weight:900">⏳ 未繳交</span>';
+      return '<span style="color:#6b7280;font-weight:900">— 尚未結束</span>';
+    }
+    function rowBg(e){
+      if(submitted(e)) return '';
+      if(today > deadline(e)) return 'background:#fffde7';
+      if((e.endDate||e.startDate) <= today) return 'background:#fffbeb';
+      return '';
+    }
+
+    const thead = `<thead><tr>
+      <th>行程日期</th><th>行程類型</th><th>辦理內容</th>
+      <th>地點/客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th>
+    </tr></thead>`;
+
     function tableRows(rows){
-      if(!rows.length)return '<tr><td colspan="7" class="muted">沒有資料</td></tr>';
+      if(!rows.length) return '<tr><td colspan="7" class="muted" style="text-align:center;padding:16px">沒有資料</td></tr>';
       return rows.map(e=>`<tr style="${rowBg(e)}">
         <td>${es(e.startDate||'')}${e.endDate&&e.endDate!==e.startDate?'～'+es(e.endDate):''}</td>
-        <td>${es(dType(e.type))}</td><td>${es(e.name||'')}</td>
-        <td>${es(e.locationName||'')}</td><td>${es(e.status||'')}</td>
-        <td>${srCell(e)}</td><td>${es(e.serviceRecordDate||'')}</td>
+        <td>${es(dT(e.type))}</td>
+        <td>${es(e.name||'')}</td>
+        <td>${es(e.locationName||'')}</td>
+        <td>${es(e.status||'')}</td>
+        <td>${srBadge(e)}</td>
+        <td>${es(e.serviceRecordDate||'')}</td>
       </tr>`).join('');
     }
-    const thead='<thead><tr><th>行程日期</th><th>行程類型</th><th>辦理內容</th><th>地點/客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead>';
-    box.innerHTML=`
-      <div class="panel">
-        <div class="section-title"><h2>當月服務紀錄單明細</h2><span class="muted">${thisMonth}</span></div>
-        <div class="detail-table-wrap"><table class="table">${thead}<tbody>${tableRows(monthRows)}</tbody></table></div>
-      </div>
-      <div class="panel">
-        <div class="section-title"><h2>當年度服務紀錄單明細</h2><span class="muted">${thisYear} 年</span></div>
-        <div class="detail-table-wrap"><table class="table">${thead}<tbody>${tableRows(yearRows)}</tbody></table></div>
+
+    function remindCard(e, isOverdue){
+      const dl = deadline(e);
+      return `<div class="sr-staff-remind-card${isOverdue?' overdue':''}">
+        <div class="sr-remind-icon">${isOverdue?'🚨':'⏰'}</div>
+        <div class="sr-remind-body">
+          <div class="sr-remind-title">${es(dT(e.type))}｜${es(e.name||'')}</div>
+          <div class="sr-remind-meta">行程日期：${es(e.startDate||'')}${e.endDate&&e.endDate!==e.startDate?'～'+es(e.endDate):''}　地點：${es(e.locationName||'')}</div>
+          <div class="sr-remind-meta">繳交截止：<b>${es(dl)}</b></div>
+          ${isOverdue
+            ? '<div class="sr-remind-overdue">已逾期，請盡快繳交！</div>'
+            : '<div style="margin-top:4px;font-size:12px;color:#92400e">⚠ 請於截止日前繳交</div>'}
+        </div>
       </div>`;
+    }
+
+    box.innerHTML = `
+      <!-- 第一欄：繳交提醒 -->
+      <div class="panel">
+        <div class="section-title">
+          <h2>服務紀錄單繳交提醒</h2>
+          <span class="muted">行程結束後 7 天內請繳交</span>
+        </div>
+        ${within7.length===0 && overdue.length===0
+          ? '<div class="muted" style="padding:12px 0">目前沒有待繳交的服務紀錄單 🎉</div>'
+          : ''}
+        ${overdue.length>0 ? `
+          <div style="font-weight:900;color:#dc2626;margin:8px 0 4px">🚨 逾期催繳（${overdue.length} 筆）</div>
+          ${overdue.map(e=>remindCard(e,true)).join('')}` : ''}
+        ${within7.length>0 ? `
+          <div style="font-weight:900;color:#92400e;margin:8px 0 4px">⏰ 一週內請繳交（${within7.length} 筆）</div>
+          ${within7.map(e=>remindCard(e,false)).join('')}` : ''}
+      </div>
+
+      <!-- 第二欄：當月明細 -->
+      <div class="panel">
+        <div class="section-title">
+          <h2>當月服務紀錄單明細</h2>
+          <span class="muted">${thisMonth}</span>
+        </div>
+        <div class="detail-table-wrap">
+          <table class="table">${thead}<tbody>${tableRows(monthAll)}</tbody></table>
+        </div>
+      </div>
+
+      <!-- 第三欄：當年明細 -->
+      <div class="panel">
+        <div class="section-title">
+          <h2>當年度服務紀錄單明細</h2>
+          <span class="muted">${thisYear} 年</span>
+        </div>
+        <div class="detail-table-wrap">
+          <table class="table">${thead}<tbody>${tableRows(yearAll)}</tbody></table>
+        </div>
+      </div>
+    `;
+  }
   }
 
   /* 3. 切換服務紀錄單頁面顯示模式 */
