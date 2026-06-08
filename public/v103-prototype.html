@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統 v104</title>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -464,7 +464,9 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
   .mobile-filter-collapse.v108-mobile-filter label.muted{font-size:12px!important;align-self:center!important;}
   #fieldCalendarPage .panel:first-child>.section-title{display:flex!important;order:0!important;margin-bottom:6px!important;}
   #fieldCalendarPage .panel:first-child>.section-title h2{font-size:22px!important;line-height:1.25!important;margin:0!important;}
-  /* [v104] bottom-nav styles consolidated into V110 block below */
+  .bottom-nav{display:flex!important;overflow-x:auto!important;overflow-y:hidden!important;grid-template-columns:none!important;white-space:nowrap!important;-webkit-overflow-scrolling:touch!important;gap:3px!important;padding:4px 6px!important;}
+  .bottom-nav .navbtn{flex:0 0 auto!important;width:auto!important;min-width:56px!important;display:inline-flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:2px!important;font-size:10.5px!important;line-height:1.05!important;padding:6px 6px!important;white-space:nowrap!important;}
+  .bottom-nav .navbtn.hide,.bottom-nav .navbtn.role-hidden{display:none!important;}
 }
 
 
@@ -797,14 +799,6 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 
 (function(){'use strict';
 const KEY='translator_calendar_v81'; const $=id=>document.getElementById(id);
-// [v104] 優化摘要：
-// 1. 移除重複定義的 mobileTargetPerson 函式
-// 2. 新增事件日期索引（buildEventIndex），日曆渲染從 O(全部事件) 降至 O(當日事件)
-// 3. 帳號列表隱藏密碼欄位（前端不顯示明文密碼）
-// 4. saveUserEdit 新增密碼最小長度 6 碼驗證
-// 5. Audit Log 移除密碼明文記錄
-// 6. 清理 V108/V109 重複 bottom-nav CSS，由 V110 統一管理
-// ⚠️ 下一步建議（正式上線前）：接入 Supabase Auth 取代 localStorage 帳密驗證
 const defaultEventTypes=['醫療(看診、回診、住院、急診、開刀)','收送簽文件(證件、用印、簽文件)','銀行(開戶、補辦、領錢、異動)','定期 (開會)','送工(新入境、承接)','車禍處理(做筆錄、現場協調、和解、出庭)','面談','其他','逃跑通知','轉出追蹤','住變資訊','驗證提醒','提醒事項','視訊/面試','上線/教育訓練','宿舍','返台提醒'];
 const alertEventTypes=['逃跑通知','轉出追蹤','住變資訊','返台提醒','驗證提醒','提醒事項'];
 const defaultEventTypeContents = {
@@ -969,36 +963,7 @@ const sendWorkNoteTemplate=noteTemplates['送工'];
 let state,currentUser=null,currentPage='calendar';
 function uid(p){return p+'_'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4)}
 function pad2(n){return String(n).padStart(2,'0')} function localISO(dt){return dt.getFullYear()+'-'+pad2(dt.getMonth()+1)+'-'+pad2(dt.getDate())} function localMonth(dt){return dt.getFullYear()+'-'+pad2(dt.getMonth()+1)} function todayISO(){return localISO(new Date())} function monthISO(){return localMonth(new Date())} function weekStartISO(d){const dt=new Date((d||todayISO())+'T00:00:00'); const offset=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-offset); return localISO(dt)} function weekDays(d){const start=new Date(weekStartISO(d)+'T00:00:00'); const out=[]; for(let i=0;i<7;i++)out.push(localISO(new Date(start.getFullYear(),start.getMonth(),start.getDate()+i))); return out}
-function save(){localStorage.setItem(KEY,JSON.stringify(state)); invalidateEventIndex();} function clone(o){return JSON.parse(JSON.stringify(o))}
-
-// [v104] 事件日期索引：避免每格重掃全部 events，大幅提升日曆渲染效能
-let _eventIndex = null;
-let _eventIndexStamp = 0;
-function buildEventIndex(){
-  const idx = {};
-  (state.events||[]).forEach(e=>{
-    if(e.deleted) return;
-    // 為每個日期範圍內的每天都建立索引
-    let d = e.startDate;
-    const end = e.endDate || e.startDate;
-    let safety = 0;
-    while(d <= end && safety++ < 366){
-      if(!idx[d]) idx[d] = [];
-      idx[d].push(e);
-      d = dateAdd(d, 1);
-    }
-  });
-  return idx;
-}
-function getEventIndex(){
-  const stamp = (state.events||[]).length + (state.events||[]).reduce((s,e)=>s+(e.updatedAt||'').length,0);
-  if(!_eventIndex || _eventIndexStamp !== stamp){
-    _eventIndex = buildEventIndex();
-    _eventIndexStamp = stamp;
-  }
-  return _eventIndex;
-}
-function invalidateEventIndex(){ _eventIndex = null; }
+function save(){localStorage.setItem(KEY,JSON.stringify(state))} function clone(o){return JSON.parse(JSON.stringify(o))}
 function toast(t){let el=$('toast'); if(!el){el=document.createElement('div');el.id='toast';el.className='toast';document.body.appendChild(el)} el.textContent=t; setTimeout(()=>el.remove(),2200)}
 function copyText(text){ try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(function(){toast('已複製')}).catch(function(){fallbackCopy(text)}); } else { fallbackCopy(text); } }catch(e){fallbackCopy(text)} }
 function fallbackCopy(text){ var ta=document.createElement('textarea'); ta.value=text||''; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.focus(); ta.select(); try{document.execCommand('copy'); toast('已複製');}catch(e){toast('請手動複製');} document.body.removeChild(ta); }
@@ -1389,13 +1354,7 @@ function renderFilters(){
 function renderLegend(){$('legend').innerHTML=''}
 function visiblePeople(){let ps=state.people.filter(p=>p.active!==false&&p.deleted!==true); const gv=getMultiValues('groupFilter'), jv=getMultiValues('jobFilter'), pv=getMultiValues('personFilter'); if(gv.length)ps=ps.filter(p=>gv.includes(p.group)); if(jv.length)ps=ps.filter(p=>jv.includes(p.lang)); if(pv.length)ps=ps.filter(p=>pv.includes(p.id)); return ps}
 function eventMatches(e){if(e.deleted)return false; const tv=getMultiValues('typeFilter'); if(tv.length&&!tv.includes(e.type))return false; if($('statusFilter').value&&e.status!==$('statusFilter').value)return false; const kw=$('keywordFilter').value.trim().toLowerCase(); if(kw&&!(`${e.locationName} ${e.name} ${e.type} ${e.note}`.toLowerCase().includes(kw)))return false; return true}
-// [v104] 使用日期索引取代全掃，O(events_on_day) 而非 O(all_events)
-function eventsOnDateForPerson(d,pid){
-  const idx = getEventIndex();
-  const dayEvents = idx[d] || [];
-  return dayEvents.filter(e=>eventMatches(e)&&(e.participants||[]).includes(pid))
-    .sort((a,b)=>(a.startTime||'99:99').localeCompare(b.startTime||'99:99'));
-}
+function eventsOnDateForPerson(d,pid){return state.events.filter(e=>eventMatches(e)&&e.participants.includes(pid)&&d>=e.startDate&&d<=e.endDate).sort((a,b)=>(a.startTime||'99:99').localeCompare(b.startTime||'99:99'))}
 function translatorStatusClass(e){if(e.kind!=='translatorStatus')return ''; if(e.type==='請假')return 'status-leave'; if(e.type==='返鄉')return 'status-home'; if(e.type==='會議')return 'status-meeting'; if(e.type==='上課'||e.type==='外訓')return 'status-training'; return 'status'}
 function isSyncedFieldDayEvent(e){return !!(e&&e.externalSource&&(String(e.name||'').includes('外務日')||String(e.note||'').includes('外務日：若有非外務行程請先確認')))}
 function eventHTML(e){const operator=getUser(e.updatedBy||e.createdBy).name; const alertCls=alertEventTypeList().map(displayEventType).includes(displayEventType(e.type))||alertEventTypeList().includes(e.type)?'alert':''; const statusCls=translatorStatusClass(e); const fieldCls=e.externalSource?('field-event '+externalStatusClass({status:e.fieldStatus||e.status})+(isSyncedFieldDayEvent(e)?' field-purpose-field-day':'')) : ''; const doneCls=(!e.externalSource&&e.status==='已完成')?'done':''; const cancelCls=e.status==='取消'?'cancel':''; const vehicle=e.vehicleNo?`｜車號:${esc(e.vehicleNo)}`:''; const sr=serviceRecordText(e)?`<div class="service-record">${esc(serviceRecordText(e))}</div>`:''; const addNote=e.additionalNote?`<div class="muted" style="font-size:11px;margin-top:2px">附加：${esc(e.additionalNote)}</div>`:''; const nm=e.externalSource?String(e.name||'').replace(/^外務[｜|]\s*/,''):String(e.name||''); if(isSyncedFieldDayEvent(e)){return `<div class="event ${alertCls} ${statusCls} ${fieldCls} ${doneCls} ${cancelCls}" title="${esc(detailText(e))}" data-id="${e.id}"><div><span class="time">${ampm(e.startTime)}</span> ⚠ 外務日：若有非外務行程請先確認｜${esc(operator)}</div>${addNote}${sr}</div>`} return `<div class="event ${alertCls} ${statusCls} ${fieldCls} ${doneCls} ${cancelCls}" title="${esc(detailText(e))}" data-id="${e.id}"><div><span class="time">${ampm(e.startTime)}</span> ${esc(displayEventType(e.type))}｜${esc(nm)}${vehicle}｜${esc(operator)}</div>${addNote}${sr}</div>`}
@@ -1520,6 +1479,7 @@ function describeEvent(e){return `${e.startDate}${e.endDate!==e.startDate?'~'+e.
 function detailText(e){return `${kindLabel(e.kind)}\n日期：${e.startDate}${e.endDate!==e.startDate?'~'+e.endDate:''}\n時間：${ampm(e.startTime)}${e.endTime?' - '+ampm(e.endTime):''}\n地點 / 客戶：${e.locationName}\n公務車調整：${e.vehicleNo||''}\n類型：${displayEventType(e.type)}\n辦理內容：${e.name}\n執行者：${executorNames(e)}\n狀態：${e.status}\n建立人：${getUser(e.createdBy).name}\n最後修改：${getUser(e.updatedBy).name}\n備註：${e.note||''}`}
 function lineMessage(action,e,before){let title=action==='新增'?'【行程新增通知】':action==='修改'?'【行程異動通知】':'【行程取消通知】'; let msg=`${title}\n日期：${e.startDate}${e.endDate!==e.startDate?' ～ '+e.endDate:''}\n時間：${ampm(e.startTime)}${e.endTime?' - '+ampm(e.endTime):''}\n執行者：${executorNames(e)}\n地點 / 客戶：${e.locationName}\n公務車調整：${e.vehicleNo||''}\n類型：${displayEventType(e.type)}\n辦理內容：${e.name}\n狀態：${e.status}\n${action==='新增'?'建立人':action==='修改'?'修改人':'刪除人'}：${currentUser.name}`; if(action==='修改'&&before){const changes=[]; const labelMap={startDate:'起日',endDate:'迄日',startTime:'開始時間',endTime:'結束時間',type:'類型',name:'辦理內容',additionalType:'附加行程類型',additionalNote:'附加行程備註',locationName:'地點 / 客戶',vehicleNo:'公務車',participants:'相關人員',status:'狀態'}; Object.keys(labelMap).forEach(k=>{const bv=Array.isArray(before[k])?formatField(k,before[k].join(',')):before[k]; const av=Array.isArray(e[k])?formatField(k,e[k].join(',')):e[k]; if(String(bv||'')!==String(av||''))changes.push(`${labelMap[k]}：${bv||'空'} → ${av||'空'}`)}); if(changes.length)msg+='\n異動內容：\n- '+changes.join('\n- ')} if(e.note)msg+='\n內容說明：'+e.note; return msg}
 
+function mobileTargetPerson(){let pid=$('mobilePerson').value; if(!pid)pid=$('personFilter').value||userPersonId()||(state.people.find(p=>p.lang!=='管理'&&p.active!==false)||{}).id; return pid}
 function mobileCanChoosePerson(){return isAdmin()||isSupervisor()}
 function mobileTargetPerson(){
   const own=userPersonId();
@@ -1680,7 +1640,7 @@ function renderUsers(){
     $('addPersonBtn').classList.remove('hide');
   }
   const users=(role==='staff'||role==='general'||role==='supervisor')?state.users.filter(u=>u.id===currentUser.id):state.users.filter(u=>u.deleted!==true);
-  $('userRows').innerHTML=users.filter(u=>u.deleted!==true).map(u=>`<tr><td>${esc(u.name)}</td><td>${esc(u.email)}</td><td>••••••</td><td>${esc(u.lineId||'')}</td><td><span class="badge">${roleNames[u.role]||u.role}</span></td><td>${isAdmin()?esc(getPerson(u.personId).name||''):'-'}</td><td>${u.active===false?'停用':'啟用'}</td><td>${isAdmin()?`<button class="small" onclick="openUserEdit('${u.id}')">修改</button> <button class="small" onclick="toggleUserActive('${u.id}')">${u.active===false?'啟用':'停用'}</button> <button class="small danger" onclick="deleteUser('${u.id}')">刪除</button>`:`<button class="small" onclick="openUserEdit('${u.id}')">修改我的帳號</button>`}</td></tr>`).join('')||'<tr><td colspan="8" class="muted">尚無帳號</td></tr>';
+  $('userRows').innerHTML=users.filter(u=>u.deleted!==true).map(u=>`<tr><td>${esc(u.name)}</td><td>${esc(u.email)}</td><td>${isAdmin()?esc(u.password||''):'••••••'}</td><td>${esc(u.lineId||'')}</td><td><span class="badge">${roleNames[u.role]||u.role}</span></td><td>${isAdmin()?esc(getPerson(u.personId).name||''):'-'}</td><td>${u.active===false?'停用':'啟用'}</td><td>${isAdmin()?`<button class="small" onclick="openUserEdit('${u.id}')">修改</button> <button class="small" onclick="toggleUserActive('${u.id}')">${u.active===false?'啟用':'停用'}</button> <button class="small danger" onclick="deleteUser('${u.id}')">刪除</button>`:`<button class="small" onclick="openUserEdit('${u.id}')">修改我的帳號</button>`}</td></tr>`).join('')||'<tr><td colspan="8" class="muted">尚無帳號</td></tr>';
   const people=state.people.filter(p=>p.lang!=='管理'&&p.deleted!==true);
   $('personRows').innerHTML=people.map(p=>`<tr draggable="${canManagePeople()}" data-person-id="${p.id}"><td><span class="drag-handle">☰</span>${esc(p.name)}</td><td>${esc(p.department||defaultDepartmentFromGroup(p.group))}</td><td>${esc(p.group)}</td><td>${esc(p.lang)}</td><td>${esc(p.lineId||'')}</td><td>${p.active?'啟用':'停用'}</td><td>${canManagePeople()?`<button class="small" onclick="openPersonEdit('${p.id}')">修改</button> ${isAdmin()?`<button class="small danger" onclick="deletePerson('${p.id}')">刪除</button>`:''}<div class="drag-hint">拖曳本列可調整順序</div>`:'-'}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">尚無人員</td></tr>'; bindPersonDrag('#personRows tr[data-person-id]');
 }
@@ -1738,7 +1698,7 @@ function savePersonEdit(){
 function fillUserPersonSelect(value){ $('editUserPerson').innerHTML='<option value="">不指定</option>'+state.people.filter(p=>p.deleted!==true).map(p=>`<option value="${p.id}">${esc(p.name)}｜${esc(p.group)}</option>`).join(''); $('editUserPerson').value=value||'' }
 window.openUserCreate=function(){if(!isAdmin())return toast('只有管理員可以新增帳號'); $('userModalTitle').textContent='新增帳號'; $('editUserId').value=''; $('editUserName').value=''; $('editUserEmail').value=''; $('editUserPassword').value='123456'; if($('editUserLineId')) $('editUserLineId').value=''; $('editUserRole').value='staff'; $('editUserActive').value='true'; fillUserPersonSelect(''); $('userModal').classList.remove('hide')}
 window.openUserEdit=function(id){const isOwn=currentUser&&currentUser.id===id; if(!isAdmin()&&!isOwn)return toast('只能修改自己的帳號'); const u=state.users.find(x=>x.id===id); if(!u)return; $('userModalTitle').textContent='修改帳號'; $('editUserId').value=u.id; $('editUserName').value=u.name||''; $('editUserEmail').value=u.email||''; $('editUserPassword').value=u.password||''; if($('editUserLineId')) $('editUserLineId').value=u.lineId||''; $('editUserRole').value=u.role||'viewer'; $('editUserActive').value=String(u.active!==false); fillUserPersonSelect(u.personId||''); const selfOnly=!isAdmin(); ['editUserRole','editUserPerson','editUserActive'].forEach(fid=>{$(fid).disabled=selfOnly}); $('userModal').classList.remove('hide')}
-function saveUserEdit(){ const id=$('editUserId').value; const isOwn=currentUser&&currentUser.id===id; if(!isAdmin()&&!isOwn)return toast('只能修改自己的帳號'); if(!id&&!isAdmin())return toast('只有管理員可以新增帳號'); const email=$('editUserEmail').value.trim().toLowerCase(); const password=$('editUserPassword').value; const name=$('editUserName').value.trim(); const active=$('editUserActive').value==='true'; const lineId=$('editUserLineId')?$('editUserLineId').value.trim():''; if(!email||!password||!name)return toast('姓名、帳號與密碼不可空白'); if(password.length<6)return toast('密碼至少需要 6 個字元'); if(state.users.some(x=>x.id!==id&&x.deleted!==true&&x.email.toLowerCase()===email))return toast('Email 已存在'); if(id){ const u=state.users.find(x=>x.id===id); if(!u)return; const before=clone(u); u.name=name; u.email=email; u.password=password; u.lineId=lineId; if(isAdmin()){u.role=$('editUserRole').value; u.personId=$('editUserPerson').value; u.active=active;} if(u.deleted===undefined)u.deleted=false; addLog('修改','系統帳號',u.name,'帳號資料',`角色:${roleNames[before.role]||before.role}/LINE ID:${before.lineId||''}/狀態:${before.active===false?'停用':'啟用'}`,`角色:${roleNames[u.role]||u.role}/LINE ID:${u.lineId||''}/狀態:${u.active===false?'停用':'啟用'}`); if(isOwn) currentUser=u; toast('已更新帳號'); } else { const u={id:uid('u'),name,email,password,lineId,role:$('editUserRole').value,personId:$('editUserPerson').value,active,deleted:false}; state.users.push(u); addLog('新增','系統帳號',u.name,'帳號資料','',`建立帳號 ${email}｜角色：${roleNames[u.role]||u.role}｜狀態：${u.active===false?'停用':'啟用'}`); toast('已建立帳號'); } save(); $('userModal').classList.add('hide'); renderAll()}
+function saveUserEdit(){ const id=$('editUserId').value; const isOwn=currentUser&&currentUser.id===id; if(!isAdmin()&&!isOwn)return toast('只能修改自己的帳號'); if(!id&&!isAdmin())return toast('只有管理員可以新增帳號'); const email=$('editUserEmail').value.trim().toLowerCase(); const password=$('editUserPassword').value; const name=$('editUserName').value.trim(); const active=$('editUserActive').value==='true'; const lineId=$('editUserLineId')?$('editUserLineId').value.trim():''; if(!email||!password||!name)return toast('姓名、帳號與密碼不可空白'); if(state.users.some(x=>x.id!==id&&x.deleted!==true&&x.email.toLowerCase()===email))return toast('Email 已存在'); if(id){ const u=state.users.find(x=>x.id===id); if(!u)return; const before=clone(u); u.name=name; u.email=email; u.password=password; u.lineId=lineId; if(isAdmin()){u.role=$('editUserRole').value; u.personId=$('editUserPerson').value; u.active=active;} if(u.deleted===undefined)u.deleted=false; addLog('修改','系統帳號',u.name,'帳號資料',`角色:${roleNames[before.role]||before.role}/密碼:${before.password}/LINE ID:${before.lineId||''}/狀態:${before.active===false?'停用':'啟用'}`,`角色:${roleNames[u.role]||u.role}/密碼:${u.password}/LINE ID:${u.lineId||''}/狀態:${u.active===false?'停用':'啟用'}`); if(isOwn) currentUser=u; toast('已更新帳號'); } else { const u={id:uid('u'),name,email,password,lineId,role:$('editUserRole').value,personId:$('editUserPerson').value,active,deleted:false}; state.users.push(u); addLog('新增','系統帳號',u.name,'帳號資料','',`建立帳號 ${email}｜角色：${roleNames[u.role]||u.role}｜狀態：${u.active===false?'停用':'啟用'}`); toast('已建立帳號'); } save(); $('userModal').classList.add('hide'); renderAll()}
 
 
 window.toggleUserActive=function(id){
@@ -6137,219 +6097,188 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 </body></html>
 
 <style>
-/* V140：新增按鈕移至下一週後；五頁匯出支援區間選擇 */
-.v140-add-inline{
-  display:inline-flex!important;
-  align-items:center!important;
-  gap:6px!important;
-}
-.v140-range-export{
-  display:inline-flex;
-  flex-wrap:wrap;
-  align-items:center;
-  gap:6px;
-  margin-left:auto;
-}
-.v140-range-export .mini{
-  width:auto!important;
-  min-width:82px!important;
-  max-width:145px!important;
-  height:30px!important;
-  padding:4px 8px!important;
-  font-size:12px!important;
-  border-radius:8px!important;
-}
-.v140-range-export button{
-  height:30px!important;
-  padding:4px 10px!important;
-  font-size:12px!important;
-  border-radius:8px!important;
-  white-space:nowrap!important;
-}
-.v140-range-export .v140-day-only,
-.v140-range-export .v140-month-only,
-.v140-range-export .v140-year-only,
-.v140-range-export .v140-range-only{display:none!important}
-.v140-range-export[data-mode="day"]   .v140-day-only  {display:inline-flex!important}
-.v140-range-export[data-mode="month"] .v140-month-only{display:inline-flex!important}
-.v140-range-export[data-mode="year"]  .v140-year-only {display:inline-flex!important}
-.v140-range-export[data-mode="range"] .v140-range-only{display:inline-flex!important}
-.v116-add-row{ display:none!important; }
+/* V141：五大頁面右上角匯出，沿用 V138 樣式；翻譯/一般人員隱藏 */
+body.v141-no-export .v141-section-export{ display:none!important; }
 @media(max-width:760px){
-  .v140-range-export{ display:none!important; }
-  .v140-add-inline{ display:none!important; }
+  .v141-section-export{ display:none!important; }
 }
 </style>
 
 <script>
-/* V140：① 新增按鈕移至下一週後  ② 五大頁面匯出 CSV 支援區間選擇 */
+/* V141：外務明細、個人行程表、異況追蹤、統計報表、服務紀錄單 右上角匯出 CSV（含區間）
+   視覺完全沿用 V138 .v138-export-inline 樣式；翻譯/一般人員不可用 */
 (function(){
-  function $v(id){ return document.getElementById(id); }
-  function today(){ return typeof todayISO==='function'?todayISO():new Date().toISOString().slice(0,10); }
-  function thisMonth(){ return today().slice(0,7); }
-  function thisYear(){ return today().slice(0,4); }
-  function mRange(m){ return typeof monthRange==='function'?monthRange(m):[m+'-01',m+'-31']; }
+  function $i(id){ return document.getElementById(id); }
+  function tod(){ return typeof todayISO==='function'?todayISO():new Date().toISOString().slice(0,10); }
+  function ym0(){ return tod().slice(0,7); }
+  function yr0(){ return tod().slice(0,4); }
+  function mRng(m){ return typeof monthRange==='function'?monthRange(m):[m+'-01',m+'-31']; }
+  function dType(t){ try{return typeof displayEventType==='function'?displayEventType(t):String(t||'')}catch(e){return String(t||'')} }
+  function pName(id){ try{return typeof getPerson==='function'?(getPerson(id)||{}).name||'':''}catch(e){return ''} }
 
-  /* ── ① 把新增按鈕插到「下一週」按鈕後面 ── */
-  function moveAddBtn(nextWeekId, addBtnId){
-    const nxt=$v(nextWeekId), btn=$v(addBtnId);
-    if(!nxt||!btn)return;
-    if(btn.dataset.v140Moved)return;
-    btn.dataset.v140Moved='1';
-    const wrap=document.createElement('span');
-    wrap.className='v140-add-inline';
-    wrap.appendChild(btn);
-    nxt.insertAdjacentElement('afterend', wrap);
+  function canExport(){
+    if(typeof normalizedRole!=='function')return false;
+    return ['admin','supervisor','adminStaff'].includes(normalizedRole());
   }
 
-  /* ── ② 匯出區間元件 ── */
-  function buildRangeBox(containerId, defaultMode, exportFn, label){
-    const anchor=$v(containerId);
-    if(!anchor)return;
-    if(anchor.querySelector('.v140-range-export'))return; // 已插過
+  function applyVisibility(){
+    document.body.classList.toggle('v141-no-export', !canExport());
+  }
+
+  function dlCsv(rows, filename){
+    if(typeof exportCsv==='function'){ exportCsv(rows, filename); return; }
+    const body=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob=new Blob(['\ufeff'+body],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),500);
+  }
+
+  /* ── 各頁匯出資料 ── */
+  function exportPersonal(s,e,fn){
+    if(typeof personalDetailRowsFiltered!=='function')return;
+    const ps=$i('personalDetailStart'), pe=$i('personalDetailEnd');
+    const os=ps&&ps.value, oe=pe&&pe.value;
+    if(ps)ps.value=s; if(pe)pe.value=e;
+    const rows=personalDetailRowsFiltered();
+    if(ps)ps.value=os||''; if(pe)pe.value=oe||'';
+    const out=[['日期','時間','人員','類別','行程類型','地點/客戶','辦理內容','狀態','內容說明','公務車','服務紀錄單']];
+    rows.forEach(r=>{
+      const ev=r.event, p=typeof getPerson==='function'?getPerson(r.personId):{name:''};
+      const sr=typeof requiresServiceRecord==='function'&&requiresServiceRecord(ev)
+        ?(ev.serviceRecordSubmitted&&ev.serviceRecordDate?'已繳交 '+ev.serviceRecordDate:'未繳交'):'';
+      out.push([r.date,typeof ampm==='function'?ampm(ev.startTime):ev.startTime,p.name,
+        typeof kindLabel==='function'?kindLabel(ev.kind):ev.kind,
+        dType(ev.type),ev.locationName||'',ev.name||'',ev.status||'',ev.note||'',ev.vehicleNo||'',sr]);
+    });
+    dlCsv(out,fn);
+  }
+
+  function exportIncidents(s,e,fn){
+    if(typeof state==='undefined')return;
+    const rows=[['發生日期','異況類型','緊急程度','地點/客戶','工人','異況標題','負責人','狀態','下次追蹤日','最後追蹤']];
+    (state.incidents||[]).filter(i=>!i.deleted&&(i.occurrenceDate||'')>=s&&(i.occurrenceDate||'')<=e)
+      .sort((a,b)=>String(a.occurrenceDate||'').localeCompare(b.occurrenceDate||''))
+      .forEach(i=>{
+        const logs=(state.incidentLogs||[]).filter(l=>!l.deleted&&l.incidentId===i.id).sort((a,b)=>String(a.createdAt||'').localeCompare(b.createdAt||''));
+        const last=logs[logs.length-1];
+        rows.push([i.occurrenceDate||'',i.incidentType||'',i.urgency||'',i.customerName||'',i.workerName||'',
+          i.title||'',pName(i.ownerPersonId),i.status||'',i.nextFollowDate||'',last?last.content||'':'']);
+      });
+    dlCsv(rows,fn);
+  }
+
+  function exportReports(s,e,fn){
+    if(typeof buildReportData!=='function')return;
+    const data=buildReportData(s,e);
+    const activeTypes=(data.types||[]).filter(t=>(data.rows||[]).some(r=>(r.byType&&r.byType[t]||0)>0));
+    const out=[['部門','人員','職務','總數','未完成','已完成','取消',...activeTypes]];
+    (data.rows||[]).forEach(r=>{
+      out.push([r.person.group,r.person.name,r.person.lang||'',r.total,r.undone,r.done,r.cancel,...activeTypes.map(t=>r.byType&&r.byType[t]||0)]);
+    });
+    ['一部翻譯','二部翻譯','總計'].forEach(g=>{
+      const d=data.dept&&data.dept[g];
+      if(d)out.push([g,'部門合計','',d.total,d.undone,d.done,d.cancel,...activeTypes.map(()=>'')]);
+    });
+    dlCsv(out,fn);
+  }
+
+  function exportService(s,e,fn){
+    if(typeof serviceRecordsInRange!=='function'||typeof personReportList!=='function')return;
+    const rows=[['日期','部門','翻譯','職務','行程類型','辦理內容','地點/客戶','行程狀態','服務紀錄單','繳交日期']];
+    serviceRecordsInRange(s,e,personReportList()).forEach(x=>{
+      rows.push([x.date,x.person.group,x.person.name,x.person.lang||'',
+        dType(x.event.type),x.event.name||'',x.event.locationName||'',
+        x.event.status||'',x.submitted?'已繳交':'未繳交',x.event.serviceRecordDate||'']);
+    });
+    dlCsv(rows,fn);
+  }
+
+  function exportFieldDetails(s,e,fn){
+    if(typeof state==='undefined')return;
+    const rows=[['日期','時間','人員','目的','地點','地址','狀態','備註','特殊提醒','現金','印章','證件','下一次領件日','送件失敗原因']];
+    (state.externalEvents||[]).filter(ev=>!ev.deleted&&(ev.date||'')>=s&&(ev.date||'')<=e)
+      .sort((a,b)=>String((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||'')))
+      .forEach(ev=>{
+        const flags=[ev.mustSend?'必送件':'',ev.cannotChange?'無法更換外務':''].filter(Boolean).join('、');
+        rows.push([ev.date||'',ev.time||'',pName(ev.personId),ev.purpose||'',ev.locationName||'',
+          ev.address||'',ev.status||'',ev.note||'',flags,ev.cash||'',ev.stamp||'',ev.document||'',
+          ev.pickupDate||'',ev.failureReason||'']);
+      });
+    dlCsv(rows,fn);
+  }
+
+  /* ── 建立匯出元件（完全沿用 V138 .v138-export-inline 樣式） ── */
+  function buildBox(anchor, label, exportFn){
+    if(!anchor||anchor.querySelector('.v141-section-export'))return;
+    const y=yr0(), m=ym0(), d=tod();
     const box=document.createElement('div');
-    box.className='v140-range-export';
-    box.dataset.mode=defaultMode||'month';
+    // 沿用 v138-export-inline class，視覺完全一致
+    box.className='v138-export-inline v141-section-export';
+    box.dataset.mode='month';
     box.innerHTML=`
-      <select class="mini v140-mode" title="匯出方式">
-        <option value="month" ${defaultMode==='month'?'selected':''}>月</option>
-        <option value="year"  ${defaultMode==='year'?'selected':''}>年</option>
-        <option value="day"   ${defaultMode==='day'?'selected':''}>日</option>
-        <option value="range" ${defaultMode==='range'?'selected':''}>區間</option>
+      <select class="mini v138-mode" title="匯出方式">
         <option value="all">全部</option>
+        <option value="year">年</option>
+        <option value="month" selected>月</option>
+        <option value="day">日</option>
+        <option value="range">區間</option>
       </select>
-      <input class="mini v140-year-only  v140-year"  type="number" min="2024" max="2035" value="${thisYear()}" title="年度">
-      <input class="mini v140-month-only v140-month" type="month" value="${thisMonth()}" title="月份">
-      <input class="mini v140-day-only   v140-day"   type="date"  value="${today()}" title="日期">
-      <input class="mini v140-range-only v140-start" type="date"  value="${today()}" title="起日">
-      <input class="mini v140-range-only v140-end"   type="date"  value="${today()}" title="迄日">
-      <button class="primary v140-export-btn" type="button">匯出CSV</button>
+      <input class="mini v138-year-only v138-year" type="number" min="2024" max="2035" value="${y}" title="年度">
+      <input class="mini v138-month-only v138-month" type="month" value="${m}" title="月份">
+      <input class="mini v138-day-only v138-day" type="date" value="${d}" title="日期">
+      <input class="mini v138-range-only v138-start" type="date" value="${d}" title="起日">
+      <input class="mini v138-range-only v138-end" type="date" value="${d}" title="迄日">
+      <button class="primary v138-export-btn" type="button">匯出CSV</button>
     `;
-    const mode=box.querySelector('.v140-mode');
-    mode.addEventListener('change',()=>{ box.dataset.mode=mode.value; });
-    box.querySelector('.v140-export-btn').addEventListener('click',()=>{
-      const m=box.dataset.mode;
-      let start,end,suffix;
-      if(m==='all'){start='0000-01-01';end='9999-12-31';suffix='全部';}
-      else if(m==='year'){const y=box.querySelector('.v140-year').value||thisYear();start=y+'-01-01';end=y+'-12-31';suffix=y;}
-      else if(m==='day'){const d=box.querySelector('.v140-day').value||today();start=d;end=d;suffix=d;}
-      else if(m==='range'){start=box.querySelector('.v140-start').value||today();end=box.querySelector('.v140-end').value||start;suffix=start+'_to_'+end;}
-      else{const mv=box.querySelector('.v140-month').value||thisMonth();[start,end]=mRange(mv);suffix=mv;}
-      exportFn(start,end,label+'_'+suffix+'.csv');
+    const sel=box.querySelector('.v138-mode');
+    sel.addEventListener('change',()=>{ box.dataset.mode=sel.value; });
+    box.querySelector('.v138-export-btn').addEventListener('click',()=>{
+      if(!canExport()){ if(typeof toast==='function')toast('此權限無法匯出'); return; }
+      const mode=box.dataset.mode;
+      let s,e,suffix;
+      if(mode==='all'){s='0000-01-01';e='9999-12-31';suffix='全部';}
+      else if(mode==='year'){const yv=box.querySelector('.v138-year').value||y;s=yv+'-01-01';e=yv+'-12-31';suffix=yv;}
+      else if(mode==='day'){const dv=box.querySelector('.v138-day').value||d;s=dv;e=dv;suffix=dv;}
+      else if(mode==='range'){s=box.querySelector('.v138-start').value||d;e=box.querySelector('.v138-end').value||s;suffix=s+'_to_'+e;}
+      else{const mv=box.querySelector('.v138-month').value||m;[s,e]=mRng(mv);suffix=mv;}
+      exportFn(s,e,label+'_'+suffix+'.csv');
     });
     anchor.appendChild(box);
   }
 
-  /* ── 各頁匯出函式 ── */
-  function dlCsv(rows,filename){
-    if(typeof exportCsv==='function'){exportCsv(rows,filename);return;}
-    const body=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
-    const blob=new Blob(['\ufeff'+body],{type:'text/csv;charset=utf-8'});
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();
-    setTimeout(()=>URL.revokeObjectURL(a.href),500);
-  }
-  function pName(id){ try{return typeof getPerson==='function'?(getPerson(id).name||''):''}catch(e){return ''} }
-  function uName(id){ try{return typeof getUser==='function'?(getUser(id).name||''):''}catch(e){return ''} }
-  function dType(t){ try{return typeof displayEventType==='function'?displayEventType(t):String(t||'')}catch(e){return String(t||'')} }
-  function overlaps(e,s,en){ try{return typeof eventOverlapsRange==='function'?eventOverlapsRange(e,s,en):((e.startDate||'')<=en&&(e.endDate||e.startDate||'')>=s)}catch(err){return false} }
-
-  function exportPersonalRange(start,end,filename){
-    if(typeof personalDetailRowsFiltered==='function'){
-      // 暫時修改篩選範圍
-      const ps=$v('personalDetailStart'), pe=$v('personalDetailEnd');
-      const os=ps&&ps.value, oe=pe&&pe.value;
-      if(ps)ps.value=start; if(pe)pe.value=end;
-      const rows=personalDetailRowsFiltered();
-      if(ps)ps.value=os||''; if(pe)pe.value=oe||'';
-      const out=[['日期','時間','人員','類別','行程類型','地點/客戶','辦理內容','狀態','備註']];
-      rows.forEach(r=>{const ev=r.event,p=typeof getPerson==='function'?getPerson(r.personId):{name:''}; out.push([r.date,typeof ampm==='function'?ampm(ev.startTime):ev.startTime,p.name,typeof kindLabel==='function'?kindLabel(ev.kind):ev.kind,dType(ev.type),ev.locationName||'',ev.name||'',ev.status||'',ev.note||'']);});
-      dlCsv(out,filename);
-    } else if(typeof exportPersonalDetails==='function'){ exportPersonalDetails(); }
-  }
-
-  function exportIncidentsRange(start,end,filename){
-    if(typeof state==='undefined')return;
-    const rows=[['發生日期','異況類型','緊急程度','地點/客戶','工人','異況標題','負責人','狀態','下次追蹤','最後追蹤']];
-    (state.incidents||[]).filter(i=>!i.deleted&&(i.occurrenceDate||'')>=start&&(i.occurrenceDate||'')<=end).forEach(i=>{
-      const logs=(state.incidentLogs||[]).filter(l=>!l.deleted&&l.incidentId===i.id).sort((a,b)=>String(a.createdAt||'').localeCompare(String(b.createdAt||'')));
-      const last=logs[logs.length-1];
-      rows.push([i.occurrenceDate||'',i.incidentType||'',i.urgency||'',i.customerName||'',i.workerName||'',i.title||'',pName(i.ownerPersonId),i.status||'',i.nextFollowDate||'',last?last.content||'':'']);
-    });
-    dlCsv(rows,filename);
-  }
-
-  function exportReportsRange(start,end,filename){
-    if(typeof buildReportData==='function'){
-      const data=buildReportData(start,end);
-      const rows=[['部門','人員','職務','總數','未完成','已完成','取消']];
-      (data.rows||[]).forEach(r=>rows.push([r.person.group,r.person.name,r.person.lang||'',r.total,r.undone,r.done,r.cancel]));
-      dlCsv(rows,filename);
-    } else if(typeof exportReports==='function'){ exportReports(); }
-  }
-
-  function exportServiceRange(start,end,filename){
-    if(typeof serviceRecordsInRange==='function' && typeof personReportList==='function'){
-      const people=personReportList();
-      const rows=[['日期','部門','翻譯','職務','行程類型','辦理內容','地點/客戶','行程狀態','服務紀錄單','繳交日期']];
-      serviceRecordsInRange(start,end,people).forEach(x=>{rows.push([x.date,x.person.group,x.person.name,x.person.lang||'',dType(x.event.type),x.event.name||'',x.event.locationName||'',x.event.status||'',x.submitted?'已繳交':'未繳交',x.event.serviceRecordDate||'']);});
-      dlCsv(rows,filename);
-    } else if(typeof exportServiceRecords==='function'){ exportServiceRecords(); }
-  }
-
-  function exportFieldDetailsRange(start,end,filename){
-    if(typeof state==='undefined')return;
-    const rows=[['日期','時間','人員','目的','地點','地址','狀態','備註','特殊提醒','現金','印章','證件','下一次領件日期','送件失敗原因']];
-    (state.externalEvents||[]).filter(e=>!e.deleted&&(e.date||'')>=start&&(e.date||'')<=end).sort((a,b)=>String((a.date||'')+(a.time||'')).localeCompare(String((b.date||'')+(b.time||'')))).forEach(e=>{
-      const p=pName(e.personId);
-      const flags=[e.mustSend?'必送件':'',e.cannotChange?'無法更換外務':''].filter(Boolean).join('、');
-      rows.push([e.date||'',e.time||'',p,e.purpose||'',e.locationName||'',e.address||'',e.status||'',e.note||'',flags,e.cash||'',e.stamp||'',e.document||'',e.pickupDate||'',e.failureReason||'']);
-    });
-    dlCsv(rows,filename);
-  }
-
-  /* ── 插入到各頁 section-title 的 toolbar ── */
+  /* ── 插入各頁 ── */
   function setupAll(){
-    // ① 移動新增按鈕
-    moveAddBtn('nextWeek',     'addEventBtn');
-    moveAddBtn('fieldNextWeek','fieldAddBtn');
-    moveAddBtn('roomNextWeek', 'addRoomBookingBtn');
+    applyVisibility();
 
-    // ② 匯出區間元件插入各頁 section-title
-    const cfgs=[
-      {titleSel:'#personalDetailsPage .panel:first-child .section-title .toolbar', fn:exportPersonalRange, label:'個人行程', mode:'month'},
-      {titleSel:'#incidentsPage .panel:first-child .section-title .toolbar',       fn:exportIncidentsRange, label:'異況紀錄', mode:'month'},
-      {titleSel:'#reportsPage .panel:first-child .section-title .toolbar',         fn:exportReportsRange,   label:'統計報表', mode:'month'},
-      {titleSel:'#serviceRecordsPage .panel:first-child .section-title .toolbar',  fn:exportServiceRange,   label:'服務紀錄單', mode:'month'},
-      {titleSel:'#fieldDetailsPage .panel:first-child .section-title',             fn:exportFieldDetailsRange, label:'外務明細', mode:'month'},
-    ];
-    cfgs.forEach(cfg=>{
-      let anchor=document.querySelector(cfg.titleSel);
-      if(!anchor)return;
-      buildRangeBox(anchor, cfg.mode, cfg.fn, cfg.label);
-    });
+    // 外務明細：插到 section-title（本身就是 flex 排版）
+    const fd=document.querySelector('#fieldDetailsPage .panel .section-title');
+    if(fd) buildBox(fd,'外務明細',exportFieldDetails);
 
-    // 外務明細原本的匯出按鈕隱藏（已被取代）
-    const oldFieldExp=$v('exportFieldDetailsBtn');
-    if(oldFieldExp)oldFieldExp.style.display='none';
-    // 個人行程表原本的匯出按鈕隱藏
-    const oldPersExp=$v('exportPersonalDetailsBtn');
-    if(oldPersExp)oldPersExp.style.display='none';
-    // 異況匯出原本按鈕隱藏
-    const oldIncExp=$v('exportIncidentsBtn');
-    if(oldIncExp)oldIncExp.style.display='none';
-    // 統計匯出原本按鈕隱藏（改用新的）
-    const oldRepExp=$v('exportReportBtn');
-    if(oldRepExp)oldRepExp.style.display='none';
-    // 服務紀錄單匯出原本按鈕隱藏
-    const oldSrvExp=$v('exportServiceRecordsBtn');
-    if(oldSrvExp)oldSrvExp.style.display='none';
+    // 個人行程表：插到 section-title 內的 toolbar
+    const pd=document.querySelector('#personalDetailsPage .panel .section-title .toolbar');
+    if(pd) buildBox(pd,'個人行程',exportPersonal);
+
+    // 異況追蹤：插到 section-title 內的 toolbar
+    const inc=document.querySelector('#incidentsPage .panel .section-title .toolbar');
+    if(inc) buildBox(inc,'異況紀錄',exportIncidents);
+
+    // 統計報表：插到 section-title 內的 toolbar
+    const rep=document.querySelector('#reportsPage .panel .section-title .toolbar');
+    if(rep) buildBox(rep,'統計報表',exportReports);
+
+    // 服務紀錄單：插到 section-title 內的 toolbar
+    const srv=document.querySelector('#serviceRecordsPage .panel .section-title .toolbar');
+    if(srv) buildBox(srv,'服務紀錄單',exportService);
   }
 
-  const oldRA=typeof renderAll==='function'?renderAll:null;
-  if(oldRA){ renderAll=function(){ oldRA(); setTimeout(setupAll,150); }; }
-  const oldSA=typeof showApp==='function'?showApp:null;
-  if(oldSA){ showApp=function(){ oldSA(); setTimeout(setupAll,200); }; }
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(setupAll,300));
-  setTimeout(setupAll,600);
+  const _ra=typeof renderAll==='function'?renderAll:null;
+  if(_ra){ renderAll=function(){ _ra(); setTimeout(setupAll,150); }; }
+  const _sa=typeof showApp==='function'?showApp:null;
+  if(_sa){ showApp=function(){ _sa(); setTimeout(setupAll,200); }; }
+  const _ap=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
+  if(_ap){ applyPermissionsUI=function(){ _ap(); setTimeout(applyVisibility,80); }; }
+
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(setupAll,350));
+  setTimeout(setupAll,700);
 })();
 </script>
