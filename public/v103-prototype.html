@@ -1768,7 +1768,10 @@ function exportCsv(rows,name){
     const csv=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
     const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
     const filename=name||('FOR-e匯出_'+todayISO()+'.csv');
-    if(window.navigator&&window.navigator.msSaveOrOpenBlob){window.navigator.msSaveOrOpenBlob(blob,filename);return;}
+    if(window.navigator&&window.navigator.msSaveOrOpenBlob){
+      window.navigator.msSaveOrOpenBlob(blob,filename);
+      return;
+    }
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
     a.href=url;
@@ -1869,19 +1872,6 @@ function initServiceFilters(){if(!$('serviceMonth'))return; if(!$('serviceMonth'
 function serviceFilterPeople(){let people=state.people.filter(reportEligiblePerson); const g=$('serviceGroup')?$('serviceGroup').value:''; if(g)people=people.filter(p=>p.group===g); return people}
 function renderServiceRecords(){if(typeof normalizedRole==='function'&&normalizedRole()==='staff'){return;}if(!$('serviceMonth'))return; initServiceFilters(); const ym=$('serviceMonth').value||monthISO(); const year=Number($('serviceYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym); const people=serviceFilterPeople(); const md=serviceRecordsInRange(ms,me,people).filter(x=>!x.submitted); const yd=serviceRecordsInRange(`${year}-01-01`,`${year}-12-31`,people).filter(x=>!x.submitted); function stats(rows){const one=rows.filter(x=>x.person.group==='一部翻譯').length,two=rows.filter(x=>x.person.group==='二部翻譯').length; return `<div class="stat"><div class="muted">未交總數</div><b>${rows.length}</b></div><div class="stat"><div class="muted">一部翻譯未交</div><b>${one}</b></div><div class="stat"><div class="muted">二部翻譯未交</div><b>${two}</b></div>`} if($('serviceMonthStats'))$('serviceMonthStats').innerHTML=stats(md); if($('serviceYearStats'))$('serviceYearStats').innerHTML=stats(yd); const rowHtml=rows=>rows.sort((a,b)=>(a.date+a.person.group+a.person.name).localeCompare(b.date+b.person.group+b.person.name)).map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.person.group)}</td><td>${esc(x.person.name)}</td><td>${esc(x.person.lang)}</td><td>${esc(displayEventType(x.event.type))}</td><td>${esc(x.event.name)}</td><td>${esc(x.event.locationName||'')}</td><td>${esc(x.event.status)}</td><td>🔴 未交</td></tr>`).join('')||'<tr><td colspan="9" class="muted">沒有未交明細</td></tr>'; if($('serviceMonthDetailRows'))$('serviceMonthDetailRows').innerHTML=rowHtml(md); if($('serviceYearDetailRows'))$('serviceYearDetailRows').innerHTML=rowHtml(yd)}
 function exportServiceRecords(){if(!$('serviceMonth'))return; initServiceFilters(); const ym=$('serviceMonth').value||monthISO(); const [ms,me]=monthRange(ym); const people=serviceFilterPeople(); const rows=[['日期','部門','人員','職務','行程類型','辦理內容','地點 / 客戶','狀態','繳交狀態']]; serviceRecordsInRange(ms,me,people).filter(x=>!x.submitted).forEach(x=>rows.push([x.date,x.person.group,x.person.name,x.person.lang,displayEventType(x.event.type),x.event.name,x.event.locationName||'',x.event.status,'未交'])); exportCsv(rows,`未交服務紀錄單_${ym}.csv`)}
-
-
-function exportRoomBookingsCsv(){
-  ensureRoomBookingState&&ensureRoomBookingState();
-  const rows=[['ID','日期','開始時間','結束時間','會議室','部門','會議名稱','建立人','建立時間','最後修改人','最後修改時間','是否刪除']];
-  (state.roomBookings||[]).forEach(b=>{
-    rows.push([
-      b.id||'',b.date||'',b.startTime||'',b.endTime||'',b.room||'',b.department||'',b.title||'',
-      getUser(b.createdBy).name||'',b.createdAt||'',getUser(b.updatedBy||b.createdBy).name||'',b.updatedAt||'',b.deleted?'是':'否'
-    ]);
-  });
-  exportCsv(rows,'會議室預約匯出.csv');
-}
 
 function exportEvents(){const rows=[['行程ID','類別','狀態','起日','迄日','開始時間','結束時間','類型','附加行程類型','附加行程備註','辦理內容','地點 / 客戶','地址','公務車調整','相關人員','建立人','建立時間','最後修改人','最後修改時間','是否刪除','刪除原因','服務紀錄單','繳交日期','下次回診日期','下次回診時間','下次回診人員','掛號號碼','內容說明']]; state.events.forEach(e=>rows.push([e.id,e.kind,e.status,e.startDate,e.endDate,e.startTime,e.endTime,e.type,e.additionalType||'',e.additionalNote||'',e.name,e.locationName,e.address,e.vehicleNo||'',e.participants.map(id=>getPerson(id).name).join('、'),getUser(e.createdBy).name,e.createdAt,getUser(e.updatedBy).name,e.updatedAt,e.deleted?'是':'否',e.deleteReason||'',requiresServiceRecord(e)?(e.serviceRecordSubmitted?'已交':'未交'):'',e.serviceRecordDate||'',e.followupDate||'',e.followupTime||'',e.followupPersonId?getPerson(e.followupPersonId).name:'',e.followupRegNo||'',e.note])); exportCsv(rows,'翻譯行程匯出.csv')}
 function exportLogs(){const rows=[['時間','操作人','動作','行程ID','辦理內容','修改欄位','修改前','修改後']]; state.logs.forEach(l=>rows.push([l.time,getUser(l.userId).name,l.action,l.eventId,l.eventName,l.field,l.before,l.after])); exportCsv(rows,'操作紀錄AuditLog.csv')}
@@ -4230,6 +4220,288 @@ v106BindServiceRecordsUI=function(){
 })();
 
 try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bindUI();bindExternalUI();/* V75：為避免看不到登入頁，取消自動登入；請每次由登入頁進入。 */ safeRemoveSession(); $('loginView')&&$('loginView').classList.remove('hide'); $('appView')&&$('appView').classList.add('hide');}catch(err){console.error(err); document.body.innerHTML='<div style="padding:24px;font-family:Arial"><h2>系統載入錯誤</h2><p>'+esc(err.message)+'</p><button onclick="localStorage.clear();location.reload()">清除暫存並重新載入</button></div>'}
+
+
+/* V163：DRY/KISS/SOLID 匯出管理器
+   問題根因：V138/V142 後加 script 直接讀 IIFE 內的 let state，造成 state is not defined。
+   解法：所有匯出集中在主 IIFE 內處理，單一入口、單一下載函式、單一按鈕綁定。
+*/
+(function forEExportManagerV163(){
+  const EXPORT_PAGES = {
+    calendarPage:       { label:'行程總覽',   type:'events' },
+    fieldCalendarPage:  { label:'外務行程',   type:'field' },
+    roomBookingPage:    { label:'會議室預約', type:'room' },
+    fieldDetailsPage:   { label:'外務明細',   type:'field' },
+    personalDetailsPage:{ label:'個人行程',   type:'events' },
+    incidentsPage:      { label:'異況追蹤',   type:'incidents' },
+    reportsPage:        { label:'統計報表',   type:'reports' },
+    serviceRecordsPage: { label:'服務紀錄單', type:'service' }
+  };
+
+  function csvSafe(v){return `"${String(v??'').replace(/"/g,'""')}"`;}
+  function csvDownload(rows, filename){
+    try{
+      if(!Array.isArray(rows)||!rows.length)rows=[['沒有資料']];
+      const body=rows.map(row=>row.map(csvSafe).join(',')).join('\r\n');
+      const blob=new Blob(['\ufeff'+body],{type:'text/csv;charset=utf-8;'});
+      const name=filename||`FOR-e匯出_${todayISO()}.csv`;
+      if(window.navigator&&window.navigator.msSaveOrOpenBlob){
+        window.navigator.msSaveOrOpenBlob(blob,name);
+        return true;
+      }
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download=name;
+      a.rel='noopener';
+      a.style.display='none';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},1500);
+      return true;
+    }catch(err){
+      console.error('V163 CSV download failed',err);
+      alert('匯出失敗：'+(err&&err.message?err.message:err));
+      return false;
+    }
+  }
+
+  exportCsv = csvDownload;
+
+  function monthRangeSafe(ym){
+    try{return monthRange(ym)}catch(e){
+      const [y,m]=String(ym||monthISO()).split('-').map(Number);
+      return [`${y}-${pad2(m)}-01`,`${y}-${pad2(m)}-${pad2(new Date(y,m,0).getDate())}`];
+    }
+  }
+  function getBoxRange(box, fallbackPageId){
+    const nowMonth=monthISO();
+    if(box){
+      const mode=(box.querySelector('.v163-mode,.v141-sel')||{}).value||'month';
+      if(mode==='all')return {start:'0000-01-01',end:'9999-12-31',label:'全部'};
+      if(mode==='year'){
+        const y=(box.querySelector('.v163-year,.v141-year')||{}).value||String(new Date().getFullYear());
+        return {start:`${y}-01-01`,end:`${y}-12-31`,label:y};
+      }
+      if(mode==='day'){
+        const d=(box.querySelector('.v163-day,.v141-day')||{}).value||todayISO();
+        return {start:d,end:d,label:d};
+      }
+      if(mode==='range'){
+        const s=(box.querySelector('.v163-start,.v141-start')||{}).value||todayISO();
+        const e=(box.querySelector('.v163-end,.v141-end')||{}).value||s;
+        return {start:s,end:e,label:`${s}_to_${e}`};
+      }
+      const ym=(box.querySelector('.v163-month,.v141-month')||{}).value||nowMonth;
+      const [s,e]=monthRangeSafe(ym);
+      return {start:s,end:e,label:ym};
+    }
+
+    if(fallbackPageId==='fieldDetailsPage'){
+      return {start:$('fieldDetailStart')?.value||monthRangeSafe(nowMonth)[0],end:$('fieldDetailEnd')?.value||monthRangeSafe(nowMonth)[1],label:'目前篩選'};
+    }
+    if(fallbackPageId==='personalDetailsPage'){
+      return {start:$('personalDetailStart')?.value||monthRangeSafe(nowMonth)[0],end:$('personalDetailEnd')?.value||monthRangeSafe(nowMonth)[1],label:'目前篩選'};
+    }
+    if(fallbackPageId==='incidentsPage'){
+      return {start:$('incidentStart')?.value||'0000-01-01',end:$('incidentEnd')?.value||'9999-12-31',label:'目前篩選'};
+    }
+    const [s,e]=monthRangeSafe(nowMonth);
+    return {start:s,end:e,label:nowMonth};
+  }
+
+  function personName(id){return getPerson(id).name||'';}
+  function userName(id){return getUser(id).name||'';}
+  function eventInRange(ev,start,end){return !ev.deleted && ev.endDate>=start && ev.startDate<=end;}
+
+  function eventRows(start,end){
+    const rows=[['ID','起日','迄日','開始時間','結束時間','類別','行程類型','附加行程','辦理內容','地點/客戶','地址','狀態','人員','建立人','建立時間','最後修改人','最後修改時間','服務紀錄單','繳交日期','內容說明']];
+    (state.events||[])
+      .filter(ev=>eventInRange(ev,start,end))
+      .sort((a,b)=>String((a.startDate||'')+(a.startTime||'')).localeCompare(String((b.startDate||'')+(b.startTime||''))))
+      .forEach(ev=>{
+        const sr=requiresServiceRecord(ev)?(ev.serviceRecordSubmitted&&ev.serviceRecordDate?'已繳交':'未繳交'):'';
+        rows.push([
+          ev.id||'',ev.startDate||'',ev.endDate||'',ev.startTime||'',ev.endTime||'',kindLabel(ev.kind),displayEventType(ev.type),
+          [displayEventType(ev.extraType),ev.extraNote].filter(Boolean).join('｜'),
+          ev.name||'',ev.locationName||'',ev.address||'',ev.status||'',
+          (ev.participants||[]).map(personName).filter(Boolean).join('、'),
+          userName(ev.createdBy),ev.createdAt||'',userName(ev.updatedBy),ev.updatedAt||'',sr,ev.serviceRecordDate||'',ev.note||''
+        ]);
+      });
+    return rows;
+  }
+
+  function fieldRows(start,end){
+    const rows=[['ID','日期','時間','人員','部門','職務','目的','地點','地址','狀態','送件失敗原因','下一次領件日期','下一次領件人員','現金','印章','證件','必送件','無法更換外務','備註','建立人','最後修改人','是否刪除']];
+    (state.externalEvents||[])
+      .filter(e=>!e.deleted && (e.date||'')>=start && (e.date||'')<=end)
+      .sort((a,b)=>String((a.date||'')+(a.time||'')).localeCompare(String((b.date||'')+(b.time||''))))
+      .forEach(e=>{
+        const p=getPerson(e.personId);
+        rows.push([e.id||'',e.date||'',e.time||'',p.name||'',p.group||'',p.lang||'',e.purpose||'',e.locationName||'',e.address||'',e.status||'',e.failureReason||'',e.pickupDate||'',personName(e.pickupPersonId),e.cash||'',e.stamp||'',e.document||'',e.mustSend?'是':'',e.cannotChange?'是':'',e.note||'',userName(e.createdBy),userName(e.updatedBy||e.createdBy),e.deleted?'是':'否']);
+      });
+    return rows;
+  }
+
+  function roomRows(start,end){
+    const rows=[['ID','日期','開始時間','結束時間','會議室','部門','會議名稱','建立人','建立時間','最後修改人','最後修改時間','是否刪除']];
+    (state.roomBookings||[])
+      .filter(b=>!b.deleted && (b.date||'')>=start && (b.date||'')<=end)
+      .sort((a,b)=>String((a.date||'')+(a.startTime||'')).localeCompare(String((b.date||'')+(b.startTime||''))))
+      .forEach(b=>rows.push([b.id||'',b.date||'',b.startTime||'',b.endTime||'',b.room||'',b.department||'',b.title||'',userName(b.createdBy),b.createdAt||'',userName(b.updatedBy||b.createdBy),b.updatedAt||'',b.deleted?'是':'否']));
+    return rows;
+  }
+
+  function incidentRows(start,end){
+    const rows=[['ID','發生日期','發生時間','異況類型','緊急程度','地點/客戶','工人','標題','負責人','協助者','狀態','下次追蹤日期','最後追蹤','內容說明']];
+    (state.incidents||[])
+      .filter(inc=>!inc.deleted && (inc.occurrenceDate||'')>=start && (inc.occurrenceDate||'')<=end)
+      .sort((a,b)=>String((a.occurrenceDate||'')+(a.occurrenceTime||'')).localeCompare(String((b.occurrenceDate||'')+(b.occurrenceTime||''))))
+      .forEach(inc=>{
+        const last=typeof lastIncidentLog==='function'?lastIncidentLog(inc.id):null;
+        rows.push([inc.id||'',inc.occurrenceDate||'',inc.occurrenceTime||'',inc.incidentType||'',inc.urgency||'',inc.customerName||'',inc.workerName||'',inc.title||'',personName(inc.ownerPersonId),(inc.helperPersonIds||[]).map(personName).filter(Boolean).join('、'),inc.status||'',inc.nextFollowDate||'',last?last.content:'',inc.description||'']);
+      });
+    return rows;
+  }
+
+  function reportRows(start,end){
+    const rows=[['類別','項目','數量','起日','迄日']];
+    const ev=(state.events||[]).filter(e=>eventInRange(e,start,end));
+    const field=(state.externalEvents||[]).filter(e=>!e.deleted&&(e.date||'')>=start&&(e.date||'')<=end);
+    const room=(state.roomBookings||[]).filter(b=>!b.deleted&&(b.date||'')>=start&&(b.date||'')<=end);
+    const inc=(state.incidents||[]).filter(i=>!i.deleted&&(i.occurrenceDate||'')>=start&&(i.occurrenceDate||'')<=end);
+    rows.push(['總計','行程',ev.length,start,end],['總計','外務',field.length,start,end],['總計','會議室',room.length,start,end],['總計','異況',inc.length,start,end]);
+    const byType={};
+    ev.forEach(e=>{const k=displayEventType(e.type||'未分類');byType[k]=(byType[k]||0)+1});
+    Object.entries(byType).forEach(([k,v])=>rows.push(['行程類型',k,v,start,end]));
+    return rows;
+  }
+
+  function serviceRows(start,end){
+    const rows=[['日期','部門','翻譯','職務','行程類型','辦理內容','地點/客戶','行程狀態','服務紀錄單','繳交日期']];
+    const people=(typeof serviceFilterPeople==='function')?serviceFilterPeople():state.people;
+    const list=(typeof serviceRecordsInRange==='function')?serviceRecordsInRange(start,end,people):[];
+    list.forEach(x=>rows.push([x.date,x.person.group,x.person.name,x.person.lang,displayEventType(x.event.type),x.event.name||'',x.event.locationName||'',x.event.status||'',x.submitted?'已繳交':'未繳交',x.event.serviceRecordDate||'']));
+    return rows;
+  }
+
+  function buildRows(pageId,start,end){
+    const config=EXPORT_PAGES[pageId]||EXPORT_PAGES.calendarPage;
+    const map={events:eventRows,field:fieldRows,room:roomRows,incidents:incidentRows,reports:reportRows,service:serviceRows};
+    return {label:config.label, rows:map[config.type](start,end)};
+  }
+
+  function exportPage(pageId,box){
+    try{
+      const {start,end,label}=getBoxRange(box,pageId);
+      const result=buildRows(pageId,start,end);
+      csvDownload(result.rows,`${result.label}_${label}.csv`);
+      toast(`已匯出 ${result.label} CSV`);
+    }catch(err){
+      console.error('V163 exportPage failed',err);
+      alert('匯出失敗：'+(err&&err.message?err.message:err));
+    }
+  }
+
+  function activePage(){return document.querySelector('section.page:not(.hide)')||document.querySelector('.page:not(.hide)');}
+  function pageFromButton(btn){return btn.closest('section.page')||activePage();}
+  function shouldBind(btn){
+    if(!btn)return false;
+    const text=(btn.textContent||'').replace(/\s+/g,'');
+    return btn.matches('.v141-btn,.v163-export-btn')||/匯出.*CSV/.test(text)||/^export.*Btn$/i.test(btn.id||'')||btn.id==='fieldExportBtn';
+  }
+
+  function setBoxVisibility(box){
+    const mode=(box.querySelector('.v163-mode,.v141-sel')||{}).value||'month';
+    const pairs=[
+      ['year','.v163-year,.v141-year'],
+      ['month','.v163-month,.v141-month'],
+      ['day','.v163-day,.v141-day'],
+      ['range','.v163-start,.v141-start'],
+      ['range','.v163-end,.v141-end']
+    ];
+    pairs.forEach(([m,sel])=>box.querySelectorAll(sel).forEach(el=>el.style.display=m===mode?'inline-flex':'none'));
+  }
+
+  function initBox(box){
+    if(!box)return;
+    if(!box.querySelector('.v141-month,.v163-month')?.value){
+      box.querySelectorAll('.v141-month,.v163-month').forEach(el=>el.value=monthISO());
+    }
+    box.querySelectorAll('.v141-day,.v141-start,.v141-end,.v163-day,.v163-start,.v163-end').forEach(el=>{if(!el.value)el.value=todayISO();});
+    box.querySelectorAll('.v141-year,.v163-year').forEach(el=>{if(!el.value)el.value=String(new Date().getFullYear());});
+    const sel=box.querySelector('.v141-sel,.v163-mode');
+    if(sel&&!sel.dataset.v163Bound){
+      sel.dataset.v163Bound='1';
+      sel.addEventListener('change',()=>setBoxVisibility(box));
+    }
+    setBoxVisibility(box);
+  }
+
+  function ensureHeaderExport(pageId){
+    const page=$(pageId);
+    if(!page)return;
+    const title=page.querySelector(':scope > .panel:first-child .section-title');
+    if(!title||title.querySelector('.v163-export-box'))return;
+    const box=document.createElement('div');
+    box.className='v163-export-box';
+    box.style.cssText='display:inline-flex;align-items:center;gap:6px;margin-left:auto;flex-wrap:wrap';
+    box.innerHTML=`
+      <select class="mini v163-mode" title="匯出方式" style="width:auto;min-width:60px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;">
+        <option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option><option value="range">區間</option>
+      </select>
+      <input class="mini v163-year" type="number" min="2024" max="2035" style="display:none;width:72px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="年度">
+      <input class="mini v163-month" type="month" style="display:inline-flex;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="月份">
+      <input class="mini v163-day" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="日期">
+      <input class="mini v163-start" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="起日">
+      <input class="mini v163-end" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="迄日">
+      <button class="primary v163-export-btn" type="button" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;">匯出CSV</button>`;
+    title.appendChild(box);
+    initBox(box);
+  }
+
+  function bindExports(){
+    document.querySelectorAll('.v138-export-inline').forEach(x=>x.remove());
+    ['calendarPage','fieldCalendarPage','roomBookingPage'].forEach(ensureHeaderExport);
+    document.querySelectorAll('.v141-box,.v163-export-box').forEach(initBox);
+    document.querySelectorAll('button').forEach(btn=>{
+      if(!shouldBind(btn)||btn.dataset.v163ExportBound)return;
+      btn.dataset.v163ExportBound='1';
+      btn.onclick=function(ev){
+        if(ev){ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();}
+        const page=pageFromButton(btn);
+        const box=btn.closest('.v141-box,.v163-export-box');
+        exportPage(page?page.id:'calendarPage',box);
+        return false;
+      };
+    });
+  }
+
+  function cleanServiceRecordNav(){
+    const r=normalizedRole();
+    const allow=r==='admin'||r==='supervisor';
+    document.querySelectorAll('.navbtn[data-page="translatorService"]').forEach(x=>x.remove());
+    const tp=$('translatorServicePage'); if(tp)tp.remove();
+    const sp=$('srStaffPage'); if(sp){sp.innerHTML='';sp.style.setProperty('display','none','important');}
+    document.querySelectorAll('.navbtn[data-page="serviceRecords"]').forEach(btn=>{
+      btn.classList.toggle('hide',!allow);
+      btn.classList.toggle('role-hidden',!allow);
+      btn.style.display=allow?'':'none';
+    });
+  }
+
+  window._applyServicePageMode=function(){cleanServiceRecordNav();};
+
+  const _v163RenderAll=renderAll;
+  renderAll=function(){_v163RenderAll();bindExports();cleanServiceRecordNav();};
+
+  const _v163ApplyPermissionsUI=applyPermissionsUI;
+  applyPermissionsUI=function(){_v163ApplyPermissionsUI();cleanServiceRecordNav();};
+
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{bindExports();cleanServiceRecordNav();},200));
+  setTimeout(()=>{bindExports();cleanServiceRecordNav();},800);
+})();
 })();
 
 </script>
@@ -5875,261 +6147,6 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
   setTimeout(init,500);
 })();
 </script>
-
-
-<style>
-/* V138：三大行事曆電腦版篩選恢復，匯出 CSV 統一右上角 */
-@media(min-width:761px){
-  #calendarPage .v116-static-filter,
-  #fieldCalendarPage .v116-static-filter,
-  #roomBookingPage .v116-static-filter{
-    display:block!important;
-    visibility:visible!important;
-    opacity:1!important;
-    border:0!important;
-    background:transparent!important;
-    margin:8px 0 0!important;
-    overflow:visible!important;
-    width:100%!important;
-  }
-  #calendarPage .v116-static-filter > summary,
-  #fieldCalendarPage .v116-static-filter > summary,
-  #roomBookingPage .v116-static-filter > summary{
-    display:none!important;
-  }
-  #calendarPage .v116-static-filter > .toolbar,
-  #fieldCalendarPage .v116-static-filter > .toolbar,
-  #roomBookingPage .v116-static-filter > .toolbar{
-    display:flex!important;
-    flex-wrap:wrap!important;
-    gap:8px!important;
-    align-items:center!important;
-    width:100%!important;
-    padding:0!important;
-    margin:0!important;
-    border:0!important;
-  }
-  #calendarPage .section-title,
-  #fieldCalendarPage .section-title,
-  #roomBookingPage .section-title{
-    display:flex!important;
-    align-items:center!important;
-    justify-content:space-between!important;
-    gap:10px!important;
-  }
-  #calendarPage .section-title h2,
-  #fieldCalendarPage .section-title h2,
-  #roomBookingPage .section-title h2{
-    margin:0!important;
-  }
-}
-#exportCsvBtn,
-#fieldExportBtn{
-  display:none!important;
-}
-.v138-export-inline{
-  display:inline-flex!important;
-  flex-wrap:wrap!important;
-  align-items:center!important;
-  justify-content:flex-end!important;
-  gap:6px!important;
-  margin-left:auto!important;
-}
-.v138-export-inline .mini{
-  width:auto!important;
-  min-width:82px!important;
-  max-width:145px!important;
-  height:30px!important;
-  padding:4px 8px!important;
-  font-size:12px!important;
-  border-radius:8px!important;
-}
-.v138-export-inline button{
-  height:30px!important;
-  padding:4px 10px!important;
-  font-size:12px!important;
-  border-radius:8px!important;
-  white-space:nowrap!important;
-}
-.v138-export-inline .v138-day-only,
-.v138-export-inline .v138-month-only,
-.v138-export-inline .v138-year-only,
-.v138-export-inline .v138-range-only{display:none!important}
-.v138-export-inline[data-mode="day"] .v138-day-only{display:inline-flex!important}
-.v138-export-inline[data-mode="month"] .v138-month-only{display:inline-flex!important}
-.v138-export-inline[data-mode="year"] .v138-year-only{display:inline-flex!important}
-.v138-export-inline[data-mode="range"] .v138-range-only{display:inline-flex!important}
-@media(max-width:760px){
-  .v138-export-inline{display:none!important}
-}
-</style>
-<script>
-/* V138：三大行事曆匯出 CSV，支援全部 / 年 / 月 / 日 / 區間 */
-(function(){
-  const configs=[
-    {pageId:'calendarPage', label:'行程總覽', type:'calendar'},
-    {pageId:'fieldCalendarPage', label:'外務行程', type:'field'},
-    {pageId:'roomBookingPage', label:'會議室預約', type:'room'}
-  ];
-  function $(id){return document.getElementById(id)}
-  function today(){return typeof todayISO==='function'?todayISO():new Date().toISOString().slice(0,10)}
-  function ym(){return today().slice(0,7)}
-  function yyyy(){return today().slice(0,4)}
-  function monthRangeLocal(m){
-    if(typeof monthRange==='function')return monthRange(m);
-    const y=Number(m.slice(0,4)), mon=Number(m.slice(5,7));
-    return [m+'-01',m+'-'+String(new Date(y,mon,0).getDate()).padStart(2,'0')];
-  }
-  function getPersonName(id){
-    try{return typeof getPerson==='function'?(getPerson(id).name||''):''}
-    catch(e){const p=(state.people||[]).find(x=>x.id===id);return p?p.name:''}
-  }
-  function getUserName(id){
-    try{return typeof getUser==='function'?(getUser(id).name||''):''}
-    catch(e){const u=(state.users||[]).find(x=>x.id===id);return u?u.name:''}
-  }
-  function displayType(t){
-    try{return typeof displayEventType==='function'?displayEventType(t):String(t||'')}
-    catch(e){return String(t||'')}
-  }
-  function overlaps(e,start,end){
-    try{return typeof eventOverlapsRange==='function'?eventOverlapsRange(e,start,end):((e.startDate||'')<=end && (e.endDate||e.startDate||'')>=start)}
-    catch(err){return false}
-  }
-  function ensureToolbar(page){
-    const panel=page.querySelector(':scope > .panel:first-child');
-    if(!panel)return null;
-    const title=panel.querySelector(':scope > .section-title');
-    if(!title)return null;
-    let tb=title.querySelector(':scope > .toolbar.v138-export-toolbar');
-    if(!tb){
-      tb=document.createElement('div');
-      tb.className='toolbar v138-export-toolbar';
-      title.appendChild(tb);
-    }
-    tb.style.marginLeft='auto';
-    tb.style.justifyContent='flex-end';
-    return tb;
-  }
-  function setupExportControl(cfg){
-    const page=$(cfg.pageId);
-    if(!page)return;
-    page.querySelectorAll('.v138-export-inline').forEach(x=>x.remove());
-    const tb=ensureToolbar(page);
-    if(!tb)return;
-    const box=document.createElement('div');
-    box.className='v138-export-inline';
-    box.dataset.mode='month';
-    box.innerHTML=`
-      <select class="mini v138-mode" title="匯出方式">
-        <option value="all">全部</option>
-        <option value="year">年</option>
-        <option value="month" selected>月</option>
-        <option value="day">日</option>
-        <option value="range">區間</option>
-      </select>
-      <input class="mini v138-year-only v138-year" type="number" min="2024" max="2035" value="${yyyy()}" title="年度">
-      <input class="mini v138-month-only v138-month" type="month" value="${ym()}" title="月份">
-      <input class="mini v138-day-only v138-day" type="date" value="${today()}" title="日期">
-      <input class="mini v138-range-only v138-start" type="date" value="${today()}" title="起日">
-      <input class="mini v138-range-only v138-end" type="date" value="${today()}" title="迄日">
-      <button class="primary v138-export-btn" type="button">匯出CSV</button>
-    `;
-    tb.appendChild(box);
-    const mode=box.querySelector('.v138-mode');
-    mode.addEventListener('change',()=>box.dataset.mode=mode.value);
-    box.querySelector('.v138-export-btn').addEventListener('click',()=>exportPage(cfg));
-  }
-  function getRange(pageId){
-    const box=$(pageId)?.querySelector('.v138-export-inline');
-    const mode=box?.querySelector('.v138-mode')?.value||'month';
-    if(mode==='all')return {start:'0000-01-01',end:'9999-12-31',label:'全部'};
-    if(mode==='year'){
-      const y=box.querySelector('.v138-year').value||yyyy();
-      return {start:y+'-01-01',end:y+'-12-31',label:y};
-    }
-    if(mode==='day'){
-      const d=box.querySelector('.v138-day').value||today();
-      return {start:d,end:d,label:d};
-    }
-    if(mode==='range'){
-      const s=box.querySelector('.v138-start').value||today();
-      const e=box.querySelector('.v138-end').value||s;
-      return {start:s,end:e,label:s+'_to_'+e};
-    }
-    const m=box.querySelector('.v138-month').value||ym();
-    const [s,e]=monthRangeLocal(m);
-    return {start:s,end:e,label:m};
-  }
-  function downloadCsv(rows,filename){
-    if(typeof exportCsv==='function'){exportCsv(rows,filename);return}
-    const body=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
-    const blob=new Blob(['\ufeff'+body],{type:'text/csv;charset=utf-8'});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download=filename;
-    a.click();
-    setTimeout(()=>URL.revokeObjectURL(a.href),500);
-  }
-  function calendarRows(start,end){
-    const rows=[['ID','起日','迄日','時間','類型','行程名稱','地點/客戶','地址','狀態','人員','建立者','更新時間','備註']];
-    (state.events||[]).filter(e=>!e.deleted&&overlaps(e,start,end)).sort((a,b)=>String((a.startDate||'')+(a.startTime||'')).localeCompare(String((b.startDate||'')+(b.startTime||'')))).forEach(e=>{
-      rows.push([e.id||'',e.startDate||'',e.endDate||'',e.startTime||'',displayType(e.type||''),e.name||'',e.locationName||'',e.address||'',e.status||'',(e.participants||[]).map(getPersonName).filter(Boolean).join('、'),getUserName(e.createdBy)||'',e.updatedAt||'',e.note||'']);
-    });
-    return rows;
-  }
-  function fieldRows(start,end){
-    const rows=[['ID','日期','時間','人員','目的','地點','地址','狀態','內容/備註','建立者','更新時間']];
-    (state.externalEvents||[]).filter(e=>!e.deleted&&(e.date||'')>=start&&(e.date||'')<=end).sort((a,b)=>String((a.date||'')+(a.time||'')+(a.personId||'')).localeCompare(String((b.date||'')+(b.time||'')+(b.personId||'')))).forEach(e=>{
-      rows.push([e.id||'',e.date||'',e.time||'',getPersonName(e.personId)||'',e.purpose||'',e.locationName||'',e.address||'',e.status||'',e.note||'',getUserName(e.createdBy)||'',e.updatedAt||'']);
-    });
-    return rows;
-  }
-  function roomRows(start,end){
-    const rows=[['ID','日期','時間','會議室','部門','會議名稱','建立者','更新時間']];
-    (state.roomBookings||[]).filter(b=>!b.deleted&&(b.date||'')>=start&&(b.date||'')<=end).sort((a,b)=>String((a.date||'')+(a.startTime||'')+(a.room||'')).localeCompare(String((b.date||'')+(b.startTime||'')+(b.room||'')))).forEach(b=>{
-      rows.push([b.id||'',b.date||'',(b.startTime||'')+'-'+(b.endTime||''),b.room||'',b.department||'',b.title||'',getUserName(b.createdBy)||'',b.updatedAt||'']);
-    });
-    return rows;
-  }
-  function exportPage(cfg){
-    const r=getRange(cfg.pageId);
-    const rows=cfg.type==='calendar'?calendarRows(r.start,r.end):(cfg.type==='field'?fieldRows(r.start,r.end):roomRows(r.start,r.end));
-    downloadCsv(rows,`${cfg.label}_${r.label}.csv`);
-  }
-  function restoreDesktopFilters(){
-    ['calendarPage','fieldCalendarPage','roomBookingPage'].forEach(id=>{
-      const page=$(id);
-      if(!page)return;
-      const details=page.querySelector('.v116-static-filter');
-      if(!details)return;
-      details.classList.remove('hide');
-      details.style.display='block';
-      details.style.visibility='visible';
-      if(window.innerWidth>760)details.open=true;
-      const toolbar=details.querySelector(':scope > .toolbar');
-      if(toolbar){
-        toolbar.classList.remove('hide');
-        toolbar.style.display=window.innerWidth>760?'flex':'grid';
-      }
-    });
-  }
-  const oldRenderAll=typeof renderAll==='function'?renderAll:null;
-  if(oldRenderAll){
-    renderAll=function(){
-      oldRenderAll();
-      restoreDesktopFilters();
-      configs.forEach(setupExportControl);
-    };
-  }
-  function init(){
-    restoreDesktopFilters();
-    configs.forEach(setupExportControl);
-  }
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(init,200));
-  setTimeout(init,500);
-})();
-</script>
 <style>
 /* V148：手機版隱藏匯出CSV；新增按鈕全寬 */
 @media(max-width:760px){
@@ -6381,137 +6398,10 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 
 
 <style>
-/* V161：CSV 下載修正；移除翻譯服務紀錄單殘留 */
-#srStaffPage{display:none!important}
-.navbtn[data-page="translatorService"],#translatorServicePage{display:none!important}
-.navbtn[data-page="serviceRecords"][data-v161-allow="0"]{display:none!important}
-button[data-v161-export="1"]{cursor:pointer!important}
+/* V163：匯出工具手機版隱藏，避免佔版面 */
+@media(max-width:760px){
+  .v141-box,.v163-export-box{display:none!important}
+}
 </style>
-
-<script>
-/* V161：按鈕不再自行讀 state，改呼叫原本系統內建匯出函式，避免 state is not defined */
-(function(){
-  function all(sel){return Array.from(document.querySelectorAll(sel))}
-  function $(id){return document.getElementById(id)}
-
-  function currentRole(){
-    const r=(currentUser&&currentUser.role)||'';
-    if(r==='admin'||r==='options')return 'admin';
-    if(r==='supervisor')return 'supervisor';
-    if(r==='adminStaff'||r==='admin_staff')return 'adminStaff';
-    if(r==='general'||r==='sales')return 'general';
-    if(r==='staff'||r==='translator'||r==='schedule'||r==='dispatcher'||r==='viewer')return 'translator';
-    return r||'translator';
-  }
-  function allowService(){
-    const r=currentRole();
-    return r==='admin'||r==='supervisor';
-  }
-  function cleanService(){
-    const allow=allowService();
-    all('.navbtn[data-page="translatorService"]').forEach(b=>b.remove());
-    const tp=$('translatorServicePage'); if(tp)tp.remove();
-    const sp=$('srStaffPage'); if(sp){sp.innerHTML='';sp.style.setProperty('display','none','important')}
-    all('.navbtn[data-page="serviceRecords"]').forEach(btn=>{
-      btn.dataset.v161Allow=allow?'1':'0';
-      btn.classList.toggle('hide',!allow);
-      btn.classList.toggle('role-hidden',!allow);
-      btn.style.display=allow?'':'none';
-    });
-  }
-  window._applyServicePageMode=function(){cleanService()};
-
-  function activePage(){
-    return document.querySelector('section.page:not(.hide)') || document.querySelector('.page:not(.hide)');
-  }
-  function pageFromButton(btn){
-    return (btn&&btn.closest&&btn.closest('section.page')) || activePage();
-  }
-
-  function callExportForPage(pageId){
-    try{
-      if(pageId==='calendarPage' && typeof exportEvents==='function')return exportEvents();
-      if(pageId==='fieldCalendarPage' && typeof exportFieldEvents==='function')return exportFieldEvents();
-      if(pageId==='roomBookingPage' && typeof exportRoomBookingsCsv==='function')return exportRoomBookingsCsv();
-      if(pageId==='fieldDetailsPage' && typeof exportFieldDetails==='function')return exportFieldDetails();
-      if(pageId==='personalDetailsPage' && typeof exportPersonalDetails==='function')return exportPersonalDetails();
-      if(pageId==='incidentsPage' && typeof exportIncidents==='function')return exportIncidents();
-      if(pageId==='reportsPage' && typeof exportReports==='function')return exportReports();
-      if(pageId==='serviceRecordsPage' && typeof exportServiceRecords==='function')return exportServiceRecords();
-
-      // fallback by visible page / text
-      if(typeof exportEvents==='function')return exportEvents();
-      alert('找不到此頁面的匯出功能');
-    }catch(err){
-      console.error('export button failed',err);
-      alert('匯出失敗：'+(err&&err.message?err.message:err));
-    }
-  }
-
-  function shouldBind(btn){
-    if(!btn)return false;
-    const txt=(btn.textContent||'').replace(/\s+/g,'');
-    const id=btn.id||'';
-    return btn.matches('.v141-btn,.v138-export-btn') || /匯出.*CSV/.test(txt) || /^export.*Btn$/i.test(id) || id==='fieldExportBtn';
-  }
-  function bind(btn){
-    if(!shouldBind(btn))return;
-    btn.dataset.v161Export='1';
-    btn.onclick=function(ev){
-      if(ev){ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();}
-      const page=pageFromButton(btn);
-      callExportForPage(page?page.id:'');
-      return false;
-    };
-  }
-  function bindAll(){
-    all('button').forEach(bind);
-
-    // 直接指定舊 ID，避免按鈕文字被其他補丁改掉時漏綁
-    const map={
-      exportCsvBtn:'calendarPage',
-      fieldExportBtn:'fieldCalendarPage',
-      exportFieldDetailsBtn:'fieldDetailsPage',
-      exportPersonalDetailsBtn:'personalDetailsPage',
-      exportIncidentsBtn:'incidentsPage',
-      exportServiceRecordsBtn:'serviceRecordsPage'
-    };
-    Object.entries(map).forEach(([id,pageId])=>{
-      const b=$(id);
-      if(b){
-        b.dataset.v161Export='1';
-        b.onclick=function(ev){
-          if(ev){ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();}
-          callExportForPage(pageId);
-          return false;
-        };
-      }
-    });
-    cleanService();
-  }
-
-  document.addEventListener('click',function(ev){
-    const btn=ev.target&&ev.target.closest&&ev.target.closest('button');
-    if(!shouldBind(btn))return;
-    ev.preventDefault();
-    ev.stopImmediatePropagation();
-    const page=pageFromButton(btn);
-    callExportForPage(page?page.id:'');
-    return false;
-  },true);
-
-  const oldApply=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
-  if(oldApply){
-    applyPermissionsUI=function(){oldApply();cleanService();};
-  }
-  const oldRenderAll=typeof renderAll==='function'?renderAll:null;
-  if(oldRenderAll){
-    renderAll=function(){oldRenderAll();bindAll();};
-  }
-
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(bindAll,250));
-  setTimeout(bindAll,900);
-})();
-</script>
 
 </body></html>
