@@ -6383,8 +6383,6 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 </body></html>
 <style>
 /* V150：翻譯版服務紀錄單 */
-/* srAdminSection 預設顯示（管理員），srStaffPage 預設隱藏（翻譯版） */
-#srStaffPage { display: none; }
 .sr-staff-remind-card{
   border-radius:14px;padding:12px 14px;margin:8px 0;
   border-left:6px solid #f59e0b;background:#fffbeb;
@@ -6463,67 +6461,41 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
     const pid = typeof userPersonId==='function' ? userPersonId() : null;
     if(!pid || typeof state==='undefined'){box.innerHTML='<div class="panel"><div class="muted">無法載入資料</div></div>';return;}
 
-    // 取得自己所有需繳交的行程
     const allRows = (state.events||[]).filter(e=>{
       if(e.deleted||e.kind==='translatorStatus')return false;
       if(typeof requiresServiceRecord!=='function'||!requiresServiceRecord(e))return false;
       return (e.participants||[]).includes(pid);
     });
 
-    // 當月明細
-    const monthRows = allRows.filter(e=>{
-      const d = e.endDate||e.startDate||'';
-      return d.slice(0,7)===thisMonth || (e.startDate||'').slice(0,7)===thisMonth;
-    }).sort((a,b)=>String(a.startDate||'').localeCompare(b.startDate||''));
+    const monthRows = allRows.filter(e=>(e.endDate||e.startDate||'').slice(0,7)===thisMonth||(e.startDate||'').slice(0,7)===thisMonth).sort((a,b)=>String(a.startDate||'').localeCompare(b.startDate||''));
+    const yearRows  = allRows.filter(e=>(e.endDate||e.startDate||'').slice(0,4)===thisYear ||(e.startDate||'').slice(0,4)===thisYear ).sort((a,b)=>String(a.startDate||'').localeCompare(b.startDate||''));
 
-    // 當年明細
-    const yearRows = allRows.filter(e=>{
-      const d = e.endDate||e.startDate||'';
-      return d.slice(0,4)===thisYear || (e.startDate||'').slice(0,4)===thisYear;
-    }).sort((a,b)=>String(a.startDate||'').localeCompare(b.startDate||''));
-
-    function deadline(e){ const dt=new Date((e.endDate||e.startDate||today)+'T00:00:00'); dt.setDate(dt.getDate()+7); return dt.toISOString().slice(0,10); }
-    function submitted(e){ return !!(e.serviceRecordSubmitted&&e.serviceRecordDate); }
-    function srStatus(e){
-      const sub = submitted(e);
-      const dl = deadline(e);
-      const overdue = !sub && today > dl;
-      if(sub) return {cell:`<span style="color:#16a34a;font-weight:900">✅ 已繳交</span>`, bg:''};
-      if(overdue) return {cell:`<span style="color:#dc2626;font-weight:900;background:#fef08a;padding:2px 6px;border-radius:6px">🚨 逾期未繳</span>`, bg:'background:#fffde7'};
-      return {cell:`<span style="color:#f59e0b;font-weight:900">⏳ 未繳交</span>`, bg:'background:#fffbeb'};
+    function dl(e){ const dt=new Date((e.endDate||e.startDate||today)+'T00:00:00'); dt.setDate(dt.getDate()+7); return dt.toISOString().slice(0,10); }
+    function srCell(e){
+      if(e.serviceRecordSubmitted&&e.serviceRecordDate) return '<span style="color:#16a34a;font-weight:900">✅ 已繳交</span>';
+      if(today>dl(e)) return '<span style="color:#dc2626;font-weight:900;background:#fef08a;padding:2px 6px;border-radius:6px">🚨 逾期未繳</span>';
+      return '<span style="color:#f59e0b;font-weight:900">⏳ 未繳交</span>';
     }
+    function rowBg(e){ if(e.serviceRecordSubmitted&&e.serviceRecordDate)return ''; if(today>dl(e))return 'background:#fffde7'; return 'background:#fffbeb'; }
     function tableRows(rows){
-      if(!rows.length) return '<tr><td colspan="7" class="muted">沒有資料</td></tr>';
-      return rows.map(e=>{
-        const s=srStatus(e);
-        return `<tr style="${s.bg}">
-          <td>${es(e.startDate||'')}${e.endDate&&e.endDate!==e.startDate?'～'+e.endDate:''}</td>
-          <td>${es(dType(e.type))}</td>
-          <td>${es(e.name||'')}</td>
-          <td>${es(e.locationName||'')}</td>
-          <td>${es(e.status||'')}</td>
-          <td>${s.cell}</td>
-          <td>${es(e.serviceRecordDate||'')}</td>
-        </tr>`;
-      }).join('');
+      if(!rows.length)return '<tr><td colspan="7" class="muted">沒有資料</td></tr>';
+      return rows.map(e=>`<tr style="${rowBg(e)}">
+        <td>${es(e.startDate||'')}${e.endDate&&e.endDate!==e.startDate?'～'+es(e.endDate):''}</td>
+        <td>${es(dType(e.type))}</td><td>${es(e.name||'')}</td>
+        <td>${es(e.locationName||'')}</td><td>${es(e.status||'')}</td>
+        <td>${srCell(e)}</td><td>${es(e.serviceRecordDate||'')}</td>
+      </tr>`).join('');
     }
-
-    box.innerHTML = `
+    const thead='<thead><tr><th>行程日期</th><th>行程類型</th><th>辦理內容</th><th>地點/客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead>';
+    box.innerHTML=`
       <div class="panel">
         <div class="section-title"><h2>當月服務紀錄單明細</h2><span class="muted">${thisMonth}</span></div>
-        <div class="detail-table-wrap"><table class="table">
-          <thead><tr><th>行程日期</th><th>行程類型</th><th>辦理內容</th><th>地點/客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead>
-          <tbody>${tableRows(monthRows)}</tbody>
-        </table></div>
+        <div class="detail-table-wrap"><table class="table">${thead}<tbody>${tableRows(monthRows)}</tbody></table></div>
       </div>
       <div class="panel">
         <div class="section-title"><h2>當年度服務紀錄單明細</h2><span class="muted">${thisYear} 年</span></div>
-        <div class="detail-table-wrap"><table class="table">
-          <thead><tr><th>行程日期</th><th>行程類型</th><th>辦理內容</th><th>地點/客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead>
-          <tbody>${tableRows(yearRows)}</tbody>
-        </table></div>
-      </div>
-    `;
+        <div class="detail-table-wrap"><table class="table">${thead}<tbody>${tableRows(yearRows)}</tbody></table></div>
+      </div>`;
   }
 
   /* 3. 切換服務紀錄單頁面顯示模式 */
@@ -6532,7 +6504,6 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
     const staffSection = document.getElementById('srStaffPage');
     if(!adminSection || !staffSection) return;
     const isStaff = isStaffRole();
-    // 強制設定，避免被其他 render 覆蓋
     adminSection.style.setProperty('display', isStaff ? 'none' : 'block', 'important');
     staffSection.style.setProperty('display', isStaff ? 'block' : 'none', 'important');
     if(isStaff) renderStaffServicePage();
@@ -6559,13 +6530,12 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
     };
   }
 
-  /* Hook renderAll，翻譯版自動更新，每次 renderAll 後都確保切換模式 */
+  /* Hook renderAll，翻譯版自動更新 */
   const _v150RenderAll = typeof renderAll==='function' ? renderAll : null;
   if(_v150RenderAll){
     renderAll = function(){
       _v150RenderAll();
-      // 每次 renderAll 後都重新套用頁面模式，確保翻譯不會看到管理員版
-      setTimeout(applyServicePageMode, 50);
+      setTimeout(applyServicePageMode, 80);
     };
   }
 
