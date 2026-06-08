@@ -6616,7 +6616,7 @@ body.role-staff #srStaffPage{display:block!important}
       // 立即執行，確保登入後馬上套用
       if(typeof window._applyServicePageMode==='function') window._applyServicePageMode();
       setTimeout(()=>{
-        applyServicePageMode();
+        window._applyServicePageMode();
         // 更新選單顯示
         document.querySelectorAll('.navbtn').forEach(btn=>{
           if(btn.dataset.page==='serviceRecords'){
@@ -6633,7 +6633,7 @@ body.role-staff #srStaffPage{display:block!important}
   if(_v150RenderAll){
     renderAll = function(){
       _v150RenderAll();
-      setTimeout(applyServicePageMode, 80);
+      setTimeout(window._applyServicePageMode, 80);
     };
   }
 
@@ -6642,7 +6642,7 @@ body.role-staff #srStaffPage{display:block!important}
   if(_v150ApplyPerm){
     applyPermissionsUI = function(){
       _v150ApplyPerm();
-      setTimeout(applyServicePageMode, 100);
+      setTimeout(window._applyServicePageMode, 100);
     };
   }
 })();
