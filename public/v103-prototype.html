@@ -1,4 +1,7 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統</title>
+wc -l public/v103-prototype.html
+git add public/v103-prototype.html
+git commit -m "fix: block setupExportControl for staff, remove export widgets"
+git push<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -5979,6 +5982,8 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
     return tb;
   }
   function setupExportControl(cfg){
+    // 翻譯帳號不顯示匯出控制
+    if(typeof normalizedRole==='function'&&normalizedRole()==='staff')return;
     const page=$(cfg.pageId);
     if(!page)return;
     page.querySelectorAll('.v138-export-inline').forEach(x=>x.remove());
@@ -6087,6 +6092,10 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
       oldRenderAll();
       restoreDesktopFilters();
       configs.forEach(setupExportControl);
+      // 翻譯帳號：renderAll 後清除所有匯出元素
+      if(typeof normalizedRole==='function'&&normalizedRole()==='staff'){
+        document.querySelectorAll('.v138-export-inline').forEach(el=>el.style.setProperty('display','none','important'));
+      }
     };
   }
   function init(){
