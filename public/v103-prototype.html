@@ -712,7 +712,7 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 }
 
 
-<style>
+
 /* V116：上一週／日期／下一週固定在篩選外，避免舊版 JS 把 toolbar 收進 details */
 .v116-week-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;width:100%}
 .v116-week-row .mini{width:auto;min-width:150px}
@@ -748,7 +748,6 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
   .v116-static-filter>.toolbar{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;padding:10px!important;border-top:1px solid var(--line)!important;margin:0!important;width:100%!important}
   .v116-static-filter>.toolbar>*,.v116-static-filter>.toolbar input,.v116-static-filter>.toolbar select,.v116-static-filter>.toolbar button,.v116-static-filter>.toolbar .mini,.v116-static-filter>.toolbar .multi-select{width:100%!important;min-width:0!important;max-width:100%!important}
 }
-</style>
 
 </style></head><body>
 <div id="loginView" class="login-wrap"><div class="login-card"><h1>FOR-e 共享排程系統</h1><div class="toolbar hide"><button type="button" id="loginTab" class="primary">登入</button><button type="button" id="registerTab">註冊</button><button type="button" id="resetBtn" class="ghost">重置測試資料</button></div><div id="loginForm"><div class="field"><label>Email</label><input id="loginEmail" value="" placeholder="name@company.com"></div><div class="field"><label>密碼</label><input id="loginPassword" type="password" value=""></div><button id="doLogin" class="primary" type="button">登入</button><button id="quickLogin" type="button" class="hide">快速登入測試帳號</button><button id="mobileForceLogin" type="button" class="hide">手機測試一鍵進入</button><div id="loginMsg" class="muted" style="margin-top:8px"></div></div><div id="registerForm" class="hide"><div class="row"><div class="field"><label>姓名</label><input id="regName"></div><div class="field"><label>角色</label><select id="regRole"><option value="general">一般人員</option><option value="staff">翻譯</option><option value="supervisor">主管</option><option value="adminStaff">行政系</option></select></div></div><div class="field"><label>Email</label><input id="regEmail"></div><div class="field"><label>密碼</label><input id="regPassword" type="password"></div><button type="button" id="doRegister" class="primary">註冊</button></div></div></div>
@@ -6263,6 +6262,607 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 
   document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{initExportPanels130();applyServicePermission130();renderServiceRecords130();},250));
   setTimeout(()=>{initExportPanels130();applyServicePermission130();},600);
+})();
+</script>
+
+
+<style>
+/* V132：匯出工具縮小且手機隱藏 */
+.v130-export-panel,
+.v132-export-panel{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  align-items:center!important;
+  gap:5px!important;
+  margin:6px 0 0!important;
+  padding:6px 8px!important;
+  border:1px solid #e2e8f0!important;
+  border-radius:10px!important;
+  background:#f8fafc!important;
+  box-shadow:none!important;
+}
+.v130-export-panel label,
+.v132-export-panel label{
+  font-size:11px!important;
+  color:#64748b!important;
+  font-weight:700!important;
+  margin:0!important;
+}
+.v130-export-panel .mini,
+.v132-export-panel .mini{
+  min-width:82px!important;
+  width:auto!important;
+  height:30px!important;
+  padding:4px 8px!important;
+  font-size:12px!important;
+  border-radius:8px!important;
+}
+.v130-export-panel button,
+.v132-export-panel button{
+  height:30px!important;
+  padding:4px 10px!important;
+  font-size:12px!important;
+  border-radius:8px!important;
+  flex:0 0 auto!important;
+}
+.v130-export-panel .v130-range-only,
+.v132-export-panel .v132-range-only{display:none}
+.v130-export-panel[data-mode="range"] .v130-range-only,
+.v132-export-panel[data-mode="range"] .v132-range-only{display:inline-flex}
+.v130-export-panel[data-mode="day"] .v130-day-only,
+.v132-export-panel[data-mode="day"] .v132-day-only{display:inline-flex}
+.v130-export-panel[data-mode="month"] .v130-month-only,
+.v132-export-panel[data-mode="month"] .v132-month-only{display:inline-flex}
+.v130-export-panel[data-mode="year"] .v130-year-only,
+.v132-export-panel[data-mode="year"] .v132-year-only{display:inline-flex}
+@media(max-width:760px){
+  .v130-export-panel,
+  .v132-export-panel{
+    display:none!important;
+  }
+}
+
+/* V132：服務紀錄單狀態與提醒 */
+.service-alert-box{
+  margin:10px 0;
+  padding:10px 12px;
+  border-radius:14px;
+  border:1px solid #fecaca;
+  background:#fef2f2;
+  color:#991b1b;
+  font-weight:900;
+  line-height:1.45;
+}
+.service-alert-box.yellow{
+  border-color:#fde68a;
+  background:#fffbeb;
+  color:#92400e;
+}
+.service-alert-box.ok{
+  border-color:#86efac;
+  background:#ecfdf5;
+  color:#166534;
+}
+.service-status-chip{
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  padding:3px 8px;
+  font-weight:900;
+  font-size:12px;
+  border:1px solid #e2e8f0;
+  background:#fff;
+  color:#334155;
+}
+.service-status-chip.ok{
+  border-color:#86efac;
+  background:#ecfdf5;
+  color:#166534;
+}
+.service-status-chip.no{
+  border-color:#fecaca;
+  background:#fef2f2;
+  color:#991b1b;
+}
+.service-status-chip.warn{
+  border-color:#fde68a;
+  background:#fffbeb;
+  color:#92400e;
+}
+.service-translator-note{
+  margin:8px 0;
+  padding:8px 10px;
+  border-radius:12px;
+  background:#eff6ff;
+  border:1px solid #bfdbfe;
+  color:#1d4ed8;
+  font-weight:800;
+  font-size:13px;
+}
+.role-hidden{display:none!important}
+</style>
+
+<script>
+/* V132：修正匯出工具大小、服務紀錄單權限、翻譯個人提醒與測試資料 */
+(function(){
+  function el(id){return document.getElementById(id)}
+  function qsa(s){return [...document.querySelectorAll(s)]}
+  function today(){return (typeof todayISO==='function')?todayISO():new Date().toISOString().slice(0,10)}
+  function addDays(d,n){
+    if(typeof dateAdd==='function')return dateAdd(d,n);
+    const x=new Date(d+'T00:00:00'); x.setDate(x.getDate()+n); return x.toISOString().slice(0,10);
+  }
+  function monthNow(){return today().slice(0,7)}
+  function yearNow(){return today().slice(0,4)}
+  function rangeOfMonth(ym){
+    if(typeof monthRange==='function')return monthRange(ym);
+    const y=Number(ym.slice(0,4)),m=Number(ym.slice(5,7));
+    const last=new Date(y,m,0).getDate();
+    return [ym+'-01',ym+'-'+String(last).padStart(2,'0')];
+  }
+  function esc2(v){
+    try{return typeof esc==='function'?esc(v):String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+    catch(e){return String(v??'')}
+  }
+  function role(){
+    const r=(currentUser&&currentUser.role)||'';
+    if(r==='admin'||r==='options')return 'admin';
+    if(r==='supervisor')return 'supervisor';
+    if(r==='adminStaff'||r==='admin_staff')return 'adminStaff';
+    if(r==='general'||r==='sales')return 'general';
+    return 'translator';
+  }
+  function serviceAllowed(){
+    const r=role();
+    return r==='admin'||r==='supervisor'||r==='translator';
+  }
+  function serviceFull(){
+    const r=role();
+    return r==='admin'||r==='supervisor';
+  }
+  function personId(){
+    try{return typeof userPersonId==='function'?userPersonId():(currentUser&&currentUser.personId)}
+    catch(e){return currentUser&&currentUser.personId}
+  }
+  function getP(id){
+    try{return typeof getPerson==='function'?getPerson(id):((state.people||[]).find(p=>p.id===id)||{})}
+    catch(e){return (state.people||[]).find(p=>p.id===id)||{}}
+  }
+  function getU(id){
+    try{return typeof getUser==='function'?getUser(id):((state.users||[]).find(u=>u.id===id)||{})}
+    catch(e){return (state.users||[]).find(u=>u.id===id)||{}}
+  }
+  function dispType(t){
+    try{return typeof displayEventType==='function'?displayEventType(t):String(t||'')}
+    catch(e){return String(t||'')}
+  }
+  function reqSR(e){
+    try{return typeof requiresServiceRecord==='function'?requiresServiceRecord(e):['銀行','定期','送工(新入境、承接)','車禍處理','面談','醫療','上線/教育訓練'].includes(dispType(e.type||e))}
+    catch(err){return false}
+  }
+  function eventRange(e,s,en){
+    try{return typeof eventOverlapsRange==='function'?eventOverlapsRange(e,s,en):((e.startDate||'')<=en && (e.endDate||e.startDate||'')>=s)}
+    catch(err){return false}
+  }
+
+  function ensureServiceBottomNav(){
+    const nav=document.querySelector('.bottom-nav');
+    if(nav && !nav.querySelector('[data-page="serviceRecords"]')){
+      const btn=document.createElement('button');
+      btn.className='navbtn';
+      btn.dataset.page='serviceRecords';
+      btn.innerHTML='<span class="mono-ico ico-clipboard"></span>服務';
+      btn.addEventListener('click',()=>showPageDirect('serviceRecords'));
+      const line=nav.querySelector('[data-page="line"]');
+      if(line)nav.insertBefore(btn,line); else nav.appendChild(btn);
+    }
+  }
+  function showPageDirect(page){
+    qsa('.page').forEach(p=>p.classList.add('hide'));
+    const idMap={serviceRecords:'serviceRecordsPage',calendar:'calendarPage',fieldCalendar:'fieldCalendarPage',roomBooking:'roomBookingPage',today:'todayPage',mobile:'mobilePage',incidents:'incidentsPage',reports:'reportsPage',line:'linePage'};
+    const target=el(idMap[page]||page+'Page');
+    if(target)target.classList.remove('hide');
+    qsa('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
+    if(page==='serviceRecords')renderServiceRecordsV132();
+  }
+
+  function applyServiceNav(){
+    ensureServiceBottomNav();
+    const allow=serviceAllowed();
+    qsa('.navbtn[data-page="serviceRecords"]').forEach(btn=>{
+      btn.classList.toggle('role-hidden',!allow);
+      btn.classList.toggle('hide',!allow);
+    });
+    const page=el('serviceRecordsPage');
+    if(page && !allow)page.classList.add('hide');
+    // 行政系與一般人員如果剛好停在該頁，切走
+    if(!allow && page && !page.classList.contains('hide')){
+      showPageDirect('calendar');
+    }
+  }
+
+  const oldCanSee=typeof canSeePage==='function'?canSeePage:null;
+  if(oldCanSee){
+    canSeePage=function(page){
+      if(page==='serviceRecords')return serviceAllowed();
+      return oldCanSee(page);
+    };
+  }
+  if(window.v105AllowedPages){
+    const oldAllowed=window.v105AllowedPages;
+    window.v105AllowedPages=function(){
+      let arr=oldAllowed();
+      if(serviceAllowed())arr=[...new Set([...arr,'serviceRecords'])];
+      else arr=arr.filter(x=>x!=='serviceRecords');
+      return arr;
+    };
+  }
+
+  function ensureCompactExport(pageId,label){
+    const page=el(pageId);
+    if(!page)return;
+    // 移除前幾版大匯出列，避免重複
+    page.querySelectorAll('.v130-export-panel').forEach(x=>x.remove());
+    if(page.querySelector('.v132-export-panel'))return;
+    const first=page.querySelector('.panel');
+    if(!first)return;
+    const box=document.createElement('div');
+    box.className='v132-export-panel';
+    box.dataset.mode='month';
+    box.innerHTML=`
+      <label>匯出</label>
+      <select class="mini v132-mode">
+        <option value="day">日</option>
+        <option value="month" selected>月</option>
+        <option value="year">年</option>
+        <option value="range">區間</option>
+      </select>
+      <input class="mini v132-day v132-day-only" type="date" value="${today()}">
+      <input class="mini v132-month v132-month-only" type="month" value="${monthNow()}">
+      <input class="mini v132-year v132-year-only" type="number" min="2024" max="2035" value="${yearNow()}">
+      <input class="mini v132-start v132-range-only" type="date" value="${today()}">
+      <input class="mini v132-end v132-range-only" type="date" value="${today()}">
+      <button class="primary v132-export-btn" type="button">${label}CSV</button>
+    `;
+    first.appendChild(box);
+    const mode=box.querySelector('.v132-mode');
+    mode.addEventListener('change',()=>box.dataset.mode=mode.value);
+    box.querySelector('.v132-export-btn').addEventListener('click',()=>exportPage(pageId));
+  }
+  function exportRange(pageId){
+    const box=el(pageId)?.querySelector('.v132-export-panel');
+    const mode=box?.querySelector('.v132-mode')?.value||'month';
+    if(mode==='day'){
+      const d=box.querySelector('.v132-day').value||today();
+      return {s:d,e:d,label:d};
+    }
+    if(mode==='year'){
+      const y=box.querySelector('.v132-year').value||yearNow();
+      return {s:y+'-01-01',e:y+'-12-31',label:y};
+    }
+    if(mode==='range'){
+      const s=box.querySelector('.v132-start').value||today();
+      const e=box.querySelector('.v132-end').value||s;
+      return {s,e,label:s+'_to_'+e};
+    }
+    const ym=box.querySelector('.v132-month').value||monthNow();
+    const [s,e]=rangeOfMonth(ym);
+    return {s,e,label:ym};
+  }
+  function csv(rows,name){
+    if(typeof exportCsv==='function')return exportCsv(rows,name);
+    const data=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob(['\ufeff'+data],{type:'text/csv;charset=utf-8'}));
+    a.download=name; a.click();
+  }
+  function rowsCalendar(s,e){
+    const rows=[['ID','起日','迄日','時間','類型','辦理內容','地點/客戶','狀態','人員','服務紀錄單','繳交日期','備註']];
+    (state.events||[]).filter(x=>!x.deleted&&eventRange(x,s,e)).forEach(x=>{
+      rows.push([x.id,x.startDate,x.endDate,x.startTime||'',dispType(x.type),x.name||'',x.locationName||'',x.status||'',(x.participants||[]).map(id=>getP(id).name||'').filter(Boolean).join('、'),reqSR(x)?(x.serviceRecordSubmitted?'已繳交':'未繳交'):'',x.serviceRecordDate||'',x.note||'']);
+    });
+    return rows;
+  }
+  function rowsField(s,e){
+    const rows=[['ID','日期','時間','人員','目的','地點','地址','狀態','內容']];
+    (state.externalEvents||[]).filter(x=>!x.deleted&&x.date>=s&&x.date<=e).forEach(x=>rows.push([x.id,x.date,x.time||'',getP(x.personId).name||'',x.purpose||'',x.locationName||'',x.address||'',x.status||'',x.note||'']));
+    return rows;
+  }
+  function rowsRoom(s,e){
+    const rows=[['ID','日期','時間','會議室','部門','會議名稱','建立人']];
+    (state.roomBookings||[]).filter(x=>!x.deleted&&x.date>=s&&x.date<=e).forEach(x=>rows.push([x.id,x.date,(x.startTime||'')+'-'+(x.endTime||''),x.room||'',x.department||'',x.title||'',getU(x.createdBy).name||'']));
+    return rows;
+  }
+  function rowsIncident(s,e){
+    const rows=[['ID','發生日期','時間','類型','緊急程度','地點/客戶','工人','標題','負責人','狀態','下次追蹤','內容']];
+    (state.incidents||[]).filter(x=>!x.deleted&&(x.occurrenceDate||'')>=s&&(x.occurrenceDate||'')<=e).forEach(x=>rows.push([x.id,x.occurrenceDate||'',x.occurrenceTime||'',x.incidentType||'',x.urgency||'',x.customerName||'',x.workerName||'',x.title||'',getP(x.ownerPersonId).name||'',x.status||'',x.nextFollowDate||'',x.description||'']));
+    return rows;
+  }
+  function rowsReport(s,e){
+    const events=(state.events||[]).filter(x=>!x.deleted&&eventRange(x,s,e));
+    const fields=(state.externalEvents||[]).filter(x=>!x.deleted&&x.date>=s&&x.date<=e);
+    const inc=(state.incidents||[]).filter(x=>!x.deleted&&(x.occurrenceDate||'')>=s&&(x.occurrenceDate||'')<=e);
+    const rows=[['類別','項目','數量','起日','迄日'],['總計','行程',events.length,s,e],['總計','外務',fields.length,s,e],['總計','異況',inc.length,s,e]];
+    const byType={};events.forEach(x=>byType[dispType(x.type)||'未填']=(byType[dispType(x.type)||'未填']||0)+1);
+    Object.entries(byType).forEach(([k,v])=>rows.push(['行程類型',k,v,s,e]));
+    return rows;
+  }
+  function serviceRows(s,e){
+    return serviceRowsData(s,e).map(x=>[x.date,x.person.group,x.person.name,x.person.lang,dispType(x.event.type),x.event.name,x.event.locationName||'',x.event.status,x.submitted?'已繳交':'未繳交',x.event.serviceRecordDate||'']);
+  }
+  function rowsService(s,e){
+    return [['日期','部門','人員','職務','行程類型','辦理內容','地點/客戶','行程狀態','服務紀錄單','繳交日期'],...serviceRows(s,e)];
+  }
+  function exportPage(pageId){
+    const r=exportRange(pageId);
+    let rows,name;
+    if(pageId==='calendarPage'){rows=rowsCalendar(r.s,r.e);name='行程總覽'}
+    else if(pageId==='fieldCalendarPage'||pageId==='fieldDetailsPage'){rows=rowsField(r.s,r.e);name=pageId==='fieldDetailsPage'?'外務明細':'外務行程'}
+    else if(pageId==='roomBookingPage'){rows=rowsRoom(r.s,r.e);name='會議室預約'}
+    else if(pageId==='incidentsPage'){rows=rowsIncident(r.s,r.e);name='異況追蹤'}
+    else if(pageId==='reportsPage'){rows=rowsReport(r.s,r.e);name='統計報表'}
+    else if(pageId==='serviceRecordsPage'){rows=rowsService(r.s,r.e);name='服務紀錄單'}
+    else {rows=rowsCalendar(r.s,r.e);name='匯出'}
+    csv(rows,`${name}_${r.label}.csv`);
+  }
+
+  function initExports(){
+    ensureCompactExport('calendarPage','行程');
+    ensureCompactExport('fieldCalendarPage','外務');
+    ensureCompactExport('roomBookingPage','會議室');
+    ensureCompactExport('fieldDetailsPage','明細');
+    ensureCompactExport('incidentsPage','異況');
+    ensureCompactExport('reportsPage','統計');
+    ensureCompactExport('serviceRecordsPage','服務');
+    const map={exportCsvBtn:'calendarPage',fieldExportBtn:'fieldCalendarPage',exportFieldDetailsBtn:'fieldDetailsPage',exportIncidentsBtn:'incidentsPage',exportReportBtn:'reportsPage',exportServiceRecordsBtn:'serviceRecordsPage'};
+    Object.entries(map).forEach(([id,page])=>{const b=el(id); if(b)b.onclick=()=>exportPage(page);});
+  }
+
+  function initServiceFiltersSafe(){
+    if(typeof initServiceFilters==='function')initServiceFilters();
+    if(el('serviceMonth')&&!el('serviceMonth').value)el('serviceMonth').value=monthNow();
+    if(el('serviceYear')&&!el('serviceYear').value)el('serviceYear').value=yearNow();
+    fillServicePersonOptions();
+  }
+  function eligiblePeople(){
+    const people=(state.people||[]).filter(p=>{
+      try{return typeof reportEligiblePerson==='function'?reportEligiblePerson(p):p.active!==false}
+      catch(e){return p.active!==false}
+    });
+    if(role()==='translator'){
+      const pid=personId();
+      return people.filter(p=>p.id===pid);
+    }
+    const g=el('serviceGroup')?.value||'';
+    const pid=el('servicePerson')?.value||'';
+    return people.filter(p=>(!g||p.group===g)&&(!pid||p.id===pid));
+  }
+  function fillServicePersonOptions(){
+    const sel=el('servicePerson'); if(!sel)return;
+    const cur=sel.value;
+    const people=(state.people||[]).filter(p=>{
+      try{return typeof reportEligiblePerson==='function'?reportEligiblePerson(p):p.active!==false}
+      catch(e){return p.active!==false}
+    });
+    sel.innerHTML='<option value="">全部翻譯</option>'+people.map(p=>`<option value="${esc2(p.id)}">${esc2(p.name)}</option>`).join('');
+    if(cur)sel.value=cur;
+    if(role()==='translator'){
+      const pid=personId();
+      sel.value=pid||'';
+      sel.disabled=true;
+      if(el('serviceGroup'))el('serviceGroup').disabled=true;
+    }else{
+      sel.disabled=false;
+      if(el('serviceGroup'))el('serviceGroup').disabled=false;
+    }
+  }
+  function serviceSubmitted(e){return !!(e.serviceRecordSubmitted&&e.serviceRecordDate)}
+  function serviceRowsData(s,e){
+    const people=eligiblePeople();
+    let rows=[];
+    if(typeof serviceRecordsInRange==='function'){
+      rows=serviceRecordsInRange(s,e,people);
+    }else{
+      for(const p of people){
+        (state.events||[]).filter(ev=>!ev.deleted&&eventRange(ev,s,e)&&reqSR(ev)&&(ev.participants||[]).includes(p.id)).forEach(ev=>rows.push({person:p,event:ev,date:ev.startDate<s?s:ev.startDate,submitted:serviceSubmitted(ev)}));
+      }
+    }
+    rows.forEach(x=>x.submitted=serviceSubmitted(x.event));
+    const status=el('serviceStatus')?.value||'';
+    if(status==='submitted')rows=rows.filter(x=>x.submitted);
+    if(status==='unsubmitted')rows=rows.filter(x=>!x.submitted);
+    return rows;
+  }
+  function ageClass(date){
+    const days=Math.floor((new Date(today()+'T00:00:00')-new Date(date+'T00:00:00'))/86400000);
+    if(days>=14)return 'warn';
+    if(days>=0)return 'no';
+    return 'no';
+  }
+  function ensureServiceUI(){
+    const page=el('serviceRecordsPage'); if(!page)return;
+    let alert=el('serviceAlertBox');
+    if(!alert){
+      alert=document.createElement('div');
+      alert.id='serviceAlertBox';
+      const first=page.querySelector('.panel');
+      if(first)first.appendChild(alert);
+    }
+    if(!el('serviceTestBtn')){
+      const btn=document.createElement('button');
+      btn.id='serviceTestBtn';
+      btn.type='button';
+      btn.textContent='建立服務紀錄單提醒測試（一週 / 兩週未交）';
+      btn.onclick=createServiceTestData;
+      const toolbar=page.querySelector('.section-title .toolbar') || page.querySelector('.toolbar');
+      if(toolbar)toolbar.appendChild(btn);
+    }
+    let note=el('serviceTranslatorNote');
+    if(!note){
+      note=document.createElement('div');
+      note.id='serviceTranslatorNote';
+      note.className='service-translator-note';
+      note.textContent='翻譯帳號僅顯示自己的服務紀錄單明細、已交 / 未交數量與提醒。';
+      const first=page.querySelector('.panel');
+      if(first)first.appendChild(note);
+    }
+  }
+  function renderServiceRecordsV132(){
+    if(!el('serviceMonth'))return;
+    applyServiceNav();
+    if(!serviceAllowed())return;
+    initServiceFiltersSafe();
+    ensureServiceUI();
+
+    const ym=el('serviceMonth').value||monthNow();
+    const year=Number(el('serviceYear').value||ym.slice(0,4));
+    const [ms,me]=rangeOfMonth(ym);
+    const monthRows=serviceRowsData(ms,me);
+    const yearRows=serviceRowsData(year+'-01-01',year+'-12-31');
+
+    const mSub=monthRows.filter(x=>x.submitted).length, mNo=monthRows.filter(x=>!x.submitted).length;
+    const ySub=yearRows.filter(x=>x.submitted).length, yNo=yearRows.filter(x=>!x.submitted).length;
+
+    if(el('serviceOverviewStats')){
+      el('serviceOverviewStats').innerHTML=
+      `<div class="stat"><div class="muted">當月需繳交</div><b>${monthRows.length}</b></div>
+       <div class="stat"><div class="muted">當月已交</div><b>${mSub}</b></div>
+       <div class="stat"><div class="muted">當月未交</div><b>${mNo}</b></div>
+       <div class="stat"><div class="muted">年度已交</div><b>${ySub}</b></div>
+       <div class="stat"><div class="muted">年度未交</div><b>${yNo}</b></div>`;
+    }
+
+    const allUnsubmitted=monthRows.filter(x=>!x.submitted);
+    const weekUnsubmitted=allUnsubmitted.filter(x=>new Date(x.date+'T00:00:00')>=new Date(addDays(today(),-7)+'T00:00:00'));
+    const twoWeek=allUnsubmitted.filter(x=>ageClass(x.date)==='warn');
+    const alert=el('serviceAlertBox');
+    if(alert){
+      if(twoWeek.length){
+        alert.className='service-alert-box yellow';
+        alert.textContent=`黃色提醒：有 ${twoWeek.length} 筆服務紀錄單超過兩週未繳交，請儘快補交。`;
+      }else if(allUnsubmitted.length){
+        alert.className='service-alert-box';
+        alert.textContent=`提醒：目前有 ${allUnsubmitted.length} 筆服務紀錄單未繳交，其中本週未交 ${weekUnsubmitted.length} 筆。`;
+      }else{
+        alert.className='service-alert-box ok';
+        alert.textContent='目前沒有未繳交的服務紀錄單。';
+      }
+    }
+
+    function groupSummary(rows){
+      const map={};
+      rows.forEach(x=>{
+        const id=x.person.id;
+        if(!map[id])map[id]={p:x.person,total:0,sub:0,no:0};
+        map[id].total++;
+        if(x.submitted)map[id].sub++;else map[id].no++;
+      });
+      return Object.values(map).sort((a,b)=>(a.p.group+a.p.name).localeCompare(b.p.group+b.p.name));
+    }
+    function renderSummary(prefix,rows){
+      if(!el(prefix+'Head'))return;
+      el(prefix+'Head').innerHTML='<tr><th>人員名稱</th><th>部門</th><th>職務</th><th>需繳交總數</th><th>已交</th><th>未交</th></tr>';
+      el(prefix+'Rows').innerHTML=groupSummary(rows).map(r=>`<tr><td>${esc2(r.p.name)}</td><td>${esc2(r.p.group)}</td><td>${esc2(r.p.lang)}</td><td><b>${r.total}</b></td><td>${r.sub}</td><td>${r.no}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">沒有資料</td></tr>';
+    }
+    renderSummary('serviceMonth',monthRows);
+    renderSummary('serviceYear',yearRows);
+
+    if(el('serviceDeptHead')){
+      el('serviceDeptHead').innerHTML='<tr><th>部門</th><th>需繳交總數</th><th>已交</th><th>未交</th></tr>';
+      if(serviceFull()){
+        const groups=[...new Set(monthRows.map(x=>x.person.group||'未分組'))];
+        el('serviceDeptRows').innerHTML=groups.map(g=>{
+          const rows=monthRows.filter(x=>x.person.group===g);
+          return `<tr><td><b>${esc2(g)}</b></td><td>${rows.length}</td><td>${rows.filter(x=>x.submitted).length}</td><td>${rows.filter(x=>!x.submitted).length}</td></tr>`;
+        }).join('')||'<tr><td colspan="4" class="muted">沒有資料</td></tr>';
+      }else{
+        el('serviceDeptRows').innerHTML='<tr><td colspan="4" class="muted">翻譯帳號僅顯示個人服務紀錄單明細。</td></tr>';
+      }
+    }
+    if(el('serviceMonthPendingStats')){
+      const pend=groupSummary(monthRows).filter(r=>r.no>0);
+      el('serviceMonthPendingStats').innerHTML=pend.map(r=>`<div class="stat"><div class="muted">${esc2(r.p.name)}</div><b>${r.no}</b></div>`).join('')||'<div class="muted">目前無未交數字</div>';
+    }
+    function detail(rows,yearMode){
+      return rows.sort((a,b)=>(a.date+a.person.group+a.person.name).localeCompare(b.date+b.person.group+b.person.name)).map(x=>{
+        const cls=x.submitted?'ok':ageClass(x.date);
+        const label=x.submitted?'已繳交':(cls==='warn'?'未交超過兩週':'未繳交');
+        return `<tr>
+          ${yearMode?`<td>${esc2(x.date.slice(0,7))}</td>`:''}
+          <td>${esc2(x.date)}</td><td>${esc2(x.person.group)}</td><td>${esc2(x.person.name)}</td><td>${esc2(x.person.lang)}</td>
+          <td>${esc2(dispType(x.event.type))}</td><td>${esc2(x.event.name)}</td><td>${esc2(x.event.locationName||'')}</td>
+          <td>${esc2(x.event.status)}</td><td><span class="service-status-chip ${cls}">${label}</span></td><td>${esc2(x.event.serviceRecordDate||'')}</td>
+        </tr>`;
+      }).join('')||`<tr><td colspan="${yearMode?11:10}" class="muted">沒有明細</td></tr>`;
+    }
+    if(el('serviceMonthDetailRows'))el('serviceMonthDetailRows').innerHTML=detail(monthRows,false);
+    if(el('serviceYearDetailRows'))el('serviceYearDetailRows').innerHTML=detail(yearRows,true);
+    if(el('serviceMonthStats'))el('serviceMonthStats').innerHTML=`<div class="stat"><div class="muted">已交</div><b>${mSub}</b></div><div class="stat"><div class="muted">未交</div><b>${mNo}</b></div>`;
+    if(el('serviceYearStats'))el('serviceYearStats').innerHTML=`<div class="stat"><div class="muted">年度已交</div><b>${ySub}</b></div><div class="stat"><div class="muted">年度未交</div><b>${yNo}</b></div>`;
+  }
+
+  function createServiceTestData(){
+    const pid=personId() || (state.people||[])[0]?.id;
+    if(!pid){try{toast('找不到對應人員，無法建立測試資料')}catch(e){};return}
+    const p=getP(pid);
+    const d1=addDays(today(),-7);
+    const d2=addDays(today(),-15);
+    state.events=state.events||[];
+    const tests=[
+      {id:'service_test_week_'+pid,startDate:d1,endDate:d1,startTime:'上午',name:'服務紀錄單測試｜一週未繳',locationName:'測試資料',note:'測試：一週未繳提醒'},
+      {id:'service_test_2week_'+pid,startDate:d2,endDate:d2,startTime:'上午',name:'服務紀錄單測試｜兩週未繳',locationName:'測試資料',note:'測試：兩週未繳黃色提醒'}
+    ];
+    tests.forEach(t=>{
+      const old=state.events.find(e=>e.id===t.id);
+      const data=Object.assign({
+        kind:'schedule',status:'已完成',endTime:'',type:'銀行',address:'',vehicleNo:'',meetingRoom:'不指定',
+        participants:[pid],assigneeIds:[pid],serviceRecordSubmitted:false,serviceRecordDate:'',
+        createdBy:(currentUser&&currentUser.id)||'system',createdAt:new Date().toISOString(),
+        updatedBy:(currentUser&&currentUser.id)||'system',updatedAt:new Date().toISOString(),deleted:false
+      },t);
+      if(old)Object.assign(old,data); else state.events.push(data);
+    });
+    if(typeof save==='function')save();
+    if(el('serviceMonth'))el('serviceMonth').value=monthNow();
+    if(el('serviceYear'))el('serviceYear').value=yearNow();
+    renderServiceRecordsV132();
+    try{toast('已建立一週未繳、兩週未繳測試資料')}catch(e){}
+  }
+
+  const oldRenderAll=typeof renderAll==='function'?renderAll:null;
+  if(oldRenderAll){
+    renderAll=function(){
+      oldRenderAll();
+      initExports();
+      applyServiceNav();
+      if(el('serviceRecordsPage') && !el('serviceRecordsPage').classList.contains('hide'))renderServiceRecordsV132();
+    };
+  }
+  const oldApplyNav=window.v105ApplyNav;
+  window.v105ApplyNav=function(){
+    if(oldApplyNav)oldApplyNav();
+    applyServiceNav();
+  };
+  const oldService=typeof renderServiceRecords==='function'?renderServiceRecords:null;
+  renderServiceRecords=function(){renderServiceRecordsV132()};
+  exportServiceRecords=function(){exportPage('serviceRecordsPage')};
+
+  document.addEventListener('click',e=>{
+    const btn=e.target&&e.target.closest&&e.target.closest('.navbtn[data-page="serviceRecords"]');
+    if(btn){e.preventDefault();showPageDirect('serviceRecords')}
+  },true);
+
+  ['serviceMonth','serviceYear','serviceGroup','servicePerson','serviceStatus'].forEach(id=>{
+    setTimeout(()=>{const x=el(id); if(x&&!x.dataset.v132Bound){x.dataset.v132Bound='1';x.addEventListener('input',renderServiceRecordsV132);x.addEventListener('change',renderServiceRecordsV132)}},700);
+  });
+
+  function init(){
+    initExports();
+    applyServiceNav();
+    if(serviceAllowed())renderServiceRecordsV132();
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(init,250));
+  setTimeout(init,700);
 })();
 </script>
 
