@@ -6098,159 +6098,125 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 })();
 </script>
 <script>
-/* V142 fix：五大頁面匯出 widget */
+/* V150 Final：翻譯版服務紀錄單 - 用 MutationObserver + interval 確保即時生效 */
 (function(){
-  function tod(){ return typeof todayISO==='function'?todayISO():new Date().toISOString().slice(0,10); }
-  function ym0(){ return tod().slice(0,7); }
-  function yr0(){ return tod().slice(0,4); }
-  function mRng(m){ return typeof monthRange==='function'?monthRange(m):[m+'-01',m+'-31']; }
-  function dType(t){ try{return typeof displayEventType==='function'?displayEventType(t):String(t||'')}catch(e){return String(t||'')} }
-  function pName(id){ try{return typeof getPerson==='function'?(getPerson(id)||{}).name||'':''}catch(e){return ''} }
-
-  function canExport(){
-    // 必須在 currentUser 存在後才判斷
-    if(typeof currentUser==='undefined'||!currentUser)return false;
-    if(typeof normalizedRole!=='function')return false;
-    return ['admin','supervisor','adminStaff'].includes(normalizedRole());
+  function isStaff(){
+    return typeof normalizedRole==='function' && normalizedRole()==='staff';
   }
-  function applyVis(){
-    document.body.classList.toggle('v142-no-export',!canExport());
+  function myPid(){
+    return typeof userPersonId==='function' ? userPersonId() : null;
   }
-
-  function dlCsv(rows,fn){
-    if(typeof exportCsv==='function'){exportCsv(rows,fn);return;}
-    const b=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
-    const blob=new Blob(['\ufeff'+b],{type:'text/csv;charset=utf-8'});
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;a.click();
-    setTimeout(()=>URL.revokeObjectURL(a.href),500);
+  function todayStr(){
+    return typeof todayISO==='function' ? todayISO() : new Date().toISOString().slice(0,10);
   }
+  function dl(e){
+    const dt=new Date((e.endDate||e.startDate||todayStr())+'T00:00:00');
+    dt.setDate(dt.getDate()+7); return dt.toISOString().slice(0,10);
+  }
+  function submitted(e){ return !!(e.serviceRecordSubmitted&&e.serviceRecordDate); }
+  function dT(t){ return typeof displayEventType==='function'?displayEventType(t):String(t||''); }
+  function es(s){ return typeof esc==='function'?esc(s):String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-  function doPersonal(s,e,fn){
-    if(typeof personalDetailRowsFiltered!=='function')return;
-    const ps=document.getElementById('personalDetailStart'),pe=document.getElementById('personalDetailEnd');
-    const os=ps&&ps.value,oe=pe&&pe.value;
-    if(ps)ps.value=s;if(pe)pe.value=e;
-    const rows=personalDetailRowsFiltered();
-    if(ps)ps.value=os||'';if(pe)pe.value=oe||'';
-    const out=[['日期','時間','人員','類別','行程類型','地點/客戶','辦理內容','狀態','內容說明','公務車','服務紀錄單']];
-    rows.forEach(r=>{
-      const ev=r.event,p=typeof getPerson==='function'?getPerson(r.personId):{name:''};
-      const sr=typeof requiresServiceRecord==='function'&&requiresServiceRecord(ev)
-        ?(ev.serviceRecordSubmitted&&ev.serviceRecordDate?'已繳交 '+ev.serviceRecordDate:'未繳交'):'';
-      out.push([r.date,typeof ampm==='function'?ampm(ev.startTime):ev.startTime,p.name,
-        typeof kindLabel==='function'?kindLabel(ev.kind):ev.kind,
-        dType(ev.type),ev.locationName||'',ev.name||'',ev.status||'',ev.note||'',ev.vehicleNo||'',sr]);
+  function renderStaffPage(){
+    const box=document.getElementById('srStaffPage');
+    if(!box) return;
+    const today=todayStr(), thisMonth=today.slice(0,7), thisYear=today.slice(0,4);
+    const pid=myPid();
+    if(!pid||typeof state==='undefined'){
+      box.innerHTML='<div class="panel"><div class="muted">無法載入資料</div></div>'; return;
+    }
+    const all=(state.events||[]).filter(e=>{
+      if(e.deleted||e.kind==='translatorStatus') return false;
+      if(typeof requiresServiceRecord!=='function'||!requiresServiceRecord(e)) return false;
+      return (e.participants||[]).includes(pid);
     });
-    dlCsv(out,fn);
+    const reminders=all.filter(e=>!submitted(e)&&(e.endDate||e.startDate||'')<=today)
+                        .sort((a,b)=>dl(a).localeCompare(dl(b)));
+    const overdue=reminders.filter(e=>today>dl(e));
+    const within7=reminders.filter(e=>today<=dl(e));
+    const monthAll=all.filter(e=>(e.startDate||'').slice(0,7)===thisMonth).sort((a,b)=>String(a.startDate).localeCompare(b.startDate));
+    const yearAll =all.filter(e=>(e.startDate||'').slice(0,4)===thisYear ).sort((a,b)=>String(a.startDate).localeCompare(b.startDate));
+
+    function badge(e){
+      if(submitted(e)) return '<span style="color:#16a34a;font-weight:900">✅ 已繳交</span>';
+      if(today>dl(e))  return '<span style="color:#dc2626;font-weight:900;background:#fef08a;padding:2px 6px;border-radius:6px">🚨 逾期未繳</span>';
+      if((e.endDate||e.startDate||'')<=today) return '<span style="color:#f59e0b;font-weight:900">⏳ 未繳交</span>';
+      return '<span style="color:#6b7280">— 尚未結束</span>';
+    }
+    function bg(e){ if(submitted(e))return''; if(today>dl(e))return'background:#fffde7'; if((e.endDate||e.startDate||'')<=today)return'background:#fffbeb'; return''; }
+    function card(e,over){
+      return `<div class="sr-staff-remind-card${over?' overdue':''}">
+        <div class="sr-remind-icon">${over?'🚨':'⏰'}</div>
+        <div class="sr-remind-body">
+          <div class="sr-remind-title">${es(dT(e.type))}｜${es(e.name||'')}</div>
+          <div class="sr-remind-meta">行程日期：${es(e.startDate||'')}${e.endDate&&e.endDate!==e.startDate?'～'+es(e.endDate):''}　地點：${es(e.locationName||'')}</div>
+          <div class="sr-remind-meta">繳交截止：<b>${es(dl(e))}</b></div>
+          ${over?'<div class="sr-remind-overdue">已逾期，請盡快繳交！</div>':'<div style="margin-top:4px;font-size:12px;color:#92400e">⚠ 請於截止日前繳交</div>'}
+        </div></div>`;
+    }
+    const thead=`<thead><tr><th>行程日期</th><th>行程類型</th><th>辦理內容</th><th>地點/客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead>`;
+    function trows(rows){
+      if(!rows.length) return '<tr><td colspan="7" class="muted" style="text-align:center;padding:16px">沒有資料</td></tr>';
+      return rows.map(e=>`<tr style="${bg(e)}"><td>${es(e.startDate||'')}${e.endDate&&e.endDate!==e.startDate?'～'+es(e.endDate):''}</td><td>${es(dT(e.type))}</td><td>${es(e.name||'')}</td><td>${es(e.locationName||'')}</td><td>${es(e.status||'')}</td><td>${badge(e)}</td><td>${es(e.serviceRecordDate||'')}</td></tr>`).join('');
+    }
+    box.innerHTML=`
+      <div class="panel">
+        <div class="section-title"><h2>服務紀錄單繳交提醒</h2><span class="muted">行程結束後 7 天內請繳交</span></div>
+        ${overdue.length===0&&within7.length===0?'<div class="muted" style="padding:12px 0">目前沒有待繳交的服務紀錄單 🎉</div>':''}
+        ${overdue.length>0?`<div style="font-weight:900;color:#dc2626;margin:8px 0 4px">🚨 逾期催繳（${overdue.length} 筆）</div>${overdue.map(e=>card(e,true)).join('')}`:''}
+        ${within7.length>0?`<div style="font-weight:900;color:#92400e;margin:8px 0 4px">⏰ 一週內請繳交（${within7.length} 筆）</div>${within7.map(e=>card(e,false)).join('')}`:''}
+      </div>
+      <div class="panel">
+        <div class="section-title"><h2>當月服務紀錄單明細</h2><span class="muted">${thisMonth}</span></div>
+        <div class="detail-table-wrap"><table class="table">${thead}<tbody>${trows(monthAll)}</tbody></table></div>
+      </div>
+      <div class="panel">
+        <div class="section-title"><h2>當年度服務紀錄單明細</h2><span class="muted">${thisYear} 年</span></div>
+        <div class="detail-table-wrap"><table class="table">${thead}<tbody>${trows(yearAll)}</tbody></table></div>
+      </div>`;
   }
 
-  function doIncidents(s,e,fn){
-    if(typeof state==='undefined')return;
-    const rows=[['發生日期','異況類型','緊急程度','地點/客戶','工人','異況標題','負責人','狀態','下次追蹤日','最後追蹤']];
-    (state.incidents||[]).filter(i=>!i.deleted&&(i.occurrenceDate||'')>=s&&(i.occurrenceDate||'')<=e)
-      .sort((a,b)=>String(a.occurrenceDate||'').localeCompare(b.occurrenceDate||''))
-      .forEach(i=>{
-        const logs=(state.incidentLogs||[]).filter(l=>!l.deleted&&l.incidentId===i.id)
-          .sort((a,b)=>String(a.createdAt||'').localeCompare(b.createdAt||''));
-        const last=logs[logs.length-1];
-        rows.push([i.occurrenceDate||'',i.incidentType||'',i.urgency||'',i.customerName||'',
-          i.workerName||'',i.title||'',pName(i.ownerPersonId),i.status||'',
-          i.nextFollowDate||'',last?last.content||'':'']);
-      });
-    dlCsv(rows,fn);
+  /* 核心：直接用 CSS class 控制顯示，並用 interval 持續監控 */
+  function applyMode(){
+    const staff=isStaff();
+    document.body.classList.toggle('role-staff', staff);
+    const admin=document.getElementById('srAdminSection');
+    const box=document.getElementById('srStaffPage');
+    if(!admin||!box) return;
+    admin.style.setProperty('display', staff?'none':'', 'important');
+    box.style.setProperty('display', staff?'block':'none', 'important');
+    if(staff) renderStaffPage();
   }
 
-  function doReports(s,e,fn){
-    if(typeof buildReportData!=='function')return;
-    const data=buildReportData(s,e);
-    const activeTypes=(data.types||[]).filter(t=>(data.rows||[]).some(r=>(r.byType&&r.byType[t]||0)>0));
-    const out=[['部門','人員','職務','總數','未完成','已完成','取消',...activeTypes]];
-    (data.rows||[]).forEach(r=>{
-      out.push([r.person.group,r.person.name,r.person.lang||'',r.total,r.undone,r.done,r.cancel,
-        ...activeTypes.map(t=>r.byType&&r.byType[t]||0)]);
-    });
-    ['一部翻譯','二部翻譯','總計'].forEach(g=>{
-      const d=data.dept&&data.dept[g];
-      if(d)out.push([g,'部門合計','',d.total,d.undone,d.done,d.cancel,...activeTypes.map(()=>'')]);
-    });
-    dlCsv(out,fn);
+  window._applyServicePageMode = applyMode;
+
+  /* 登入後持續監控（每500ms），確保不被其他 renderAll 蓋掉 */
+  let _modeInterval=null;
+  function startMonitor(){
+    if(_modeInterval) clearInterval(_modeInterval);
+    _modeInterval=setInterval(()=>{
+      if(!isStaff()) return;
+      const admin=document.getElementById('srAdminSection');
+      if(admin && admin.style.display!=='none'){
+        applyMode();
+      }
+    }, 500);
   }
 
-  function doService(s,e,fn){
-    if(typeof serviceRecordsInRange!=='function'||typeof personReportList!=='function')return;
-    const rows=[['日期','部門','翻譯','職務','行程類型','辦理內容','地點/客戶','行程狀態','服務紀錄單','繳交日期']];
-    serviceRecordsInRange(s,e,personReportList()).forEach(x=>{
-      rows.push([x.date,x.person.group,x.person.name,x.person.lang||'',
-        dType(x.event.type),x.event.name||'',x.event.locationName||'',
-        x.event.status||'',x.submitted?'已繳交':'未繳交',x.event.serviceRecordDate||'']);
-    });
-    dlCsv(rows,fn);
-  }
+  /* Hook showApp - 用最保險的方式：定期檢查 currentUser */
+  let _lastUser=null;
+  setInterval(()=>{
+    const u=typeof currentUser!=='undefined'?currentUser:null;
+    if(u!==_lastUser){
+      _lastUser=u;
+      if(u){ applyMode(); startMonitor(); }
+      else{ if(_modeInterval){clearInterval(_modeInterval);_modeInterval=null;} document.body.classList.remove('role-staff'); }
+    }
+  }, 300);
 
-  function doFieldDetails(s,e,fn){
-    if(typeof state==='undefined')return;
-    const rows=[['日期','時間','人員','目的','地點','地址','狀態','備註','特殊提醒','現金','印章','證件','下一次領件日','送件失敗原因']];
-    (state.externalEvents||[]).filter(ev=>!ev.deleted&&(ev.date||'')>=s&&(ev.date||'')<=e)
-      .sort((a,b)=>String((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||'')))
-      .forEach(ev=>{
-        const flags=[ev.mustSend?'必送件':'',ev.cannotChange?'無法更換外務':''].filter(Boolean).join('、');
-        rows.push([ev.date||'',ev.time||'',pName(ev.personId),ev.purpose||'',ev.locationName||'',
-          ev.address||'',ev.status||'',ev.note||'',flags,ev.cash||'',ev.stamp||'',ev.document||'',
-          ev.pickupDate||'',ev.failureReason||'']);
-      });
-    dlCsv(rows,fn);
-  }
-
-  const fnMap={'個人行程':doPersonal,'異況紀錄':doIncidents,'統計報表':doReports,'服務紀錄單':doService,'外務明細':doFieldDetails};
-
-  function updateBoxVis(box,mode){
-    box.querySelector('.v141-year').style.display  = mode==='year'  ?'inline-flex':'none';
-    box.querySelector('.v141-month').style.display = mode==='month' ?'inline-flex':'none';
-    box.querySelector('.v141-day').style.display   = mode==='day'   ?'inline-flex':'none';
-    box.querySelector('.v141-start').style.display = mode==='range' ?'inline-flex':'none';
-    box.querySelector('.v141-end').style.display   = mode==='range' ?'inline-flex':'none';
-  }
-
-  function initBoxes(){
-    // 先更新權限（此時 currentUser 已存在）
-    applyVis();
-    const y=yr0(),m=ym0(),d=tod();
-    document.querySelectorAll('.v141-box').forEach(box=>{
-      if(box.dataset.init)return;
-      box.dataset.init='1';
-      box.querySelector('.v141-year').value=y;
-      box.querySelector('.v141-month').value=m;
-      box.querySelector('.v141-day').value=d;
-      box.querySelector('.v141-start').value=d;
-      box.querySelector('.v141-end').value=d;
-      updateBoxVis(box,'month');
-      box.querySelector('.v141-sel').addEventListener('change',function(){
-        box.dataset.mode=this.value;
-        updateBoxVis(box,this.value);
-      });
-      box.querySelector('.v141-btn').addEventListener('click',()=>{
-        if(!canExport()){if(typeof toast==='function')toast('此權限無法匯出');return;}
-        const label=box.dataset.label||'';
-        const fn=fnMap[label];
-        if(!fn)return;
-        const mode=box.dataset.mode||'month';
-        let s,e,suffix;
-        if(mode==='all'){s='0000-01-01';e='9999-12-31';suffix='全部';}
-        else if(mode==='year'){const yv=box.querySelector('.v141-year').value||y;s=yv+'-01-01';e=yv+'-12-31';suffix=yv;}
-        else if(mode==='day'){const dv=box.querySelector('.v141-day').value||d;s=dv;e=dv;suffix=dv;}
-        else if(mode==='range'){s=box.querySelector('.v141-start').value||d;e=box.querySelector('.v141-end').value||s;suffix=s+'_to_'+e;}
-        else{const mv=box.querySelector('.v141-month').value||m;[s,e]=mRng(mv);suffix=mv;}
-        fn(s,e,label+'_'+suffix+'.csv');
-      });
-    });
-  }
-
-  // 關鍵修正：只 hook showApp，不在 DOMContentLoaded 時跑（那時沒有登入）
-  const _sa=typeof showApp==='function'?showApp:null;
-  if(_sa){ showApp=function(){ _sa(); setTimeout(initBoxes,300); }; }
-  // applyPermissionsUI 也呼叫，確保角色切換後更新
-  const _ap=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
-  if(_ap){ applyPermissionsUI=function(){ _ap(); setTimeout(applyVis,100); }; }
+  /* 也 hook applyPermissionsUI */
+  const _perm=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
+  if(_perm){ applyPermissionsUI=function(){ _perm(); setTimeout(applyMode,100); }; }
 })();
 </script>
 
