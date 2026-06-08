@@ -6356,308 +6356,406 @@ body.role-staff #srStaffPage{display:block!important}
 </style>
 
 <style>
-/* V151：翻譯服務紀錄單頁面三欄版 */
-.sr-staff-grid-v151{
+/* V152：翻譯服務紀錄單專用頁面 */
+#translatorServiceLayout{display:none}
+.service-translator-mode #translatorServiceLayout{
   display:grid;
-  grid-template-columns:minmax(260px,.9fr) minmax(360px,1.25fr) minmax(360px,1.25fr);
+  grid-template-columns:1fr 1.2fr 1.2fr;
   gap:12px;
   align-items:start;
 }
-.sr-staff-grid-v151 .panel{
-  margin-bottom:0;
+.service-translator-mode > .panel:not(#translatorServiceLayout){
+  display:none!important;
+}
+.translator-service-panel{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:16px;
+  box-shadow:var(--shadow);
+  padding:14px;
   min-width:0;
 }
-.sr-staff-grid-v151 .detail-table-wrap{
-  max-height:64vh;
-  overflow:auto;
+.translator-service-panel h2{
+  font-size:18px;
+  margin:0 0 10px;
 }
-.sr-staff-grid-v151 .table{
-  min-width:720px;
+.translator-service-note{
+  font-size:13px;
+  color:#64748b;
+  line-height:1.5;
+  margin:4px 0 10px;
 }
-.sr-staff-remind-card-v151{
-  border:1px solid #fed7aa;
-  border-left:6px solid #f59e0b;
-  background:#fffbeb;
+.translator-remind-card{
+  border:1px solid #bfdbfe;
+  border-left:6px solid #2563eb;
+  background:#eff6ff;
   border-radius:14px;
   padding:10px;
   margin:8px 0;
 }
-.sr-staff-remind-card-v151.overdue{
-  border-color:#fecaca;
-  border-left-color:#dc2626;
-  background:#fff1f2;
+.translator-remind-card.overdue{
+  border-color:#facc15;
+  border-left-color:#f59e0b;
+  background:#fffbeb;
 }
-.sr-staff-remind-title-v151{
+.translator-remind-card .title{
   font-weight:900;
-  color:#0f172a;
+  margin-bottom:4px;
+}
+.translator-remind-card .meta{
+  font-size:13px;
+  color:#475569;
   line-height:1.45;
 }
-.sr-staff-remind-meta-v151{
-  font-size:12px;
-  color:#475569;
-  line-height:1.5;
-  margin-top:3px;
-}
-.sr-staff-remind-overdue-v151{
-  display:inline-block;
-  margin-top:6px;
+.translator-status-chip{
+  display:inline-flex;
+  border-radius:999px;
   padding:3px 8px;
-  border-radius:999px;
-  background:#dc2626;
-  color:#fff;
+  font-weight:900;
   font-size:12px;
-  font-weight:900;
+  border:1px solid #e2e8f0;
 }
-.sr-staff-remind-week-v151{
-  display:inline-block;
-  margin-top:6px;
-  padding:3px 8px;
-  border-radius:999px;
-  background:#f59e0b;
-  color:#fff;
-  font-size:12px;
-  font-weight:900;
+.translator-status-chip.ok{
+  color:#166534;
+  background:#ecfdf5;
+  border-color:#86efac;
 }
-.sr-status-ok-v151{color:#16a34a;font-weight:900}
-.sr-status-no-v151{color:#dc2626;font-weight:900}
-.sr-status-wait-v151{color:#64748b;font-weight:900}
-.sr-status-warn-v151{
-  color:#b45309;
-  background:#fef3c7;
-  border:1px solid #fcd34d;
-  padding:2px 7px;
-  border-radius:999px;
-  font-weight:900;
-  display:inline-block;
+.translator-status-chip.no{
+  color:#991b1b;
+  background:#fef2f2;
+  border-color:#fecaca;
 }
-@media(max-width:1180px){
-  .sr-staff-grid-v151{grid-template-columns:1fr}
-  .sr-staff-grid-v151 .detail-table-wrap{max-height:none}
+.translator-status-chip.warn{
+  color:#92400e;
+  background:#fffbeb;
+  border-color:#fde68a;
+}
+.translator-service-table-wrap{
+  overflow:auto;
+  border:1px solid var(--line);
+  border-radius:12px;
+  max-height:62vh;
+}
+.translator-service-table{
+  width:100%;
+  min-width:720px;
+  border-collapse:collapse;
+  background:#fff;
+}
+.translator-service-table th,
+.translator-service-table td{
+  border-bottom:1px solid var(--line);
+  padding:8px;
+  text-align:left;
+  vertical-align:top;
+  font-size:13px;
+}
+.translator-service-table th{
+  position:sticky;
+  top:0;
+  background:#f8fafc;
+  z-index:1;
+}
+@media(max-width:1000px){
+  .service-translator-mode #translatorServiceLayout{
+    grid-template-columns:1fr;
+  }
+}
+@media(max-width:760px){
+  .translator-service-table{
+    min-width:680px;
+  }
+  .translator-service-table th,
+  .translator-service-table td{
+    font-size:12px;
+    padding:7px;
+  }
 }
 </style>
 
 <script>
-/* V151：翻譯服務紀錄單頁面調整
-   - 不顯示部門 / 翻譯篩選
-   - 第一欄：服務紀錄單繳交提醒
-   - 第二欄：當月明細
-   - 第三欄：當年度明細
-*/
+/* V152：修正翻譯服務紀錄單頁面與權限 */
 (function(){
-  function isTranslatorV151(){
-    return typeof normalizedRole==='function' && normalizedRole()==='staff';
+  function $(id){return document.getElementById(id)}
+  function all(sel){return Array.from(document.querySelectorAll(sel))}
+  function today(){return typeof todayISO==='function'?todayISO():new Date().toISOString().slice(0,10)}
+  function monthNow(){return typeof monthISO==='function'?monthISO():today().slice(0,7)}
+  function monthRangeLocal(ym){
+    if(typeof monthRange==='function')return monthRange(ym);
+    const y=Number(ym.slice(0,4)),m=Number(ym.slice(5,7));
+    return [ym+'-01',ym+'-'+String(new Date(y,m,0).getDate()).padStart(2,'0')];
   }
-  function myPersonIdV151(){
-    try{return typeof userPersonId==='function' ? userPersonId() : (currentUser&&currentUser.personId)}
+  function role(){
+    const r=(currentUser&&currentUser.role)||'';
+    if(r==='admin'||r==='options')return 'admin';
+    if(r==='supervisor')return 'supervisor';
+    if(r==='adminStaff'||r==='admin_staff')return 'adminStaff';
+    if(r==='general'||r==='sales')return 'general';
+    if(r==='staff'||r==='translator'||r==='schedule'||r==='dispatcher'||r==='viewer')return 'translator';
+    return r||'translator';
+  }
+  function serviceAllowed(){
+    const r=role();
+    return r==='admin'||r==='supervisor'||r==='translator';
+  }
+  function isTranslator(){
+    return role()==='translator';
+  }
+  function userPid(){
+    try{return typeof userPersonId==='function'?userPersonId():(currentUser&&currentUser.personId)}
     catch(e){return currentUser&&currentUser.personId}
   }
-  function todayV151(){
-    return typeof todayISO==='function' ? todayISO() : new Date().toISOString().slice(0,10);
-  }
-  function escV151(v){
-    try{return typeof esc==='function'?esc(v):String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+  function escText(v){
+    try{return typeof esc==='function'?esc(v):String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
     catch(e){return String(v??'')}
   }
-  function typeV151(t){
+  function displayType(t){
     try{return typeof displayEventType==='function'?displayEventType(t):String(t||'')}
     catch(e){return String(t||'')}
   }
-  function submittedV151(e){
-    return !!(e && e.serviceRecordSubmitted && e.serviceRecordDate);
+  function eventOverlaps(e,s,end){
+    try{return typeof eventOverlapsRange==='function'?eventOverlapsRange(e,s,end):((e.startDate||'')<=end&&(e.endDate||e.startDate||'')>=s)}
+    catch(e){return false}
   }
-  function endDateV151(e){
-    return e.endDate || e.startDate || todayV151();
-  }
-  function deadlineV151(e){
-    const d=new Date(endDateV151(e)+'T00:00:00');
-    d.setDate(d.getDate()+7);
-    return d.toISOString().slice(0,10);
-  }
-  function needServiceV151(e){
-    try{return typeof requiresServiceRecord==='function' ? requiresServiceRecord(e) : false}
+  function requiresSR(e){
+    try{return typeof requiresServiceRecord==='function'?requiresServiceRecord(e):['銀行','定期','送工(新入境、承接)','車禍處理','面談','醫療','上線/教育訓練'].includes(displayType(e.type))}
     catch(err){return false}
   }
-  function translatorEventsV151(){
-    const pid=myPersonIdV151();
-    if(!pid || typeof state==='undefined')return [];
-    return (state.events||[]).filter(e=>{
-      if(!e || e.deleted || e.kind==='translatorStatus')return false;
-      if(!needServiceV151(e))return false;
-      return (e.participants||[]).includes(pid);
-    });
+  function submitted(e){
+    return !!(e.serviceRecordSubmitted&&e.serviceRecordDate);
   }
-  function statusTextV151(e){
-    const today=todayV151();
-    if(submittedV151(e))return '<span class="sr-status-ok-v151">✅ 已繳交</span>';
-    if((endDateV151(e)||'')>today)return '<span class="sr-status-wait-v151">尚未結束</span>';
-    if(today>deadlineV151(e))return '<span class="sr-status-warn-v151">超過一週未繳</span>';
-    return '<span class="sr-status-no-v151">未繳交</span>';
+  function getPersonObj(id){
+    try{return typeof getPerson==='function'?getPerson(id):((state.people||[]).find(p=>p.id===id)||{})}
+    catch(e){return (state.people||[]).find(p=>p.id===id)||{}}
   }
-  function rowHtmlV151(rows, emptyText){
-    if(!rows.length)return `<tr><td colspan="7" class="muted" style="text-align:center;padding:16px">${escV151(emptyText||'沒有資料')}</td></tr>`;
-    return rows.map(e=>{
-      const dateText=(e.endDate && e.endDate!==e.startDate) ? `${escV151(e.startDate||'')}～${escV151(e.endDate||'')}` : escV151(e.startDate||'');
-      return `<tr>
-        <td>${dateText}</td>
-        <td>${escV151(typeV151(e.type))}</td>
-        <td>${escV151(e.name||'')}</td>
-        <td>${escV151(e.locationName||'')}</td>
-        <td>${escV151(e.status||'')}</td>
-        <td>${statusTextV151(e)}</td>
-        <td>${escV151(e.serviceRecordDate||'')}</td>
-      </tr>`;
-    }).join('');
+  function daysFromToday(date){
+    const a=new Date(today()+'T00:00:00');
+    const b=new Date(String(date||today())+'T00:00:00');
+    return Math.floor((a-b)/86400000);
   }
-  function statHtmlV151(rows){
-    const submitted=rows.filter(submittedV151).length;
-    const unsubmitted=rows.length-submitted;
-    return `<div class="statgrid" style="margin:8px 0 10px">
-      <div class="stat"><div class="muted">總數</div><b>${rows.length}</b></div>
-      <div class="stat"><div class="muted">已繳交</div><b>${submitted}</b></div>
-      <div class="stat"><div class="muted">未繳交</div><b>${unsubmitted}</b></div>
-    </div>`;
+  function translatorRows(start,end){
+    const pid=userPid();
+    const p=getPersonObj(pid);
+    let rows=[];
+    if(typeof serviceRecordsInRange==='function'){
+      rows=serviceRecordsInRange(start,end,[p]).filter(x=>x&&x.person&&x.person.id===pid);
+      rows.forEach(x=>x.submitted=submitted(x.event));
+      return rows;
+    }
+    (state.events||[])
+      .filter(e=>!e.deleted&&requiresSR(e)&&eventOverlaps(e,start,end)&&(e.participants||[]).includes(pid))
+      .forEach(e=>rows.push({person:p,event:e,date:e.startDate<start?start:e.startDate,submitted:submitted(e)}));
+    return rows;
   }
-  function reminderCardV151(e, overdue){
-    const dateText=(e.endDate && e.endDate!==e.startDate) ? `${escV151(e.startDate||'')}～${escV151(e.endDate||'')}` : escV151(e.startDate||'');
-    return `<div class="sr-staff-remind-card-v151 ${overdue?'overdue':''}">
-      <div class="sr-staff-remind-title-v151">${overdue?'超過一週的服務紀錄單催繳通知':'一週內服務紀錄單提醒'}</div>
-      <div class="sr-staff-remind-meta-v151">行程日期：${dateText}</div>
-      <div class="sr-staff-remind-meta-v151">行程內容：${escV151(typeV151(e.type))}｜${escV151(e.name||'')}</div>
-      <div class="sr-staff-remind-meta-v151">地點 / 客戶：${escV151(e.locationName||'')}</div>
-      <div class="sr-staff-remind-meta-v151">繳交期限：<b>${escV151(deadlineV151(e))}</b></div>
-      ${overdue?'<span class="sr-staff-remind-overdue-v151">請儘快補交</span>':'<span class="sr-staff-remind-week-v151">請於期限內繳交</span>'}
-    </div>`;
+  function statusChip(row){
+    if(row.submitted)return '<span class="translator-status-chip ok">已繳交</span>';
+    const d=daysFromToday(row.date);
+    if(d>7)return '<span class="translator-status-chip warn">超過一週未繳</span>';
+    return '<span class="translator-status-chip no">未繳交</span>';
   }
-  function renderTranslatorServiceV151(){
-    const box=document.getElementById('srStaffPage');
-    if(!box)return;
-    const today=todayV151();
-    const thisMonth=today.slice(0,7);
-    const thisYear=today.slice(0,4);
-    const all=translatorEventsV151();
-
-    const endedUnsubmitted=all.filter(e=>!submittedV151(e) && endDateV151(e)<=today)
-      .sort((a,b)=>deadlineV151(a).localeCompare(deadlineV151(b)) || String(a.startDate||'').localeCompare(String(b.startDate||'')));
-    const withinWeek=endedUnsubmitted.filter(e=>today<=deadlineV151(e));
-    const overWeek=endedUnsubmitted.filter(e=>today>deadlineV151(e));
-
-    const monthRows=all.filter(e=>(e.startDate||'').slice(0,7)===thisMonth)
-      .sort((a,b)=>String(a.startDate||'').localeCompare(String(b.startDate||'')));
-    const yearRows=all.filter(e=>(e.startDate||'').slice(0,4)===thisYear)
-      .sort((a,b)=>String(a.startDate||'').localeCompare(String(b.startDate||'')));
-
-    const tableHead=`<thead><tr>
-      <th>行程日期</th>
-      <th>行程類型</th>
-      <th>辦理內容</th>
-      <th>地點 / 客戶</th>
-      <th>行程狀態</th>
-      <th>服務紀錄單</th>
-      <th>繳交日期</th>
-    </tr></thead>`;
-
-    box.innerHTML=`<div class="sr-staff-grid-v151">
-      <div class="panel">
-        <div class="section-title">
+  function detailRows(rows,yearMode){
+    if(!rows.length){
+      return `<tr><td colspan="${yearMode?8:7}" class="muted">目前沒有服務紀錄單明細</td></tr>`;
+    }
+    return rows.slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))).map(x=>`
+      <tr>
+        ${yearMode?`<td>${escText(String(x.date||'').slice(0,7))}</td>`:''}
+        <td>${escText(x.date||'')}</td>
+        <td>${escText(displayType(x.event.type||''))}</td>
+        <td>${escText(x.event.name||'')}</td>
+        <td>${escText(x.event.locationName||'')}</td>
+        <td>${escText(x.event.status||'')}</td>
+        <td>${statusChip(x)}</td>
+        <td>${escText(x.event.serviceRecordDate||'')}</td>
+      </tr>
+    `).join('');
+  }
+  function ensureTranslatorLayout(){
+    const page=$('serviceRecordsPage');
+    if(!page)return null;
+    let layout=$('translatorServiceLayout');
+    if(!layout){
+      layout=document.createElement('div');
+      layout.id='translatorServiceLayout';
+      layout.innerHTML=`
+        <div class="translator-service-panel">
           <h2>服務紀錄單繳交提醒</h2>
-          <span class="muted">僅顯示自己的提醒</span>
+          <div class="translator-service-note">提醒項目：一週內服務紀錄單提醒、超過一週的服務紀錄單催繳通知。</div>
+          <div id="translatorServiceSummary" class="statgrid"></div>
+          <div id="translatorServiceReminders"></div>
         </div>
-        <div class="muted" style="margin-bottom:8px">提醒項目：一週內服務紀錄單提醒、超過一週的服務紀錄單催繳通知。</div>
-        <div class="statgrid" style="margin-bottom:10px">
-          <div class="stat"><div class="muted">一週內提醒</div><b>${withinWeek.length}</b></div>
-          <div class="stat"><div class="muted">超過一週催繳</div><b>${overWeek.length}</b></div>
-        </div>
-        ${overWeek.length?`<h3 style="color:#dc2626;margin:8px 0">超過一週的服務紀錄單催繳通知</h3>${overWeek.map(e=>reminderCardV151(e,true)).join('')}`:''}
-        ${withinWeek.length?`<h3 style="color:#b45309;margin:8px 0">一週內服務紀錄單提醒</h3>${withinWeek.map(e=>reminderCardV151(e,false)).join('')}`:''}
-        ${(!overWeek.length&&!withinWeek.length)?'<div class="muted" style="padding:14px 0">目前沒有待繳交提醒。</div>':''}
-      </div>
-
-      <div class="panel">
-        <div class="section-title">
+        <div class="translator-service-panel">
           <h2>當月服務紀錄單明細</h2>
-          <span class="muted">${escV151(thisMonth)}</span>
+          <div id="translatorMonthSummary" class="statgrid"></div>
+          <div class="translator-service-table-wrap">
+            <table class="translator-service-table">
+              <thead><tr><th>日期</th><th>行程類型</th><th>辦理內容</th><th>地點 / 客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead>
+              <tbody id="translatorMonthRows"></tbody>
+            </table>
+          </div>
         </div>
-        ${statHtmlV151(monthRows)}
-        <div class="detail-table-wrap"><table class="table">${tableHead}<tbody>${rowHtmlV151(monthRows,'當月沒有服務紀錄單明細')}</tbody></table></div>
-      </div>
-
-      <div class="panel">
-        <div class="section-title">
+        <div class="translator-service-panel">
           <h2>當年度服務紀錄單明細</h2>
-          <span class="muted">${escV151(thisYear)} 年</span>
+          <div id="translatorYearSummary" class="statgrid"></div>
+          <div class="translator-service-table-wrap">
+            <table class="translator-service-table">
+              <thead><tr><th>月份</th><th>日期</th><th>行程類型</th><th>辦理內容</th><th>地點 / 客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead>
+              <tbody id="translatorYearRows"></tbody>
+            </table>
+          </div>
         </div>
-        ${statHtmlV151(yearRows)}
-        <div class="detail-table-wrap"><table class="table">${tableHead}<tbody>${rowHtmlV151(yearRows,'當年度沒有服務紀錄單明細')}</tbody></table></div>
-      </div>
-    </div>`;
+      `;
+      page.appendChild(layout);
+    }
+    return layout;
   }
-  function applyTranslatorServiceModeV151(){
-    const staff=isTranslatorV151();
-    const admin=document.getElementById('srAdminSection');
-    const staffBox=document.getElementById('srStaffPage');
-    if(!admin || !staffBox)return;
-    document.body.classList.toggle('role-staff',staff);
-    admin.style.setProperty('display',staff?'none':'block','important');
-    staffBox.style.setProperty('display',staff?'block':'none','important');
+  function renderTranslatorService(){
+    const page=$('serviceRecordsPage');
+    if(!page)return;
+    ensureTranslatorLayout();
+    page.classList.add('service-translator-mode');
 
-    if(staff){
-      // 翻譯頁不需要部門 / 翻譯篩選；整個 admin 區隱藏後也不會看到。
-      renderTranslatorServiceV151();
+    const ym=$('serviceMonth')&&$('serviceMonth').value?$('serviceMonth').value:monthNow();
+    const year=($('serviceYear')&&$('serviceYear').value)?String($('serviceYear').value):ym.slice(0,4);
+    const [ms,me]=monthRangeLocal(ym);
+    const monthRows=translatorRows(ms,me);
+    const yearRows=translatorRows(`${year}-01-01`,`${year}-12-31`);
+
+    const unsubmittedMonth=monthRows.filter(x=>!x.submitted);
+    const inWeek=unsubmittedMonth.filter(x=>daysFromToday(x.date)<=7);
+    const overdue=unsubmittedMonth.filter(x=>daysFromToday(x.date)>7);
+
+    $('translatorServiceSummary').innerHTML=`
+      <div class="stat"><div class="muted">當月需繳交</div><b>${monthRows.length}</b></div>
+      <div class="stat"><div class="muted">當月已繳交</div><b>${monthRows.filter(x=>x.submitted).length}</b></div>
+      <div class="stat"><div class="muted">當月未繳交</div><b>${unsubmittedMonth.length}</b></div>
+      <div class="stat"><div class="muted">超過一週未繳</div><b>${overdue.length}</b></div>
+    `;
+
+    const reminderHtml=[
+      ...inWeek.map(x=>`
+        <div class="translator-remind-card">
+          <div class="title">一週內服務紀錄單提醒</div>
+          <div class="meta">${escText(x.date)}｜${escText(displayType(x.event.type))}｜${escText(x.event.name)}<br>${escText(x.event.locationName||'')}</div>
+        </div>
+      `),
+      ...overdue.map(x=>`
+        <div class="translator-remind-card overdue">
+          <div class="title">超過一週的服務紀錄單催繳通知</div>
+          <div class="meta">${escText(x.date)}｜已逾 ${daysFromToday(x.date)} 天｜${escText(displayType(x.event.type))}｜${escText(x.event.name)}<br>${escText(x.event.locationName||'')}</div>
+        </div>
+      `)
+    ].join('');
+    $('translatorServiceReminders').innerHTML=reminderHtml || '<div class="muted">目前沒有未繳交提醒。</div>';
+
+    $('translatorMonthSummary').innerHTML=`
+      <div class="stat"><div class="muted">已繳交</div><b>${monthRows.filter(x=>x.submitted).length}</b></div>
+      <div class="stat"><div class="muted">未繳交</div><b>${monthRows.filter(x=>!x.submitted).length}</b></div>
+    `;
+    $('translatorYearSummary').innerHTML=`
+      <div class="stat"><div class="muted">年度已繳交</div><b>${yearRows.filter(x=>x.submitted).length}</b></div>
+      <div class="stat"><div class="muted">年度未繳交</div><b>${yearRows.filter(x=>!x.submitted).length}</b></div>
+    `;
+    $('translatorMonthRows').innerHTML=detailRows(monthRows,false);
+    $('translatorYearRows').innerHTML=detailRows(yearRows,true);
+  }
+  function showOriginalService(){
+    const page=$('serviceRecordsPage');
+    if(page)page.classList.remove('service-translator-mode');
+  }
+  function applyServiceNav(){
+    const allow=serviceAllowed();
+    document.querySelectorAll('.navbtn[data-page="serviceRecords"]').forEach(btn=>{
+      btn.classList.toggle('hide',!allow);
+      btn.classList.toggle('role-hidden',!allow);
+      btn.style.display=allow?'':'none';
+    });
+    const bottom=document.querySelector('.bottom-nav');
+    if(bottom&&allow&&!bottom.querySelector('.navbtn[data-page="serviceRecords"]')){
+      const btn=document.createElement('button');
+      btn.className='navbtn';
+      btn.dataset.page='serviceRecords';
+      btn.innerHTML='<span class="mono-ico ico-clipboard"></span>服務';
+      const line=bottom.querySelector('.navbtn[data-page="line"]');
+      if(line)bottom.insertBefore(btn,line); else bottom.appendChild(btn);
+      btn.onclick=function(){
+        if(!canSeePage('serviceRecords'))return toast('此權限無法開啟此頁面');
+        document.querySelectorAll('.navbtn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        currentPage='serviceRecords';
+        document.querySelectorAll('.page').forEach(p=>p.classList.add('hide'));
+        $('serviceRecordsPage').classList.remove('hide');
+        renderServiceRecords();
+      };
     }
   }
 
-  window._applyServicePageMode=applyTranslatorServiceModeV151;
-
-  const oldCanSeePageV151=typeof canSeePage==='function'?canSeePage:null;
-  if(oldCanSeePageV151){
+  const oldCanSee=typeof canSeePage==='function'?canSeePage:null;
+  if(oldCanSee){
     canSeePage=function(page){
-      if(page==='serviceRecords' && isTranslatorV151())return true;
-      return oldCanSeePageV151(page);
+      if(page==='serviceRecords')return serviceAllowed();
+      return oldCanSee(page);
+    };
+  }
+  if(window.v105AllowedPages){
+    const oldAllowed=window.v105AllowedPages;
+    window.v105AllowedPages=function(){
+      let arr=oldAllowed();
+      if(serviceAllowed())arr=[...new Set([...arr,'serviceRecords'])];
+      else arr=arr.filter(x=>x!=='serviceRecords');
+      return arr;
     };
   }
 
-  function updateServiceNavV151(){
-    const can=typeof canSeePage==='function'?canSeePage('serviceRecords'):true;
-    document.querySelectorAll('.navbtn[data-page="serviceRecords"]').forEach(btn=>{
-      btn.classList.toggle('hide',!can);
-      btn.classList.toggle('role-hidden',!can);
-    });
-  }
+  const oldRenderService=typeof renderServiceRecords==='function'?renderServiceRecords:null;
+  renderServiceRecords=function(){
+    if(isTranslator()){
+      renderTranslatorService();
+      return;
+    }
+    showOriginalService();
+    if(oldRenderService)oldRenderService();
+  };
 
-  const oldRenderServiceRecordsV151=typeof renderServiceRecords==='function'?renderServiceRecords:null;
-  if(oldRenderServiceRecordsV151){
-    renderServiceRecords=function(){
-      if(isTranslatorV151()){applyTranslatorServiceModeV151();return;}
-      oldRenderServiceRecordsV151();
-    };
-  }
-
-  const oldRenderAllV151=typeof renderAll==='function'?renderAll:null;
-  if(oldRenderAllV151){
-    renderAll=function(){
-      oldRenderAllV151();
-      setTimeout(()=>{applyTranslatorServiceModeV151();updateServiceNavV151();},80);
-    };
-  }
-
-  const oldShowAppV151=typeof showApp==='function'?showApp:null;
-  if(oldShowAppV151){
-    showApp=function(){
-      oldShowAppV151();
-      setTimeout(()=>{applyTranslatorServiceModeV151();updateServiceNavV151();},160);
-    };
-  }
-
-  const oldApplyPermV151=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
-  if(oldApplyPermV151){
+  const oldApplyPerm=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
+  if(oldApplyPerm){
     applyPermissionsUI=function(){
-      oldApplyPermV151();
-      setTimeout(()=>{applyTranslatorServiceModeV151();updateServiceNavV151();},120);
+      oldApplyPerm();
+      applyServiceNav();
     };
   }
 
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{applyTranslatorServiceModeV151();updateServiceNavV151();},300));
-  setTimeout(()=>{applyTranslatorServiceModeV151();updateServiceNavV151();},800);
+  const oldV105Apply=window.v105ApplyNav;
+  window.v105ApplyNav=function(){
+    if(oldV105Apply)oldV105Apply();
+    applyServiceNav();
+  };
+
+  const oldRenderAll=typeof renderAll==='function'?renderAll:null;
+  if(oldRenderAll){
+    renderAll=function(){
+      oldRenderAll();
+      applyServiceNav();
+      if(currentPage==='serviceRecords')renderServiceRecords();
+    };
+  }
+
+  document.addEventListener('click',function(e){
+    const btn=e.target&&e.target.closest&&e.target.closest('.navbtn[data-page="serviceRecords"]');
+    if(!btn)return;
+    if(!serviceAllowed())return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    document.querySelectorAll('.navbtn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentPage='serviceRecords';
+    document.querySelectorAll('.page').forEach(p=>p.classList.add('hide'));
+    $('serviceRecordsPage').classList.remove('hide');
+    renderServiceRecords();
+  },true);
+
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(function(){applyServiceNav();if(currentPage==='serviceRecords')renderServiceRecords();},300));
+  setTimeout(function(){applyServiceNav();if(currentPage==='serviceRecords')renderServiceRecords();},800);
 })();
 </script>
 
