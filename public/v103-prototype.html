@@ -1762,7 +1762,27 @@ function resetOptions(){
   addLog('修改','系統設定','下拉選項','選項維護','自訂選項','還原預設選項');
   save(); renderAll(); toast('已還原預設選項');
 }
-function exportCsv(rows,name){const csv=rows.map(r=>r.map(v=>`"${String(v||'').split('\"').join('\"\"')}"`).join(',')).join('\n'); const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); URL.revokeObjectURL(a.href)}
+function exportCsv(rows,name){
+  try{
+    if(!Array.isArray(rows)||!rows.length)rows=[['沒有資料']];
+    const csv=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
+    const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
+    const filename=name||('FOR-e匯出_'+todayISO()+'.csv');
+    if(window.navigator&&window.navigator.msSaveOrOpenBlob){window.navigator.msSaveOrOpenBlob(blob,filename);return;}
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=filename;
+    a.rel='noopener';
+    a.style.display='none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},1500);
+  }catch(err){
+    console.error('exportCsv failed',err);
+    alert('匯出失敗：'+(err&&err.message?err.message:err));
+  }
+}
 
 function monthRange(ym){const [y,m]=ym.split('-').map(Number); const s=localISO(new Date(y,m-1,1)); const e=localISO(new Date(y,m,0)); return [s,e]}
 
@@ -1849,6 +1869,19 @@ function initServiceFilters(){if(!$('serviceMonth'))return; if(!$('serviceMonth'
 function serviceFilterPeople(){let people=state.people.filter(reportEligiblePerson); const g=$('serviceGroup')?$('serviceGroup').value:''; if(g)people=people.filter(p=>p.group===g); return people}
 function renderServiceRecords(){if(typeof normalizedRole==='function'&&normalizedRole()==='staff'){return;}if(!$('serviceMonth'))return; initServiceFilters(); const ym=$('serviceMonth').value||monthISO(); const year=Number($('serviceYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym); const people=serviceFilterPeople(); const md=serviceRecordsInRange(ms,me,people).filter(x=>!x.submitted); const yd=serviceRecordsInRange(`${year}-01-01`,`${year}-12-31`,people).filter(x=>!x.submitted); function stats(rows){const one=rows.filter(x=>x.person.group==='一部翻譯').length,two=rows.filter(x=>x.person.group==='二部翻譯').length; return `<div class="stat"><div class="muted">未交總數</div><b>${rows.length}</b></div><div class="stat"><div class="muted">一部翻譯未交</div><b>${one}</b></div><div class="stat"><div class="muted">二部翻譯未交</div><b>${two}</b></div>`} if($('serviceMonthStats'))$('serviceMonthStats').innerHTML=stats(md); if($('serviceYearStats'))$('serviceYearStats').innerHTML=stats(yd); const rowHtml=rows=>rows.sort((a,b)=>(a.date+a.person.group+a.person.name).localeCompare(b.date+b.person.group+b.person.name)).map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.person.group)}</td><td>${esc(x.person.name)}</td><td>${esc(x.person.lang)}</td><td>${esc(displayEventType(x.event.type))}</td><td>${esc(x.event.name)}</td><td>${esc(x.event.locationName||'')}</td><td>${esc(x.event.status)}</td><td>🔴 未交</td></tr>`).join('')||'<tr><td colspan="9" class="muted">沒有未交明細</td></tr>'; if($('serviceMonthDetailRows'))$('serviceMonthDetailRows').innerHTML=rowHtml(md); if($('serviceYearDetailRows'))$('serviceYearDetailRows').innerHTML=rowHtml(yd)}
 function exportServiceRecords(){if(!$('serviceMonth'))return; initServiceFilters(); const ym=$('serviceMonth').value||monthISO(); const [ms,me]=monthRange(ym); const people=serviceFilterPeople(); const rows=[['日期','部門','人員','職務','行程類型','辦理內容','地點 / 客戶','狀態','繳交狀態']]; serviceRecordsInRange(ms,me,people).filter(x=>!x.submitted).forEach(x=>rows.push([x.date,x.person.group,x.person.name,x.person.lang,displayEventType(x.event.type),x.event.name,x.event.locationName||'',x.event.status,'未交'])); exportCsv(rows,`未交服務紀錄單_${ym}.csv`)}
+
+
+function exportRoomBookingsCsv(){
+  ensureRoomBookingState&&ensureRoomBookingState();
+  const rows=[['ID','日期','開始時間','結束時間','會議室','部門','會議名稱','建立人','建立時間','最後修改人','最後修改時間','是否刪除']];
+  (state.roomBookings||[]).forEach(b=>{
+    rows.push([
+      b.id||'',b.date||'',b.startTime||'',b.endTime||'',b.room||'',b.department||'',b.title||'',
+      getUser(b.createdBy).name||'',b.createdAt||'',getUser(b.updatedBy||b.createdBy).name||'',b.updatedAt||'',b.deleted?'是':'否'
+    ]);
+  });
+  exportCsv(rows,'會議室預約匯出.csv');
+}
 
 function exportEvents(){const rows=[['行程ID','類別','狀態','起日','迄日','開始時間','結束時間','類型','附加行程類型','附加行程備註','辦理內容','地點 / 客戶','地址','公務車調整','相關人員','建立人','建立時間','最後修改人','最後修改時間','是否刪除','刪除原因','服務紀錄單','繳交日期','下次回診日期','下次回診時間','下次回診人員','掛號號碼','內容說明']]; state.events.forEach(e=>rows.push([e.id,e.kind,e.status,e.startDate,e.endDate,e.startTime,e.endTime,e.type,e.additionalType||'',e.additionalNote||'',e.name,e.locationName,e.address,e.vehicleNo||'',e.participants.map(id=>getPerson(id).name).join('、'),getUser(e.createdBy).name,e.createdAt,getUser(e.updatedBy).name,e.updatedAt,e.deleted?'是':'否',e.deleteReason||'',requiresServiceRecord(e)?(e.serviceRecordSubmitted?'已交':'未交'):'',e.serviceRecordDate||'',e.followupDate||'',e.followupTime||'',e.followupPersonId?getPerson(e.followupPersonId).name:'',e.followupRegNo||'',e.note])); exportCsv(rows,'翻譯行程匯出.csv')}
 function exportLogs(){const rows=[['時間','操作人','動作','行程ID','辦理內容','修改欄位','修改前','修改後']]; state.logs.forEach(l=>rows.push([l.time,getUser(l.userId).name,l.action,l.eventId,l.eventName,l.field,l.before,l.after])); exportCsv(rows,'操作紀錄AuditLog.csv')}
@@ -6348,311 +6381,39 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 
 
 <style>
-/* V160：所有匯出CSV按鈕直接綁定；會議室週曆保險恢復 */
+/* V161：CSV 下載修正；移除翻譯服務紀錄單殘留 */
 #srStaffPage{display:none!important}
 .navbtn[data-page="translatorService"],#translatorServicePage{display:none!important}
-.navbtn[data-page="serviceRecords"][data-v160-allow="0"]{display:none!important}
-button[data-v160-export="1"]{cursor:pointer!important}
-@media(max-width:760px){.v141-box,.v138-export-inline{display:none!important}}
+.navbtn[data-page="serviceRecords"][data-v161-allow="0"]{display:none!important}
+button[data-v161-export="1"]{cursor:pointer!important}
 </style>
 
 <script>
-/* V160：修正全部匯出CSV無反應，使用 onclick + capture + MutationObserver 三層綁定 */
+/* V161：按鈕不再自行讀 state，改呼叫原本系統內建匯出函式，避免 state is not defined */
 (function(){
-  function $(id){return document.getElementById(id)}
   function all(sel){return Array.from(document.querySelectorAll(sel))}
-  function today(){return typeof todayISO==='function'?todayISO():new Date().toISOString().slice(0,10)}
-  function month(){return today().slice(0,7)}
-  function year(){return today().slice(0,4)}
-  function escHtml(v){try{return typeof esc==='function'?esc(v):String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}catch(e){return String(v??'')}}
-  function monthRangeSafe(ym){
-    if(typeof monthRange==='function')return monthRange(ym);
-    const y=Number(ym.slice(0,4)),m=Number(ym.slice(5,7));
-    return [ym+'-01',ym+'-'+String(new Date(y,m,0).getDate()).padStart(2,'0')];
-  }
-  function addDate(d,n){
-    if(typeof dateAdd==='function')return dateAdd(d,n);
-    const x=new Date(d+'T00:00:00'); x.setDate(x.getDate()+n); return x.toISOString().slice(0,10);
-  }
-  function csvCell(v){return '"' + String(v??'').replace(/"/g,'""') + '"'}
-  function downloadCsv(rows,name){
-    if(!Array.isArray(rows)||!rows.length)rows=[['沒有資料']];
-    const body=rows.map(r=>r.map(csvCell).join(',')).join('\r\n');
-    const blob=new Blob(['\ufeff'+body],{type:'text/csv;charset=utf-8;'});
-    const filename=name || ('FOR-e匯出_'+today()+'.csv');
+  function $(id){return document.getElementById(id)}
 
-    // 優先使用標準下載
-    try{
-      if(window.navigator && window.navigator.msSaveOrOpenBlob){
-        window.navigator.msSaveOrOpenBlob(blob, filename);
-        return true;
-      }
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');
-      a.href=url;
-      a.download=filename;
-      a.rel='noopener';
-      a.style.position='fixed';
-      a.style.left='-9999px';
-      document.body.appendChild(a);
-      a.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));
-      setTimeout(function(){URL.revokeObjectURL(url);a.remove()},1500);
-      return true;
-    }catch(err){
-      console.error('CSV download failed',err);
-      try{
-        const url=URL.createObjectURL(blob);
-        window.open(url,'_blank');
-        setTimeout(function(){URL.revokeObjectURL(url)},5000);
-        return true;
-      }catch(e){
-        alert('匯出失敗：瀏覽器阻擋下載，請改用 Safari / Chrome 開啟正式網址後再試。');
-        return false;
-      }
-    }
-  }
-  window.exportCsv=downloadCsv;
-  try{exportCsv=downloadCsv}catch(e){}
-  window.forEExportCsvV160=downloadCsv;
-
-  function getPersonName(id){
-    try{if(typeof getPerson==='function'){const p=getPerson(id);return p&&p.name?p.name:''}}catch(e){}
-    const p=(state.people||[]).find(x=>x.id===id);return p?p.name:'';
-  }
-  function getUserName(id){
-    try{if(typeof getUser==='function'){const u=getUser(id);return u&&u.name?u.name:''}}catch(e){}
-    const u=(state.users||[]).find(x=>x.id===id);return u?u.name:'';
-  }
-  function displayType(t){try{return typeof displayEventType==='function'?displayEventType(t):String(t||'')}catch(e){return String(t||'')}}
-  function requiresSR(e){try{return typeof requiresServiceRecord==='function'?requiresServiceRecord(e):false}catch(e){return false}}
-  function overlaps(e,s,end){try{return typeof eventOverlapsRange==='function'?eventOverlapsRange(e,s,end):((e.startDate||'')<=end&&(e.endDate||e.startDate||'')>=s)}catch(err){return false}}
-
-  function rangeFromBox(box,page){
-    const is141=box&&box.classList&&box.classList.contains('v141-box');
-    const is138=box&&box.classList&&box.classList.contains('v138-export-inline');
-    if(is141||is138){
-      const mode=((box.querySelector(is141?'.v141-sel':'.v138-mode'))||{}).value||'month';
-      if(mode==='all')return {start:'0000-01-01',end:'9999-12-31',label:'全部'};
-      if(mode==='year'){
-        const y=((box.querySelector(is141?'.v141-year':'.v138-year'))||{}).value||year();
-        return {start:y+'-01-01',end:y+'-12-31',label:y};
-      }
-      if(mode==='day'){
-        const d=((box.querySelector(is141?'.v141-day':'.v138-day'))||{}).value||today();
-        return {start:d,end:d,label:d};
-      }
-      if(mode==='range'){
-        const s=((box.querySelector(is141?'.v141-start':'.v138-start'))||{}).value||today();
-        const e=((box.querySelector(is141?'.v141-end':'.v138-end'))||{}).value||s;
-        return {start:s,end:e,label:s+'_to_'+e};
-      }
-      const ym=((box.querySelector(is141?'.v141-month':'.v138-month'))||{}).value||month();
-      const r=monthRangeSafe(ym);
-      return {start:r[0],end:r[1],label:ym};
-    }
-
-    const pageId=page?page.id:'';
-    function val(id){return $(id)&&$(id).value}
-    if(pageId==='fieldDetailsPage'){
-      const s=val('fieldDetailStart')||monthRangeSafe(month())[0], e=val('fieldDetailEnd')||monthRangeSafe(month())[1];
-      return {start:s,end:e,label:s+'_to_'+e};
-    }
-    if(pageId==='personalDetailsPage'){
-      const s=val('detailStart')||monthRangeSafe(month())[0], e=val('detailEnd')||monthRangeSafe(month())[1];
-      return {start:s,end:e,label:s+'_to_'+e};
-    }
-    if(pageId==='incidentsPage'){
-      const s=val('incidentFilterStart')||val('incidentStart')||'0000-01-01';
-      const e=val('incidentFilterEnd')||val('incidentEnd')||'9999-12-31';
-      return {start:s,end:e,label:(s==='0000-01-01'?'全部':s+'_to_'+e)};
-    }
-    const r=monthRangeSafe(month());
-    return {start:r[0],end:r[1],label:month()};
-  }
-
-  function activePage(){
-    return document.querySelector('section.page:not(.hide)') || document.querySelector('.page:not(.hide)');
-  }
-
-  function pageFromButton(btn){
-    return (btn&&btn.closest&&btn.closest('section.page')) || activePage();
-  }
-
-  function rowsEvents(start,end){
-    const rows=[['ID','起日','迄日','時間','類型','行程名稱','地點/客戶','地址','狀態','人員','建立者','更新時間','服務紀錄單','繳交日期','備註']];
-    (state.events||[]).filter(e=>!e.deleted&&overlaps(e,start,end)).sort((a,b)=>String((a.startDate||'')+(a.startTime||'')).localeCompare(String((b.startDate||'')+(b.startTime||'')))).forEach(e=>{
-      rows.push([e.id||'',e.startDate||'',e.endDate||'',e.startTime||'',displayType(e.type||''),e.name||'',e.locationName||'',e.address||'',e.status||'',(e.participants||[]).map(getPersonName).filter(Boolean).join('、'),getUserName(e.createdBy)||'',e.updatedAt||'',requiresSR(e)?(e.serviceRecordSubmitted?'已繳交':'未繳交'):'',e.serviceRecordDate||'',e.note||'']);
-    });
-    return rows;
-  }
-  function rowsField(start,end){
-    const rows=[['ID','日期','時間','人員','目的','地點','地址','狀態','內容/備註','特殊提醒','現金','印章','證件','下一次領件','送件失敗原因','建立者','更新時間']];
-    (state.externalEvents||[]).filter(e=>!e.deleted&&(e.date||'')>=start&&(e.date||'')<=end).sort((a,b)=>String((a.date||'')+(a.time||'')).localeCompare(String((b.date||'')+(b.time||'')))).forEach(e=>{
-      rows.push([e.id||'',e.date||'',e.time||'',getPersonName(e.personId)||'',e.purpose||'',e.locationName||'',e.address||'',e.status||'',e.note||'',e.specialReminder||'',e.cash||'',e.seal||'',e.certificate||'',e.nextPickupDate||'',e.failureReason||'',getUserName(e.createdBy)||'',e.updatedAt||'']);
-    });
-    return rows;
-  }
-  function rowsRoom(start,end){
-    const rows=[['ID','日期','時間','會議室','部門','會議名稱','建立者','更新時間']];
-    (state.roomBookings||[]).filter(b=>!b.deleted&&(b.date||'')>=start&&(b.date||'')<=end).sort((a,b)=>String((a.date||'')+(a.startTime||'')).localeCompare(String((b.date||'')+(b.startTime||'')))).forEach(b=>{
-      rows.push([b.id||'',b.date||'',(b.startTime||'')+'-'+(b.endTime||''),b.room||'',b.department||'',b.title||'',getUserName(b.createdBy)||'',b.updatedAt||'']);
-    });
-    return rows;
-  }
-  function rowsIncidents(start,end){
-    const rows=[['ID','發生日期','發生時間','緊急程度','異況類型','地點/客戶','工人','異況標題','負責人','協助人員','狀態','下次追蹤日期','內容說明']];
-    (state.incidents||[]).filter(x=>!x.deleted&&(x.occurrenceDate||'')>=start&&(x.occurrenceDate||'')<=end).forEach(x=>{
-      rows.push([x.id||'',x.occurrenceDate||'',x.occurrenceTime||'',x.urgency||'',x.incidentType||'',x.customerName||'',x.workerName||'',x.title||'',getPersonName(x.ownerPersonId)||'',(x.helperPersonIds||[]).map(getPersonName).join('、'),x.status||'',x.nextFollowDate||'',x.description||'']);
-    });
-    return rows;
-  }
-  function rowsReports(start,end){
-    const rows=[['類別','項目','數量','起日','迄日']];
-    const ev=(state.events||[]).filter(e=>!e.deleted&&overlaps(e,start,end));
-    const field=(state.externalEvents||[]).filter(e=>!e.deleted&&(e.date||'')>=start&&(e.date||'')<=end);
-    const room=(state.roomBookings||[]).filter(b=>!b.deleted&&(b.date||'')>=start&&(b.date||'')<=end);
-    const inc=(state.incidents||[]).filter(x=>!x.deleted&&(x.occurrenceDate||'')>=start&&(x.occurrenceDate||'')<=end);
-    rows.push(['總計','行程',ev.length,start,end],['總計','外務',field.length,start,end],['總計','會議室',room.length,start,end],['總計','異況',inc.length,start,end]);
-    const byType={}; ev.forEach(e=>{const k=displayType(e.type||'未分類');byType[k]=(byType[k]||0)+1});
-    Object.entries(byType).forEach(([k,v])=>rows.push(['行程類型',k,v,start,end]));
-    return rows;
-  }
-  function rowsService(start,end){
-    const rows=[['日期','部門','翻譯','職務','行程類型','辦理內容','地點/客戶','行程狀態','服務紀錄單','繳交日期']];
-    let people=[]; try{people=typeof serviceFilterPeople==='function'?serviceFilterPeople():(state.people||[])}catch(e){people=(state.people||[])}
-    let data=[]; try{if(typeof serviceRecordsInRange==='function')data=serviceRecordsInRange(start,end,people)}catch(e){data=[]}
-    if(!data.length){
-      people.forEach(p=>(state.events||[]).filter(ev=>!ev.deleted&&overlaps(ev,start,end)&&requiresSR(ev)&&(ev.participants||[]).includes(p.id)).forEach(ev=>data.push({person:p,event:ev,date:ev.startDate,submitted:!!(ev.serviceRecordSubmitted&&ev.serviceRecordDate)})));
-    }
-    data.forEach(x=>{const ev=x.event||{},p=x.person||{};rows.push([x.date||ev.startDate||'',p.group||'',p.name||'',p.lang||'',displayType(ev.type||''),ev.name||'',ev.locationName||'',ev.status||'',(ev.serviceRecordSubmitted&&ev.serviceRecordDate)?'已繳交':'未繳交',ev.serviceRecordDate||''])});
-    return rows;
-  }
-
-  function rowsByPage(pageId,start,end){
-    if(pageId==='calendarPage')return ['行程總覽',rowsEvents(start,end)];
-    if(pageId==='fieldCalendarPage')return ['外務行程',rowsField(start,end)];
-    if(pageId==='roomBookingPage')return ['會議室預約',rowsRoom(start,end)];
-    if(pageId==='fieldDetailsPage')return ['外務明細',rowsField(start,end)];
-    if(pageId==='personalDetailsPage')return ['個人行程',rowsEvents(start,end)];
-    if(pageId==='incidentsPage')return ['異況追蹤',rowsIncidents(start,end)];
-    if(pageId==='reportsPage')return ['統計報表',rowsReports(start,end)];
-    if(pageId==='serviceRecordsPage')return ['服務紀錄單',rowsService(start,end)];
-    return ['匯出資料',[['頁面','訊息'],[pageId||'', '找不到對應匯出資料']]];
-  }
-
-  window.forEV160ExportFromButton=function(btn,ev){
-    if(ev){ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();}
-    try{
-      const page=pageFromButton(btn);
-      const box=btn&&btn.closest&&btn.closest('.v141-box,.v138-export-inline');
-      const r=rangeFromBox(box,page);
-      const pair=rowsByPage(page?page.id:'',r.start,r.end);
-      downloadCsv(pair[1],pair[0]+'_'+r.label+'.csv');
-      try{toast('已匯出 '+pair[0]+' CSV')}catch(e){}
-    }catch(err){
-      console.error('V160 export error',err);
-      alert('匯出失敗：'+(err&&err.message?err.message:err));
-    }
-    return false;
-  };
-
-  function shouldBind(btn){
-    if(!btn||btn.dataset.v160Bound==='1')return false;
-    const txt=(btn.textContent||'').replace(/\s+/g,'');
-    const id=btn.id||'';
-    return btn.matches('.v141-btn,.v138-export-btn') || /匯出.*CSV/.test(txt) || /^export.*Btn$/i.test(id) || id==='fieldExportBtn';
-  }
-  function bindOne(btn){
-    if(!shouldBind(btn))return;
-    btn.dataset.v160Bound='1';
-    btn.dataset.v160Export='1';
-    btn.onclick=function(ev){return window.forEV160ExportFromButton(btn,ev)};
-    btn.addEventListener('click',function(ev){return window.forEV160ExportFromButton(btn,ev)},true);
-  }
-  function bindAllExports(){
-    all('button').forEach(bindOne);
-    all('.v141-box,.v138-export-inline').forEach(box=>{
-      const m=box.querySelector('.v141-month,.v138-month'), d=box.querySelector('.v141-day,.v138-day'), y=box.querySelector('.v141-year,.v138-year'), s=box.querySelector('.v141-start,.v138-start'), e=box.querySelector('.v141-end,.v138-end');
-      if(m&&!m.value)m.value=month(); if(d&&!d.value)d.value=today(); if(y&&!y.value)y.value=year(); if(s&&!s.value)s.value=today(); if(e&&!e.value)e.value=today();
-      const sel=box.querySelector('.v141-sel,.v138-mode');
-      if(sel&&!sel.dataset.v160ModeBound){
-        sel.dataset.v160ModeBound='1';
-        sel.addEventListener('change',function(){
-          const is141=box.classList.contains('v141-box'), mode=sel.value||'month';
-          [['year',is141?'.v141-year':'.v138-year'],['month',is141?'.v141-month':'.v138-month'],['day',is141?'.v141-day':'.v138-day'],['range',is141?'.v141-start':'.v138-start'],['range',is141?'.v141-end':'.v138-end']].forEach(p=>{const el=box.querySelector(p[1]); if(el)el.style.display=mode===p[0]?'inline-flex':'none'});
-        });
-        sel.dispatchEvent(new Event('change'));
-      }
-    });
-  }
-
-  document.addEventListener('click',function(ev){
-    const btn=ev.target&&ev.target.closest&&ev.target.closest('button');
-    if(btn&&shouldBind(btn))return window.forEV160ExportFromButton(btn,ev);
-  },true);
-
-  // 會議室週曆保險恢復
-  function roomListSafe(){
-    try{if(typeof roomList==='function')return roomList().filter(Boolean)}catch(e){}
-    return ((state.options&&state.options.meetingRooms)||['大會議室716','小會議室300']).filter(Boolean);
-  }
-  function deptListSafe(){
-    try{if(typeof departmentList==='function')return departmentList()}catch(e){}
-    return ((state.options&&state.options.departments)||[]).filter(Boolean);
-  }
-  function ensureRoomFilters(){
-    const rf=$('roomBookingRoomFilter'), df=$('roomBookingDeptFilter');
-    if(rf&&rf.options.length<=1)rf.innerHTML='<option value="">全部會議室</option>'+roomListSafe().map(x=>`<option>${escHtml(x)}</option>`).join('');
-    if(df&&df.options.length<=1)df.innerHTML='<option value="">全部部門</option>'+deptListSafe().map(x=>`<option>${escHtml(x)}</option>`).join('');
-  }
-  function dc(d){try{return typeof dayClass==='function'?dayClass(d):''}catch(e){return ''}}
-  function fd(d){try{return typeof fmtDate==='function'?fmtDate(d):d.slice(5).replace('-','/')}catch(e){return d}}
-  function hb(d){try{return typeof holidayBadgeBodyHTML==='function'?holidayBadgeBodyHTML(d):''}catch(e){return ''}}
-  function canEdit(b){try{return typeof v105BookingCanEdit==='function'?v105BookingCanEdit(b):true}catch(e){return true}}
-  function renderRoomFallback(){
-    if(!$('roomBookingArea'))return;
-    ensureRoomFilters();
-    if($('roomBookingWeekPicker')&&!$('roomBookingWeekPicker').value)$('roomBookingWeekPicker').value=today();
-    const base=($('roomBookingWeekPicker')&&$('roomBookingWeekPicker').value)||today();
-    let start=base;
-    try{const dt=new Date(base+'T00:00:00');start=addDate(base,-((dt.getDay()+6)%7))}catch(e){}
-    const days=[0,1,2,3,4,5,6].map(i=>addDate(start,i));
-    const rooms=roomListSafe();
-    const rf=$('roomBookingRoomFilter')?$('roomBookingRoomFilter').value:'', dep=$('roomBookingDeptFilter')?$('roomBookingDeptFilter').value:'', kw=($('roomBookingKeyword')?$('roomBookingKeyword').value:'').trim().toLowerCase();
-    const useRooms=rf?rooms.filter(r=>r===rf):rooms;
-    let html='<div class="room-week-wrap"><table class="room-week-table"><thead><tr><th class="room-room-head">會議室</th>'+days.map(d=>`<th class="${dc(d)}"><div>${['日','一','二','三','四','五','六'][new Date(d+'T00:00:00').getDay()]}</div><div class="date-num">${fd(d)}</div>${hb(d)}</th>`).join('')+'</tr></thead><tbody>';
-    useRooms.forEach(room=>{
-      html+=`<tr><td class="room-room-cell"><div class="person-name">${escHtml(room)}</div></td>`;
-      days.forEach(day=>{
-        let bookings=(state.roomBookings||[]).filter(b=>!b.deleted&&b.room===room&&b.date===day);
-        if(dep)bookings=bookings.filter(b=>b.department===dep);
-        if(kw)bookings=bookings.filter(b=>[b.room,b.department,b.title,b.date,b.startTime,b.endTime].join(' ').toLowerCase().includes(kw));
-        html+=`<td class="room-day-cell ${dc(day)}" ondblclick="openRoomBookingModal({date:'${escHtml(day)}',room:'${escHtml(room)}'})"><div class="date-num">${fd(day)}</div>${hb(day)}`;
-        html+=bookings.sort((a,b)=>String(a.startTime||'').localeCompare(String(b.startTime||''))).map(b=>{
-          const can=canEdit(b), creator=getUserName(b.createdBy)||'';
-          return `<div class="room-booking-item ${can?'':'readonly'}" onclick="event.stopPropagation();openRoomBookingModal('${b.id}')"><div class="time">${escHtml(b.startTime)}-${escHtml(b.endTime)}</div><div class="room-title">${escHtml(b.title)}</div><div class="room-meta">${escHtml(b.department||'')}｜BOOKING：${escHtml(creator)}</div>${can?`<div class="room-booking-actions"><button class="small" onclick="event.stopPropagation();openRoomBookingModal('${b.id}')">修改</button><button class="small danger" onclick="event.stopPropagation();deleteRoomBookingById('${b.id}')">刪除</button></div>`:''}</div>`;
-        }).join('');
-        html+='</td>';
-      });
-      html+='</tr>';
-    });
-    html+='</tbody></table></div>';
-    $('roomBookingArea').innerHTML=html;
-  }
-  const oldRoom=window.renderRoomBookings;
-  window.renderRoomBookings=function(){
-    try{if(typeof oldRoom==='function')oldRoom()}catch(e){console.warn('old room render failed',e)}
-    if(!$('roomBookingArea')||!$('roomBookingArea').innerHTML.trim())renderRoomFallback();
-  };
-
-  function cleanService(){
+  function currentRole(){
     const r=(currentUser&&currentUser.role)||'';
-    const allow=(r==='admin'||r==='options'||r==='supervisor');
+    if(r==='admin'||r==='options')return 'admin';
+    if(r==='supervisor')return 'supervisor';
+    if(r==='adminStaff'||r==='admin_staff')return 'adminStaff';
+    if(r==='general'||r==='sales')return 'general';
+    if(r==='staff'||r==='translator'||r==='schedule'||r==='dispatcher'||r==='viewer')return 'translator';
+    return r||'translator';
+  }
+  function allowService(){
+    const r=currentRole();
+    return r==='admin'||r==='supervisor';
+  }
+  function cleanService(){
+    const allow=allowService();
     all('.navbtn[data-page="translatorService"]').forEach(b=>b.remove());
     const tp=$('translatorServicePage'); if(tp)tp.remove();
     const sp=$('srStaffPage'); if(sp){sp.innerHTML='';sp.style.setProperty('display','none','important')}
     all('.navbtn[data-page="serviceRecords"]').forEach(btn=>{
-      btn.dataset.v160Allow=allow?'1':'0';
+      btn.dataset.v161Allow=allow?'1':'0';
       btn.classList.toggle('hide',!allow);
       btn.classList.toggle('role-hidden',!allow);
       btn.style.display=allow?'':'none';
@@ -6660,23 +6421,96 @@ button[data-v160-export="1"]{cursor:pointer!important}
   }
   window._applyServicePageMode=function(){cleanService()};
 
-  function init(){
-    bindAllExports();
-    cleanService();
-    if($('roomBookingArea')){
-      try{window.renderRoomBookings()}catch(e){renderRoomFallback()}
+  function activePage(){
+    return document.querySelector('section.page:not(.hide)') || document.querySelector('.page:not(.hide)');
+  }
+  function pageFromButton(btn){
+    return (btn&&btn.closest&&btn.closest('section.page')) || activePage();
+  }
+
+  function callExportForPage(pageId){
+    try{
+      if(pageId==='calendarPage' && typeof exportEvents==='function')return exportEvents();
+      if(pageId==='fieldCalendarPage' && typeof exportFieldEvents==='function')return exportFieldEvents();
+      if(pageId==='roomBookingPage' && typeof exportRoomBookingsCsv==='function')return exportRoomBookingsCsv();
+      if(pageId==='fieldDetailsPage' && typeof exportFieldDetails==='function')return exportFieldDetails();
+      if(pageId==='personalDetailsPage' && typeof exportPersonalDetails==='function')return exportPersonalDetails();
+      if(pageId==='incidentsPage' && typeof exportIncidents==='function')return exportIncidents();
+      if(pageId==='reportsPage' && typeof exportReports==='function')return exportReports();
+      if(pageId==='serviceRecordsPage' && typeof exportServiceRecords==='function')return exportServiceRecords();
+
+      // fallback by visible page / text
+      if(typeof exportEvents==='function')return exportEvents();
+      alert('找不到此頁面的匯出功能');
+    }catch(err){
+      console.error('export button failed',err);
+      alert('匯出失敗：'+(err&&err.message?err.message:err));
     }
+  }
+
+  function shouldBind(btn){
+    if(!btn)return false;
+    const txt=(btn.textContent||'').replace(/\s+/g,'');
+    const id=btn.id||'';
+    return btn.matches('.v141-btn,.v138-export-btn') || /匯出.*CSV/.test(txt) || /^export.*Btn$/i.test(id) || id==='fieldExportBtn';
+  }
+  function bind(btn){
+    if(!shouldBind(btn))return;
+    btn.dataset.v161Export='1';
+    btn.onclick=function(ev){
+      if(ev){ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();}
+      const page=pageFromButton(btn);
+      callExportForPage(page?page.id:'');
+      return false;
+    };
+  }
+  function bindAll(){
+    all('button').forEach(bind);
+
+    // 直接指定舊 ID，避免按鈕文字被其他補丁改掉時漏綁
+    const map={
+      exportCsvBtn:'calendarPage',
+      fieldExportBtn:'fieldCalendarPage',
+      exportFieldDetailsBtn:'fieldDetailsPage',
+      exportPersonalDetailsBtn:'personalDetailsPage',
+      exportIncidentsBtn:'incidentsPage',
+      exportServiceRecordsBtn:'serviceRecordsPage'
+    };
+    Object.entries(map).forEach(([id,pageId])=>{
+      const b=$(id);
+      if(b){
+        b.dataset.v161Export='1';
+        b.onclick=function(ev){
+          if(ev){ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();}
+          callExportForPage(pageId);
+          return false;
+        };
+      }
+    });
+    cleanService();
+  }
+
+  document.addEventListener('click',function(ev){
+    const btn=ev.target&&ev.target.closest&&ev.target.closest('button');
+    if(!shouldBind(btn))return;
+    ev.preventDefault();
+    ev.stopImmediatePropagation();
+    const page=pageFromButton(btn);
+    callExportForPage(page?page.id:'');
+    return false;
+  },true);
+
+  const oldApply=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
+  if(oldApply){
+    applyPermissionsUI=function(){oldApply();cleanService();};
   }
   const oldRenderAll=typeof renderAll==='function'?renderAll:null;
   if(oldRenderAll){
-    renderAll=function(){oldRenderAll();init()};
+    renderAll=function(){oldRenderAll();bindAll();};
   }
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(init,250));
-  setTimeout(init,900);
-  setInterval(function(){
-    bindAllExports();
-    if(typeof currentPage!=='undefined'&&currentPage==='roomBooking'&&$('roomBookingArea')&&!$('roomBookingArea').innerHTML.trim())renderRoomFallback();
-  },1500);
+
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(bindAll,250));
+  setTimeout(bindAll,900);
 })();
 </script>
 
