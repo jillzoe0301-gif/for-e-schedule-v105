@@ -1,0 +1,20 @@
+[33m3d78b99[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m reset service record permissions and restore filters
+[33ma4c3321[m clean export controls and service permissions
+[33mba21065[m finalize export controls and service record permissions
+[33mf8d9763[m align exports right and fix service record permissions
+[33m37c860e[m fix export controls and service record nav
+[33m1c79922[m fix service record permissions and reminders
+[33madb154f[m add export ranges and service record permissions
+[33m00fe53c[m refine incident follow up and remove title chips
+[33m1f074ee[m align mobile calendar titles left
+[33m2c3877f[m remove old duplicate mobile filters
+[33mcd1b84a[m fix incident save flow and today alerts
+[33m1e31a16[m sync incident follow dates to calendars
+[33m3d69278[m update all incident time selects
+[33md6dba81[m directly update incident time selects
+[33m51da800[m fix incident time slots and return to incidents page
+[33m69ee718[m remove command text from html
+[33md909fee[m remove duplicate mobile filter panels
+[33mc037647[m keep mobile week controls outside filters
+[33me76a5dd[m directly fix mobile header layout
+[33m6d6cded[m remove next build files from git
