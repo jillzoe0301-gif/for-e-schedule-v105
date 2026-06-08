@@ -6356,139 +6356,22 @@ body.role-staff #srStaffPage{display:block!important}
 </style>
 
 <style>
-/* V154：翻譯服務紀錄單 - 改用既有 serviceRecordsPage + srStaffPage，避免舊版 staff monitor 蓋掉 */
-#srStaffPage.translator-service-v154{
-  display:block!important;
+/* V155：先刪除翻譯服務紀錄單頁面（含手機） */
+.navbtn[data-page="translatorService"],
+.navbtn[data-page="serviceRecords"][data-v155-allow="0"]{
+  display:none!important;
 }
-#srStaffPage.translator-service-v154 .translator-service-grid{
-  display:grid;
-  grid-template-columns:1fr 1.25fr 1.25fr;
-  gap:12px;
-  align-items:start;
-}
-#srStaffPage.translator-service-v154 .translator-service-panel{
-  background:#fff;
-  border:1px solid var(--line);
-  border-radius:16px;
-  box-shadow:var(--shadow);
-  padding:14px;
-  min-width:0;
-}
-#srStaffPage.translator-service-v154 .translator-service-panel h2{
-  font-size:18px;
-  margin:0 0 10px;
-}
-#srStaffPage.translator-service-v154 .translator-service-subtitle{
-  font-size:13px;
-  color:#64748b;
-  line-height:1.45;
-  margin:4px 0 10px;
-}
-#srStaffPage.translator-service-v154 .translator-service-toolbar{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  flex-wrap:wrap;
-  margin:8px 0 10px;
-}
-#srStaffPage.translator-service-v154 .translator-service-toolbar .mini{
-  min-width:120px;
-}
-#srStaffPage.translator-service-v154 .translator-reminder-card{
-  border:1px solid #bfdbfe;
-  border-left:6px solid #2563eb;
-  background:#eff6ff;
-  border-radius:14px;
-  padding:10px;
-  margin:8px 0;
-}
-#srStaffPage.translator-service-v154 .translator-reminder-card.overdue{
-  border-color:#fde68a;
-  border-left-color:#f59e0b;
-  background:#fffbeb;
-}
-#srStaffPage.translator-service-v154 .translator-reminder-card .title{
-  font-weight:900;
-  margin-bottom:4px;
-}
-#srStaffPage.translator-service-v154 .translator-reminder-card .meta{
-  font-size:13px;
-  color:#475569;
-  line-height:1.45;
-}
-#srStaffPage.translator-service-v154 .translator-service-table-wrap{
-  width:100%;
-  max-height:64vh;
-  overflow:auto;
-  border:1px solid var(--line);
-  border-radius:12px;
-  background:#fff;
-}
-#srStaffPage.translator-service-v154 .translator-service-table{
-  width:100%;
-  min-width:720px;
-  border-collapse:collapse;
-}
-#srStaffPage.translator-service-v154 .translator-service-table th,
-#srStaffPage.translator-service-v154 .translator-service-table td{
-  border-bottom:1px solid var(--line);
-  padding:8px;
-  text-align:left;
-  vertical-align:top;
-  font-size:13px;
-}
-#srStaffPage.translator-service-v154 .translator-service-table th{
-  position:sticky;
-  top:0;
-  z-index:2;
-  background:#f8fafc;
-  font-weight:900;
-}
-#srStaffPage.translator-service-v154 .translator-chip{
-  display:inline-flex;
-  align-items:center;
-  border-radius:999px;
-  padding:3px 8px;
-  font-weight:900;
-  font-size:12px;
-  border:1px solid #e2e8f0;
-  white-space:nowrap;
-}
-#srStaffPage.translator-service-v154 .translator-chip.ok{background:#ecfdf5;border-color:#86efac;color:#166534}
-#srStaffPage.translator-service-v154 .translator-chip.no{background:#fef2f2;border-color:#fecaca;color:#991b1b}
-#srStaffPage.translator-service-v154 .translator-chip.warn{background:#fffbeb;border-color:#fde68a;color:#92400e}
-@media(max-width:1100px){
-  #srStaffPage.translator-service-v154 .translator-service-grid{grid-template-columns:1fr}
-}
-@media(max-width:760px){
-  #srStaffPage.translator-service-v154 .translator-service-table{min-width:680px}
-  #srStaffPage.translator-service-v154 .translator-service-table th,
-  #srStaffPage.translator-service-v154 .translator-service-table td{font-size:12px;padding:7px}
-  #srStaffPage.translator-service-v154 .translator-service-toolbar{display:grid;grid-template-columns:1fr 1fr}
-  #srStaffPage.translator-service-v154 .translator-service-toolbar .mini{min-width:0;width:100%}
+#translatorServicePage{
+  display:none!important;
 }
 </style>
 
 <script>
-/* V154：真正修正原因：
-   既有檔案已有 V147 staff 版服務紀錄單，並用 interval 反覆控制 srStaffPage。
-   所以本版直接接管同一個 srStaffPage，不再另建新頁，避免被舊邏輯蓋掉。
-*/
+/* V155：移除翻譯服務紀錄單入口與舊 staff 服務紀錄單模式 */
 (function(){
   function $(id){return document.getElementById(id)}
   function all(sel){return Array.from(document.querySelectorAll(sel))}
-  function today2(){return typeof todayISO==='function'?todayISO():new Date().toISOString().slice(0,10)}
-  function month2(){return typeof monthISO==='function'?monthISO():today2().slice(0,7)}
-  function monthRange2(ym){
-    if(typeof monthRange==='function')return monthRange(ym);
-    const y=Number(ym.slice(0,4)),m=Number(ym.slice(5,7));
-    return [ym+'-01',ym+'-'+String(new Date(y,m,0).getDate()).padStart(2,'0')];
-  }
-  function esc2(v){
-    try{return typeof esc==='function'?esc(v):String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-    catch(e){return String(v??'')}
-  }
-  function role2(){
+  function role(){
     const r=(currentUser&&currentUser.role)||'';
     if(r==='admin'||r==='options')return 'admin';
     if(r==='supervisor')return 'supervisor';
@@ -6497,214 +6380,50 @@ body.role-staff #srStaffPage{display:block!important}
     if(r==='staff'||r==='translator'||r==='schedule'||r==='dispatcher'||r==='viewer')return 'translator';
     return r||'translator';
   }
-  function isTranslator2(){return role2()==='translator'}
-  function canAdminService2(){return role2()==='admin'||role2()==='supervisor'}
-  function canSeeService2(){return canAdminService2()||isTranslator2()}
-  function userPid2(){
-    try{return typeof userPersonId==='function'?userPersonId():(currentUser&&currentUser.personId)}
-    catch(e){return currentUser&&currentUser.personId}
+  function allowServiceRecords(){
+    const r=role();
+    return r==='admin'||r==='supervisor';
   }
-  function getPerson2(id){
-    try{return typeof getPerson==='function'?getPerson(id):((state.people||[]).find(p=>p.id===id)||{})}
-    catch(e){return (state.people||[]).find(p=>p.id===id)||{}}
-  }
-  function displayType2(t){
-    try{return typeof displayEventType==='function'?displayEventType(t):String(t||'')}
-    catch(e){return String(t||'')}
-  }
-  function submitted2(e){return !!(e&&e.serviceRecordSubmitted&&e.serviceRecordDate)}
-  function requiresSR2(e){
-    try{return typeof requiresServiceRecord==='function'?requiresServiceRecord(e):['銀行','定期','送工(新入境、承接)','車禍處理','面談','醫療','上線/教育訓練'].includes(displayType2(e.type))}
-    catch(err){return false}
-  }
-  function overlaps2(e,start,end){
-    try{return typeof eventOverlapsRange==='function'?eventOverlapsRange(e,start,end):((e.startDate||'')<=end&&(e.endDate||e.startDate||'')>=start)}
-    catch(err){return false}
-  }
-  function daysLate2(date){
-    const a=new Date(today2()+'T00:00:00');
-    const b=new Date(String(date||today2())+'T00:00:00');
-    return Math.floor((a-b)/86400000);
-  }
-  function rowsForTranslator2(start,end){
-    const pid=userPid2();
-    const p=getPerson2(pid);
-    if(!pid)return [];
-    let rows=[];
-    if(typeof serviceRecordsInRange==='function'){
-      rows=serviceRecordsInRange(start,end,[p]).filter(x=>x&&x.person&&x.person.id===pid);
-      rows.forEach(x=>x.submitted=submitted2(x.event));
-      return rows;
-    }
-    (state.events||[])
-      .filter(e=>!e.deleted&&requiresSR2(e)&&overlaps2(e,start,end)&&(e.participants||[]).includes(pid))
-      .forEach(e=>rows.push({person:p,event:e,date:e.startDate<start?start:e.startDate,submitted:submitted2(e)}));
-    return rows;
-  }
-  function chip2(row){
-    if(row.submitted)return '<span class="translator-chip ok">已繳交</span>';
-    if(daysLate2(row.date)>7)return '<span class="translator-chip warn">超過一週未繳</span>';
-    return '<span class="translator-chip no">未繳交</span>';
-  }
-  function detailRows2(rows,yearMode){
-    if(!rows.length)return `<tr><td colspan="${yearMode?8:7}" class="muted">目前沒有服務紀錄單明細</td></tr>`;
-    return rows.slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))).map(x=>`
-      <tr>
-        ${yearMode?`<td>${esc2(String(x.date||'').slice(0,7))}</td>`:''}
-        <td>${esc2(x.date||'')}</td>
-        <td>${esc2(displayType2(x.event.type||''))}</td>
-        <td>${esc2(x.event.name||'')}</td>
-        <td>${esc2(x.event.locationName||'')}</td>
-        <td>${esc2(x.event.status||'')}</td>
-        <td>${chip2(x)}</td>
-        <td>${esc2(x.event.serviceRecordDate||'')}</td>
-      </tr>
-    `).join('');
-  }
+  function applyV155(){
+    const allow=allowServiceRecords();
 
-  function renderTranslatorService2(){
-    const admin=$('srAdminSection');
-    const box=$('srStaffPage');
-    if(!box)return;
+    // 刪除 / 隱藏前幾版新增的翻譯獨立頁面與按鈕
+    all('.navbtn[data-page="translatorService"]').forEach(btn=>btn.remove());
+    const translatorPage=$('translatorServicePage');
+    if(translatorPage)translatorPage.remove();
 
-    if(admin)admin.style.setProperty('display','none','important');
-    box.style.setProperty('display','block','important');
-    box.className='translator-service-v154';
-
-    const currentMonth=($('translatorServiceMonthV154')&&$('translatorServiceMonthV154').value)||month2();
-    const currentYear=($('translatorServiceYearV154')&&$('translatorServiceYearV154').value)||currentMonth.slice(0,4);
-    const [ms,me]=monthRange2(currentMonth);
-    const monthRows=rowsForTranslator2(ms,me);
-    const yearRows=rowsForTranslator2(`${currentYear}-01-01`,`${currentYear}-12-31`);
-    const monthUnpaid=monthRows.filter(x=>!x.submitted);
-    const inWeek=monthUnpaid.filter(x=>daysLate2(x.date)<=7);
-    const overdue=monthUnpaid.filter(x=>daysLate2(x.date)>7);
-
-    box.innerHTML=`
-      <div class="panel">
-        <div class="section-title">
-          <h2>服務紀錄單</h2>
-          <span class="muted">僅顯示登入翻譯自己的服務紀錄單資料</span>
-        </div>
-        <div class="translator-service-toolbar">
-          <label class="muted">統計年月</label>
-          <input id="translatorServiceMonthV154" type="month" class="mini" value="${esc2(currentMonth)}">
-          <label class="muted">統計年度</label>
-          <input id="translatorServiceYearV154" type="number" class="mini" min="2024" max="2035" step="1" value="${esc2(currentYear)}">
-          <button id="refreshTranslatorServiceV154" type="button">重新整理</button>
-        </div>
-      </div>
-      <div class="translator-service-grid">
-        <div class="translator-service-panel">
-          <h2>服務紀錄單繳交提醒</h2>
-          <div class="translator-service-subtitle">提醒項目：一週內服務紀錄單提醒、超過一週的服務紀錄單催繳通知。</div>
-          <div class="statgrid">
-            <div class="stat"><div class="muted">當月需繳交</div><b>${monthRows.length}</b></div>
-            <div class="stat"><div class="muted">當月已繳交</div><b>${monthRows.filter(x=>x.submitted).length}</b></div>
-            <div class="stat"><div class="muted">當月未繳交</div><b>${monthUnpaid.length}</b></div>
-            <div class="stat"><div class="muted">超過一週未繳</div><b>${overdue.length}</b></div>
-          </div>
-          <div style="margin-top:10px">
-            ${inWeek.map(x=>`
-              <div class="translator-reminder-card">
-                <div class="title">一週內服務紀錄單提醒</div>
-                <div class="meta">${esc2(x.date)}｜${esc2(displayType2(x.event.type))}｜${esc2(x.event.name)}<br>${esc2(x.event.locationName||'')}</div>
-              </div>
-            `).join('')}
-            ${overdue.map(x=>`
-              <div class="translator-reminder-card overdue">
-                <div class="title">超過一週的服務紀錄單催繳通知</div>
-                <div class="meta">${esc2(x.date)}｜已逾 ${daysLate2(x.date)} 天｜${esc2(displayType2(x.event.type))}｜${esc2(x.event.name)}<br>${esc2(x.event.locationName||'')}</div>
-              </div>
-            `).join('')}
-            ${(!inWeek.length&&!overdue.length)?'<div class="muted">目前沒有未繳交提醒。</div>':''}
-          </div>
-        </div>
-        <div class="translator-service-panel">
-          <h2>當月服務紀錄單明細</h2>
-          <div class="statgrid" style="margin-bottom:10px">
-            <div class="stat"><div class="muted">已繳交</div><b>${monthRows.filter(x=>x.submitted).length}</b></div>
-            <div class="stat"><div class="muted">未繳交</div><b>${monthRows.filter(x=>!x.submitted).length}</b></div>
-          </div>
-          <div class="translator-service-table-wrap">
-            <table class="translator-service-table">
-              <thead><tr><th>日期</th><th>行程類型</th><th>辦理內容</th><th>地點 / 客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead>
-              <tbody>${detailRows2(monthRows,false)}</tbody>
-            </table>
-          </div>
-        </div>
-        <div class="translator-service-panel">
-          <h2>當年度服務紀錄單明細</h2>
-          <div class="statgrid" style="margin-bottom:10px">
-            <div class="stat"><div class="muted">年度已繳交</div><b>${yearRows.filter(x=>x.submitted).length}</b></div>
-            <div class="stat"><div class="muted">年度未繳交</div><b>${yearRows.filter(x=>!x.submitted).length}</b></div>
-          </div>
-          <div class="translator-service-table-wrap">
-            <table class="translator-service-table">
-              <thead><tr><th>月份</th><th>日期</th><th>行程類型</th><th>辦理內容</th><th>地點 / 客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead>
-              <tbody>${detailRows2(yearRows,true)}</tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    `;
-
-    $('translatorServiceMonthV154').onchange=renderTranslatorService2;
-    $('translatorServiceYearV154').onchange=renderTranslatorService2;
-    $('refreshTranslatorServiceV154').onclick=renderTranslatorService2;
-  }
-
-  function showAdminService2(){
-    const admin=$('srAdminSection');
-    const box=$('srStaffPage');
-    if(admin)admin.style.setProperty('display','','important');
-    if(box)box.style.setProperty('display','none','important');
-  }
-
-  function ensureServiceNav2(){
-    const side=document.querySelector('.side');
-    if(side&&!side.querySelector('.navbtn[data-page="serviceRecords"]')){
-      const btn=document.createElement('button');
-      btn.className='navbtn';
-      btn.dataset.page='serviceRecords';
-      btn.innerHTML='<span class="mono-ico ico-clipboard"></span>服務紀錄單';
-      const line=side.querySelector('.navbtn[data-page="line"]');
-      if(line)side.insertBefore(btn,line); else side.appendChild(btn);
-    }
-    const bottom=document.querySelector('.bottom-nav');
-    if(bottom&&!bottom.querySelector('.navbtn[data-page="serviceRecords"]')){
-      const btn=document.createElement('button');
-      btn.className='navbtn';
-      btn.dataset.page='serviceRecords';
-      btn.innerHTML='<span class="mono-ico ico-clipboard"></span>紀錄單';
-      const line=bottom.querySelector('.navbtn[data-page="line"]');
-      if(line)bottom.insertBefore(btn,line); else bottom.appendChild(btn);
-    }
-  }
-
-  function applyServicePermission2(){
-    ensureServiceNav2();
-    const allow=canSeeService2();
+    // 服務紀錄單只保留給管理員與主管；翻譯、行政、一般人員都隱藏。
     all('.navbtn[data-page="serviceRecords"]').forEach(btn=>{
+      btn.dataset.v155Allow=allow?'1':'0';
       btn.classList.toggle('hide',!allow);
       btn.classList.toggle('role-hidden',!allow);
       btn.style.display=allow?'':'none';
-      if(isTranslator2()&&btn.closest('.bottom-nav'))btn.innerHTML='<span class="mono-ico ico-clipboard"></span>紀錄單';
-      if(isTranslator2()&&btn.closest('.side'))btn.innerHTML='<span class="mono-ico ico-clipboard"></span>服務紀錄單';
     });
-    if(!allow&&currentPage==='serviceRecords'){
+
+    // 非管理員 / 主管若停在服務紀錄單頁，強制切回行程總覽。
+    if(!allow && typeof currentPage!=='undefined' && currentPage==='serviceRecords'){
       currentPage='calendar';
       all('.page').forEach(p=>p.classList.add('hide'));
       if($('calendarPage'))$('calendarPage').classList.remove('hide');
       all('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page==='calendar'));
     }
+
+    // 非管理員 / 主管不顯示舊的 staff 服務紀錄單容器。
+    if(!allow){
+      const staff=$('srStaffPage');
+      if(staff){
+        staff.style.setProperty('display','none','important');
+        staff.innerHTML='';
+      }
+    }
   }
 
-  const oldCanSee=typeof canSeePage==='function'?canSeePage:null;
-  if(oldCanSee){
+  const oldCanSeePage=typeof canSeePage==='function'?canSeePage:null;
+  if(oldCanSeePage){
     canSeePage=function(page){
-      if(page==='serviceRecords')return canSeeService2();
-      return oldCanSee(page);
+      if(page==='translatorService')return false;
+      if(page==='serviceRecords')return allowServiceRecords();
+      return oldCanSeePage(page);
     };
   }
 
@@ -6712,82 +6431,66 @@ body.role-staff #srStaffPage{display:block!important}
     const oldAllowed=window.v105AllowedPages;
     window.v105AllowedPages=function(){
       let arr=oldAllowed();
-      if(canSeeService2())arr=[...new Set([...arr,'serviceRecords'])];
+      arr=arr.filter(x=>x!=='translatorService');
+      if(allowServiceRecords())arr=[...new Set([...arr,'serviceRecords'])];
       else arr=arr.filter(x=>x!=='serviceRecords');
       return arr;
     };
   }
 
-  const oldRenderService=typeof renderServiceRecords==='function'?renderServiceRecords:null;
-  renderServiceRecords=function(){
-    if(isTranslator2()){
-      renderTranslatorService2();
-      return;
+  // 原檔內有舊 staff 服務紀錄單模式，這裡直接停用。
+  window._applyServicePageMode=function(){
+    const staff=$('srStaffPage');
+    if(staff){
+      staff.style.setProperty('display','none','important');
+      staff.innerHTML='';
     }
-    showAdminService2();
-    if(oldRenderService)oldRenderService();
   };
 
-  // 接管舊 V147 暴露的 staff mode，避免舊畫面回來。
-  window._applyServicePageMode=function(){
-    if(isTranslator2())renderTranslatorService2();
-    else if(canAdminService2())showAdminService2();
+  const oldRenderService=typeof renderServiceRecords==='function'?renderServiceRecords:null;
+  renderServiceRecords=function(){
+    if(!allowServiceRecords()){
+      applyV155();
+      try{toast&&toast('此權限無法開啟服務紀錄單')}catch(e){}
+      return;
+    }
+    if(oldRenderService)oldRenderService();
   };
 
   const oldApplyPermissions=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
   if(oldApplyPermissions){
     applyPermissionsUI=function(){
       oldApplyPermissions();
-      applyServicePermission2();
+      applyV155();
     };
   }
 
-  const oldV105Apply=window.v105ApplyNav;
+  const oldV105ApplyNav=window.v105ApplyNav;
   window.v105ApplyNav=function(){
-    if(oldV105Apply)oldV105Apply();
-    applyServicePermission2();
+    if(oldV105ApplyNav)oldV105ApplyNav();
+    applyV155();
   };
 
   const oldRenderAll=typeof renderAll==='function'?renderAll:null;
   if(oldRenderAll){
     renderAll=function(){
       oldRenderAll();
-      applyServicePermission2();
-      if(currentPage==='serviceRecords')renderServiceRecords();
+      applyV155();
     };
   }
 
   document.addEventListener('click',function(e){
-    const btn=e.target&&e.target.closest&&e.target.closest('.navbtn[data-page="serviceRecords"]');
+    const btn=e.target&&e.target.closest&&e.target.closest('.navbtn[data-page="translatorService"], .navbtn[data-page="serviceRecords"][data-v155-allow="0"]');
     if(!btn)return;
-    if(!canSeeService2())return;
     e.preventDefault();
     e.stopImmediatePropagation();
-    all('.navbtn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    currentPage='serviceRecords';
-    all('.page').forEach(p=>p.classList.add('hide'));
-    $('serviceRecordsPage').classList.remove('hide');
-    renderServiceRecords();
+    try{toast&&toast('此權限無法開啟服務紀錄單')}catch(err){}
+    return false;
   },true);
 
-  function initV154(){
-    applyServicePermission2();
-    if(currentPage==='serviceRecords')renderServiceRecords();
-  }
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(initV154,200));
-  setTimeout(initV154,800);
-
-  // 這個 interval 是必要的：原檔案 V147 有自己的 interval 會反覆改 srStaffPage，本版在後面再校正。
-  setInterval(function(){
-    if(currentUser&&isTranslator2()&&currentPage==='serviceRecords'){
-      const box=$('srStaffPage');
-      if(box&&(!box.classList.contains('translator-service-v154')||!box.querySelector('.translator-service-grid'))){
-        renderTranslatorService2();
-      }
-      applyServicePermission2();
-    }
-  },700);
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(applyV155,200));
+  setTimeout(applyV155,800);
+  setInterval(applyV155,1200);
 })();
 </script>
 
