@@ -1847,7 +1847,7 @@ function saveReportSnapshot(){if(!$('reportMonth'))return; const snap=currentRep
 function exportReports(){if(!$('reportMonth'))return; const ym=$('reportMonth').value||monthISO(); const year=Number($('reportYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym); const monthData=buildReportData(ms,me); const yearData=buildReportData(`${year}-01-01`,`${year}-12-31`); const rows=[['區間','部門','人員名稱','職務','總數','未完成','已完成','取消','分類','分類數']]; function addRows(label,data){const activeTypes=data.types.filter(t=>data.rows.some(r=>(r.byType[t]||0)>0)); data.rows.forEach(r=>{rows.push([label,r.person.group,r.person.name,r.person.lang,r.total,r.undone,r.done,r.cancel,'全部',r.total]); activeTypes.forEach(t=>rows.push([label,r.person.group,r.person.name,r.person.lang,r.total,r.undone,r.done,r.cancel,t,r.byType[t]||0]));}); ['一部翻譯','二部翻譯','總計'].forEach(g=>{const r=data.dept[g]; rows.push([label,g,'部門總計','',r.total,r.undone,r.done,r.cancel,'全部',r.total]);});} addRows(`月統計 ${ym}`,monthData); addRows(`年度統計 ${year}`,yearData); exportCsv(rows,`行程統計_${ym}_${year}.csv`)}
 function initServiceFilters(){if(!$('serviceMonth'))return; if(!$('serviceMonth').value)$('serviceMonth').value=monthISO(); if(!$('serviceYear').value)$('serviceYear').value=($('serviceMonth').value||monthISO()).slice(0,4)}
 function serviceFilterPeople(){let people=state.people.filter(reportEligiblePerson); const g=$('serviceGroup')?$('serviceGroup').value:''; if(g)people=people.filter(p=>p.group===g); return people}
-function renderServiceRecords(){if(typeof normalizedRole==='function'&&normalizedRole()==='staff'){if(window._applyServicePageMode)window._applyServicePageMode();return;}if(!$('serviceMonth'))return; initServiceFilters(); const ym=$('serviceMonth').value||monthISO(); const year=Number($('serviceYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym); const people=serviceFilterPeople(); const md=serviceRecordsInRange(ms,me,people).filter(x=>!x.submitted); const yd=serviceRecordsInRange(`${year}-01-01`,`${year}-12-31`,people).filter(x=>!x.submitted); function stats(rows){const one=rows.filter(x=>x.person.group==='一部翻譯').length,two=rows.filter(x=>x.person.group==='二部翻譯').length; return `<div class="stat"><div class="muted">未交總數</div><b>${rows.length}</b></div><div class="stat"><div class="muted">一部翻譯未交</div><b>${one}</b></div><div class="stat"><div class="muted">二部翻譯未交</div><b>${two}</b></div>`} if($('serviceMonthStats'))$('serviceMonthStats').innerHTML=stats(md); if($('serviceYearStats'))$('serviceYearStats').innerHTML=stats(yd); const rowHtml=rows=>rows.sort((a,b)=>(a.date+a.person.group+a.person.name).localeCompare(b.date+b.person.group+b.person.name)).map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.person.group)}</td><td>${esc(x.person.name)}</td><td>${esc(x.person.lang)}</td><td>${esc(displayEventType(x.event.type))}</td><td>${esc(x.event.name)}</td><td>${esc(x.event.locationName||'')}</td><td>${esc(x.event.status)}</td><td>🔴 未交</td></tr>`).join('')||'<tr><td colspan="9" class="muted">沒有未交明細</td></tr>'; if($('serviceMonthDetailRows'))$('serviceMonthDetailRows').innerHTML=rowHtml(md); if($('serviceYearDetailRows'))$('serviceYearDetailRows').innerHTML=rowHtml(yd)}
+function renderServiceRecords(){if(typeof normalizedRole==='function'&&normalizedRole()==='staff'){return;}if(!$('serviceMonth'))return; initServiceFilters(); const ym=$('serviceMonth').value||monthISO(); const year=Number($('serviceYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym); const people=serviceFilterPeople(); const md=serviceRecordsInRange(ms,me,people).filter(x=>!x.submitted); const yd=serviceRecordsInRange(`${year}-01-01`,`${year}-12-31`,people).filter(x=>!x.submitted); function stats(rows){const one=rows.filter(x=>x.person.group==='一部翻譯').length,two=rows.filter(x=>x.person.group==='二部翻譯').length; return `<div class="stat"><div class="muted">未交總數</div><b>${rows.length}</b></div><div class="stat"><div class="muted">一部翻譯未交</div><b>${one}</b></div><div class="stat"><div class="muted">二部翻譯未交</div><b>${two}</b></div>`} if($('serviceMonthStats'))$('serviceMonthStats').innerHTML=stats(md); if($('serviceYearStats'))$('serviceYearStats').innerHTML=stats(yd); const rowHtml=rows=>rows.sort((a,b)=>(a.date+a.person.group+a.person.name).localeCompare(b.date+b.person.group+b.person.name)).map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.person.group)}</td><td>${esc(x.person.name)}</td><td>${esc(x.person.lang)}</td><td>${esc(displayEventType(x.event.type))}</td><td>${esc(x.event.name)}</td><td>${esc(x.event.locationName||'')}</td><td>${esc(x.event.status)}</td><td>🔴 未交</td></tr>`).join('')||'<tr><td colspan="9" class="muted">沒有未交明細</td></tr>'; if($('serviceMonthDetailRows'))$('serviceMonthDetailRows').innerHTML=rowHtml(md); if($('serviceYearDetailRows'))$('serviceYearDetailRows').innerHTML=rowHtml(yd)}
 function exportServiceRecords(){if(!$('serviceMonth'))return; initServiceFilters(); const ym=$('serviceMonth').value||monthISO(); const [ms,me]=monthRange(ym); const people=serviceFilterPeople(); const rows=[['日期','部門','人員','職務','行程類型','辦理內容','地點 / 客戶','狀態','繳交狀態']]; serviceRecordsInRange(ms,me,people).filter(x=>!x.submitted).forEach(x=>rows.push([x.date,x.person.group,x.person.name,x.person.lang,displayEventType(x.event.type),x.event.name,x.event.locationName||'',x.event.status,'未交'])); exportCsv(rows,`未交服務紀錄單_${ym}.csv`)}
 
 function exportEvents(){const rows=[['行程ID','類別','狀態','起日','迄日','開始時間','結束時間','類型','附加行程類型','附加行程備註','辦理內容','地點 / 客戶','地址','公務車調整','相關人員','建立人','建立時間','最後修改人','最後修改時間','是否刪除','刪除原因','服務紀錄單','繳交日期','下次回診日期','下次回診時間','下次回診人員','掛號號碼','內容說明']]; state.events.forEach(e=>rows.push([e.id,e.kind,e.status,e.startDate,e.endDate,e.startTime,e.endTime,e.type,e.additionalType||'',e.additionalNote||'',e.name,e.locationName,e.address,e.vehicleNo||'',e.participants.map(id=>getPerson(id).name).join('、'),getUser(e.createdBy).name,e.createdAt,getUser(e.updatedBy).name,e.updatedAt,e.deleted?'是':'否',e.deleteReason||'',requiresServiceRecord(e)?(e.serviceRecordSubmitted?'已交':'未交'):'',e.serviceRecordDate||'',e.followupDate||'',e.followupTime||'',e.followupPersonId?getPerson(e.followupPersonId).name:'',e.followupRegNo||'',e.note])); exportCsv(rows,'翻譯行程匯出.csv')}
@@ -6097,129 +6097,6 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
   setTimeout(init,500);
 })();
 </script>
-<script>
-/* V150 Final：翻譯版服務紀錄單 - 用 MutationObserver + interval 確保即時生效 */
-(function(){
-  function isStaff(){
-    return typeof normalizedRole==='function' && normalizedRole()==='staff';
-  }
-  function myPid(){
-    return typeof userPersonId==='function' ? userPersonId() : null;
-  }
-  function todayStr(){
-    return typeof todayISO==='function' ? todayISO() : new Date().toISOString().slice(0,10);
-  }
-  function dl(e){
-    const dt=new Date((e.endDate||e.startDate||todayStr())+'T00:00:00');
-    dt.setDate(dt.getDate()+7); return dt.toISOString().slice(0,10);
-  }
-  function submitted(e){ return !!(e.serviceRecordSubmitted&&e.serviceRecordDate); }
-  function dT(t){ return typeof displayEventType==='function'?displayEventType(t):String(t||''); }
-  function es(s){ return typeof esc==='function'?esc(s):String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-
-  function renderStaffPage(){
-    const box=document.getElementById('srStaffPage');
-    if(!box) return;
-    const today=todayStr(), thisMonth=today.slice(0,7), thisYear=today.slice(0,4);
-    const pid=myPid();
-    if(!pid||typeof state==='undefined'){
-      box.innerHTML='<div class="panel"><div class="muted">無法載入資料</div></div>'; return;
-    }
-    const all=(state.events||[]).filter(e=>{
-      if(e.deleted||e.kind==='translatorStatus') return false;
-      if(typeof requiresServiceRecord!=='function'||!requiresServiceRecord(e)) return false;
-      return (e.participants||[]).includes(pid);
-    });
-    const reminders=all.filter(e=>!submitted(e)&&(e.endDate||e.startDate||'')<=today)
-                        .sort((a,b)=>dl(a).localeCompare(dl(b)));
-    const overdue=reminders.filter(e=>today>dl(e));
-    const within7=reminders.filter(e=>today<=dl(e));
-    const monthAll=all.filter(e=>(e.startDate||'').slice(0,7)===thisMonth).sort((a,b)=>String(a.startDate).localeCompare(b.startDate));
-    const yearAll =all.filter(e=>(e.startDate||'').slice(0,4)===thisYear ).sort((a,b)=>String(a.startDate).localeCompare(b.startDate));
-
-    function badge(e){
-      if(submitted(e)) return '<span style="color:#16a34a;font-weight:900">✅ 已繳交</span>';
-      if(today>dl(e))  return '<span style="color:#dc2626;font-weight:900;background:#fef08a;padding:2px 6px;border-radius:6px">🚨 逾期未繳</span>';
-      if((e.endDate||e.startDate||'')<=today) return '<span style="color:#f59e0b;font-weight:900">⏳ 未繳交</span>';
-      return '<span style="color:#6b7280">— 尚未結束</span>';
-    }
-    function bg(e){ if(submitted(e))return''; if(today>dl(e))return'background:#fffde7'; if((e.endDate||e.startDate||'')<=today)return'background:#fffbeb'; return''; }
-    function card(e,over){
-      return `<div class="sr-staff-remind-card${over?' overdue':''}">
-        <div class="sr-remind-icon">${over?'🚨':'⏰'}</div>
-        <div class="sr-remind-body">
-          <div class="sr-remind-title">${es(dT(e.type))}｜${es(e.name||'')}</div>
-          <div class="sr-remind-meta">行程日期：${es(e.startDate||'')}${e.endDate&&e.endDate!==e.startDate?'～'+es(e.endDate):''}　地點：${es(e.locationName||'')}</div>
-          <div class="sr-remind-meta">繳交截止：<b>${es(dl(e))}</b></div>
-          ${over?'<div class="sr-remind-overdue">已逾期，請盡快繳交！</div>':'<div style="margin-top:4px;font-size:12px;color:#92400e">⚠ 請於截止日前繳交</div>'}
-        </div></div>`;
-    }
-    const thead=`<thead><tr><th>行程日期</th><th>行程類型</th><th>辦理內容</th><th>地點/客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead>`;
-    function trows(rows){
-      if(!rows.length) return '<tr><td colspan="7" class="muted" style="text-align:center;padding:16px">沒有資料</td></tr>';
-      return rows.map(e=>`<tr style="${bg(e)}"><td>${es(e.startDate||'')}${e.endDate&&e.endDate!==e.startDate?'～'+es(e.endDate):''}</td><td>${es(dT(e.type))}</td><td>${es(e.name||'')}</td><td>${es(e.locationName||'')}</td><td>${es(e.status||'')}</td><td>${badge(e)}</td><td>${es(e.serviceRecordDate||'')}</td></tr>`).join('');
-    }
-    box.innerHTML=`
-      <div class="panel">
-        <div class="section-title"><h2>服務紀錄單繳交提醒</h2><span class="muted">行程結束後 7 天內請繳交</span></div>
-        ${overdue.length===0&&within7.length===0?'<div class="muted" style="padding:12px 0">目前沒有待繳交的服務紀錄單 🎉</div>':''}
-        ${overdue.length>0?`<div style="font-weight:900;color:#dc2626;margin:8px 0 4px">🚨 逾期催繳（${overdue.length} 筆）</div>${overdue.map(e=>card(e,true)).join('')}`:''}
-        ${within7.length>0?`<div style="font-weight:900;color:#92400e;margin:8px 0 4px">⏰ 一週內請繳交（${within7.length} 筆）</div>${within7.map(e=>card(e,false)).join('')}`:''}
-      </div>
-      <div class="panel">
-        <div class="section-title"><h2>當月服務紀錄單明細</h2><span class="muted">${thisMonth}</span></div>
-        <div class="detail-table-wrap"><table class="table">${thead}<tbody>${trows(monthAll)}</tbody></table></div>
-      </div>
-      <div class="panel">
-        <div class="section-title"><h2>當年度服務紀錄單明細</h2><span class="muted">${thisYear} 年</span></div>
-        <div class="detail-table-wrap"><table class="table">${thead}<tbody>${trows(yearAll)}</tbody></table></div>
-      </div>`;
-  }
-
-  /* 核心：直接用 CSS class 控制顯示，並用 interval 持續監控 */
-  function applyMode(){
-    const staff=isStaff();
-    document.body.classList.toggle('role-staff', staff);
-    const admin=document.getElementById('srAdminSection');
-    const box=document.getElementById('srStaffPage');
-    if(!admin||!box) return;
-    admin.style.setProperty('display', staff?'none':'', 'important');
-    box.style.setProperty('display', staff?'block':'none', 'important');
-    if(staff) renderStaffPage();
-  }
-
-  window._applyServicePageMode = applyMode;
-
-  /* 登入後持續監控（每500ms），確保不被其他 renderAll 蓋掉 */
-  let _modeInterval=null;
-  function startMonitor(){
-    if(_modeInterval) clearInterval(_modeInterval);
-    _modeInterval=setInterval(()=>{
-      if(!isStaff()) return;
-      const admin=document.getElementById('srAdminSection');
-      if(admin && admin.style.display!=='none'){
-        applyMode();
-      }
-    }, 500);
-  }
-
-  /* Hook showApp - 用最保險的方式：定期檢查 currentUser */
-  let _lastUser=null;
-  setInterval(()=>{
-    const u=typeof currentUser!=='undefined'?currentUser:null;
-    if(u!==_lastUser){
-      _lastUser=u;
-      if(u){ applyMode(); startMonitor(); }
-      else{ if(_modeInterval){clearInterval(_modeInterval);_modeInterval=null;} document.body.classList.remove('role-staff'); }
-    }
-  }, 300);
-
-  /* 也 hook applyPermissionsUI */
-  const _perm=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
-  if(_perm){ applyPermissionsUI=function(){ _perm(); setTimeout(applyMode,100); }; }
-})();
-</script>
-
 <style>
 /* V148：手機版隱藏匯出CSV；新增按鈕全寬 */
 @media(max-width:760px){
@@ -6356,22 +6233,20 @@ body.role-staff #srStaffPage{display:block!important}
 </style>
 
 <style>
-/* V155：先刪除翻譯服務紀錄單頁面（含手機） */
-.navbtn[data-page="translatorService"],
-.navbtn[data-page="serviceRecords"][data-v155-allow="0"]{
+/* V156：清除舊翻譯服務紀錄單後，只保留管理員/主管服務紀錄單 */
+.navbtn[data-page="serviceRecords"][data-v156-allow="0"]{
   display:none!important;
 }
-#translatorServicePage{
+#srStaffPage{
   display:none!important;
 }
 </style>
-
 <script>
-/* V155：移除翻譯服務紀錄單入口與舊 staff 服務紀錄單模式 */
+/* V156：服務紀錄單權限乾淨版，翻譯/行政/一般人員不顯示 */
 (function(){
-  function $(id){return document.getElementById(id)}
   function all(sel){return Array.from(document.querySelectorAll(sel))}
-  function role(){
+  function $(id){return document.getElementById(id)}
+  function roleV156(){
     const r=(currentUser&&currentUser.role)||'';
     if(r==='admin'||r==='options')return 'admin';
     if(r==='supervisor')return 'supervisor';
@@ -6380,117 +6255,88 @@ body.role-staff #srStaffPage{display:block!important}
     if(r==='staff'||r==='translator'||r==='schedule'||r==='dispatcher'||r==='viewer')return 'translator';
     return r||'translator';
   }
-  function allowServiceRecords(){
-    const r=role();
+  function allowServiceV156(){
+    const r=roleV156();
     return r==='admin'||r==='supervisor';
   }
-  function applyV155(){
-    const allow=allowServiceRecords();
+  function applyV156(){
+    const allow=allowServiceV156();
 
-    // 刪除 / 隱藏前幾版新增的翻譯獨立頁面與按鈕
+    // 移除前幾版如果曾新增過的翻譯獨立服務紀錄單頁面與按鈕
     all('.navbtn[data-page="translatorService"]').forEach(btn=>btn.remove());
-    const translatorPage=$('translatorServicePage');
-    if(translatorPage)translatorPage.remove();
+    const tp=$('translatorServicePage');
+    if(tp)tp.remove();
 
-    // 服務紀錄單只保留給管理員與主管；翻譯、行政、一般人員都隱藏。
+    // 舊 staff 容器清空並隱藏
+    const staff=$('srStaffPage');
+    if(staff){
+      staff.innerHTML='';
+      staff.style.setProperty('display','none','important');
+    }
+
+    // 服務紀錄單只給管理員 / 主管
     all('.navbtn[data-page="serviceRecords"]').forEach(btn=>{
-      btn.dataset.v155Allow=allow?'1':'0';
+      btn.dataset.v156Allow=allow?'1':'0';
       btn.classList.toggle('hide',!allow);
       btn.classList.toggle('role-hidden',!allow);
       btn.style.display=allow?'':'none';
     });
 
-    // 非管理員 / 主管若停在服務紀錄單頁，強制切回行程總覽。
+    // 若非管理員/主管停在此頁，切回總覽
     if(!allow && typeof currentPage!=='undefined' && currentPage==='serviceRecords'){
       currentPage='calendar';
       all('.page').forEach(p=>p.classList.add('hide'));
       if($('calendarPage'))$('calendarPage').classList.remove('hide');
       all('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page==='calendar'));
     }
-
-    // 非管理員 / 主管不顯示舊的 staff 服務紀錄單容器。
-    if(!allow){
-      const staff=$('srStaffPage');
-      if(staff){
-        staff.style.setProperty('display','none','important');
-        staff.innerHTML='';
-      }
-    }
   }
 
-  const oldCanSeePage=typeof canSeePage==='function'?canSeePage:null;
-  if(oldCanSeePage){
+  // 確保舊名稱不存在，避免 renderServiceRecords staff branch 被觸發舊畫面。
+  window._applyServicePageMode=function(){applyV156();};
+
+  const oldCanSee=typeof canSeePage==='function'?canSeePage:null;
+  if(oldCanSee){
     canSeePage=function(page){
       if(page==='translatorService')return false;
-      if(page==='serviceRecords')return allowServiceRecords();
-      return oldCanSeePage(page);
+      if(page==='serviceRecords')return allowServiceV156();
+      return oldCanSee(page);
     };
   }
 
   if(window.v105AllowedPages){
     const oldAllowed=window.v105AllowedPages;
     window.v105AllowedPages=function(){
-      let arr=oldAllowed();
-      arr=arr.filter(x=>x!=='translatorService');
-      if(allowServiceRecords())arr=[...new Set([...arr,'serviceRecords'])];
+      let arr=oldAllowed().filter(x=>x!=='translatorService');
+      if(allowServiceV156())arr=[...new Set([...arr,'serviceRecords'])];
       else arr=arr.filter(x=>x!=='serviceRecords');
       return arr;
     };
   }
 
-  // 原檔內有舊 staff 服務紀錄單模式，這裡直接停用。
-  window._applyServicePageMode=function(){
-    const staff=$('srStaffPage');
-    if(staff){
-      staff.style.setProperty('display','none','important');
-      staff.innerHTML='';
-    }
-  };
-
-  const oldRenderService=typeof renderServiceRecords==='function'?renderServiceRecords:null;
-  renderServiceRecords=function(){
-    if(!allowServiceRecords()){
-      applyV155();
-      try{toast&&toast('此權限無法開啟服務紀錄單')}catch(e){}
-      return;
-    }
-    if(oldRenderService)oldRenderService();
-  };
-
-  const oldApplyPermissions=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
-  if(oldApplyPermissions){
+  const oldApply=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
+  if(oldApply){
     applyPermissionsUI=function(){
-      oldApplyPermissions();
-      applyV155();
+      oldApply();
+      applyV156();
     };
   }
 
-  const oldV105ApplyNav=window.v105ApplyNav;
+  const oldV105=window.v105ApplyNav;
   window.v105ApplyNav=function(){
-    if(oldV105ApplyNav)oldV105ApplyNav();
-    applyV155();
+    if(oldV105)oldV105();
+    applyV156();
   };
 
   const oldRenderAll=typeof renderAll==='function'?renderAll:null;
   if(oldRenderAll){
     renderAll=function(){
       oldRenderAll();
-      applyV155();
+      applyV156();
     };
   }
 
-  document.addEventListener('click',function(e){
-    const btn=e.target&&e.target.closest&&e.target.closest('.navbtn[data-page="translatorService"], .navbtn[data-page="serviceRecords"][data-v155-allow="0"]');
-    if(!btn)return;
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    try{toast&&toast('此權限無法開啟服務紀錄單')}catch(err){}
-    return false;
-  },true);
-
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(applyV155,200));
-  setTimeout(applyV155,800);
-  setInterval(applyV155,1200);
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(applyV156,200));
+  setTimeout(applyV156,800);
 })();
 </script>
 
