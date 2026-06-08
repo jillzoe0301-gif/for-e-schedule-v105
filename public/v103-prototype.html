@@ -3415,7 +3415,7 @@ function v106MobileBottomNavByRole(){
     supervisor:['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'],
     adminStaff:['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'],
     general:['mobile','calendar','roomBooking','line'],
-    staff:['mobile','calendar','serviceRecords','line']
+    staff:['mobile','calendar','line']
   };
   const allowed=rolePages[r]||rolePages.staff;
   allowed.forEach(page=>{const btn=nav.querySelector(`.navbtn[data-page="${page}"]`); if(btn)nav.appendChild(btn);});
@@ -3442,7 +3442,7 @@ canSeePage=function(page){
   if(page==='today'||page==='incidents')return ['admin','supervisor','adminStaff'].includes(r);
   if(page==='reports')return r==='admin';
   if(page==='fieldDetails')return ['admin','adminStaff'].includes(r);
-  if(page==='serviceRecords')return ['admin','supervisor','adminStaff','staff'].includes(r);
+  if(page==='serviceRecords')return ['admin','supervisor'].includes(r);
   if(page==='settings'||page==='audit')return r==='admin';
   return false;
 };
@@ -3735,7 +3735,7 @@ v106BindServiceRecordsUI=function(){
     if(r==='supervisor')return ['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'];
     if(r==='adminStaff')return ['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'];
     if(r==='general')return ['mobile','calendar','roomBooking','line'];
-    return ['mobile','calendar','serviceRecords','line'];
+    return ['mobile','calendar','line'];
   }
   window.v105AllowedPages=function(){
     const r=v108Role();
@@ -3743,7 +3743,7 @@ v106BindServiceRecordsUI=function(){
     if(r==='supervisor')return ['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'];
     if(r==='adminStaff')return ['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'];
     if(r==='general')return ['mobile','calendar','roomBooking','line'];
-    return ['mobile','calendar','serviceRecords','line'];
+    return ['mobile','calendar','line'];
   };
   const v108CanSeePageBase=typeof canSeePage==='function'?canSeePage:null;
   canSeePage=function(page){
@@ -3754,7 +3754,7 @@ v106BindServiceRecordsUI=function(){
     if(page==='today'||page==='incidents')return ['admin','supervisor','adminStaff'].includes(r);
     if(page==='reports')return r==='admin';
     if(page==='fieldDetails')return ['admin','adminStaff'].includes(r);
-    if(page==='serviceRecords')return ['admin','supervisor','adminStaff','staff'].includes(r);
+    if(page==='serviceRecords')return ['admin','supervisor'].includes(r);
     if(page==='personalDetails')return true;
     if(page==='theme')return true;
     if(page==='users')return true;
@@ -3830,7 +3830,7 @@ v106BindServiceRecordsUI=function(){
     if(r==='admin')return ['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line','reports'];
     if(r==='supervisor'||r==='adminStaff')return ['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'];
     if(r==='general')return ['mobile','calendar','roomBooking','line'];
-    return ['mobile','calendar','serviceRecords','line'];
+    return ['mobile','calendar','line'];
   }
   window.v105AllowedPages=function(){return bottomOrder();};
   const baseCanSee=typeof canSeePage==='function'?canSeePage:null;
@@ -3841,7 +3841,7 @@ v106BindServiceRecordsUI=function(){
     if(page==='fieldCalendar')return ['admin','supervisor','adminStaff'].includes(r);
     if(page==='today'||page==='incidents')return ['admin','supervisor','adminStaff'].includes(r);
     if(page==='reports')return r==='admin';
-    if(page==='serviceRecords')return ['admin','supervisor','adminStaff','staff'].includes(r);
+    if(page==='serviceRecords')return ['admin','supervisor'].includes(r);
     if(page==='fieldDetails')return ['admin','adminStaff'].includes(r);
     if(page==='personalDetails')return true;
     if(page==='theme')return true;
@@ -6298,7 +6298,7 @@ body.role-staff #srStaffPage{display:block!important}
   if(oldCanSee){
     canSeePage=function(page){
       if(page==='translatorService')return false;
-      if(page==='serviceRecords')return allowServiceV156();
+      if(page==='serviceRecords')return ['admin','supervisor'].includes(r);
       return oldCanSee(page);
     };
   }
