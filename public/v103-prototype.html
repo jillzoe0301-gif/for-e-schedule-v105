@@ -6226,12 +6226,6 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
   }
 }
 </style>
-
-<style>
-body.role-staff #srAdminSection{display:none!important}
-body.role-staff #srStaffPage{display:block!important}
-</style>
-
 <style>
 /* V156：清除舊翻譯服務紀錄單後，只保留管理員/主管服務紀錄單 */
 .navbtn[data-page="serviceRecords"][data-v156-allow="0"]{
@@ -6354,117 +6348,113 @@ body.role-staff #srStaffPage{display:block!important}
 
 
 <style>
-/* V158：修正匯出 CSV 按鈕無反應 */
-.v141-box .v141-year,
-.v141-box .v141-month,
-.v141-box .v141-day,
-.v141-box .v141-start,
-.v141-box .v141-end{
-  vertical-align:middle;
-}
-.v141-box .v141-btn,
-.v138-export-inline .v138-export-btn{
-  cursor:pointer!important;
-}
+/* V159：修正 CSV 按鈕、恢復會議室週曆、清除翻譯服務紀錄單殘留 */
+#srStaffPage{display:none!important}
+.navbtn[data-page="translatorService"],#translatorServicePage{display:none!important}
+.navbtn[data-page="serviceRecords"][data-v159-allow="0"]{display:none!important}
+.v141-box .v141-btn,.v138-export-inline .v138-export-btn{cursor:pointer!important}
+@media(max-width:760px){.v141-box,.v138-export-inline{display:none!important}}
+.room-week-wrap{overflow:auto;width:100%;border:1px solid var(--line);border-radius:14px;background:#fff;max-height:72vh}
+.room-week-table{border-collapse:separate;border-spacing:0;width:100%;min-width:1120px;table-layout:fixed}
+.room-week-table th,.room-week-table td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);vertical-align:top}
+.room-week-table th{position:sticky;top:0;z-index:5;background:var(--theme-date-header);padding:10px;font-weight:900}
+.room-room-head{position:sticky!important;left:0;z-index:30!important;width:180px!important;min-width:180px!important;max-width:180px!important;background:var(--theme-date-header)!important;box-shadow:3px 0 8px rgba(15,23,42,.08)}
+.room-room-cell{position:sticky;left:0;z-index:20;width:180px;min-width:180px;max-width:180px;background:#f8fafc;padding:10px;box-shadow:3px 0 8px rgba(15,23,42,.05);font-weight:900}
+.room-day-cell{height:142px;width:188px;min-width:188px;background:#fff;padding:8px}
+.room-booking-item{border:1px solid #bfdbfe;border-left:5px solid var(--brand);border-radius:10px;padding:6px;margin:5px 0;background:#eff6ff;font-size:12px;line-height:1.4;cursor:pointer}
+.room-booking-item.readonly{cursor:default;background:#f8fafc;border-color:#e2e8f0;border-left-color:#94a3b8}
+.room-booking-item .room-title{font-weight:900;color:#0f172a}
+.room-booking-item .room-meta{font-size:11px;color:#64748b}
+.room-booking-actions{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+.room-booking-actions button{font-size:11px;padding:3px 6px;border-radius:7px}
 @media(max-width:760px){
-  .v141-box,.v138-export-inline{
-    display:none!important;
-  }
+  .room-week-wrap{max-height:70vh}
+  .room-week-table{min-width:820px}
+  .room-room-head{width:110px!important;min-width:110px!important;max-width:110px!important;font-size:12px}
+  .room-room-cell{width:110px;min-width:110px;max-width:110px;font-size:12px;padding:6px}
+  .room-day-cell{width:142px;min-width:142px;height:118px;padding:5px}
+  .room-booking-item{font-size:11px;padding:5px}
+  .room-booking-item .room-meta{font-size:10px}
 }
 </style>
 
 <script>
-/* V158：重新綁定所有匯出 CSV 按鈕，並修正下載函式 */
+/* V159：CSV 匯出完整重綁 + 會議室週曆 fallback */
 (function(){
   function $(id){return document.getElementById(id)}
   function all(sel){return Array.from(document.querySelectorAll(sel))}
   function today(){return typeof todayISO==='function'?todayISO():new Date().toISOString().slice(0,10)}
-  function thisMonth(){return today().slice(0,7)}
-  function thisYear(){return today().slice(0,4)}
+  function month(){return today().slice(0,7)}
+  function year(){return today().slice(0,4)}
+  function escLocal(v){try{return typeof esc==='function'?esc(v):String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}catch(e){return String(v??'')}}
   function monthRangeSafe(ym){
     if(typeof monthRange==='function')return monthRange(ym);
     const y=Number(ym.slice(0,4)),m=Number(ym.slice(5,7));
     return [ym+'-01',ym+'-'+String(new Date(y,m,0).getDate()).padStart(2,'0')];
   }
-  function safeText(v){return String(v??'')}
-  function csvCell(v){return `"${safeText(v).replace(/"/g,'""')}"`}
-  function downloadCsvV158(rows,name){
+  function dateAddSafe(d,n){
+    if(typeof dateAdd==='function')return dateAdd(d,n);
+    const x=new Date(d+'T00:00:00'); x.setDate(x.getDate()+n); return x.toISOString().slice(0,10);
+  }
+  function csvCell(v){return `"${String(v??'').replace(/"/g,'""')}"`}
+  function downloadCsv(rows,name){
     const body=rows.map(r=>r.map(csvCell).join(',')).join('\n');
     const blob=new Blob(['\ufeff'+body],{type:'text/csv;charset=utf-8'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
     a.href=url;
     a.download=name||('匯出_'+today()+'.csv');
+    a.style.display='none';
     document.body.appendChild(a);
     a.click();
-    setTimeout(function(){
-      URL.revokeObjectURL(url);
-      a.remove();
-    },800);
+    setTimeout(function(){URL.revokeObjectURL(url);a.remove()},1000);
   }
+  window.exportCsv=downloadCsv;
+  try{exportCsv=downloadCsv}catch(e){}
 
-  // 覆蓋原本立即 revoke 的 exportCsv，避免部分瀏覽器下載失敗。
-  window.exportCsv=downloadCsvV158;
-  try{exportCsv=downloadCsvV158;}catch(e){}
+  function role(){
+    const r=(currentUser&&currentUser.role)||'';
+    if(r==='admin'||r==='options')return 'admin';
+    if(r==='supervisor')return 'supervisor';
+    if(r==='adminStaff'||r==='admin_staff')return 'adminStaff';
+    if(r==='general'||r==='sales')return 'general';
+    if(r==='staff'||r==='translator'||r==='schedule'||r==='dispatcher'||r==='viewer')return 'translator';
+    return r||'translator';
+  }
+  function allowService(){const r=role();return r==='admin'||r==='supervisor'}
+  function applyServiceClean(){
+    const allow=allowService();
+    all('.navbtn[data-page="translatorService"]').forEach(b=>b.remove());
+    const tp=$('translatorServicePage'); if(tp)tp.remove();
+    const sp=$('srStaffPage'); if(sp){sp.innerHTML='';sp.style.setProperty('display','none','important')}
+    all('.navbtn[data-page="serviceRecords"]').forEach(btn=>{
+      btn.dataset.v159Allow=allow?'1':'0';
+      btn.classList.toggle('hide',!allow);
+      btn.classList.toggle('role-hidden',!allow);
+      btn.style.display=allow?'':'none';
+    });
+    if(!allow&&typeof currentPage!=='undefined'&&currentPage==='serviceRecords'){
+      currentPage='calendar';
+      all('.page').forEach(p=>p.classList.add('hide'));
+      if($('calendarPage'))$('calendarPage').classList.remove('hide');
+      all('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page==='calendar'));
+    }
+  }
+  window._applyServicePageMode=function(){applyServiceClean()};
 
   function getPersonName(id){
-    try{
-      if(typeof getPerson==='function'){
-        const p=getPerson(id);
-        return p&&p.name?p.name:'';
-      }
-    }catch(e){}
-    const p=(window.state&&state.people||[]).find(x=>x.id===id);
-    return p?p.name:'';
+    try{if(typeof getPerson==='function'){const p=getPerson(id);return p&&p.name?p.name:''}}catch(e){}
+    const p=(state.people||[]).find(x=>x.id===id); return p?p.name:'';
   }
   function getUserName(id){
-    try{
-      if(typeof getUser==='function'){
-        const u=getUser(id);
-        return u&&u.name?u.name:'';
-      }
-    }catch(e){}
-    const u=(window.state&&state.users||[]).find(x=>x.id===id);
-    return u?u.name:'';
+    try{if(typeof getUser==='function'){const u=getUser(id);return u&&u.name?u.name:''}}catch(e){}
+    const u=(state.users||[]).find(x=>x.id===id); return u?u.name:'';
   }
-  function displayType(t){
-    try{return typeof displayEventType==='function'?displayEventType(t):safeText(t)}
-    catch(e){return safeText(t)}
-  }
-  function requiresSR(e){
-    try{return typeof requiresServiceRecord==='function'?requiresServiceRecord(e):false}
-    catch(err){return false}
-  }
-  function eventOverlaps(e,start,end){
-    try{return typeof eventOverlapsRange==='function'?eventOverlapsRange(e,start,end):((e.startDate||'')<=end&&(e.endDate||e.startDate||'')>=start)}
-    catch(err){return false}
-  }
-  function normalizeDate(d){return d||''}
+  function displayType(t){try{return typeof displayEventType==='function'?displayEventType(t):String(t||'')}catch(e){return String(t||'')}}
+  function requiresSR(e){try{return typeof requiresServiceRecord==='function'?requiresServiceRecord(e):false}catch(err){return false}}
+  function overlaps(e,s,end){try{return typeof eventOverlapsRange==='function'?eventOverlapsRange(e,s,end):((e.startDate||'')<=end&&(e.endDate||e.startDate||'')>=s)}catch(err){return false}}
 
-  function rangeFromBox(box){
-    const is141=box&&box.classList.contains('v141-box');
-    const sel=box?box.querySelector(is141?'.v141-sel':'.v138-mode'):null;
-    const mode=sel?(sel.value||'month'):'month';
-    if(mode==='all')return {start:'0000-01-01',end:'9999-12-31',label:'全部'};
-    if(mode==='year'){
-      const y=(box.querySelector(is141?'.v141-year':'.v138-year')||{}).value||thisYear();
-      return {start:y+'-01-01',end:y+'-12-31',label:y};
-    }
-    if(mode==='day'){
-      const d=(box.querySelector(is141?'.v141-day':'.v138-day')||{}).value||today();
-      return {start:d,end:d,label:d};
-    }
-    if(mode==='range'){
-      const s=(box.querySelector(is141?'.v141-start':'.v138-start')||{}).value||today();
-      const e=(box.querySelector(is141?'.v141-end':'.v138-end')||{}).value||s;
-      return {start:s,end:e,label:s+'_to_'+e};
-    }
-    const m=(box.querySelector(is141?'.v141-month':'.v138-month')||{}).value||thisMonth();
-    const r=monthRangeSafe(m);
-    return {start:r[0],end:r[1],label:m};
-  }
-
-  function updateBoxVisibility(box){
+  function updateBox(box){
     if(!box)return;
     const is141=box.classList.contains('v141-box');
     const mode=(box.querySelector(is141?'.v141-sel':'.v138-mode')||{}).value||'month';
@@ -6475,464 +6465,189 @@ body.role-staff #srStaffPage{display:block!important}
       ['range',is141?'.v141-start':'.v138-start'],
       ['range',is141?'.v141-end':'.v138-end']
     ];
-    pairs.forEach(function(p){
-      const el=box.querySelector(p[1]);
-      if(el)el.style.display=(mode===p[0])?'inline-flex':'none';
+    pairs.forEach(p=>{const el=box.querySelector(p[1]); if(el)el.style.display=(mode===p[0])?'inline-flex':'none'});
+  }
+  function initExportBoxes(){
+    all('.v141-box,.v138-export-inline').forEach(box=>{
+      const m=box.querySelector('.v141-month,.v138-month'), d=box.querySelector('.v141-day,.v138-day'), y=box.querySelector('.v141-year,.v138-year'), s=box.querySelector('.v141-start,.v138-start'), e=box.querySelector('.v141-end,.v138-end');
+      if(m&&!m.value)m.value=month(); if(d&&!d.value)d.value=today(); if(y&&!y.value)y.value=year(); if(s&&!s.value)s.value=today(); if(e&&!e.value)e.value=today();
+      updateBox(box);
+      if(box.dataset.v159Bound!=='1'){
+        box.dataset.v159Bound='1';
+        const sel=box.querySelector('.v141-sel,.v138-mode');
+        if(sel)sel.addEventListener('change',()=>updateBox(box));
+        const btn=box.querySelector('.v141-btn,.v138-export-btn');
+        if(btn)btn.onclick=function(ev){ev.preventDefault();ev.stopPropagation();exportByButton(btn)};
+      }
     });
   }
-
-  function initBoxes(){
-    all('.v141-box,.v138-export-inline').forEach(function(box){
-      if(box.dataset.v158Bound==='1')return;
-      box.dataset.v158Bound='1';
-
-      const month=box.querySelector('.v141-month,.v138-month');
-      const day=box.querySelector('.v141-day,.v138-day');
-      const year=box.querySelector('.v141-year,.v138-year');
-      const start=box.querySelector('.v141-start,.v138-start');
-      const end=box.querySelector('.v141-end,.v138-end');
-      if(month&&!month.value)month.value=thisMonth();
-      if(day&&!day.value)day.value=today();
-      if(year&&!year.value)year.value=thisYear();
-      if(start&&!start.value)start.value=today();
-      if(end&&!end.value)end.value=today();
-
-      const sel=box.querySelector('.v141-sel,.v138-mode');
-      if(sel)sel.addEventListener('change',function(){updateBoxVisibility(box)});
-      updateBoxVisibility(box);
-    });
+  function rangeFromBox(box){
+    const is141=box&&box.classList.contains('v141-box');
+    const mode=((box&&box.querySelector(is141?'.v141-sel':'.v138-mode'))||{}).value||'month';
+    if(mode==='all')return {start:'0000-01-01',end:'9999-12-31',label:'全部'};
+    if(mode==='year'){
+      const y=((box&&box.querySelector(is141?'.v141-year':'.v138-year'))||{}).value||year();
+      return {start:y+'-01-01',end:y+'-12-31',label:y};
+    }
+    if(mode==='day'){
+      const d=((box&&box.querySelector(is141?'.v141-day':'.v138-day'))||{}).value||today();
+      return {start:d,end:d,label:d};
+    }
+    if(mode==='range'){
+      const s=((box&&box.querySelector(is141?'.v141-start':'.v138-start'))||{}).value||today();
+      const e=((box&&box.querySelector(is141?'.v141-end':'.v138-end'))||{}).value||s;
+      return {start:s,end:e,label:s+'_to_'+e};
+    }
+    const ym=((box&&box.querySelector(is141?'.v141-month':'.v138-month'))||{}).value||month();
+    const r=monthRangeSafe(ym);
+    return {start:r[0],end:r[1],label:ym};
   }
 
-  function rowsEvents(start,end,personalOnly){
-    const pid=(typeof userPersonId==='function')?userPersonId():null;
+  function rowsEvents(start,end){
     const rows=[['ID','起日','迄日','時間','類型','行程名稱','地點/客戶','地址','狀態','人員','建立者','更新時間','服務紀錄單','繳交日期','備註']];
-    (state.events||[])
-      .filter(e=>!e.deleted&&eventOverlaps(e,start,end)&&(!personalOnly||!pid||(e.participants||[]).includes(pid)))
-      .sort((a,b)=>safeText((a.startDate||'')+(a.startTime||'')).localeCompare(safeText((b.startDate||'')+(b.startTime||''))))
-      .forEach(e=>rows.push([
-        e.id||'',e.startDate||'',e.endDate||'',e.startTime||'',displayType(e.type||''),e.name||'',e.locationName||'',e.address||'',e.status||'',
-        (e.participants||[]).map(getPersonName).filter(Boolean).join('、'),
-        getUserName(e.createdBy)||'',e.updatedAt||'',
-        requiresSR(e)?(e.serviceRecordSubmitted?'已繳交':'未繳交'):'',
-        e.serviceRecordDate||'',e.note||''
-      ]));
+    (state.events||[]).filter(e=>!e.deleted&&overlaps(e,start,end)).forEach(e=>rows.push([e.id||'',e.startDate||'',e.endDate||'',e.startTime||'',displayType(e.type||''),e.name||'',e.locationName||'',e.address||'',e.status||'',(e.participants||[]).map(getPersonName).filter(Boolean).join('、'),getUserName(e.createdBy)||'',e.updatedAt||'',requiresSR(e)?(e.serviceRecordSubmitted?'已繳交':'未繳交'):'',e.serviceRecordDate||'',e.note||'']));
     return rows;
   }
-
   function rowsField(start,end){
     const rows=[['ID','日期','時間','人員','目的','地點','地址','狀態','內容/備註','特殊提醒','現金','印章','證件','下一次領件','送件失敗原因','建立者','更新時間']];
-    (state.externalEvents||[])
-      .filter(e=>!e.deleted&&normalizeDate(e.date)>=start&&normalizeDate(e.date)<=end)
-      .sort((a,b)=>safeText((a.date||'')+(a.time||'')+(a.personId||'')).localeCompare(safeText((b.date||'')+(b.time||'')+(b.personId||''))))
-      .forEach(e=>rows.push([
-        e.id||'',e.date||'',e.time||'',getPersonName(e.personId)||'',e.purpose||'',e.locationName||'',e.address||'',e.status||'',e.note||'',
-        e.specialReminder||'',e.cash||'',e.seal||'',e.certificate||'',e.nextPickupDate||'',e.failureReason||'',getUserName(e.createdBy)||'',e.updatedAt||''
-      ]));
+    (state.externalEvents||[]).filter(e=>!e.deleted&&(e.date||'')>=start&&(e.date||'')<=end).forEach(e=>rows.push([e.id||'',e.date||'',e.time||'',getPersonName(e.personId)||'',e.purpose||'',e.locationName||'',e.address||'',e.status||'',e.note||'',e.specialReminder||'',e.cash||'',e.seal||'',e.certificate||'',e.nextPickupDate||'',e.failureReason||'',getUserName(e.createdBy)||'',e.updatedAt||'']));
     return rows;
   }
-
   function rowsRoom(start,end){
     const rows=[['ID','日期','時間','會議室','部門','會議名稱','建立者','更新時間']];
-    (state.roomBookings||[])
-      .filter(b=>!b.deleted&&normalizeDate(b.date)>=start&&normalizeDate(b.date)<=end)
-      .sort((a,b)=>safeText((a.date||'')+(a.startTime||'')+(a.room||'')).localeCompare(safeText((b.date||'')+(b.startTime||'')+(b.room||''))))
-      .forEach(b=>rows.push([b.id||'',b.date||'',(b.startTime||'')+'-'+(b.endTime||''),b.room||'',b.department||'',b.title||'',getUserName(b.createdBy)||'',b.updatedAt||'']));
+    (state.roomBookings||[]).filter(b=>!b.deleted&&(b.date||'')>=start&&(b.date||'')<=end).forEach(b=>rows.push([b.id||'',b.date||'',(b.startTime||'')+'-'+(b.endTime||''),b.room||'',b.department||'',b.title||'',getUserName(b.createdBy)||'',b.updatedAt||'']));
     return rows;
   }
-
   function rowsIncidents(start,end){
-    const rows=[['ID','發生日期','發生時間','緊急程度','異況類型','地點/客戶','工人','異況標題','負責人','狀態','下次追蹤日期','最後追蹤','內容說明']];
-    (state.incidents||[])
-      .filter(x=>!x.deleted&&normalizeDate(x.occurrenceDate)>=start&&normalizeDate(x.occurrenceDate)<=end)
-      .sort((a,b)=>safeText((a.occurrenceDate||'')+(a.occurrenceTime||'')).localeCompare(safeText((b.occurrenceDate||'')+(b.occurrenceTime||''))))
-      .forEach(x=>rows.push([
-        x.id||'',x.occurrenceDate||'',x.occurrenceTime||'',x.urgency||'',x.incidentType||'',x.customerName||'',x.workerName||'',x.title||'',getPersonName(x.ownerPersonId)||'',x.status||'',x.nextFollowDate||'',x.lastFollowText||'',x.description||''
-      ]));
+    const rows=[['ID','發生日期','發生時間','緊急程度','異況類型','地點/客戶','工人','異況標題','負責人','狀態','下次追蹤日期','內容說明']];
+    (state.incidents||[]).filter(x=>!x.deleted&&(x.occurrenceDate||'')>=start&&(x.occurrenceDate||'')<=end).forEach(x=>rows.push([x.id||'',x.occurrenceDate||'',x.occurrenceTime||'',x.urgency||'',x.incidentType||'',x.customerName||'',x.workerName||'',x.title||'',getPersonName(x.ownerPersonId)||'',x.status||'',x.nextFollowDate||'',x.description||'']));
     return rows;
   }
-
-  function rowsReports(start,end){
-    const ev=(state.events||[]).filter(e=>!e.deleted&&eventOverlaps(e,start,end));
-    const field=(state.externalEvents||[]).filter(e=>!e.deleted&&normalizeDate(e.date)>=start&&normalizeDate(e.date)<=end);
-    const inc=(state.incidents||[]).filter(x=>!x.deleted&&normalizeDate(x.occurrenceDate)>=start&&normalizeDate(x.occurrenceDate)<=end);
-    const rows=[['類別','項目','數量','起日','迄日']];
-    rows.push(['總計','行程',ev.length,start,end]);
-    rows.push(['總計','外務',field.length,start,end]);
-    rows.push(['總計','異況',inc.length,start,end]);
-    const byType={};
-    ev.forEach(e=>{const k=displayType(e.type||'未分類');byType[k]=(byType[k]||0)+1});
-    Object.entries(byType).forEach(([k,v])=>rows.push(['行程類型',k,v,start,end]));
-    const byStatus={};
-    ev.forEach(e=>{const k=e.status||'未填';byStatus[k]=(byStatus[k]||0)+1});
-    Object.entries(byStatus).forEach(([k,v])=>rows.push(['行程狀態',k,v,start,end]));
-    return rows;
-  }
-
   function rowsService(start,end){
     const rows=[['日期','部門','翻譯','職務','行程類型','辦理內容','地點/客戶','行程狀態','服務紀錄單','繳交日期']];
     let people=[];
-    try{
-      people=(typeof serviceFilterPeople==='function')?serviceFilterPeople():(state.people||[]);
-    }catch(e){people=(state.people||[])}
+    try{people=typeof serviceFilterPeople==='function'?serviceFilterPeople():(state.people||[])}catch(e){people=(state.people||[])}
     let data=[];
-    try{
-      if(typeof serviceRecordsInRange==='function')data=serviceRecordsInRange(start,end,people);
-    }catch(e){data=[]}
-    if(!data.length){
-      people.forEach(p=>{
-        (state.events||[]).filter(ev=>!ev.deleted&&eventOverlaps(ev,start,end)&&requiresSR(ev)&&(ev.participants||[]).includes(p.id))
-          .forEach(ev=>data.push({person:p,event:ev,date:ev.startDate,submitted:!!(ev.serviceRecordSubmitted&&ev.serviceRecordDate)}));
-      });
-    }
-    data.forEach(x=>{
-      const e=x.event||{};
-      const p=x.person||{};
-      rows.push([x.date||e.startDate||'',p.group||'',p.name||'',p.lang||'',displayType(e.type||''),e.name||'',e.locationName||'',e.status||'',(e.serviceRecordSubmitted&&e.serviceRecordDate)?'已繳交':'未繳交',e.serviceRecordDate||'']);
-    });
+    try{if(typeof serviceRecordsInRange==='function')data=serviceRecordsInRange(start,end,people)}catch(e){data=[]}
+    data.forEach(x=>{const ev=x.event||{}, p=x.person||{};rows.push([x.date||ev.startDate||'',p.group||'',p.name||'',p.lang||'',displayType(ev.type||''),ev.name||'',ev.locationName||'',ev.status||'',(ev.serviceRecordSubmitted&&ev.serviceRecordDate)?'已繳交':'未繳交',ev.serviceRecordDate||''])});
     return rows;
   }
-
-  function exportForPage(pageId,box){
-    const r=rangeFromBox(box);
-    let label=(box&&box.dataset.label)||'匯出';
-    let rows;
-    if(pageId==='calendarPage'){label='行程總覽'; rows=rowsEvents(r.start,r.end,false);}
-    else if(pageId==='fieldCalendarPage'){label='外務行程'; rows=rowsField(r.start,r.end);}
-    else if(pageId==='roomBookingPage'){label='會議室預約'; rows=rowsRoom(r.start,r.end);}
-    else if(pageId==='fieldDetailsPage'){label='外務明細'; rows=rowsField(r.start,r.end);}
-    else if(pageId==='personalDetailsPage'){label='個人行程'; rows=rowsEvents(r.start,r.end,false);}
-    else if(pageId==='incidentsPage'){label='異況追蹤'; rows=rowsIncidents(r.start,r.end);}
-    else if(pageId==='reportsPage'){label='統計報表'; rows=rowsReports(r.start,r.end);}
-    else if(pageId==='serviceRecordsPage'){label='服務紀錄單'; rows=rowsService(r.start,r.end);}
-    else {rows=[['頁面','訊息'],[pageId||'', '找不到對應匯出資料']];}
-    downloadCsvV158(rows,`${label}_${r.label}.csv`);
-    try{toast&&toast(`已匯出 ${label} CSV`)}catch(e){}
+  function rowsReports(start,end){
+    const rows=[['類別','項目','數量','起日','迄日']];
+    const ev=(state.events||[]).filter(e=>!e.deleted&&overlaps(e,start,end));
+    const field=(state.externalEvents||[]).filter(e=>!e.deleted&&(e.date||'')>=start&&(e.date||'')<=end);
+    const inc=(state.incidents||[]).filter(x=>!x.deleted&&(x.occurrenceDate||'')>=start&&(x.occurrenceDate||'')<=end);
+    rows.push(['總計','行程',ev.length,start,end],['總計','外務',field.length,start,end],['總計','異況',inc.length,start,end]);
+    return rows;
   }
-
-  function boxFromButton(btn){
-    return btn.closest('.v141-box,.v138-export-inline');
-  }
-
-  document.addEventListener('click',function(e){
-    const btn=e.target.closest&&e.target.closest('.v141-btn,.v138-export-btn');
-    if(!btn)return;
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    initBoxes();
-    const box=boxFromButton(btn);
+  function exportByButton(btn){
+    initExportBoxes();
+    const box=btn.closest('.v141-box,.v138-export-inline');
     const page=btn.closest('section.page');
-    exportForPage(page?page.id:'',box);
+    const pageId=page?page.id:'';
+    const r=rangeFromBox(box);
+    let label=(box&&box.dataset.label)||'匯出', rows;
+    if(pageId==='calendarPage'){label='行程總覽';rows=rowsEvents(r.start,r.end)}
+    else if(pageId==='fieldCalendarPage'){label='外務行程';rows=rowsField(r.start,r.end)}
+    else if(pageId==='roomBookingPage'){label='會議室預約';rows=rowsRoom(r.start,r.end)}
+    else if(pageId==='fieldDetailsPage'){label='外務明細';rows=rowsField(r.start,r.end)}
+    else if(pageId==='personalDetailsPage'){label='個人行程';rows=rowsEvents(r.start,r.end)}
+    else if(pageId==='incidentsPage'){label='異況追蹤';rows=rowsIncidents(r.start,r.end)}
+    else if(pageId==='reportsPage'){label='統計報表';rows=rowsReports(r.start,r.end)}
+    else if(pageId==='serviceRecordsPage'){label='服務紀錄單';rows=rowsService(r.start,r.end)}
+    else {rows=[['頁面','訊息'],[pageId,'找不到對應匯出資料']]}
+    downloadCsv(rows,`${label}_${r.label}.csv`);
+    try{toast('已匯出 '+label+' CSV')}catch(e){}
+  }
+  document.addEventListener('click',function(e){
+    const btn=e.target.closest&&e.target.closest('.v141-btn,.v138-export-btn,#exportCsvBtn,#fieldExportBtn,#exportFieldDetailsBtn,#exportPersonalDetailsBtn,#exportIncidentsBtn,#exportServiceRecordsBtn');
+    if(!btn)return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    if(btn.classList.contains('v141-btn')||btn.classList.contains('v138-export-btn'))exportByButton(btn);
+    else {
+      const page=btn.closest('section.page');
+      const fake={dataset:{label:btn.textContent.replace(/\s+/g,'')||'匯出'}, classList:{contains:()=>false}, querySelector:()=>null};
+      exportByButton(Object.assign(btn,{closest:(sel)=> sel.includes('v141')?fake:(page||document.body)}));
+    }
   },true);
 
-  document.addEventListener('change',function(e){
-    const sel=e.target.closest&&e.target.closest('.v141-sel,.v138-mode');
-    if(!sel)return;
-    const box=sel.closest('.v141-box,.v138-export-inline');
-    updateBoxVisibility(box);
-  },true);
+  // 會議室週曆 fallback：如果原本函式被覆蓋/沒有渲染，這裡補回來。
+  function roomListSafe(){
+    try{if(typeof roomList==='function')return roomList().filter(Boolean)}catch(e){}
+    return ((state.options&&state.options.meetingRooms)||['大會議室716','小會議室300']).filter(Boolean);
+  }
+  function deptListSafe(){
+    try{if(typeof departmentList==='function')return departmentList()}catch(e){}
+    return ((state.options&&state.options.departments)||[]).filter(Boolean);
+  }
+  function ensureRoomOptionsSafe(){
+    const rf=$('roomBookingRoomFilter'), df=$('roomBookingDeptFilter');
+    if(rf&&rf.options.length<=1)rf.innerHTML='<option value="">全部會議室</option>'+roomListSafe().map(x=>`<option>${escLocal(x)}</option>`).join('');
+    if(df&&df.options.length<=1)df.innerHTML='<option value="">全部部門</option>'+deptListSafe().map(x=>`<option>${escLocal(x)}</option>`).join('');
+  }
+  function dayClassSafe(d){try{return typeof dayClass==='function'?dayClass(d):''}catch(e){return ''}}
+  function fmtSafe(d){try{return typeof fmtDate==='function'?fmtDate(d):d.slice(5).replace('-','/')}catch(e){return d}}
+  function holidaySafe(d){try{return typeof holidayBadgeBodyHTML==='function'?holidayBadgeBodyHTML(d):''}catch(e){return ''}}
+  function canEditBooking(b){try{return typeof v105BookingCanEdit==='function'?v105BookingCanEdit(b):true}catch(e){return true}}
+  function renderRoomFallback(){
+    if(!$('roomBookingArea'))return;
+    ensureRoomOptionsSafe();
+    if($('roomBookingWeekPicker')&&!$('roomBookingWeekPicker').value)$('roomBookingWeekPicker').value=today();
+    const base=($('roomBookingWeekPicker')&&$('roomBookingWeekPicker').value)||today();
+    let start=base;
+    try{const dt=new Date(base+'T00:00:00'); const day=dt.getDay(); start=dateAddSafe(base,-((day+6)%7));}catch(e){}
+    const days=[0,1,2,3,4,5,6].map(i=>dateAddSafe(start,i));
+    const rooms=roomListSafe();
+    const rf=$('roomBookingRoomFilter')?$('roomBookingRoomFilter').value:'';
+    const dep=$('roomBookingDeptFilter')?$('roomBookingDeptFilter').value:'';
+    const kw=($('roomBookingKeyword')?$('roomBookingKeyword').value:'').trim().toLowerCase();
+    const useRooms=rf?rooms.filter(r=>r===rf):rooms;
+    let html='<div class="room-week-wrap"><table class="room-week-table"><thead><tr><th class="room-room-head">會議室</th>'+days.map(d=>{
+      const w=['日','一','二','三','四','五','六'][new Date(d+'T00:00:00').getDay()];
+      return `<th class="${dayClassSafe(d)}"><div>${w}</div><div class="date-num">${fmtSafe(d)}</div>${holidaySafe(d)}</th>`;
+    }).join('')+'</tr></thead><tbody>';
+    useRooms.forEach(room=>{
+      html+=`<tr><td class="room-room-cell"><div class="person-name">${escLocal(room)}</div></td>`;
+      days.forEach(day=>{
+        let bookings=(state.roomBookings||[]).filter(b=>!b.deleted&&b.room===room&&b.date===day);
+        if(dep)bookings=bookings.filter(b=>b.department===dep);
+        if(kw)bookings=bookings.filter(b=>[b.room,b.department,b.title,b.date,b.startTime,b.endTime].join(' ').toLowerCase().includes(kw));
+        bookings.sort((a,b)=>String((a.startTime||'')+(a.title||'')).localeCompare(String((b.startTime||'')+(b.title||''))));
+        html+=`<td class="room-day-cell ${dayClassSafe(day)}" data-room="${escLocal(room)}" data-room-date="${escLocal(day)}" ondblclick="openRoomBookingModal({date:'${escLocal(day)}',room:'${escLocal(room)}'})"><div class="date-num">${fmtSafe(day)}</div>${holidaySafe(day)}`;
+        html+=bookings.map(b=>{
+          const can=canEditBooking(b), creator=getUserName(b.createdBy)||'';
+          return `<div class="room-booking-item ${can?'':'readonly'}" onclick="event.stopPropagation();openRoomBookingModal('${b.id}')"><div class="time">${escLocal(b.startTime)}-${escLocal(b.endTime)}</div><div class="room-title">${escLocal(b.title)}</div><div class="room-meta">${escLocal(b.department||'')}｜BOOKING：${escLocal(creator)}</div>${can?`<div class="room-booking-actions"><button class="small" onclick="event.stopPropagation();openRoomBookingModal('${b.id}')">修改</button><button class="small danger" onclick="event.stopPropagation();deleteRoomBookingById('${b.id}')">刪除</button></div>`:''}</div>`;
+        }).join('');
+        html+='</td>';
+      });
+      html+='</tr>';
+    });
+    html+='</tbody></table></div>';
+    $('roomBookingArea').innerHTML=html;
+  }
+  const oldRoom=window.renderRoomBookings;
+  window.renderRoomBookings=function(){
+    try{if(typeof oldRoom==='function')oldRoom()}catch(e){console.warn('renderRoomBookings old failed',e)}
+    if(!$('roomBookingArea')||!$('roomBookingArea').innerHTML.trim())renderRoomFallback();
+  };
 
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(initBoxes,200));
-  setTimeout(initBoxes,800);
+  function init(){
+    applyServiceClean();
+    initExportBoxes();
+    if($('roomBookingArea')){
+      try{window.renderRoomBookings()}catch(e){renderRoomFallback()}
+    }
+  }
+  const oldRenderAll=typeof renderAll==='function'?renderAll:null;
+  if(oldRenderAll){
+    renderAll=function(){
+      oldRenderAll();
+      init();
+    };
+  }
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(init,250));
+  setTimeout(init,900);
 })();
 </script>
 
 </body></html>
-<style>
-/* V150：翻譯版服務紀錄單 */
-.sr-staff-remind-card{
-  border-radius:14px;padding:12px 14px;margin:8px 0;
-  border-left:6px solid #f59e0b;background:#fffbeb;
-  display:flex;align-items:flex-start;gap:10px;
-}
-.sr-staff-remind-card.overdue{
-  border-left-color:#dc2626;background:#fef08a;
-  box-shadow:0 0 0 2px rgba(234,179,8,.4);
-}
-.sr-staff-remind-card .sr-remind-icon{font-size:20px;flex:0 0 auto;margin-top:2px}
-.sr-staff-remind-card .sr-remind-body{flex:1;min-width:0}
-.sr-staff-remind-card .sr-remind-title{font-weight:900;font-size:14px;color:#92400e}
-.sr-staff-remind-card.overdue .sr-remind-title{color:#b91c1c}
-.sr-staff-remind-card .sr-remind-meta{font-size:13px;color:#78716c;margin-top:3px;line-height:1.5}
-.sr-staff-remind-card .sr-remind-overdue{display:inline-block;background:#dc2626;color:#fff;font-weight:900;border-radius:999px;padding:2px 8px;font-size:12px;margin-top:4px}
-#srStaffPage .statgrid{margin-bottom:4px}
-</style>
-
-<script>
-/* V150 v159 Final：翻譯版服務紀錄單 - interval監控確保即時生效 */
-(function(){
-  function isStaff(){
-    return typeof normalizedRole==='function' && normalizedRole()==='staff';
-  }
-  function myPid(){
-    return typeof userPersonId==='function' ? userPersonId() : null;
-  }
-  function todayStr(){
-    return typeof todayISO==='function' ? todayISO() : new Date().toISOString().slice(0,10);
-  }
-  function dl(e){
-    const dt=new Date((e.endDate||e.startDate||todayStr())+'T00:00:00');
-    dt.setDate(dt.getDate()+7); return dt.toISOString().slice(0,10);
-  }
-  function submitted(e){ return !!(e.serviceRecordSubmitted&&e.serviceRecordDate); }
-  function dT(t){ return typeof displayEventType==='function'?displayEventType(t):String(t||''); }
-  function es(s){ return typeof esc==='function'?esc(s):String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-
-  function renderStaffPage(){
-    const box=document.getElementById('srStaffPage');
-    if(!box) return;
-    const today=todayStr(), thisMonth=today.slice(0,7), thisYear=today.slice(0,4);
-    const pid=myPid();
-    if(!pid||typeof state==='undefined'){
-      box.innerHTML='<div class="panel"><div class="muted">無法載入資料</div></div>'; return;
-    }
-    const all=(state.events||[]).filter(e=>{
-      if(e.deleted||e.kind==='translatorStatus') return false;
-      if(typeof requiresServiceRecord!=='function'||!requiresServiceRecord(e)) return false;
-      return (e.participants||[]).includes(pid);
-    });
-    const reminders=all.filter(e=>!submitted(e)&&(e.endDate||e.startDate||'')<=today)
-                        .sort((a,b)=>dl(a).localeCompare(dl(b)));
-    const overdue=reminders.filter(e=>today>dl(e));
-    const within7=reminders.filter(e=>today<=dl(e));
-    const monthAll=all.filter(e=>(e.startDate||'').slice(0,7)===thisMonth).sort((a,b)=>String(a.startDate).localeCompare(b.startDate));
-    const yearAll =all.filter(e=>(e.startDate||'').slice(0,4)===thisYear ).sort((a,b)=>String(a.startDate).localeCompare(b.startDate));
-
-    function badge(e){
-      if(submitted(e)) return '<span style="color:#16a34a;font-weight:900">✅ 已繳交</span>';
-      if(today>dl(e))  return '<span style="color:#dc2626;font-weight:900;background:#fef08a;padding:2px 6px;border-radius:6px">🚨 逾期未繳</span>';
-      if((e.endDate||e.startDate||'')<=today) return '<span style="color:#f59e0b;font-weight:900">⏳ 未繳交</span>';
-      return '<span style="color:#6b7280">— 尚未結束</span>';
-    }
-    function bg(e){ if(submitted(e))return''; if(today>dl(e))return'background:#fffde7'; if((e.endDate||e.startDate||'')<=today)return'background:#fffbeb'; return''; }
-    function card(e,over){
-      return `<div class="sr-staff-remind-card${over?' overdue':''}">
-        <div class="sr-remind-icon">${over?'🚨':'⏰'}</div>
-        <div class="sr-remind-body">
-          <div class="sr-remind-title">${es(dT(e.type))}｜${es(e.name||'')}</div>
-          <div class="sr-remind-meta">行程日期：${es(e.startDate||'')}${e.endDate&&e.endDate!==e.startDate?'～'+es(e.endDate):''}　地點：${es(e.locationName||'')}</div>
-          <div class="sr-remind-meta">繳交截止：<b>${es(dl(e))}</b></div>
-          ${over?'<div class="sr-remind-overdue">已逾期，請盡快繳交！</div>':'<div style="margin-top:4px;font-size:12px;color:#92400e">⚠ 請於截止日前繳交</div>'}
-        </div></div>`;
-    }
-    const thead=`<thead><tr><th>行程日期</th><th>行程類型</th><th>辦理內容</th><th>地點/客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead>`;
-    function trows(rows){
-      if(!rows.length) return '<tr><td colspan="7" class="muted" style="text-align:center;padding:16px">沒有資料</td></tr>';
-      return rows.map(e=>`<tr style="${bg(e)}"><td>${es(e.startDate||'')}${e.endDate&&e.endDate!==e.startDate?'～'+es(e.endDate):''}</td><td>${es(dT(e.type))}</td><td>${es(e.name||'')}</td><td>${es(e.locationName||'')}</td><td>${es(e.status||'')}</td><td>${badge(e)}</td><td>${es(e.serviceRecordDate||'')}</td></tr>`).join('');
-    }
-    box.innerHTML=`
-      <div class="panel">
-        <div class="section-title"><h2>服務紀錄單繳交提醒</h2><span class="muted">行程結束後 7 天內請繳交</span></div>
-        ${overdue.length===0&&within7.length===0?'<div class="muted" style="padding:12px 0">目前沒有待繳交的服務紀錄單 🎉</div>':''}
-        ${overdue.length>0?`<div style="font-weight:900;color:#dc2626;margin:8px 0 4px">🚨 逾期催繳（${overdue.length} 筆）</div>${overdue.map(e=>card(e,true)).join('')}`:''}
-        ${within7.length>0?`<div style="font-weight:900;color:#92400e;margin:8px 0 4px">⏰ 一週內請繳交（${within7.length} 筆）</div>${within7.map(e=>card(e,false)).join('')}`:''}
-      </div>
-      <div class="panel">
-        <div class="section-title"><h2>當月服務紀錄單明細</h2><span class="muted">${thisMonth}</span></div>
-        <div class="detail-table-wrap"><table class="table">${thead}<tbody>${trows(monthAll)}</tbody></table></div>
-      </div>
-      <div class="panel">
-        <div class="section-title"><h2>當年度服務紀錄單明細</h2><span class="muted">${thisYear} 年</span></div>
-        <div class="detail-table-wrap"><table class="table">${thead}<tbody>${trows(yearAll)}</tbody></table></div>
-      </div>`;
-  }
-
-  /* 核心：CSS class + inline style 雙重控制 */
-  function applyMode(){
-    const staff=isStaff();
-    document.body.classList.toggle('role-staff', staff);
-    const admin=document.getElementById('srAdminSection');
-    const box=document.getElementById('srStaffPage');
-    if(!admin||!box) return;
-    admin.style.setProperty('display', staff?'none':'', 'important');
-    box.style.setProperty('display', staff?'block':'none', 'important');
-    if(staff) renderStaffPage();
-  }
-
-  window._applyServicePageMode = applyMode;
-
-  /* interval監控：每500ms確認srAdminSection沒有被其他render蓋回來 */
-  let _modeInterval=null;
-  function startMonitor(){
-    if(_modeInterval) clearInterval(_modeInterval);
-    _modeInterval=setInterval(()=>{
-      if(!isStaff()) return;
-      const admin=document.getElementById('srAdminSection');
-      if(admin && getComputedStyle(admin).display!=='none'){
-        applyMode();
-      }
-    }, 500);
-  }
-
-  /* 監控 currentUser 變化（登入/登出） */
-  let _lastUser=null;
-  setInterval(()=>{
-    const u=typeof currentUser!=='undefined'?currentUser:null;
-    if(u!==_lastUser){
-      _lastUser=u;
-      if(u){ setTimeout(applyMode,100); startMonitor(); }
-      else{
-        if(_modeInterval){clearInterval(_modeInterval);_modeInterval=null;}
-        document.body.classList.remove('role-staff');
-      }
-    }
-  }, 300);
-
-  /* applyPermissionsUI hook */
-  const _perm=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
-  if(_perm){ applyPermissionsUI=function(){ _perm(); setTimeout(applyMode,100); }; }
-})();
-</script>
-
-<script>
-/* V142：五大頁面匯出 widget (v141-box) 事件綁定 */
-(function(){
-  function tod(){return typeof todayISO==='function'?todayISO():new Date().toISOString().slice(0,10);}
-  function ym0(){return tod().slice(0,7);}
-  function yr0(){return tod().slice(0,4);}
-  function mRng(m){return typeof monthRange==='function'?monthRange(m):[m+'-01',m+'-31'];}
-  function dType(t){try{return typeof displayEventType==='function'?displayEventType(t):String(t||'')}catch(e){return String(t||'')}}
-  function pName(id){try{return typeof getPerson==='function'?(getPerson(id)||{}).name||'':''}catch(e){return ''}}
-
-  function canExport(){
-    if(typeof currentUser==='undefined'||!currentUser)return false;
-    if(typeof normalizedRole!=='function')return false;
-    return ['admin','supervisor','adminStaff'].includes(normalizedRole());
-  }
-
-  function dlCsv(rows,fn){
-    if(typeof exportCsv==='function'){exportCsv(rows,fn);return;}
-    const b=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
-    const blob=new Blob(['\ufeff'+b],{type:'text/csv;charset=utf-8'});
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;a.click();
-    setTimeout(()=>URL.revokeObjectURL(a.href),500);
-  }
-
-  function doPersonal(s,e,fn){
-    if(typeof personalDetailRowsFiltered!=='function')return;
-    const ps=document.getElementById('personalDetailStart'),pe=document.getElementById('personalDetailEnd');
-    const os=ps&&ps.value,oe=pe&&pe.value;
-    if(ps)ps.value=s;if(pe)pe.value=e;
-    const rows=personalDetailRowsFiltered();
-    if(ps)ps.value=os||'';if(pe)pe.value=oe||'';
-    const out=[['日期','時間','人員','類別','行程類型','地點/客戶','辦理內容','狀態','內容說明','公務車','服務紀錄單']];
-    rows.forEach(r=>{
-      const ev=r.event,p=typeof getPerson==='function'?getPerson(r.personId):{name:''};
-      const sr=typeof requiresServiceRecord==='function'&&requiresServiceRecord(ev)
-        ?(ev.serviceRecordSubmitted&&ev.serviceRecordDate?'已繳交 '+ev.serviceRecordDate:'未繳交'):'';
-      out.push([r.date,typeof ampm==='function'?ampm(ev.startTime):ev.startTime,p.name,
-        typeof kindLabel==='function'?kindLabel(ev.kind):ev.kind,
-        dType(ev.type),ev.locationName||'',ev.name||'',ev.status||'',ev.note||'',ev.vehicleNo||'',sr]);
-    });
-    dlCsv(out,fn);
-  }
-
-  function doIncidents(s,e,fn){
-    if(typeof state==='undefined')return;
-    const rows=[['發生日期','異況類型','緊急程度','地點/客戶','工人','異況標題','負責人','狀態','下次追蹤日','最後追蹤']];
-    (state.incidents||[]).filter(i=>!i.deleted&&(i.occurrenceDate||'')>=s&&(i.occurrenceDate||'')<=e)
-      .sort((a,b)=>String(a.occurrenceDate||'').localeCompare(b.occurrenceDate||''))
-      .forEach(i=>{
-        const logs=(state.incidentLogs||[]).filter(l=>!l.deleted&&l.incidentId===i.id)
-          .sort((a,b)=>String(a.createdAt||'').localeCompare(b.createdAt||''));
-        const last=logs[logs.length-1];
-        rows.push([i.occurrenceDate||'',i.incidentType||'',i.urgency||'',i.customerName||'',
-          i.workerName||'',i.title||'',pName(i.ownerPersonId),i.status||'',
-          i.nextFollowDate||'',last?last.content||'':'']);
-      });
-    dlCsv(rows,fn);
-  }
-
-  function doReports(s,e,fn){
-    if(typeof buildReportData!=='function')return;
-    const data=buildReportData(s,e);
-    const activeTypes=(data.types||[]).filter(t=>(data.rows||[]).some(r=>(r.byType&&r.byType[t]||0)>0));
-    const out=[['部門','人員','職務','總數','未完成','已完成','取消',...activeTypes]];
-    (data.rows||[]).forEach(r=>{
-      out.push([r.person.group,r.person.name,r.person.lang||'',r.total,r.undone,r.done,r.cancel,
-        ...activeTypes.map(t=>r.byType&&r.byType[t]||0)]);
-    });
-    ['一部翻譯','二部翻譯','總計'].forEach(g=>{
-      const d=data.dept&&data.dept[g];
-      if(d)out.push([g,'部門合計','',d.total,d.undone,d.done,d.cancel,...activeTypes.map(()=>'')]);
-    });
-    dlCsv(out,fn);
-  }
-
-  function doService(s,e,fn){
-    if(typeof serviceRecordsInRange!=='function'||typeof personReportList!=='function')return;
-    const rows=[['日期','部門','翻譯','職務','行程類型','辦理內容','地點/客戶','行程狀態','服務紀錄單','繳交日期']];
-    serviceRecordsInRange(s,e,personReportList()).forEach(x=>{
-      rows.push([x.date,x.person.group,x.person.name,x.person.lang||'',
-        dType(x.event.type),x.event.name||'',x.event.locationName||'',
-        x.event.status||'',x.submitted?'已繳交':'未繳交',x.event.serviceRecordDate||'']);
-    });
-    dlCsv(rows,fn);
-  }
-
-  function doFieldDetails(s,e,fn){
-    if(typeof state==='undefined')return;
-    const rows=[['日期','時間','人員','目的','地點','地址','狀態','備註','特殊提醒','現金','印章','證件','下一次領件日','送件失敗原因']];
-    (state.externalEvents||[]).filter(ev=>!ev.deleted&&(ev.date||'')>=s&&(ev.date||'')<=e)
-      .sort((a,b)=>String((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||'')))
-      .forEach(ev=>{
-        const flags=[ev.mustSend?'必送件':'',ev.cannotChange?'無法更換外務':''].filter(Boolean).join('、');
-        rows.push([ev.date||'',ev.time||'',pName(ev.personId),ev.purpose||'',ev.locationName||'',
-          ev.address||'',ev.status||'',ev.note||'',flags,ev.cash||'',ev.stamp||'',ev.document||'',
-          ev.pickupDate||'',ev.failureReason||'']);
-      });
-    dlCsv(rows,fn);
-  }
-
-  const fnMap={
-    '個人行程':doPersonal,'異況紀錄':doIncidents,'統計報表':doReports,
-    '服務紀錄單':doService,'外務明細':doFieldDetails
-  };
-
-  function updateBoxVis(box,mode){
-    box.querySelector('.v141-year').style.display  =mode==='year'  ?'inline-flex':'none';
-    box.querySelector('.v141-month').style.display =mode==='month' ?'inline-flex':'none';
-    box.querySelector('.v141-day').style.display   =mode==='day'   ?'inline-flex':'none';
-    box.querySelector('.v141-start').style.display =mode==='range' ?'inline-flex':'none';
-    box.querySelector('.v141-end').style.display   =mode==='range' ?'inline-flex':'none';
-  }
-
-  function initBoxes(){
-    const y=yr0(),m=ym0(),d=tod();
-    document.querySelectorAll('.v141-box').forEach(box=>{
-      if(box.dataset.init)return;
-      box.dataset.init='1';
-      box.querySelector('.v141-year').value=y;
-      box.querySelector('.v141-month').value=m;
-      box.querySelector('.v141-day').value=d;
-      box.querySelector('.v141-start').value=d;
-      box.querySelector('.v141-end').value=d;
-      updateBoxVis(box,box.dataset.mode||'month');
-      box.querySelector('.v141-sel').addEventListener('change',function(){
-        box.dataset.mode=this.value;
-        updateBoxVis(box,this.value);
-      });
-      box.querySelector('.v141-btn').addEventListener('click',()=>{
-        if(!canExport()){if(typeof toast==='function')toast('此權限無法匯出');return;}
-        const label=box.dataset.label||'';
-        const fn=fnMap[label];
-        if(!fn)return;
-        const mode=box.dataset.mode||'month';
-        let s,e,suffix;
-        if(mode==='all'){s='0000-01-01';e='9999-12-31';suffix='全部';}
-        else if(mode==='year'){const yv=box.querySelector('.v141-year').value||y;s=yv+'-01-01';e=yv+'-12-31';suffix=yv;}
-        else if(mode==='day'){const dv=box.querySelector('.v141-day').value||d;s=dv;e=dv;suffix=dv;}
-        else if(mode==='range'){s=box.querySelector('.v141-start').value||d;e=box.querySelector('.v141-end').value||s;suffix=s+'_to_'+e;}
-        else{const mv=box.querySelector('.v141-month').value||m;[s,e]=mRng(mv);suffix=mv;}
-        fn(s,e,label+'_'+suffix+'.csv');
-      });
-    });
-  }
-
-  const _sa=typeof showApp==='function'?showApp:null;
-  if(_sa){showApp=function(){_sa();setTimeout(initBoxes,300);};}
-  const _ap=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
-  if(_ap){applyPermissionsUI=function(){_ap();setTimeout(initBoxes,100);};}
-})();
-</script>
-</body>
-</html>
