@@ -1,9 +1,4 @@
-# 確認 6495 行
-wc -l public/v103-prototype.html
-
-git add public/v103-prototype.html
-git commit -m "fix: rename titles, hide all export for staff role"
-git push<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統</title>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -6341,6 +6336,16 @@ body.role-staff #srStaffPage{display:block!important}
     };
   }
 
+  // showApp hook：登入後立即套用
+  const oldShowAppV156=typeof showApp==='function'?showApp:null;
+  if(oldShowAppV156){
+    showApp=function(){
+      oldShowAppV156();
+      applyV156();
+      setTimeout(applyV156,300);
+    };
+  }
+
   document.addEventListener('DOMContentLoaded',()=>setTimeout(applyV156,200));
   setTimeout(applyV156,800);
 })();
@@ -6498,3 +6503,5 @@ body.role-staff .export-control { display:none!important; }
   if(_perm){ applyPermissionsUI=function(){ _perm(); setTimeout(applyMode,100); }; }
 })();
 </script>
+</body>
+</html>
