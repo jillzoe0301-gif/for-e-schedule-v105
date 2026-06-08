@@ -6356,18 +6356,14 @@ body.role-staff #srStaffPage{display:block!important}
 </style>
 
 <style>
-/* V152：翻譯服務紀錄單專用頁面 */
-#translatorServiceLayout{display:none}
-.service-translator-mode #translatorServiceLayout{
+/* V153：翻譯專用「服務紀錄單」全新頁面 */
+#translatorServicePage .translator-service-grid{
   display:grid;
-  grid-template-columns:1fr 1.2fr 1.2fr;
+  grid-template-columns:1fr 1.25fr 1.25fr;
   gap:12px;
   align-items:start;
 }
-.service-translator-mode > .panel:not(#translatorServiceLayout){
-  display:none!important;
-}
-.translator-service-panel{
+#translatorServicePage .translator-service-panel{
   background:#fff;
   border:1px solid var(--line);
   border-radius:16px;
@@ -6375,17 +6371,17 @@ body.role-staff #srStaffPage{display:block!important}
   padding:14px;
   min-width:0;
 }
-.translator-service-panel h2{
+#translatorServicePage .translator-service-panel h2{
   font-size:18px;
   margin:0 0 10px;
 }
-.translator-service-note{
+#translatorServicePage .translator-service-subtitle{
   font-size:13px;
   color:#64748b;
-  line-height:1.5;
+  line-height:1.45;
   margin:4px 0 10px;
 }
-.translator-remind-card{
+#translatorServicePage .translator-reminder-card{
   border:1px solid #bfdbfe;
   border-left:6px solid #2563eb;
   background:#eff6ff;
@@ -6393,99 +6389,129 @@ body.role-staff #srStaffPage{display:block!important}
   padding:10px;
   margin:8px 0;
 }
-.translator-remind-card.overdue{
-  border-color:#facc15;
+#translatorServicePage .translator-reminder-card.overdue{
+  border-color:#fde68a;
   border-left-color:#f59e0b;
   background:#fffbeb;
 }
-.translator-remind-card .title{
+#translatorServicePage .translator-reminder-card .title{
   font-weight:900;
   margin-bottom:4px;
 }
-.translator-remind-card .meta{
+#translatorServicePage .translator-reminder-card .meta{
   font-size:13px;
   color:#475569;
   line-height:1.45;
 }
-.translator-status-chip{
-  display:inline-flex;
-  border-radius:999px;
-  padding:3px 8px;
-  font-weight:900;
-  font-size:12px;
-  border:1px solid #e2e8f0;
-}
-.translator-status-chip.ok{
-  color:#166534;
-  background:#ecfdf5;
-  border-color:#86efac;
-}
-.translator-status-chip.no{
-  color:#991b1b;
-  background:#fef2f2;
-  border-color:#fecaca;
-}
-.translator-status-chip.warn{
-  color:#92400e;
-  background:#fffbeb;
-  border-color:#fde68a;
-}
-.translator-service-table-wrap{
+#translatorServicePage .translator-service-table-wrap{
+  width:100%;
+  max-height:64vh;
   overflow:auto;
   border:1px solid var(--line);
   border-radius:12px;
-  max-height:62vh;
+  background:#fff;
 }
-.translator-service-table{
+#translatorServicePage .translator-service-table{
   width:100%;
   min-width:720px;
   border-collapse:collapse;
-  background:#fff;
 }
-.translator-service-table th,
-.translator-service-table td{
+#translatorServicePage .translator-service-table th,
+#translatorServicePage .translator-service-table td{
   border-bottom:1px solid var(--line);
   padding:8px;
   text-align:left;
   vertical-align:top;
   font-size:13px;
 }
-.translator-service-table th{
+#translatorServicePage .translator-service-table th{
   position:sticky;
   top:0;
+  z-index:2;
   background:#f8fafc;
-  z-index:1;
+  font-weight:900;
 }
-@media(max-width:1000px){
-  .service-translator-mode #translatorServiceLayout{
+#translatorServicePage .translator-chip{
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  padding:3px 8px;
+  font-weight:900;
+  font-size:12px;
+  border:1px solid #e2e8f0;
+  white-space:nowrap;
+}
+#translatorServicePage .translator-chip.ok{
+  background:#ecfdf5;
+  border-color:#86efac;
+  color:#166534;
+}
+#translatorServicePage .translator-chip.no{
+  background:#fef2f2;
+  border-color:#fecaca;
+  color:#991b1b;
+}
+#translatorServicePage .translator-chip.warn{
+  background:#fffbeb;
+  border-color:#fde68a;
+  color:#92400e;
+}
+#translatorServicePage .translator-service-toolbar{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:8px;
+}
+#translatorServicePage .translator-service-toolbar .mini{
+  min-width:120px;
+}
+.navbtn[data-page="translatorService"].role-hidden,
+.navbtn[data-page="translatorService"].hide{
+  display:none!important;
+}
+@media(max-width:1100px){
+  #translatorServicePage .translator-service-grid{
     grid-template-columns:1fr;
   }
 }
 @media(max-width:760px){
-  .translator-service-table{
+  #translatorServicePage .translator-service-table{
     min-width:680px;
   }
-  .translator-service-table th,
-  .translator-service-table td{
+  #translatorServicePage .translator-service-table th,
+  #translatorServicePage .translator-service-table td{
     font-size:12px;
     padding:7px;
+  }
+  #translatorServicePage .translator-service-toolbar{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+  #translatorServicePage .translator-service-toolbar .mini{
+    min-width:0;
+    width:100%;
   }
 }
 </style>
 
 <script>
-/* V152：修正翻譯服務紀錄單頁面與權限 */
+/* V153：翻譯服務紀錄單改成獨立頁面，不再使用主管/管理員服務紀錄單版面 */
 (function(){
   function $(id){return document.getElementById(id)}
   function all(sel){return Array.from(document.querySelectorAll(sel))}
-  function today(){return typeof todayISO==='function'?todayISO():new Date().toISOString().slice(0,10)}
-  function monthNow(){return typeof monthISO==='function'?monthISO():today().slice(0,7)}
-  function monthRangeLocal(ym){
+  function todayISO2(){return typeof todayISO==='function'?todayISO():new Date().toISOString().slice(0,10)}
+  function monthISO2(){return typeof monthISO==='function'?monthISO():todayISO2().slice(0,7)}
+  function monthRange2(ym){
     if(typeof monthRange==='function')return monthRange(ym);
     const y=Number(ym.slice(0,4)),m=Number(ym.slice(5,7));
     return [ym+'-01',ym+'-'+String(new Date(y,m,0).getDate()).padStart(2,'0')];
   }
-  function role(){
+  function esc2(v){
+    try{return typeof esc==='function'?esc(v):String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+    catch(e){return String(v??'')}
+  }
+  function roleV153(){
     const r=(currentUser&&currentUser.role)||'';
     if(r==='admin'||r==='options')return 'admin';
     if(r==='supervisor')return 'supervisor';
@@ -6494,93 +6520,100 @@ body.role-staff #srStaffPage{display:block!important}
     if(r==='staff'||r==='translator'||r==='schedule'||r==='dispatcher'||r==='viewer')return 'translator';
     return r||'translator';
   }
-  function serviceAllowed(){
-    const r=role();
-    return r==='admin'||r==='supervisor'||r==='translator';
-  }
-  function isTranslator(){
-    return role()==='translator';
-  }
-  function userPid(){
+  function isTranslatorV153(){return roleV153()==='translator'}
+  function canSeeAdminServiceV153(){return roleV153()==='admin'||roleV153()==='supervisor'}
+  function canSeeTranslatorServiceV153(){return isTranslatorV153()}
+  function userPersonIdV153(){
     try{return typeof userPersonId==='function'?userPersonId():(currentUser&&currentUser.personId)}
     catch(e){return currentUser&&currentUser.personId}
   }
-  function escText(v){
-    try{return typeof esc==='function'?esc(v):String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-    catch(e){return String(v??'')}
-  }
-  function displayType(t){
-    try{return typeof displayEventType==='function'?displayEventType(t):String(t||'')}
-    catch(e){return String(t||'')}
-  }
-  function eventOverlaps(e,s,end){
-    try{return typeof eventOverlapsRange==='function'?eventOverlapsRange(e,s,end):((e.startDate||'')<=end&&(e.endDate||e.startDate||'')>=s)}
-    catch(e){return false}
-  }
-  function requiresSR(e){
-    try{return typeof requiresServiceRecord==='function'?requiresServiceRecord(e):['銀行','定期','送工(新入境、承接)','車禍處理','面談','醫療','上線/教育訓練'].includes(displayType(e.type))}
-    catch(err){return false}
-  }
-  function submitted(e){
-    return !!(e.serviceRecordSubmitted&&e.serviceRecordDate);
-  }
-  function getPersonObj(id){
+  function getPersonV153(id){
     try{return typeof getPerson==='function'?getPerson(id):((state.people||[]).find(p=>p.id===id)||{})}
     catch(e){return (state.people||[]).find(p=>p.id===id)||{}}
   }
-  function daysFromToday(date){
-    const a=new Date(today()+'T00:00:00');
-    const b=new Date(String(date||today())+'T00:00:00');
-    return Math.floor((a-b)/86400000);
+  function displayTypeV153(t){
+    try{return typeof displayEventType==='function'?displayEventType(t):String(t||'')}
+    catch(e){return String(t||'')}
   }
-  function translatorRows(start,end){
-    const pid=userPid();
-    const p=getPersonObj(pid);
+  function requiresServiceRecordV153(e){
+    try{return typeof requiresServiceRecord==='function'?requiresServiceRecord(e):['銀行','定期','送工(新入境、承接)','車禍處理','面談','醫療','上線/教育訓練'].includes(displayTypeV153(e.type))}
+    catch(err){return false}
+  }
+  function overlapsV153(e,start,end){
+    try{return typeof eventOverlapsRange==='function'?eventOverlapsRange(e,start,end):((e.startDate||'')<=end&&(e.endDate||e.startDate||'')>=start)}
+    catch(err){return false}
+  }
+  function submittedV153(e){
+    return !!(e&&e.serviceRecordSubmitted&&e.serviceRecordDate);
+  }
+  function daysLateV153(date){
+    const t=new Date(todayISO2()+'T00:00:00');
+    const d=new Date(String(date||todayISO2())+'T00:00:00');
+    return Math.floor((t-d)/86400000);
+  }
+  function currentTranslatorRowsV153(start,end){
+    const pid=userPersonIdV153();
+    const p=getPersonV153(pid);
+    if(!pid)return [];
     let rows=[];
     if(typeof serviceRecordsInRange==='function'){
       rows=serviceRecordsInRange(start,end,[p]).filter(x=>x&&x.person&&x.person.id===pid);
-      rows.forEach(x=>x.submitted=submitted(x.event));
+      rows.forEach(x=>x.submitted=submittedV153(x.event));
       return rows;
     }
     (state.events||[])
-      .filter(e=>!e.deleted&&requiresSR(e)&&eventOverlaps(e,start,end)&&(e.participants||[]).includes(pid))
-      .forEach(e=>rows.push({person:p,event:e,date:e.startDate<start?start:e.startDate,submitted:submitted(e)}));
+      .filter(e=>!e.deleted&&requiresServiceRecordV153(e)&&overlapsV153(e,start,end)&&(e.participants||[]).includes(pid))
+      .forEach(e=>rows.push({person:p,event:e,date:e.startDate<start?start:e.startDate,submitted:submittedV153(e)}));
     return rows;
   }
-  function statusChip(row){
-    if(row.submitted)return '<span class="translator-status-chip ok">已繳交</span>';
-    const d=daysFromToday(row.date);
-    if(d>7)return '<span class="translator-status-chip warn">超過一週未繳</span>';
-    return '<span class="translator-status-chip no">未繳交</span>';
+  function chipV153(row){
+    if(row.submitted)return '<span class="translator-chip ok">已繳交</span>';
+    const late=daysLateV153(row.date);
+    if(late>7)return '<span class="translator-chip warn">超過一週未繳</span>';
+    return '<span class="translator-chip no">未繳交</span>';
   }
-  function detailRows(rows,yearMode){
+  function detailHtmlV153(rows,yearMode){
     if(!rows.length){
       return `<tr><td colspan="${yearMode?8:7}" class="muted">目前沒有服務紀錄單明細</td></tr>`;
     }
     return rows.slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))).map(x=>`
       <tr>
-        ${yearMode?`<td>${escText(String(x.date||'').slice(0,7))}</td>`:''}
-        <td>${escText(x.date||'')}</td>
-        <td>${escText(displayType(x.event.type||''))}</td>
-        <td>${escText(x.event.name||'')}</td>
-        <td>${escText(x.event.locationName||'')}</td>
-        <td>${escText(x.event.status||'')}</td>
-        <td>${statusChip(x)}</td>
-        <td>${escText(x.event.serviceRecordDate||'')}</td>
+        ${yearMode?`<td>${esc2(String(x.date||'').slice(0,7))}</td>`:''}
+        <td>${esc2(x.date||'')}</td>
+        <td>${esc2(displayTypeV153(x.event.type||''))}</td>
+        <td>${esc2(x.event.name||'')}</td>
+        <td>${esc2(x.event.locationName||'')}</td>
+        <td>${esc2(x.event.status||'')}</td>
+        <td>${chipV153(x)}</td>
+        <td>${esc2(x.event.serviceRecordDate||'')}</td>
       </tr>
     `).join('');
   }
-  function ensureTranslatorLayout(){
-    const page=$('serviceRecordsPage');
-    if(!page)return null;
-    let layout=$('translatorServiceLayout');
-    if(!layout){
-      layout=document.createElement('div');
-      layout.id='translatorServiceLayout';
-      layout.innerHTML=`
+
+  function ensureTranslatorPageV153(){
+    if($('translatorServicePage'))return;
+    const main=document.querySelector('main.main')||document.querySelector('.main')||document.body;
+    const section=document.createElement('section');
+    section.id='translatorServicePage';
+    section.className='page hide';
+    section.innerHTML=`
+      <div class="panel">
+        <div class="section-title">
+          <h2>服務紀錄單</h2>
+          <span class="muted">僅顯示登入翻譯自己的服務紀錄單資料</span>
+        </div>
+        <div class="translator-service-toolbar">
+          <label class="muted">統計年月</label>
+          <input id="translatorServiceMonth" type="month" class="mini">
+          <label class="muted">統計年度</label>
+          <input id="translatorServiceYear" type="number" class="mini" min="2024" max="2035" step="1">
+          <button id="refreshTranslatorService" type="button">重新整理</button>
+        </div>
+      </div>
+      <div class="translator-service-grid">
         <div class="translator-service-panel">
           <h2>服務紀錄單繳交提醒</h2>
-          <div class="translator-service-note">提醒項目：一週內服務紀錄單提醒、超過一週的服務紀錄單催繳通知。</div>
+          <div class="translator-service-subtitle">提醒項目：一週內服務紀錄單提醒、超過一週的服務紀錄單催繳通知。</div>
           <div id="translatorServiceSummary" class="statgrid"></div>
           <div id="translatorServiceReminders"></div>
         </div>
@@ -6604,49 +6637,52 @@ body.role-staff #srStaffPage{display:block!important}
             </table>
           </div>
         </div>
-      `;
-      page.appendChild(layout);
-    }
-    return layout;
+      </div>
+    `;
+    main.appendChild(section);
+    $('translatorServiceMonth').value=monthISO2();
+    $('translatorServiceYear').value=monthISO2().slice(0,4);
+    $('refreshTranslatorService').onclick=renderTranslatorServiceV153;
+    $('translatorServiceMonth').addEventListener('change',renderTranslatorServiceV153);
+    $('translatorServiceYear').addEventListener('change',renderTranslatorServiceV153);
   }
-  function renderTranslatorService(){
-    const page=$('serviceRecordsPage');
-    if(!page)return;
-    ensureTranslatorLayout();
-    page.classList.add('service-translator-mode');
 
-    const ym=$('serviceMonth')&&$('serviceMonth').value?$('serviceMonth').value:monthNow();
-    const year=($('serviceYear')&&$('serviceYear').value)?String($('serviceYear').value):ym.slice(0,4);
-    const [ms,me]=monthRangeLocal(ym);
-    const monthRows=translatorRows(ms,me);
-    const yearRows=translatorRows(`${year}-01-01`,`${year}-12-31`);
+  function renderTranslatorServiceV153(){
+    ensureTranslatorPageV153();
+    if(!isTranslatorV153())return;
 
-    const unsubmittedMonth=monthRows.filter(x=>!x.submitted);
-    const inWeek=unsubmittedMonth.filter(x=>daysFromToday(x.date)<=7);
-    const overdue=unsubmittedMonth.filter(x=>daysFromToday(x.date)>7);
+    const ym=$('translatorServiceMonth').value||monthISO2();
+    const year=String($('translatorServiceYear').value||ym.slice(0,4));
+    const [ms,me]=monthRange2(ym);
+    const monthRows=currentTranslatorRowsV153(ms,me);
+    const yearRows=currentTranslatorRowsV153(`${year}-01-01`,`${year}-12-31`);
+
+    const monthUnpaid=monthRows.filter(x=>!x.submitted);
+    const oneWeek=monthUnpaid.filter(x=>daysLateV153(x.date)<=7);
+    const overdue=monthUnpaid.filter(x=>daysLateV153(x.date)>7);
 
     $('translatorServiceSummary').innerHTML=`
       <div class="stat"><div class="muted">當月需繳交</div><b>${monthRows.length}</b></div>
       <div class="stat"><div class="muted">當月已繳交</div><b>${monthRows.filter(x=>x.submitted).length}</b></div>
-      <div class="stat"><div class="muted">當月未繳交</div><b>${unsubmittedMonth.length}</b></div>
+      <div class="stat"><div class="muted">當月未繳交</div><b>${monthUnpaid.length}</b></div>
       <div class="stat"><div class="muted">超過一週未繳</div><b>${overdue.length}</b></div>
     `;
 
-    const reminderHtml=[
-      ...inWeek.map(x=>`
-        <div class="translator-remind-card">
+    const reminders=[
+      ...oneWeek.map(x=>`
+        <div class="translator-reminder-card">
           <div class="title">一週內服務紀錄單提醒</div>
-          <div class="meta">${escText(x.date)}｜${escText(displayType(x.event.type))}｜${escText(x.event.name)}<br>${escText(x.event.locationName||'')}</div>
+          <div class="meta">${esc2(x.date)}｜${esc2(displayTypeV153(x.event.type))}｜${esc2(x.event.name)}<br>${esc2(x.event.locationName||'')}</div>
         </div>
       `),
       ...overdue.map(x=>`
-        <div class="translator-remind-card overdue">
+        <div class="translator-reminder-card overdue">
           <div class="title">超過一週的服務紀錄單催繳通知</div>
-          <div class="meta">${escText(x.date)}｜已逾 ${daysFromToday(x.date)} 天｜${escText(displayType(x.event.type))}｜${escText(x.event.name)}<br>${escText(x.event.locationName||'')}</div>
+          <div class="meta">${esc2(x.date)}｜已逾 ${daysLateV153(x.date)} 天｜${esc2(displayTypeV153(x.event.type))}｜${esc2(x.event.name)}<br>${esc2(x.event.locationName||'')}</div>
         </div>
       `)
     ].join('');
-    $('translatorServiceReminders').innerHTML=reminderHtml || '<div class="muted">目前沒有未繳交提醒。</div>';
+    $('translatorServiceReminders').innerHTML=reminders||'<div class="muted">目前沒有未繳交提醒。</div>';
 
     $('translatorMonthSummary').innerHTML=`
       <div class="stat"><div class="muted">已繳交</div><b>${monthRows.filter(x=>x.submitted).length}</b></div>
@@ -6656,106 +6692,130 @@ body.role-staff #srStaffPage{display:block!important}
       <div class="stat"><div class="muted">年度已繳交</div><b>${yearRows.filter(x=>x.submitted).length}</b></div>
       <div class="stat"><div class="muted">年度未繳交</div><b>${yearRows.filter(x=>!x.submitted).length}</b></div>
     `;
-    $('translatorMonthRows').innerHTML=detailRows(monthRows,false);
-    $('translatorYearRows').innerHTML=detailRows(yearRows,true);
+    $('translatorMonthRows').innerHTML=detailHtmlV153(monthRows,false);
+    $('translatorYearRows').innerHTML=detailHtmlV153(yearRows,true);
   }
-  function showOriginalService(){
-    const page=$('serviceRecordsPage');
-    if(page)page.classList.remove('service-translator-mode');
-  }
-  function applyServiceNav(){
-    const allow=serviceAllowed();
-    document.querySelectorAll('.navbtn[data-page="serviceRecords"]').forEach(btn=>{
-      btn.classList.toggle('hide',!allow);
-      btn.classList.toggle('role-hidden',!allow);
-      btn.style.display=allow?'':'none';
-    });
-    const bottom=document.querySelector('.bottom-nav');
-    if(bottom&&allow&&!bottom.querySelector('.navbtn[data-page="serviceRecords"]')){
+
+  function ensureNavButtonsV153(){
+    const side=document.querySelector('.side');
+    if(side&&!side.querySelector('.navbtn[data-page="translatorService"]')){
       const btn=document.createElement('button');
       btn.className='navbtn';
-      btn.dataset.page='serviceRecords';
-      btn.innerHTML='<span class="mono-ico ico-clipboard"></span>服務';
+      btn.dataset.page='translatorService';
+      btn.innerHTML='<span class="mono-ico ico-clipboard"></span>服務紀錄單';
+      const line=side.querySelector('.navbtn[data-page="line"]');
+      if(line)side.insertBefore(btn,line); else side.appendChild(btn);
+    }
+    const bottom=document.querySelector('.bottom-nav');
+    if(bottom&&!bottom.querySelector('.navbtn[data-page="translatorService"]')){
+      const btn=document.createElement('button');
+      btn.className='navbtn';
+      btn.dataset.page='translatorService';
+      btn.innerHTML='<span class="mono-ico ico-clipboard"></span>紀錄單';
       const line=bottom.querySelector('.navbtn[data-page="line"]');
       if(line)bottom.insertBefore(btn,line); else bottom.appendChild(btn);
-      btn.onclick=function(){
-        if(!canSeePage('serviceRecords'))return toast('此權限無法開啟此頁面');
-        document.querySelectorAll('.navbtn').forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
-        currentPage='serviceRecords';
-        document.querySelectorAll('.page').forEach(p=>p.classList.add('hide'));
-        $('serviceRecordsPage').classList.remove('hide');
-        renderServiceRecords();
-      };
     }
   }
 
-  const oldCanSee=typeof canSeePage==='function'?canSeePage:null;
-  if(oldCanSee){
+  function applyServicePermissionsV153(){
+    ensureTranslatorPageV153();
+    ensureNavButtonsV153();
+
+    const translator=isTranslatorV153();
+    const adminService=canSeeAdminServiceV153();
+
+    all('.navbtn[data-page="translatorService"]').forEach(btn=>{
+      btn.classList.toggle('hide',!translator);
+      btn.classList.toggle('role-hidden',!translator);
+      btn.style.display=translator?'':'none';
+    });
+
+    all('.navbtn[data-page="serviceRecords"]').forEach(btn=>{
+      btn.classList.toggle('hide',!adminService);
+      btn.classList.toggle('role-hidden',!adminService);
+      btn.style.display=adminService?'':'none';
+    });
+
+    if(!adminService&&$('serviceRecordsPage')&&currentPage==='serviceRecords'){
+      openTranslatorServiceV153();
+    }
+  }
+
+  function openTranslatorServiceV153(){
+    if(!isTranslatorV153()){
+      try{toast('此權限無法開啟此頁面')}catch(e){}
+      return;
+    }
+    ensureTranslatorPageV153();
+    all('.navbtn').forEach(b=>b.classList.remove('active'));
+    all('.navbtn[data-page="translatorService"]').forEach(b=>b.classList.add('active'));
+    currentPage='translatorService';
+    all('.page').forEach(p=>p.classList.add('hide'));
+    $('translatorServicePage').classList.remove('hide');
+    renderTranslatorServiceV153();
+  }
+
+  const oldCanSeePageV153=typeof canSeePage==='function'?canSeePage:null;
+  if(oldCanSeePageV153){
     canSeePage=function(page){
-      if(page==='serviceRecords')return serviceAllowed();
-      return oldCanSee(page);
+      if(page==='translatorService')return canSeeTranslatorServiceV153();
+      if(page==='serviceRecords')return canSeeAdminServiceV153();
+      return oldCanSeePageV153(page);
     };
   }
+
   if(window.v105AllowedPages){
-    const oldAllowed=window.v105AllowedPages;
+    const oldAllowedV153=window.v105AllowedPages;
     window.v105AllowedPages=function(){
-      let arr=oldAllowed();
-      if(serviceAllowed())arr=[...new Set([...arr,'serviceRecords'])];
-      else arr=arr.filter(x=>x!=='serviceRecords');
+      let arr=oldAllowedV153();
+      if(isTranslatorV153())arr=[...new Set([...arr,'translatorService'])].filter(x=>x!=='serviceRecords');
+      else if(canSeeAdminServiceV153())arr=[...new Set([...arr,'serviceRecords'])].filter(x=>x!=='translatorService');
+      else arr=arr.filter(x=>x!=='serviceRecords'&&x!=='translatorService');
       return arr;
     };
   }
 
-  const oldRenderService=typeof renderServiceRecords==='function'?renderServiceRecords:null;
-  renderServiceRecords=function(){
-    if(isTranslator()){
-      renderTranslatorService();
-      return;
-    }
-    showOriginalService();
-    if(oldRenderService)oldRenderService();
-  };
-
-  const oldApplyPerm=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
-  if(oldApplyPerm){
+  const oldApplyPermissionsV153=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
+  if(oldApplyPermissionsV153){
     applyPermissionsUI=function(){
-      oldApplyPerm();
-      applyServiceNav();
+      oldApplyPermissionsV153();
+      applyServicePermissionsV153();
     };
   }
 
-  const oldV105Apply=window.v105ApplyNav;
+  const oldV105ApplyNavV153=window.v105ApplyNav;
   window.v105ApplyNav=function(){
-    if(oldV105Apply)oldV105Apply();
-    applyServiceNav();
+    if(oldV105ApplyNavV153)oldV105ApplyNavV153();
+    applyServicePermissionsV153();
   };
 
-  const oldRenderAll=typeof renderAll==='function'?renderAll:null;
-  if(oldRenderAll){
+  const oldRenderAllV153=typeof renderAll==='function'?renderAll:null;
+  if(oldRenderAllV153){
     renderAll=function(){
-      oldRenderAll();
-      applyServiceNav();
-      if(currentPage==='serviceRecords')renderServiceRecords();
+      oldRenderAllV153();
+      applyServicePermissionsV153();
+      if(currentPage==='translatorService')renderTranslatorServiceV153();
     };
   }
 
   document.addEventListener('click',function(e){
-    const btn=e.target&&e.target.closest&&e.target.closest('.navbtn[data-page="serviceRecords"]');
+    const btn=e.target&&e.target.closest&&e.target.closest('.navbtn[data-page="translatorService"]');
     if(!btn)return;
-    if(!serviceAllowed())return;
     e.preventDefault();
     e.stopImmediatePropagation();
-    document.querySelectorAll('.navbtn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    currentPage='serviceRecords';
-    document.querySelectorAll('.page').forEach(p=>p.classList.add('hide'));
-    $('serviceRecordsPage').classList.remove('hide');
-    renderServiceRecords();
+    openTranslatorServiceV153();
   },true);
 
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(function(){applyServiceNav();if(currentPage==='serviceRecords')renderServiceRecords();},300));
-  setTimeout(function(){applyServiceNav();if(currentPage==='serviceRecords')renderServiceRecords();},800);
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(function(){
+      ensureTranslatorPageV153();
+      applyServicePermissionsV153();
+    },250);
+  });
+  setTimeout(function(){
+    ensureTranslatorPageV153();
+    applyServicePermissionsV153();
+  },900);
 })();
 </script>
 
