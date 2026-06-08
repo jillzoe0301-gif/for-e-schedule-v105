@@ -6257,15 +6257,45 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
   /* 隱藏所有匯出 widget（包含異況 toolbar 裡的） */
   .v141-box{ display:none!important; }
 
-  /* 新增行程/外務行程/新增預約：在 v116-week-row 換行全寬 */
-  .v116-week-row{ flex-wrap:wrap!important; }
+  /* 新增行程/外務行程/新增預約：v116-week-row 改直排，按鈕全寬 */
+  .v116-week-row{
+    flex-direction:column!important;
+    align-items:stretch!important;
+    width:100%!important;
+  }
+  .v116-week-row > *{
+    width:100%!important;
+    min-width:0!important;
+  }
+  /* 日期 picker 維持正常 */
+  .v116-week-row input[type="date"]{
+    width:100%!important;
+  }
+  /* 上/下一週按鈕縮小排一排 */
+  .v116-week-row #prevWeek,
+  .v116-week-row #nextWeek,
+  .v116-week-row #fieldPrevWeek,
+  .v116-week-row #fieldNextWeek,
+  .v116-week-row #roomPrevWeek,
+  .v116-week-row #roomNextWeek{
+    width:auto!important;
+    flex:1!important;
+  }
+  /* 把上一週/下一週/日期 picker 排同一行 */
+  .v116-week-row{
+    display:grid!important;
+    grid-template-columns:auto 1fr auto!important;
+    flex-direction:unset!important;
+    align-items:center!important;
+    gap:6px!important;
+  }
+  /* 新增按鈕獨佔一行（grid 第4格以後） */
   .v116-week-row #addEventBtn,
   .v116-week-row #fieldAddBtn,
   .v116-week-row #addRoomBookingBtn{
-    flex:0 0 100%!important;
-    order:99!important;
+    grid-column:1 / -1!important;
     width:100%!important;
-    margin-top:8px!important;
+    margin-top:0!important;
     border-radius:14px!important;
     padding:11px 12px!important;
     font-size:15px!important;
