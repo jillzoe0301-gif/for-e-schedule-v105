@@ -6404,4 +6404,128 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 }
 </style>
 
+
+<style>
+/* V164：三大行事曆篩選恢復
+   DRY：共用 .v164-calendar-filter-page selector
+   KISS：只恢復篩選列顯示，不改資料/匯出/權限
+   SOLID：篩選顯示職責獨立於行事曆渲染與 CSV 匯出
+*/
+@media(min-width:761px){
+  #calendarPage .v116-static-filter,
+  #fieldCalendarPage .v116-static-filter,
+  #roomBookingPage .v116-static-filter{
+    display:block!important;
+    visibility:visible!important;
+    opacity:1!important;
+    height:auto!important;
+    max-height:none!important;
+    overflow:visible!important;
+    margin-top:10px!important;
+    padding:0!important;
+    border:0!important;
+    background:transparent!important;
+  }
+  #calendarPage .v116-static-filter > summary,
+  #fieldCalendarPage .v116-static-filter > summary,
+  #roomBookingPage .v116-static-filter > summary{
+    display:none!important;
+  }
+  #calendarPage .v116-static-filter > .toolbar,
+  #fieldCalendarPage .v116-static-filter > .toolbar,
+  #roomBookingPage .v116-static-filter > .toolbar{
+    display:flex!important;
+    flex-wrap:wrap!important;
+    align-items:center!important;
+    gap:8px!important;
+    width:100%!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    background:transparent!important;
+  }
+  #calendarPage .v116-static-filter .mini,
+  #fieldCalendarPage .v116-static-filter .mini,
+  #roomBookingPage .v116-static-filter .mini{
+    min-height:34px!important;
+  }
+}
+
+/* 手機維持收合，避免畫面太滿 */
+@media(max-width:760px){
+  #calendarPage .v116-static-filter,
+  #fieldCalendarPage .v116-static-filter,
+  #roomBookingPage .v116-static-filter{
+    display:block!important;
+  }
+  #calendarPage .v116-static-filter > summary,
+  #fieldCalendarPage .v116-static-filter > summary,
+  #roomBookingPage .v116-static-filter > summary{
+    display:flex!important;
+  }
+}
+</style>
+
+<script>
+/* V164：恢復三大行事曆篩選列 */
+(function(){
+  const FILTER_PAGES=['calendarPage','fieldCalendarPage','roomBookingPage'];
+
+  function byId(id){return document.getElementById(id);}
+  function restoreCalendarFiltersV164(){
+    FILTER_PAGES.forEach(function(pageId){
+      const page=byId(pageId);
+      if(!page)return;
+
+      const filter=page.querySelector('.v116-static-filter');
+      if(!filter)return;
+
+      filter.classList.remove('hide','role-hidden','collapsed','is-hidden');
+      filter.style.removeProperty('display');
+      filter.style.removeProperty('visibility');
+      filter.style.removeProperty('opacity');
+      filter.style.removeProperty('height');
+      filter.style.removeProperty('max-height');
+      filter.style.removeProperty('overflow');
+
+      const toolbar=filter.querySelector(':scope > .toolbar');
+      if(toolbar){
+        toolbar.classList.remove('hide','role-hidden','collapsed','is-hidden');
+        toolbar.style.removeProperty('display');
+        toolbar.style.removeProperty('visibility');
+        toolbar.style.removeProperty('opacity');
+      }
+
+      // 電腦版直接展開；手機版保持收合但可點開。
+      if(window.innerWidth>760){
+        filter.open=true;
+      }
+    });
+  }
+
+  window.restoreCalendarFiltersV164=restoreCalendarFiltersV164;
+
+  const oldRenderAll=typeof renderAll==='function'?renderAll:null;
+  if(oldRenderAll){
+    renderAll=function(){
+      oldRenderAll();
+      restoreCalendarFiltersV164();
+    };
+  }
+
+  const oldApplyPermissions=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
+  if(oldApplyPermissions){
+    applyPermissionsUI=function(){
+      oldApplyPermissions();
+      restoreCalendarFiltersV164();
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(restoreCalendarFiltersV164,200);
+  });
+  setTimeout(restoreCalendarFiltersV164,800);
+})();
+</script>
+
 </body></html>
