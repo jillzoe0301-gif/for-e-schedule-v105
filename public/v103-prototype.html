@@ -3415,7 +3415,7 @@ function v106MobileBottomNavByRole(){
     supervisor:['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'],
     adminStaff:['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'],
     general:['mobile','calendar','roomBooking','line'],
-    staff:['mobile','calendar','line']
+    staff:['mobile','calendar','serviceRecords','line']
   };
   const allowed=rolePages[r]||rolePages.staff;
   allowed.forEach(page=>{const btn=nav.querySelector(`.navbtn[data-page="${page}"]`); if(btn)nav.appendChild(btn);});
@@ -3733,7 +3733,7 @@ v106BindServiceRecordsUI=function(){
     if(r==='supervisor')return ['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'];
     if(r==='adminStaff')return ['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'];
     if(r==='general')return ['mobile','calendar','roomBooking','line'];
-    return ['mobile','calendar','line'];
+    return ['mobile','calendar','serviceRecords','line'];
   }
   window.v105AllowedPages=function(){
     const r=v108Role();
@@ -3741,7 +3741,7 @@ v106BindServiceRecordsUI=function(){
     if(r==='supervisor')return ['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'];
     if(r==='adminStaff')return ['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'];
     if(r==='general')return ['mobile','calendar','roomBooking','line'];
-    return ['mobile','calendar','line'];
+    return ['mobile','calendar','serviceRecords','line'];
   };
   const v108CanSeePageBase=typeof canSeePage==='function'?canSeePage:null;
   canSeePage=function(page){
@@ -3752,7 +3752,7 @@ v106BindServiceRecordsUI=function(){
     if(page==='today'||page==='incidents')return ['admin','supervisor','adminStaff'].includes(r);
     if(page==='reports')return r==='admin';
     if(page==='fieldDetails')return ['admin','adminStaff'].includes(r);
-    if(page==='serviceRecords')return ['admin','supervisor','adminStaff'].includes(r);
+    if(page==='serviceRecords')return ['admin','supervisor','adminStaff','staff'].includes(r);
     if(page==='personalDetails')return true;
     if(page==='theme')return true;
     if(page==='users')return true;
@@ -3828,7 +3828,7 @@ v106BindServiceRecordsUI=function(){
     if(r==='admin')return ['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line','reports'];
     if(r==='supervisor'||r==='adminStaff')return ['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'];
     if(r==='general')return ['mobile','calendar','roomBooking','line'];
-    return ['mobile','calendar','line'];
+    return ['mobile','calendar','serviceRecords','line'];
   }
   window.v105AllowedPages=function(){return bottomOrder();};
   const baseCanSee=typeof canSeePage==='function'?canSeePage:null;
@@ -3839,7 +3839,7 @@ v106BindServiceRecordsUI=function(){
     if(page==='fieldCalendar')return ['admin','supervisor','adminStaff'].includes(r);
     if(page==='today'||page==='incidents')return ['admin','supervisor','adminStaff'].includes(r);
     if(page==='reports')return r==='admin';
-    if(page==='serviceRecords')return ['admin','supervisor','adminStaff'].includes(r);
+    if(page==='serviceRecords')return ['admin','supervisor','adminStaff','staff'].includes(r);
     if(page==='fieldDetails')return ['admin','adminStaff'].includes(r);
     if(page==='personalDetails')return true;
     if(page==='theme')return true;
@@ -6404,15 +6404,7 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 <script>
 /* V150：服務紀錄單權限與翻譯版頁面 */
 (function(){
-  /* 1. 更新 canSeePage：一般人員/行政系不可進入，翻譯可進 */
-  const _v150CanSee = typeof canSeePage==='function' ? canSeePage : null;
-  canSeePage = function(page){
-    if(page !== 'serviceRecords') return _v150CanSee ? _v150CanSee(page) : false;
-    if(typeof normalizedRole !== 'function') return false;
-    const r = normalizedRole();
-    // admin、supervisor 可看完整版；staff（翻譯）看自己版；adminStaff/general 不可看
-    return ['admin','supervisor','staff'].includes(r);
-  };
+  /* V150 canSeePage 已直接修正在源頭，此處移除 */
 
   /* 2. 翻譯登入時，serviceRecords 頁改為顯示自己版 */
   function isStaffRole(){
