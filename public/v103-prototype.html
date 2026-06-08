@@ -6498,5 +6498,158 @@ body.role-staff #srStaffPage{display:block!important}
   if(_perm){ applyPermissionsUI=function(){ _perm(); setTimeout(applyMode,100); }; }
 })();
 </script>
+
+<script>
+/* V142：五大頁面匯出 widget (v141-box) 事件綁定 */
+(function(){
+  function tod(){ return typeof todayISO==='function'?todayISO():new Date().toISOString().slice(0,10); }
+  function ym0(){ return tod().slice(0,7); }
+  function yr0(){ return tod().slice(0,4); }
+  function mRng(m){ return typeof monthRange==='function'?monthRange(m):[m+'-01',m+'-31']; }
+  function dType(t){ try{return typeof displayEventType==='function'?displayEventType(t):String(t||'')}catch(e){return String(t||'')} }
+  function pName(id){ try{return typeof getPerson==='function'?(getPerson(id)||{}).name||'':''}catch(e){return ''} }
+
+  function canExport(){
+    if(typeof currentUser==='undefined'||!currentUser) return false;
+    if(typeof normalizedRole!=='function') return false;
+    return ['admin','supervisor','adminStaff'].includes(normalizedRole());
+  }
+
+  function dlCsv(rows,fn){
+    if(typeof exportCsv==='function'){exportCsv(rows,fn);return;}
+    const b=rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob=new Blob(['\ufeff'+b],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),500);
+  }
+
+  function doPersonal(s,e,fn){
+    if(typeof personalDetailRowsFiltered!=='function') return;
+    const ps=document.getElementById('personalDetailStart'),pe=document.getElementById('personalDetailEnd');
+    const os=ps&&ps.value,oe=pe&&pe.value;
+    if(ps)ps.value=s;if(pe)pe.value=e;
+    const rows=personalDetailRowsFiltered();
+    if(ps)ps.value=os||'';if(pe)pe.value=oe||'';
+    const out=[['日期','時間','人員','類別','行程類型','地點/客戶','辦理內容','狀態','內容說明','公務車','服務紀錄單']];
+    rows.forEach(r=>{
+      const ev=r.event,p=typeof getPerson==='function'?getPerson(r.personId):{name:''};
+      const sr=typeof requiresServiceRecord==='function'&&requiresServiceRecord(ev)
+        ?(ev.serviceRecordSubmitted&&ev.serviceRecordDate?'已繳交 '+ev.serviceRecordDate:'未繳交'):'';
+      out.push([r.date,typeof ampm==='function'?ampm(ev.startTime):ev.startTime,p.name,
+        typeof kindLabel==='function'?kindLabel(ev.kind):ev.kind,
+        dType(ev.type),ev.locationName||'',ev.name||'',ev.status||'',ev.note||'',ev.vehicleNo||'',sr]);
+    });
+    dlCsv(out,fn);
+  }
+
+  function doIncidents(s,e,fn){
+    if(typeof state==='undefined') return;
+    const rows=[['發生日期','異況類型','緊急程度','地點/客戶','工人','異況標題','負責人','狀態','下次追蹤日','最後追蹤']];
+    (state.incidents||[]).filter(i=>!i.deleted&&(i.occurrenceDate||'')>=s&&(i.occurrenceDate||'')<=e)
+      .sort((a,b)=>String(a.occurrenceDate||'').localeCompare(b.occurrenceDate||''))
+      .forEach(i=>{
+        const logs=(state.incidentLogs||[]).filter(l=>!l.deleted&&l.incidentId===i.id)
+          .sort((a,b)=>String(a.createdAt||'').localeCompare(b.createdAt||''));
+        const last=logs[logs.length-1];
+        rows.push([i.occurrenceDate||'',i.incidentType||'',i.urgency||'',i.customerName||'',
+          i.workerName||'',i.title||'',pName(i.ownerPersonId),i.status||'',
+          i.nextFollowDate||'',last?last.content||'':'']);
+      });
+    dlCsv(rows,fn);
+  }
+
+  function doReports(s,e,fn){
+    if(typeof buildReportData!=='function') return;
+    const data=buildReportData(s,e);
+    const activeTypes=(data.types||[]).filter(t=>(data.rows||[]).some(r=>(r.byType&&r.byType[t]||0)>0));
+    const out=[['部門','人員','職務','總數','未完成','已完成','取消',...activeTypes]];
+    (data.rows||[]).forEach(r=>{
+      out.push([r.person.group,r.person.name,r.person.lang||'',r.total,r.undone,r.done,r.cancel,
+        ...activeTypes.map(t=>r.byType&&r.byType[t]||0)]);
+    });
+    ['一部翻譯','二部翻譯','總計'].forEach(g=>{
+      const d=data.dept&&data.dept[g];
+      if(d)out.push([g,'部門合計','',d.total,d.undone,d.done,d.cancel,...activeTypes.map(()=>'')]);
+    });
+    dlCsv(out,fn);
+  }
+
+  function doService(s,e,fn){
+    if(typeof serviceRecordsInRange!=='function'||typeof personReportList!=='function') return;
+    const rows=[['日期','部門','翻譯','職務','行程類型','辦理內容','地點/客戶','行程狀態','服務紀錄單','繳交日期']];
+    serviceRecordsInRange(s,e,personReportList()).forEach(x=>{
+      rows.push([x.date,x.person.group,x.person.name,x.person.lang||'',
+        dType(x.event.type),x.event.name||'',x.event.locationName||'',
+        x.event.status||'',x.submitted?'已繳交':'未繳交',x.event.serviceRecordDate||'']);
+    });
+    dlCsv(rows,fn);
+  }
+
+  function doFieldDetails(s,e,fn){
+    if(typeof state==='undefined') return;
+    const rows=[['日期','時間','人員','目的','地點','地址','狀態','備註','特殊提醒','現金','印章','證件','下一次領件日','送件失敗原因']];
+    (state.externalEvents||[]).filter(ev=>!ev.deleted&&(ev.date||'')>=s&&(ev.date||'')<=e)
+      .sort((a,b)=>String((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||'')))
+      .forEach(ev=>{
+        const flags=[ev.mustSend?'必送件':'',ev.cannotChange?'無法更換外務':''].filter(Boolean).join('、');
+        rows.push([ev.date||'',ev.time||'',pName(ev.personId),ev.purpose||'',ev.locationName||'',
+          ev.address||'',ev.status||'',ev.note||'',flags,ev.cash||'',ev.stamp||'',ev.document||'',
+          ev.pickupDate||'',ev.failureReason||'']);
+      });
+    dlCsv(rows,fn);
+  }
+
+  const fnMap={
+    '個人行程':doPersonal,'異況紀錄':doIncidents,'統計報表':doReports,
+    '服務紀錄單':doService,'外務明細':doFieldDetails
+  };
+
+  function updateBoxVis(box,mode){
+    box.querySelector('.v141-year').style.display  = mode==='year'  ?'inline-flex':'none';
+    box.querySelector('.v141-month').style.display = mode==='month' ?'inline-flex':'none';
+    box.querySelector('.v141-day').style.display   = mode==='day'   ?'inline-flex':'none';
+    box.querySelector('.v141-start').style.display = mode==='range' ?'inline-flex':'none';
+    box.querySelector('.v141-end').style.display   = mode==='range' ?'inline-flex':'none';
+  }
+
+  function initBoxes(){
+    const y=yr0(),m=ym0(),d=tod();
+    document.querySelectorAll('.v141-box').forEach(box=>{
+      if(box.dataset.init) return;
+      box.dataset.init='1';
+      box.querySelector('.v141-year').value=y;
+      box.querySelector('.v141-month').value=m;
+      box.querySelector('.v141-day').value=d;
+      box.querySelector('.v141-start').value=d;
+      box.querySelector('.v141-end').value=d;
+      updateBoxVis(box, box.dataset.mode||'month');
+      box.querySelector('.v141-sel').addEventListener('change',function(){
+        box.dataset.mode=this.value;
+        updateBoxVis(box,this.value);
+      });
+      box.querySelector('.v141-btn').addEventListener('click',()=>{
+        if(!canExport()){if(typeof toast==='function')toast('此權限無法匯出');return;}
+        const label=box.dataset.label||'';
+        const fn=fnMap[label];
+        if(!fn) return;
+        const mode=box.dataset.mode||'month';
+        let s,e,suffix;
+        if(mode==='all'){s='0000-01-01';e='9999-12-31';suffix='全部';}
+        else if(mode==='year'){const yv=box.querySelector('.v141-year').value||y;s=yv+'-01-01';e=yv+'-12-31';suffix=yv;}
+        else if(mode==='day'){const dv=box.querySelector('.v141-day').value||d;s=dv;e=dv;suffix=dv;}
+        else if(mode==='range'){s=box.querySelector('.v141-start').value||d;e=box.querySelector('.v141-end').value||s;suffix=s+'_to_'+e;}
+        else{const mv=box.querySelector('.v141-month').value||m;[s,e]=mRng(mv);suffix=mv;}
+        fn(s,e,label+'_'+suffix+'.csv');
+      });
+    });
+  }
+
+  // 登入後才初始化
+  const _sa=typeof showApp==='function'?showApp:null;
+  if(_sa){ showApp=function(){ _sa(); setTimeout(initBoxes,300); }; }
+  const _ap=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
+  if(_ap){ applyPermissionsUI=function(){ _ap(); setTimeout(initBoxes,100); }; }
+})();
+</script>
 </body>
 </html>
