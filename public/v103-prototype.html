@@ -6383,6 +6383,8 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 </body></html>
 <style>
 /* V150：翻譯版服務紀錄單 */
+/* srAdminSection 預設顯示（管理員），srStaffPage 預設隱藏（翻譯版） */
+#srStaffPage { display: none; }
 .sr-staff-remind-card{
   border-radius:14px;padding:12px 14px;margin:8px 0;
   border-left:6px solid #f59e0b;background:#fffbeb;
@@ -6531,14 +6533,11 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
     const adminSection = document.getElementById('srAdminSection');
     const staffSection = document.getElementById('srStaffPage');
     if(!adminSection || !staffSection) return;
-    if(isStaffRole()){
-      adminSection.style.display = 'none';
-      staffSection.style.display = 'block';
-      renderStaffServicePage();
-    } else {
-      adminSection.style.display = 'block';
-      staffSection.style.display = 'none';
-    }
+    const isStaff = isStaffRole();
+    // 強制設定，避免被其他 render 覆蓋
+    adminSection.style.setProperty('display', isStaff ? 'none' : 'block', 'important');
+    staffSection.style.setProperty('display', isStaff ? 'block' : 'none', 'important');
+    if(isStaff) renderStaffServicePage();
   }
 
   /* patchServicePage 已改為 HTML 直接定義，此函式移除 */
@@ -6562,14 +6561,13 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
     };
   }
 
-  /* Hook renderAll，翻譯版自動更新 */
+  /* Hook renderAll，翻譯版自動更新，每次 renderAll 後都確保切換模式 */
   const _v150RenderAll = typeof renderAll==='function' ? renderAll : null;
   if(_v150RenderAll){
     renderAll = function(){
       _v150RenderAll();
-      if(isStaffRole() && document.getElementById('srStaffPage')){
-        renderStaffServicePage();
-      }
+      // 每次 renderAll 後都重新套用頁面模式，確保翻譯不會看到管理員版
+      setTimeout(applyServicePageMode, 50);
     };
   }
 
