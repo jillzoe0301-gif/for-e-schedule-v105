@@ -6352,6 +6352,290 @@ body.role-staff #srStaffPage{display:block!important}
 </script>
 
 
+
+<style>
+/* V158：修正匯出 CSV 按鈕無反應 */
+.v141-box .v141-year,
+.v141-box .v141-month,
+.v141-box .v141-day,
+.v141-box .v141-start,
+.v141-box .v141-end{
+  vertical-align:middle;
+}
+.v141-box .v141-btn,
+.v138-export-inline .v138-export-btn{
+  cursor:pointer!important;
+}
+@media(max-width:760px){
+  .v141-box,.v138-export-inline{
+    display:none!important;
+  }
+}
+</style>
+
+<script>
+/* V158：重新綁定所有匯出 CSV 按鈕，並修正下載函式 */
+(function(){
+  function $(id){return document.getElementById(id)}
+  function all(sel){return Array.from(document.querySelectorAll(sel))}
+  function today(){return typeof todayISO==='function'?todayISO():new Date().toISOString().slice(0,10)}
+  function thisMonth(){return today().slice(0,7)}
+  function thisYear(){return today().slice(0,4)}
+  function monthRangeSafe(ym){
+    if(typeof monthRange==='function')return monthRange(ym);
+    const y=Number(ym.slice(0,4)),m=Number(ym.slice(5,7));
+    return [ym+'-01',ym+'-'+String(new Date(y,m,0).getDate()).padStart(2,'0')];
+  }
+  function safeText(v){return String(v??'')}
+  function csvCell(v){return `"${safeText(v).replace(/"/g,'""')}"`}
+  function downloadCsvV158(rows,name){
+    const body=rows.map(r=>r.map(csvCell).join(',')).join('\n');
+    const blob=new Blob(['\ufeff'+body],{type:'text/csv;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=name||('匯出_'+today()+'.csv');
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){
+      URL.revokeObjectURL(url);
+      a.remove();
+    },800);
+  }
+
+  // 覆蓋原本立即 revoke 的 exportCsv，避免部分瀏覽器下載失敗。
+  window.exportCsv=downloadCsvV158;
+  try{exportCsv=downloadCsvV158;}catch(e){}
+
+  function getPersonName(id){
+    try{
+      if(typeof getPerson==='function'){
+        const p=getPerson(id);
+        return p&&p.name?p.name:'';
+      }
+    }catch(e){}
+    const p=(window.state&&state.people||[]).find(x=>x.id===id);
+    return p?p.name:'';
+  }
+  function getUserName(id){
+    try{
+      if(typeof getUser==='function'){
+        const u=getUser(id);
+        return u&&u.name?u.name:'';
+      }
+    }catch(e){}
+    const u=(window.state&&state.users||[]).find(x=>x.id===id);
+    return u?u.name:'';
+  }
+  function displayType(t){
+    try{return typeof displayEventType==='function'?displayEventType(t):safeText(t)}
+    catch(e){return safeText(t)}
+  }
+  function requiresSR(e){
+    try{return typeof requiresServiceRecord==='function'?requiresServiceRecord(e):false}
+    catch(err){return false}
+  }
+  function eventOverlaps(e,start,end){
+    try{return typeof eventOverlapsRange==='function'?eventOverlapsRange(e,start,end):((e.startDate||'')<=end&&(e.endDate||e.startDate||'')>=start)}
+    catch(err){return false}
+  }
+  function normalizeDate(d){return d||''}
+
+  function rangeFromBox(box){
+    const is141=box&&box.classList.contains('v141-box');
+    const sel=box?box.querySelector(is141?'.v141-sel':'.v138-mode'):null;
+    const mode=sel?(sel.value||'month'):'month';
+    if(mode==='all')return {start:'0000-01-01',end:'9999-12-31',label:'全部'};
+    if(mode==='year'){
+      const y=(box.querySelector(is141?'.v141-year':'.v138-year')||{}).value||thisYear();
+      return {start:y+'-01-01',end:y+'-12-31',label:y};
+    }
+    if(mode==='day'){
+      const d=(box.querySelector(is141?'.v141-day':'.v138-day')||{}).value||today();
+      return {start:d,end:d,label:d};
+    }
+    if(mode==='range'){
+      const s=(box.querySelector(is141?'.v141-start':'.v138-start')||{}).value||today();
+      const e=(box.querySelector(is141?'.v141-end':'.v138-end')||{}).value||s;
+      return {start:s,end:e,label:s+'_to_'+e};
+    }
+    const m=(box.querySelector(is141?'.v141-month':'.v138-month')||{}).value||thisMonth();
+    const r=monthRangeSafe(m);
+    return {start:r[0],end:r[1],label:m};
+  }
+
+  function updateBoxVisibility(box){
+    if(!box)return;
+    const is141=box.classList.contains('v141-box');
+    const mode=(box.querySelector(is141?'.v141-sel':'.v138-mode')||{}).value||'month';
+    const pairs=[
+      ['year',is141?'.v141-year':'.v138-year'],
+      ['month',is141?'.v141-month':'.v138-month'],
+      ['day',is141?'.v141-day':'.v138-day'],
+      ['range',is141?'.v141-start':'.v138-start'],
+      ['range',is141?'.v141-end':'.v138-end']
+    ];
+    pairs.forEach(function(p){
+      const el=box.querySelector(p[1]);
+      if(el)el.style.display=(mode===p[0])?'inline-flex':'none';
+    });
+  }
+
+  function initBoxes(){
+    all('.v141-box,.v138-export-inline').forEach(function(box){
+      if(box.dataset.v158Bound==='1')return;
+      box.dataset.v158Bound='1';
+
+      const month=box.querySelector('.v141-month,.v138-month');
+      const day=box.querySelector('.v141-day,.v138-day');
+      const year=box.querySelector('.v141-year,.v138-year');
+      const start=box.querySelector('.v141-start,.v138-start');
+      const end=box.querySelector('.v141-end,.v138-end');
+      if(month&&!month.value)month.value=thisMonth();
+      if(day&&!day.value)day.value=today();
+      if(year&&!year.value)year.value=thisYear();
+      if(start&&!start.value)start.value=today();
+      if(end&&!end.value)end.value=today();
+
+      const sel=box.querySelector('.v141-sel,.v138-mode');
+      if(sel)sel.addEventListener('change',function(){updateBoxVisibility(box)});
+      updateBoxVisibility(box);
+    });
+  }
+
+  function rowsEvents(start,end,personalOnly){
+    const pid=(typeof userPersonId==='function')?userPersonId():null;
+    const rows=[['ID','起日','迄日','時間','類型','行程名稱','地點/客戶','地址','狀態','人員','建立者','更新時間','服務紀錄單','繳交日期','備註']];
+    (state.events||[])
+      .filter(e=>!e.deleted&&eventOverlaps(e,start,end)&&(!personalOnly||!pid||(e.participants||[]).includes(pid)))
+      .sort((a,b)=>safeText((a.startDate||'')+(a.startTime||'')).localeCompare(safeText((b.startDate||'')+(b.startTime||''))))
+      .forEach(e=>rows.push([
+        e.id||'',e.startDate||'',e.endDate||'',e.startTime||'',displayType(e.type||''),e.name||'',e.locationName||'',e.address||'',e.status||'',
+        (e.participants||[]).map(getPersonName).filter(Boolean).join('、'),
+        getUserName(e.createdBy)||'',e.updatedAt||'',
+        requiresSR(e)?(e.serviceRecordSubmitted?'已繳交':'未繳交'):'',
+        e.serviceRecordDate||'',e.note||''
+      ]));
+    return rows;
+  }
+
+  function rowsField(start,end){
+    const rows=[['ID','日期','時間','人員','目的','地點','地址','狀態','內容/備註','特殊提醒','現金','印章','證件','下一次領件','送件失敗原因','建立者','更新時間']];
+    (state.externalEvents||[])
+      .filter(e=>!e.deleted&&normalizeDate(e.date)>=start&&normalizeDate(e.date)<=end)
+      .sort((a,b)=>safeText((a.date||'')+(a.time||'')+(a.personId||'')).localeCompare(safeText((b.date||'')+(b.time||'')+(b.personId||''))))
+      .forEach(e=>rows.push([
+        e.id||'',e.date||'',e.time||'',getPersonName(e.personId)||'',e.purpose||'',e.locationName||'',e.address||'',e.status||'',e.note||'',
+        e.specialReminder||'',e.cash||'',e.seal||'',e.certificate||'',e.nextPickupDate||'',e.failureReason||'',getUserName(e.createdBy)||'',e.updatedAt||''
+      ]));
+    return rows;
+  }
+
+  function rowsRoom(start,end){
+    const rows=[['ID','日期','時間','會議室','部門','會議名稱','建立者','更新時間']];
+    (state.roomBookings||[])
+      .filter(b=>!b.deleted&&normalizeDate(b.date)>=start&&normalizeDate(b.date)<=end)
+      .sort((a,b)=>safeText((a.date||'')+(a.startTime||'')+(a.room||'')).localeCompare(safeText((b.date||'')+(b.startTime||'')+(b.room||''))))
+      .forEach(b=>rows.push([b.id||'',b.date||'',(b.startTime||'')+'-'+(b.endTime||''),b.room||'',b.department||'',b.title||'',getUserName(b.createdBy)||'',b.updatedAt||'']));
+    return rows;
+  }
+
+  function rowsIncidents(start,end){
+    const rows=[['ID','發生日期','發生時間','緊急程度','異況類型','地點/客戶','工人','異況標題','負責人','狀態','下次追蹤日期','最後追蹤','內容說明']];
+    (state.incidents||[])
+      .filter(x=>!x.deleted&&normalizeDate(x.occurrenceDate)>=start&&normalizeDate(x.occurrenceDate)<=end)
+      .sort((a,b)=>safeText((a.occurrenceDate||'')+(a.occurrenceTime||'')).localeCompare(safeText((b.occurrenceDate||'')+(b.occurrenceTime||''))))
+      .forEach(x=>rows.push([
+        x.id||'',x.occurrenceDate||'',x.occurrenceTime||'',x.urgency||'',x.incidentType||'',x.customerName||'',x.workerName||'',x.title||'',getPersonName(x.ownerPersonId)||'',x.status||'',x.nextFollowDate||'',x.lastFollowText||'',x.description||''
+      ]));
+    return rows;
+  }
+
+  function rowsReports(start,end){
+    const ev=(state.events||[]).filter(e=>!e.deleted&&eventOverlaps(e,start,end));
+    const field=(state.externalEvents||[]).filter(e=>!e.deleted&&normalizeDate(e.date)>=start&&normalizeDate(e.date)<=end);
+    const inc=(state.incidents||[]).filter(x=>!x.deleted&&normalizeDate(x.occurrenceDate)>=start&&normalizeDate(x.occurrenceDate)<=end);
+    const rows=[['類別','項目','數量','起日','迄日']];
+    rows.push(['總計','行程',ev.length,start,end]);
+    rows.push(['總計','外務',field.length,start,end]);
+    rows.push(['總計','異況',inc.length,start,end]);
+    const byType={};
+    ev.forEach(e=>{const k=displayType(e.type||'未分類');byType[k]=(byType[k]||0)+1});
+    Object.entries(byType).forEach(([k,v])=>rows.push(['行程類型',k,v,start,end]));
+    const byStatus={};
+    ev.forEach(e=>{const k=e.status||'未填';byStatus[k]=(byStatus[k]||0)+1});
+    Object.entries(byStatus).forEach(([k,v])=>rows.push(['行程狀態',k,v,start,end]));
+    return rows;
+  }
+
+  function rowsService(start,end){
+    const rows=[['日期','部門','翻譯','職務','行程類型','辦理內容','地點/客戶','行程狀態','服務紀錄單','繳交日期']];
+    let people=[];
+    try{
+      people=(typeof serviceFilterPeople==='function')?serviceFilterPeople():(state.people||[]);
+    }catch(e){people=(state.people||[])}
+    let data=[];
+    try{
+      if(typeof serviceRecordsInRange==='function')data=serviceRecordsInRange(start,end,people);
+    }catch(e){data=[]}
+    if(!data.length){
+      people.forEach(p=>{
+        (state.events||[]).filter(ev=>!ev.deleted&&eventOverlaps(ev,start,end)&&requiresSR(ev)&&(ev.participants||[]).includes(p.id))
+          .forEach(ev=>data.push({person:p,event:ev,date:ev.startDate,submitted:!!(ev.serviceRecordSubmitted&&ev.serviceRecordDate)}));
+      });
+    }
+    data.forEach(x=>{
+      const e=x.event||{};
+      const p=x.person||{};
+      rows.push([x.date||e.startDate||'',p.group||'',p.name||'',p.lang||'',displayType(e.type||''),e.name||'',e.locationName||'',e.status||'',(e.serviceRecordSubmitted&&e.serviceRecordDate)?'已繳交':'未繳交',e.serviceRecordDate||'']);
+    });
+    return rows;
+  }
+
+  function exportForPage(pageId,box){
+    const r=rangeFromBox(box);
+    let label=(box&&box.dataset.label)||'匯出';
+    let rows;
+    if(pageId==='calendarPage'){label='行程總覽'; rows=rowsEvents(r.start,r.end,false);}
+    else if(pageId==='fieldCalendarPage'){label='外務行程'; rows=rowsField(r.start,r.end);}
+    else if(pageId==='roomBookingPage'){label='會議室預約'; rows=rowsRoom(r.start,r.end);}
+    else if(pageId==='fieldDetailsPage'){label='外務明細'; rows=rowsField(r.start,r.end);}
+    else if(pageId==='personalDetailsPage'){label='個人行程'; rows=rowsEvents(r.start,r.end,false);}
+    else if(pageId==='incidentsPage'){label='異況追蹤'; rows=rowsIncidents(r.start,r.end);}
+    else if(pageId==='reportsPage'){label='統計報表'; rows=rowsReports(r.start,r.end);}
+    else if(pageId==='serviceRecordsPage'){label='服務紀錄單'; rows=rowsService(r.start,r.end);}
+    else {rows=[['頁面','訊息'],[pageId||'', '找不到對應匯出資料']];}
+    downloadCsvV158(rows,`${label}_${r.label}.csv`);
+    try{toast&&toast(`已匯出 ${label} CSV`)}catch(e){}
+  }
+
+  function boxFromButton(btn){
+    return btn.closest('.v141-box,.v138-export-inline');
+  }
+
+  document.addEventListener('click',function(e){
+    const btn=e.target.closest&&e.target.closest('.v141-btn,.v138-export-btn');
+    if(!btn)return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    initBoxes();
+    const box=boxFromButton(btn);
+    const page=btn.closest('section.page');
+    exportForPage(page?page.id:'',box);
+  },true);
+
+  document.addEventListener('change',function(e){
+    const sel=e.target.closest&&e.target.closest('.v141-sel,.v138-mode');
+    if(!sel)return;
+    const box=sel.closest('.v141-box,.v138-export-inline');
+    updateBoxVisibility(box);
+  },true);
+
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(initBoxes,200));
+  setTimeout(initBoxes,800);
+})();
+</script>
+
 </body></html>
 <style>
 /* V150：翻譯版服務紀錄單 */
