@@ -6384,6 +6384,10 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 }
 </style>
 
+<style>
+body.role-staff #srAdminSection{display:none!important}
+body.role-staff #srStaffPage{display:block!important}
+</style>
 </body></html>
 <style>
 /* V150：翻譯版服務紀錄單 */
@@ -6506,8 +6510,10 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
   window._applyServicePageMode = function applyServicePageMode(){
     const adminSection = document.getElementById('srAdminSection');
     const staffSection = document.getElementById('srStaffPage');
-    if(!adminSection || !staffSection) return;
     const isStaff = isStaffRole();
+    // body class 控制（CSS 層）
+    document.body.classList.toggle('role-staff', isStaff);
+    if(!adminSection || !staffSection) return;
     adminSection.style.setProperty('display', isStaff ? 'none' : 'block', 'important');
     staffSection.style.setProperty('display', isStaff ? 'block' : 'none', 'important');
     if(isStaff) renderStaffServicePage();
@@ -6521,6 +6527,8 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
   if(_v150ShowApp){
     showApp = function(){
       _v150ShowApp();
+      // 立即執行，確保登入後馬上套用
+      if(typeof window._applyServicePageMode==='function') window._applyServicePageMode();
       setTimeout(()=>{
         applyServicePageMode();
         // 更新選單顯示
