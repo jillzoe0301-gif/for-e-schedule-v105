@@ -6643,4 +6643,83 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 })();
 </script>
 
+
+<style>
+/* V166：移除三大行事曆「篩選列內」舊匯出 CSV 按鈕
+   DRY：集中 selector，一次處理三頁
+   KISS：只移除篩選列內匯出，不動右上角匯出工具
+   SOLID：篩選列只負責篩選；匯出由表頭匯出管理器負責
+*/
+#calendarPage .v116-static-filter #exportCsvBtn,
+#fieldCalendarPage .v116-static-filter #fieldExportBtn,
+#roomBookingPage .v116-static-filter .export-control,
+#calendarPage .v116-static-filter .export-control,
+#fieldCalendarPage .v116-static-filter .export-control{
+  display:none!important;
+}
+</style>
+
+<script>
+/* V166：刪除篩選列內重複匯出 CSV */
+(function(){
+  const FILTER_EXPORTS=[
+    ['calendarPage','exportCsvBtn'],
+    ['fieldCalendarPage','fieldExportBtn']
+  ];
+
+  function removeFilterExportButtonsV166(){
+    FILTER_EXPORTS.forEach(([pageId,btnId])=>{
+      const page=document.getElementById(pageId);
+      if(!page)return;
+      const filter=page.querySelector('.v116-static-filter');
+      const btn=document.getElementById(btnId);
+      if(filter&&btn&&filter.contains(btn)){
+        btn.remove();
+      }
+    });
+
+    // 會議室原本沒有固定 ID，保險移除篩選列裡所有 export-control。
+    ['roomBookingPage','calendarPage','fieldCalendarPage'].forEach(pageId=>{
+      const page=document.getElementById(pageId);
+      if(!page)return;
+      const filter=page.querySelector('.v116-static-filter');
+      if(!filter)return;
+      filter.querySelectorAll('button.export-control').forEach(btn=>btn.remove());
+    });
+  }
+
+  window.removeFilterExportButtonsV166=removeFilterExportButtonsV166;
+
+  const oldRestore=window.restoreCalendarFiltersV165;
+  if(typeof oldRestore==='function'){
+    window.restoreCalendarFiltersV165=function(){
+      oldRestore();
+      removeFilterExportButtonsV166();
+    };
+  }
+
+  const oldRenderAll=typeof renderAll==='function'?renderAll:null;
+  if(oldRenderAll){
+    renderAll=function(){
+      oldRenderAll();
+      removeFilterExportButtonsV166();
+    };
+  }
+
+  const oldApplyPermissions=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
+  if(oldApplyPermissions){
+    applyPermissionsUI=function(){
+      oldApplyPermissions();
+      removeFilterExportButtonsV166();
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(removeFilterExportButtonsV166,150);
+    setTimeout(removeFilterExportButtonsV166,500);
+  });
+  setTimeout(removeFilterExportButtonsV166,900);
+})();
+</script>
+
 </body></html>
