@@ -6362,239 +6362,127 @@ body.role-staff #srStaffPage{display:block!important}
 </style>
 
 <script>
-/* V150：服務紀錄單權限與翻譯版頁面 */
+/* V150 v159 Final：翻譯版服務紀錄單 - interval監控確保即時生效 */
 (function(){
-  /* V150 canSeePage 已直接修正在源頭，此處移除 */
-
-  /* 2. 翻譯登入時，serviceRecords 頁改為顯示自己版 */
-  function isStaffRole(){
+  function isStaff(){
     return typeof normalizedRole==='function' && normalizedRole()==='staff';
   }
-
-  function myPersonId(){
-    try{ return typeof userPersonId==='function' ? userPersonId() : null; }
-    catch(e){ return null; }
+  function myPid(){
+    return typeof userPersonId==='function' ? userPersonId() : null;
   }
-
-  function dateAdd7(d){
-    const dt = new Date(d+'T00:00:00');
-    dt.setDate(dt.getDate()+7);
-    return dt.toISOString().slice(0,10);
+  function todayStr(){
+    return typeof todayISO==='function' ? todayISO() : new Date().toISOString().slice(0,10);
   }
-
-  /* 取得翻譯自己的服務紀錄單明細（含提醒狀態） */
-  function myServiceRows(){
-    const pid = myPersonId();
-    if(!pid || typeof state==='undefined') return [];
-    const today = typeof todayISO==='function' ? todayISO() : new Date().toISOString().slice(0,10);
-    const rows = [];
-    (state.events||[]).filter(e=>{
-      if(e.deleted || e.kind==='translatorStatus') return false;
-      if(typeof requiresServiceRecord!=='function' || !requiresServiceRecord(e)) return false;
-      if(!e.participants || !e.participants.includes(pid)) return false;
-      return true;
-    }).forEach(e=>{
-      const submitted = !!(e.serviceRecordSubmitted && e.serviceRecordDate);
-      const deadline = dateAdd7(e.endDate || e.startDate);
-      const overdue = !submitted && today > deadline;
-      const pending = !submitted && today >= (e.endDate||e.startDate) && today <= deadline;
-      rows.push({ event:e, submitted, deadline, overdue, pending });
-    });
-    // 排序：逾期在前，待繳次之，已繳最後；每組內依日期倒序
-    rows.sort((a,b)=>{
-      const order = x => x.overdue ? 0 : x.pending ? 1 : 2;
-      const od = order(a) - order(b);
-      if(od!==0) return od;
-      return String(b.event.endDate||b.event.startDate).localeCompare(String(a.event.endDate||a.event.startDate));
-    });
-    return rows;
+  function dl(e){
+    const dt=new Date((e.endDate||e.startDate||todayStr())+'T00:00:00');
+    dt.setDate(dt.getDate()+7); return dt.toISOString().slice(0,10);
   }
+  function submitted(e){ return !!(e.serviceRecordSubmitted&&e.serviceRecordDate); }
+  function dT(t){ return typeof displayEventType==='function'?displayEventType(t):String(t||''); }
+  function es(s){ return typeof esc==='function'?esc(s):String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-  function renderStaffServicePage(){
-    const box = document.getElementById('srStaffPage');
+  function renderStaffPage(){
+    const box=document.getElementById('srStaffPage');
     if(!box) return;
-    const today = typeof todayISO==='function' ? todayISO() : new Date().toISOString().slice(0,10);
-    const thisMonth = today.slice(0,7);
-    const thisYear  = today.slice(0,4);
-    const es  = s => typeof esc==='function' ? esc(s) : String(s||'').replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
-    const dT  = t => typeof displayEventType==='function' ? displayEventType(t) : String(t||'');
-    const pid = typeof userPersonId==='function' ? userPersonId() : null;
-    if(!pid || typeof state==='undefined'){
+    const today=todayStr(), thisMonth=today.slice(0,7), thisYear=today.slice(0,4);
+    const pid=myPid();
+    if(!pid||typeof state==='undefined'){
       box.innerHTML='<div class="panel"><div class="muted">無法載入資料</div></div>'; return;
     }
-
-    // 取自己所有需繳交行程
-    const all = (state.events||[]).filter(e=>{
-      if(e.deleted || e.kind==='translatorStatus') return false;
-      if(typeof requiresServiceRecord!=='function' || !requiresServiceRecord(e)) return false;
+    const all=(state.events||[]).filter(e=>{
+      if(e.deleted||e.kind==='translatorStatus') return false;
+      if(typeof requiresServiceRecord!=='function'||!requiresServiceRecord(e)) return false;
       return (e.participants||[]).includes(pid);
     });
+    const reminders=all.filter(e=>!submitted(e)&&(e.endDate||e.startDate||'')<=today)
+                        .sort((a,b)=>dl(a).localeCompare(dl(b)));
+    const overdue=reminders.filter(e=>today>dl(e));
+    const within7=reminders.filter(e=>today<=dl(e));
+    const monthAll=all.filter(e=>(e.startDate||'').slice(0,7)===thisMonth).sort((a,b)=>String(a.startDate).localeCompare(b.startDate));
+    const yearAll =all.filter(e=>(e.startDate||'').slice(0,4)===thisYear ).sort((a,b)=>String(a.startDate).localeCompare(b.startDate));
 
-    // 截止日 = endDate + 7天
-    function deadline(e){
-      const dt = new Date((e.endDate||e.startDate||today)+'T00:00:00');
-      dt.setDate(dt.getDate()+7);
-      return dt.toISOString().slice(0,10);
+    function badge(e){
+      if(submitted(e)) return '<span style="color:#16a34a;font-weight:900">✅ 已繳交</span>';
+      if(today>dl(e))  return '<span style="color:#dc2626;font-weight:900;background:#fef08a;padding:2px 6px;border-radius:6px">🚨 逾期未繳</span>';
+      if((e.endDate||e.startDate||'')<=today) return '<span style="color:#f59e0b;font-weight:900">⏳ 未繳交</span>';
+      return '<span style="color:#6b7280">— 尚未結束</span>';
     }
-    function submitted(e){ return !!(e.serviceRecordSubmitted && e.serviceRecordDate); }
-
-    // 提醒：已結束但未繳交
-    const reminders = all.filter(e=>{
-      if(submitted(e)) return false;
-      const end = e.endDate || e.startDate || '';
-      return end <= today; // 行程已結束
-    }).sort((a,b)=>String(deadline(a)).localeCompare(deadline(b)));
-
-    const within7  = reminders.filter(e => today <= deadline(e));   // 一周內
-    const overdue  = reminders.filter(e => today >  deadline(e));   // 超過一周
-
-    // 當月明細（已繳+未繳）
-    const monthAll = all.filter(e=>(e.startDate||'').slice(0,7)===thisMonth)
-                        .sort((a,b)=>String(a.startDate).localeCompare(b.startDate));
-    // 當年明細（已繳+未繳）
-    const yearAll  = all.filter(e=>(e.startDate||'').slice(0,4)===thisYear)
-                        .sort((a,b)=>String(a.startDate).localeCompare(b.startDate));
-
-    function srBadge(e){
-      if(submitted(e))          return '<span style="color:#16a34a;font-weight:900">✅ 已繳交</span>';
-      if(today > deadline(e))   return '<span style="color:#dc2626;font-weight:900;background:#fef08a;padding:2px 6px;border-radius:6px">🚨 逾期未繳</span>';
-      if((e.endDate||e.startDate) <= today) return '<span style="color:#f59e0b;font-weight:900">⏳ 未繳交</span>';
-      return '<span style="color:#6b7280;font-weight:900">— 尚未結束</span>';
-    }
-    function rowBg(e){
-      if(submitted(e)) return '';
-      if(today > deadline(e)) return 'background:#fffde7';
-      if((e.endDate||e.startDate) <= today) return 'background:#fffbeb';
-      return '';
-    }
-
-    const thead = `<thead><tr>
-      <th>行程日期</th><th>行程類型</th><th>辦理內容</th>
-      <th>地點/客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th>
-    </tr></thead>`;
-
-    function tableRows(rows){
-      if(!rows.length) return '<tr><td colspan="7" class="muted" style="text-align:center;padding:16px">沒有資料</td></tr>';
-      return rows.map(e=>`<tr style="${rowBg(e)}">
-        <td>${es(e.startDate||'')}${e.endDate&&e.endDate!==e.startDate?'～'+es(e.endDate):''}</td>
-        <td>${es(dT(e.type))}</td>
-        <td>${es(e.name||'')}</td>
-        <td>${es(e.locationName||'')}</td>
-        <td>${es(e.status||'')}</td>
-        <td>${srBadge(e)}</td>
-        <td>${es(e.serviceRecordDate||'')}</td>
-      </tr>`).join('');
-    }
-
-    function remindCard(e, isOverdue){
-      const dl = deadline(e);
-      return `<div class="sr-staff-remind-card${isOverdue?' overdue':''}">
-        <div class="sr-remind-icon">${isOverdue?'🚨':'⏰'}</div>
+    function bg(e){ if(submitted(e))return''; if(today>dl(e))return'background:#fffde7'; if((e.endDate||e.startDate||'')<=today)return'background:#fffbeb'; return''; }
+    function card(e,over){
+      return `<div class="sr-staff-remind-card${over?' overdue':''}">
+        <div class="sr-remind-icon">${over?'🚨':'⏰'}</div>
         <div class="sr-remind-body">
           <div class="sr-remind-title">${es(dT(e.type))}｜${es(e.name||'')}</div>
           <div class="sr-remind-meta">行程日期：${es(e.startDate||'')}${e.endDate&&e.endDate!==e.startDate?'～'+es(e.endDate):''}　地點：${es(e.locationName||'')}</div>
-          <div class="sr-remind-meta">繳交截止：<b>${es(dl)}</b></div>
-          ${isOverdue
-            ? '<div class="sr-remind-overdue">已逾期，請盡快繳交！</div>'
-            : '<div style="margin-top:4px;font-size:12px;color:#92400e">⚠ 請於截止日前繳交</div>'}
-        </div>
-      </div>`;
+          <div class="sr-remind-meta">繳交截止：<b>${es(dl(e))}</b></div>
+          ${over?'<div class="sr-remind-overdue">已逾期，請盡快繳交！</div>':'<div style="margin-top:4px;font-size:12px;color:#92400e">⚠ 請於截止日前繳交</div>'}
+        </div></div>`;
     }
-
-    box.innerHTML = `
-      <!-- 第一欄：繳交提醒 -->
+    const thead=`<thead><tr><th>行程日期</th><th>行程類型</th><th>辦理內容</th><th>地點/客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead>`;
+    function trows(rows){
+      if(!rows.length) return '<tr><td colspan="7" class="muted" style="text-align:center;padding:16px">沒有資料</td></tr>';
+      return rows.map(e=>`<tr style="${bg(e)}"><td>${es(e.startDate||'')}${e.endDate&&e.endDate!==e.startDate?'～'+es(e.endDate):''}</td><td>${es(dT(e.type))}</td><td>${es(e.name||'')}</td><td>${es(e.locationName||'')}</td><td>${es(e.status||'')}</td><td>${badge(e)}</td><td>${es(e.serviceRecordDate||'')}</td></tr>`).join('');
+    }
+    box.innerHTML=`
       <div class="panel">
-        <div class="section-title">
-          <h2>服務紀錄單繳交提醒</h2>
-          <span class="muted">行程結束後 7 天內請繳交</span>
-        </div>
-        ${within7.length===0 && overdue.length===0
-          ? '<div class="muted" style="padding:12px 0">目前沒有待繳交的服務紀錄單 🎉</div>'
-          : ''}
-        ${overdue.length>0 ? `
-          <div style="font-weight:900;color:#dc2626;margin:8px 0 4px">🚨 逾期催繳（${overdue.length} 筆）</div>
-          ${overdue.map(e=>remindCard(e,true)).join('')}` : ''}
-        ${within7.length>0 ? `
-          <div style="font-weight:900;color:#92400e;margin:8px 0 4px">⏰ 一週內請繳交（${within7.length} 筆）</div>
-          ${within7.map(e=>remindCard(e,false)).join('')}` : ''}
+        <div class="section-title"><h2>服務紀錄單繳交提醒</h2><span class="muted">行程結束後 7 天內請繳交</span></div>
+        ${overdue.length===0&&within7.length===0?'<div class="muted" style="padding:12px 0">目前沒有待繳交的服務紀錄單 🎉</div>':''}
+        ${overdue.length>0?`<div style="font-weight:900;color:#dc2626;margin:8px 0 4px">🚨 逾期催繳（${overdue.length} 筆）</div>${overdue.map(e=>card(e,true)).join('')}`:''}
+        ${within7.length>0?`<div style="font-weight:900;color:#92400e;margin:8px 0 4px">⏰ 一週內請繳交（${within7.length} 筆）</div>${within7.map(e=>card(e,false)).join('')}`:''}
       </div>
-
-      <!-- 第二欄：當月明細 -->
       <div class="panel">
-        <div class="section-title">
-          <h2>當月服務紀錄單明細</h2>
-          <span class="muted">${thisMonth}</span>
-        </div>
-        <div class="detail-table-wrap">
-          <table class="table">${thead}<tbody>${tableRows(monthAll)}</tbody></table>
-        </div>
+        <div class="section-title"><h2>當月服務紀錄單明細</h2><span class="muted">${thisMonth}</span></div>
+        <div class="detail-table-wrap"><table class="table">${thead}<tbody>${trows(monthAll)}</tbody></table></div>
       </div>
-
-      <!-- 第三欄：當年明細 -->
       <div class="panel">
-        <div class="section-title">
-          <h2>當年度服務紀錄單明細</h2>
-          <span class="muted">${thisYear} 年</span>
-        </div>
-        <div class="detail-table-wrap">
-          <table class="table">${thead}<tbody>${tableRows(yearAll)}</tbody></table>
-        </div>
-      </div>
-    `;
+        <div class="section-title"><h2>當年度服務紀錄單明細</h2><span class="muted">${thisYear} 年</span></div>
+        <div class="detail-table-wrap"><table class="table">${thead}<tbody>${trows(yearAll)}</tbody></table></div>
+      </div>`;
   }
 
-  /* 3. 切換服務紀錄單頁面顯示模式 */
-  window._applyServicePageMode = function applyServicePageMode(){
-    const adminSection = document.getElementById('srAdminSection');
-    const staffSection = document.getElementById('srStaffPage');
-    const isStaff = isStaffRole();
-    // body class 控制（CSS 層）
-    document.body.classList.toggle('role-staff', isStaff);
-    if(!adminSection || !staffSection) return;
-    adminSection.style.setProperty('display', isStaff ? 'none' : 'block', 'important');
-    staffSection.style.setProperty('display', isStaff ? 'block' : 'none', 'important');
-    if(isStaff) renderStaffServicePage();
+  /* 核心：CSS class + inline style 雙重控制 */
+  function applyMode(){
+    const staff=isStaff();
+    document.body.classList.toggle('role-staff', staff);
+    const admin=document.getElementById('srAdminSection');
+    const box=document.getElementById('srStaffPage');
+    if(!admin||!box) return;
+    admin.style.setProperty('display', staff?'none':'', 'important');
+    box.style.setProperty('display', staff?'block':'none', 'important');
+    if(staff) renderStaffPage();
   }
 
-  /* patchServicePage 已改為 HTML 直接定義，此函式移除 */
-  function patchServicePage(){}
+  window._applyServicePageMode = applyMode;
 
-  /* Hook showApp */
-  const _v150ShowApp = typeof showApp==='function' ? showApp : null;
-  if(_v150ShowApp){
-    showApp = function(){
-      _v150ShowApp();
-      // 立即執行，確保登入後馬上套用
-      if(typeof window._applyServicePageMode==='function') window._applyServicePageMode();
-      setTimeout(()=>{
-        window._applyServicePageMode();
-        // 更新選單顯示
-        document.querySelectorAll('.navbtn').forEach(btn=>{
-          if(btn.dataset.page==='serviceRecords'){
-            btn.classList.toggle('hide', !canSeePage('serviceRecords'));
-            btn.classList.toggle('role-hidden', !canSeePage('serviceRecords'));
-          }
-        });
-      }, 250);
-    };
+  /* interval監控：每500ms確認srAdminSection沒有被其他render蓋回來 */
+  let _modeInterval=null;
+  function startMonitor(){
+    if(_modeInterval) clearInterval(_modeInterval);
+    _modeInterval=setInterval(()=>{
+      if(!isStaff()) return;
+      const admin=document.getElementById('srAdminSection');
+      if(admin && getComputedStyle(admin).display!=='none'){
+        applyMode();
+      }
+    }, 500);
   }
 
-  /* Hook renderAll，翻譯版自動更新 */
-  const _v150RenderAll = typeof renderAll==='function' ? renderAll : null;
-  if(_v150RenderAll){
-    renderAll = function(){
-      _v150RenderAll();
-      setTimeout(window._applyServicePageMode, 80);
-    };
-  }
+  /* 監控 currentUser 變化（登入/登出） */
+  let _lastUser=null;
+  setInterval(()=>{
+    const u=typeof currentUser!=='undefined'?currentUser:null;
+    if(u!==_lastUser){
+      _lastUser=u;
+      if(u){ setTimeout(applyMode,100); startMonitor(); }
+      else{
+        if(_modeInterval){clearInterval(_modeInterval);_modeInterval=null;}
+        document.body.classList.remove('role-staff');
+      }
+    }
+  }, 300);
 
-  /* Hook applyPermissionsUI */
-  const _v150ApplyPerm = typeof applyPermissionsUI==='function' ? applyPermissionsUI : null;
-  if(_v150ApplyPerm){
-    applyPermissionsUI = function(){
-      _v150ApplyPerm();
-      setTimeout(window._applyServicePageMode, 100);
-    };
-  }
+  /* applyPermissionsUI hook */
+  const _perm=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
+  if(_perm){ applyPermissionsUI=function(){ _perm(); setTimeout(applyMode,100); }; }
 })();
 </script>
