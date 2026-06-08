@@ -6249,3 +6249,55 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
   if(_ap){ applyPermissionsUI=function(){ _ap(); setTimeout(applyVis,100); }; }
 })();
 </script>
+
+<style>
+/* V148：手機版隱藏匯出CSV；新增按鈕全寬 */
+@media(max-width:760px){
+
+  /* 隱藏所有匯出 widget（包含異況 toolbar 裡的） */
+  .v141-box{ display:none!important; }
+
+  /* 新增行程/外務行程/新增預約：在 v116-week-row 換行全寬 */
+  .v116-week-row{ flex-wrap:wrap!important; }
+  .v116-week-row #addEventBtn,
+  .v116-week-row #fieldAddBtn,
+  .v116-week-row #addRoomBookingBtn{
+    flex:0 0 100%!important;
+    order:99!important;
+    width:100%!important;
+    margin-top:8px!important;
+    border-radius:14px!important;
+    padding:11px 12px!important;
+    font-size:15px!important;
+    background:#2563eb!important;
+    border-color:#2563eb!important;
+    color:#fff!important;
+    white-space:nowrap!important;
+    text-align:center!important;
+  }
+
+  /* 新增異況：section-title 直排，按鈕全寬 */
+  #incidentsPage .panel:first-child .section-title{
+    flex-direction:column!important;
+    align-items:stretch!important;
+    gap:8px!important;
+  }
+  #incidentsPage .panel:first-child .section-title .toolbar{
+    width:100%!important;
+    flex-direction:column!important;
+    gap:8px!important;
+  }
+  #incidentsPage .panel:first-child .section-title .toolbar #addIncidentBtn{
+    width:100%!important;
+    border-radius:14px!important;
+    padding:11px 12px!important;
+    font-size:15px!important;
+    background:#2563eb!important;
+    border-color:#2563eb!important;
+    color:#fff!important;
+    flex:none!important;
+  }
+}
+</style>
+
+</body></html>
