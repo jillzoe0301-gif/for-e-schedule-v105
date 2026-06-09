@@ -8469,4 +8469,145 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 @media(max-width:760px){.bottom-nav .navbtn[data-page="reports"].role-hidden,.bottom-nav button[data-page="reports"].role-hidden{display:none!important}}
 </style>
 
+
+<script>
+/* V195：復原行程統計表，權限限管理員/主管
+   DRY：統一 canViewReportsV195 做權限判斷。
+   KISS：只修 reports 頁面、桌機側欄、手機底部隱藏。
+   SOLID：統計表顯示權限獨立，不影響統計資料計算與其他頁面。 */
+(function(){
+  function getRoleV195(){
+    try{
+      if(typeof normalizedRole==='function') return normalizedRole();
+    }catch(e){}
+    const u = window.currentUser || {};
+    const r = u.role || '';
+    if(r==='admin'||r==='options') return 'admin';
+    if(r==='supervisor') return 'supervisor';
+    if(r==='adminStaff') return 'adminStaff';
+    if(r==='translator') return 'translator';
+    return r || 'staff';
+  }
+  function canViewReportsV195(){
+    return ['admin','supervisor'].includes(getRoleV195());
+  }
+
+  // 直接覆蓋 canSeePage，避免舊版權限把 reports 蓋掉
+  const previousCanSeePage = typeof canSeePage === 'function' ? canSeePage : null;
+  window.canSeePage = canSeePage = function(page){
+    if(page === 'reports') return canViewReportsV195();
+    return previousCanSeePage ? previousCanSeePage(page) : false;
+  };
+
+  function findReportsPage(){
+    return document.querySelector('#reportsPage') ||
+           document.querySelector('#reportPage') ||
+           document.querySelector('[data-page="reports"].page') ||
+           document.querySelector('[id*="reports"][id$="Page"]') ||
+           document.querySelector('[id*="report"][id$="Page"]');
+  }
+
+  function ensureReportNavV195(){
+    const can = canViewReportsV195();
+
+    // 桌機左側統計報表：管理員/主管顯示
+    document.querySelectorAll('.side .navbtn[data-page="reports"], .side button[data-page="reports"]').forEach(function(btn){
+      btn.classList.toggle('hide', !can);
+      btn.classList.toggle('role-hidden', !can);
+      if(can){
+        btn.style.removeProperty('display');
+        btn.disabled = false;
+      }else{
+        btn.style.display = 'none';
+      }
+    });
+
+    // 如果側欄的統計按鈕被舊程式刪除，補回來
+    const side = document.querySelector('.side');
+    if(side && can && !side.querySelector('[data-page="reports"]')){
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'navbtn';
+      btn.dataset.page = 'reports';
+      btn.innerHTML = '<span class="mono-ico ico-chart"></span>統計報表';
+      btn.addEventListener('click', function(){
+        if(typeof showPage === 'function') showPage('reports');
+        const page = findReportsPage();
+        if(page){
+          document.querySelectorAll('.page').forEach(function(p){p.classList.add('hide')});
+          page.classList.remove('hide');
+        }
+        if(typeof renderReports === 'function') setTimeout(renderReports, 0);
+        if(typeof renderAll === 'function') setTimeout(renderAll, 0);
+      });
+      const before = side.querySelector('[data-page="serviceRecords"]') || side.querySelector('[data-page="settings"]');
+      side.insertBefore(btn, before || null);
+    }
+
+    // 手機底部不顯示統計表
+    document.querySelectorAll('.bottom-nav .navbtn[data-page="reports"], .bottom-nav button[data-page="reports"]').forEach(function(btn){
+      btn.classList.add('hide','role-hidden');
+      btn.style.display = 'none';
+    });
+
+    const page = findReportsPage();
+    if(page){
+      page.classList.toggle('role-hidden', !can);
+      if(!can && !page.classList.contains('hide')) page.classList.add('hide');
+    }
+  }
+
+  function renderReportsIfNeededV195(){
+    if(!canViewReportsV195()) return;
+    const page = findReportsPage();
+    if(!page) return;
+    if(!page.classList.contains('hide')){
+      try{
+        if(typeof renderReports === 'function') renderReports();
+        else if(typeof renderReport === 'function') renderReport();
+      }catch(e){}
+    }
+  }
+
+  const oldShowPage = typeof window.showPage === 'function' ? window.showPage : null;
+  if(oldShowPage && !oldShowPage.v195Wrapped){
+    const wrapped = function(page){
+      const result = oldShowPage.apply(this, arguments);
+      setTimeout(function(){
+        ensureReportNavV195();
+        if(page === 'reports') renderReportsIfNeededV195();
+      }, 0);
+      return result;
+    };
+    wrapped.v195Wrapped = true;
+    window.showPage = showPage = wrapped;
+  }
+
+  const oldApplyNav = typeof window.v105ApplyNav === 'function' ? window.v105ApplyNav : null;
+  window.v105ApplyNav = function(){
+    if(oldApplyNav) oldApplyNav.apply(this, arguments);
+    setTimeout(ensureReportNavV195, 0);
+  };
+
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(ensureReportNavV195, 80);
+    setTimeout(ensureReportNavV195, 500);
+    setTimeout(renderReportsIfNeededV195, 700);
+  });
+  document.addEventListener('click', function(e){
+    if(e.target && e.target.closest && e.target.closest('[data-page="reports"], .side, .bottom-nav')){
+      setTimeout(ensureReportNavV195, 80);
+      setTimeout(renderReportsIfNeededV195, 120);
+    }
+  }, true);
+  setInterval(ensureReportNavV195, 1200);
+})();
+</script>
+<style>
+/* V195：手機不顯示統計報表按鈕 */
+@media(max-width:760px){
+  .bottom-nav [data-page="reports"]{display:none!important}
+}
+</style>
+
 </body></html>
