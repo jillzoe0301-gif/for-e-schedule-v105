@@ -1057,7 +1057,7 @@ function save(){localStorage.setItem(KEY,JSON.stringify(state))} function clone(
 function toast(t){let el=$('toast'); if(!el){el=document.createElement('div');el.id='toast';el.className='toast';document.body.appendChild(el)} el.textContent=t; setTimeout(()=>el.remove(),2200)}
 function copyText(text){ try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(function(){toast('已複製')}).catch(function(){fallbackCopy(text)}); } else { fallbackCopy(text); } }catch(e){fallbackCopy(text)} }
 function fallbackCopy(text){ var ta=document.createElement('textarea'); ta.value=text||''; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.focus(); ta.select(); try{document.execCommand('copy'); toast('已複製');}catch(e){toast('請手動複製');} document.body.removeChild(ta); }
-function defaultState(){return {users:[{id:'u_admin',name:'Demo ＺoeSu',email:'admin@demo.com',password:'123456',role:'admin',personId:'p20'},{id:'u_supervisor',name:'Demo 主管',email:'supervisor@demo.com',password:'123456',role:'supervisor',personId:'p15'},{id:'u_staff',name:'Demo 翻譯',email:'staff@demo.com',password:'123456',role:'staff',personId:'p03'},{id:'u_general',name:'Demo 一般人員',email:'general@demo.com',password:'123456',role:'general',personId:'p06'}],people:[{id:'p01',name:'廖明珮',group:'一部翻譯',lang:'泰國',active:true},{id:'p02',name:'王愛珠',group:'一部翻譯',lang:'印尼',active:true},{id:'p03',name:'范武薔薇',group:'一部翻譯',lang:'越南',active:true},{id:'p04',name:'賴黃娟',group:'一部翻譯',lang:'越南',active:true},{id:'p05',name:'黃氏玄莊',group:'一部翻譯',lang:'越南/舍監',active:true},{id:'p06',name:'賴育賢',group:'一部翻譯',lang:'宿管',active:true},{id:'p07',name:'武俊平',group:'一部翻譯',lang:'宿管/外務',active:true},{id:'p08',name:'陳恩文',group:'二部翻譯',lang:'泰國',active:true},{id:'p09',name:'卓晶晶',group:'二部翻譯',lang:'印尼',active:true},{id:'p10',name:'施明金',group:'二部翻譯',lang:'菲律賓',active:true},{id:'p11',name:'阮氏芳',group:'二部翻譯',lang:'越南',active:true},{id:'p12',name:'吳氏何江',group:'二部翻譯',lang:'越南',active:true},{id:'p13',name:'范紅筠',group:'二部翻譯',lang:'越南/舍監',active:true},{id:'p14',name:'李秀玲',group:'二部翻譯',lang:'越南',active:true},{id:'p15',name:'劉月琪',group:'一部翻譯',lang:'主管',active:true},{id:'p16',name:'鄧玉荀',group:'二部翻譯',lang:'主管',active:true},{id:'p17',name:'貓姐',group:'豐海',lang:'-',active:true},{id:'p18',name:'黃靖懿',group:'營運處',lang:'管理員',active:true},{id:'p19',name:'黃明書',group:'營運處',lang:'管理員',active:true},{id:'p20',name:'蘇若儀',group:'營運處',lang:'管理員',active:true},{id:'p21',name:'林宜霈',group:'一部翻譯',lang:'海外',active:true},{id:'p22',name:'阮趙偉',group:'二部翻譯',lang:'海外',active:true},{id:'p23',name:'劉詩涵',department:'營運一部',group:'一部',lang:'行政系',lineId:'rachel@forwardhrm.com.tw',active:true}],events:[],logs:[],settings:{airtableBase:'',airtableTable:'Schedules',webhookUrl:'',lineMemo:''},options:{eventTypes:defaultEventTypes,eventTypeContents:defaultEventTypeContents,alertEventTypes:alertEventTypes,translatorStatusTypes:defaultTranslatorStatusTypes,langs:defaultLangs,groups:['一部翻譯','二部翻譯','豐海','營運處','管理','未分組'],categoryLabels:defaultCategoryLabels,vehicleNumbers:defaultVehicleNumbers,meetingRooms:defaultRooms,departments:defaultDepartments},roomBookings:[],lastLineText:'尚未產生通知文字。',theme:clone(defaultTheme),reportSnapshots:[]}}
+function defaultState(){return {users:[{id:'u_admin',name:'Demo ＺoeSu',email:'admin@demo.com',password:'123456',role:'admin',personId:'p20'},{id:'u_supervisor',name:'Demo 主管',email:'supervisor@demo.com',password:'123456',role:'supervisor',personId:'p15'},{id:'u_staff',name:'Demo 翻譯',email:'staff@demo.com',password:'123456',role:'staff',personId:'p01'},{id:'u_general',name:'Demo 一般人員',email:'general@demo.com',password:'123456',role:'general',personId:'p06'}],people:[{id:'p01',name:'廖明珮',group:'一部翻譯',lang:'泰國',active:true},{id:'p02',name:'王愛珠',group:'一部翻譯',lang:'印尼',active:true},{id:'p03',name:'范武薔薇',group:'一部翻譯',lang:'越南',active:true},{id:'p04',name:'賴黃娟',group:'一部翻譯',lang:'越南',active:true},{id:'p05',name:'黃氏玄莊',group:'一部翻譯',lang:'越南/舍監',active:true},{id:'p06',name:'賴育賢',group:'一部翻譯',lang:'宿管',active:true},{id:'p07',name:'武俊平',group:'一部翻譯',lang:'宿管/外務',active:true},{id:'p08',name:'陳恩文',group:'二部翻譯',lang:'泰國',active:true},{id:'p09',name:'卓晶晶',group:'二部翻譯',lang:'印尼',active:true},{id:'p10',name:'施明金',group:'二部翻譯',lang:'菲律賓',active:true},{id:'p11',name:'阮氏芳',group:'二部翻譯',lang:'越南',active:true},{id:'p12',name:'吳氏何江',group:'二部翻譯',lang:'越南',active:true},{id:'p13',name:'范紅筠',group:'二部翻譯',lang:'越南/舍監',active:true},{id:'p14',name:'李秀玲',group:'二部翻譯',lang:'越南',active:true},{id:'p15',name:'劉月琪',group:'一部翻譯',lang:'主管',active:true},{id:'p16',name:'鄧玉荀',group:'二部翻譯',lang:'主管',active:true},{id:'p17',name:'貓姐',group:'豐海',lang:'-',active:true},{id:'p18',name:'黃靖懿',group:'營運處',lang:'管理員',active:true},{id:'p19',name:'黃明書',group:'營運處',lang:'管理員',active:true},{id:'p20',name:'蘇若儀',group:'營運處',lang:'管理員',active:true},{id:'p21',name:'林宜霈',group:'一部翻譯',lang:'海外',active:true},{id:'p22',name:'阮趙偉',group:'二部翻譯',lang:'海外',active:true},{id:'p23',name:'劉詩涵',department:'營運一部',group:'一部',lang:'行政系',lineId:'rachel@forwardhrm.com.tw',active:true}],events:[],logs:[],settings:{airtableBase:'',airtableTable:'Schedules',webhookUrl:'',lineMemo:''},options:{eventTypes:defaultEventTypes,eventTypeContents:defaultEventTypeContents,alertEventTypes:alertEventTypes,translatorStatusTypes:defaultTranslatorStatusTypes,langs:defaultLangs,groups:['一部翻譯','二部翻譯','豐海','營運處','管理','未分組'],categoryLabels:defaultCategoryLabels,vehicleNumbers:defaultVehicleNumbers,meetingRooms:defaultRooms,departments:defaultDepartments},roomBookings:[],lastLineText:'尚未產生通知文字。',theme:clone(defaultTheme),reportSnapshots:[]}}
 function load(reset=false){if(reset){localStorage.removeItem(KEY);localStorage.removeItem(KEY+'_session')} const raw=localStorage.getItem(KEY); if(raw){try{state=JSON.parse(raw)}catch(e){state=defaultState()}}else state=defaultState(); if(!state.options)state.options={eventTypes:defaultEventTypes,eventTypeContents:defaultEventTypeContents,alertEventTypes:alertEventTypes,translatorStatusTypes:defaultTranslatorStatusTypes,langs:defaultLangs,groups:[...new Set((state.people||[]).map(p=>p.group).filter(Boolean))],rooms:defaultRooms,categoryLabels:defaultCategoryLabels};if(!state.options.eventTypes)state.options.eventTypes=defaultEventTypes;if(!state.options.eventTypeContents)state.options.eventTypeContents=defaultEventTypeContents;
 if(!state.options.meetingRooms)state.options.meetingRooms=defaultRooms;
 if(!state.options.departments)state.options.departments=defaultDepartments;
@@ -1123,7 +1123,7 @@ if(Array.isArray(state.users)){
 // V105：Demo 帳號與人員資料調整
 if(Array.isArray(state.users)){
   const staffUser = state.users.find(u=>u && String(u.email||'').toLowerCase()==='staff@demo.com');
-  if(staffUser){staffUser.name='Demo 翻譯'; staffUser.role='staff'; staffUser.personId=staffUser.personId||'p03';}
+  if(staffUser){staffUser.name='Demo 翻譯'; staffUser.role='staff'; staffUser.personId='p01';}
   const adminStaffUser = state.users.find(u=>u && (u.id==='u_adminstaff' || String(u.email||'').toLowerCase()==='admin_staff@demo.com' || String(u.email||'').toLowerCase()==='adminstaff@demo.com'));
   if(adminStaffUser){adminStaffUser.id='u_adminstaff'; adminStaffUser.name='Demo 行政系'; adminStaffUser.email='admin_staff@demo.com'; adminStaffUser.role='adminStaff'; adminStaffUser.personId='p21'; adminStaffUser.deleted=false; adminStaffUser.active=true;}
   const generalUser = state.users.find(u=>u && String(u.email||'').toLowerCase()==='general@demo.com');
@@ -1179,14 +1179,14 @@ if(Array.isArray(state.people)){
 if(state.options&&Array.isArray(state.options.groups)){
   const needed=['一部翻譯','二部翻譯','一部','二部'];
   state.options.groups=[...new Set([...(state.options.groups||[]),...needed])];
-} if(!state.options.categoryLabels||!state.options.categoryLabels.length)state.options.categoryLabels=defaultCategoryLabels; state.options.vehicleNumbers=defaultVehicleNumbers; if(!state.options.eventTypes||!state.options.eventTypes.some(t=>String(t).startsWith('醫療('))||!state.options.eventTypes.includes('視訊/面試')||!state.options.eventTypes.includes('返台提醒'))state.options.eventTypes=defaultEventTypes; if(!state.reportSnapshots)state.reportSnapshots=[]; if(!state.theme)state.theme=clone(defaultTheme); state.theme=Object.assign(clone(defaultTheme),state.theme||{}); state.theme.personOne='#f8ee88'; state.theme.personTwo='#bfe1f6'; state.theme.jobColors=Object.assign({}, defaultTheme.jobColors||{}, (state.theme&&state.theme.jobColors)||{}); applyTheme(); (state.users||[]).forEach(u=>{if(['schedule','dispatcher','translator','sales','viewer'].includes(u.role))u.role='staff'; if(u.role==='options')u.role='admin';}); if(!state.users.some(u=>u.email==='staff@demo.com'))state.users.push({id:'u_staff',name:'Demo 翻譯',email:'staff@demo.com',password:'123456',role:'staff',personId:'p03',active:true,deleted:false}); if(!state.users.some(u=>u.email==='general@demo.com'))state.users.push({id:'u_general',name:'Demo 一般人員',email:'general@demo.com',password:'123456',role:'general',personId:'p18',active:true,deleted:false}); if(!state.users.some(u=>String(u.email||'').toLowerCase()==='admin_staff@demo.com'&&u.deleted!==true))state.users.push({id:'u_adminstaff',name:'Demo 行政系',email:'admin_staff@demo.com',password:'123456',role:'adminStaff',personId:'p21',active:true,deleted:false}); if(!state.events.length) seed(); ensureV105FanTestEvents(); save()}
+} if(!state.options.categoryLabels||!state.options.categoryLabels.length)state.options.categoryLabels=defaultCategoryLabels; state.options.vehicleNumbers=defaultVehicleNumbers; if(!state.options.eventTypes||!state.options.eventTypes.some(t=>String(t).startsWith('醫療('))||!state.options.eventTypes.includes('視訊/面試')||!state.options.eventTypes.includes('返台提醒'))state.options.eventTypes=defaultEventTypes; if(!state.reportSnapshots)state.reportSnapshots=[]; if(!state.theme)state.theme=clone(defaultTheme); state.theme=Object.assign(clone(defaultTheme),state.theme||{}); state.theme.personOne='#f8ee88'; state.theme.personTwo='#bfe1f6'; state.theme.jobColors=Object.assign({}, defaultTheme.jobColors||{}, (state.theme&&state.theme.jobColors)||{}); applyTheme(); (state.users||[]).forEach(u=>{if(['schedule','dispatcher','translator','sales','viewer'].includes(u.role))u.role='staff'; if(u.role==='options')u.role='admin';}); if(!state.users.some(u=>u.email==='staff@demo.com'))state.users.push({id:'u_staff',name:'Demo 翻譯',email:'staff@demo.com',password:'123456',role:'staff',personId:'p01',active:true,deleted:false}); if(!state.users.some(u=>u.email==='general@demo.com'))state.users.push({id:'u_general',name:'Demo 一般人員',email:'general@demo.com',password:'123456',role:'general',personId:'p18',active:true,deleted:false}); if(!state.users.some(u=>String(u.email||'').toLowerCase()==='admin_staff@demo.com'&&u.deleted!==true))state.users.push({id:'u_adminstaff',name:'Demo 行政系',email:'admin_staff@demo.com',password:'123456',role:'adminStaff',personId:'p21',active:true,deleted:false}); if(!state.events.length) seed(); ensureV105FanTestEvents(); save()}
 
 function ensureV105FanTestEvents(){
   if(!state||!Array.isArray(state.events))return;
   const now=new Date().toISOString();
   const creator='u_admin';
   const creatorPid='p20';
-  const assignee='p03';
+  const assignee='p01';
   const base={kind:'schedule',status:'未完成',endTime:'',address:'',vehicleNo:'',meetingRoom:'不指定',participants:[creatorPid,assignee],assigneeIds:[assignee],createdBy:creator,createdAt:now,updatedBy:creator,updatedAt:now,deleted:false};
   const items=[
     {id:'v105_test_fan_alert_0605',startDate:'2026-06-05',endDate:'2026-06-05',startTime:'上午',type:'提醒事項',name:'測試提醒行程 6/5',locationName:'測試地點',note:'請記得完成測試提醒事項。'},
@@ -1238,7 +1238,7 @@ function updateThemeSwatches(){['themeDateHeader','themePersonCell','themePerson
 function saveThemeSettings(){state.theme=collectTheme(); applyTheme(); updateThemeSwatches(); addLog('修改','顏色設定','頁面顏色','背景色','','使用者調整頁面顏色'); save(); renderAll(); toast('已儲存顏色設定')}
 function resetThemeSettings(){state.theme=clone(defaultTheme); applyTheme(); addLog('修改','顏色設定','頁面顏色','背景色','自訂顏色','還原預設顏色'); save(); renderAll(); toast('已還原預設顏色')}
 
-function seed(){const d=todayISO(); state.events.push({id:'ev_demo1',kind:'schedule',status:'未完成',startDate:d,endDate:d,startTime:'上午',endTime:'',type:'醫療(看診、回診、住院、急診、開刀)',name:'陪同看診',locationName:'桃園醫院',address:'',vehicleNo:'',meetingRoom:'不指定',participants:['p_admin','p03'],note:'測試行程',createdBy:'u_admin',createdAt:new Date().toISOString(),updatedBy:'u_admin',updatedAt:new Date().toISOString(),deleted:false}); state.logs.unshift({id:uid('log'),time:new Date().toISOString(),userId:'u_admin',action:'新增',eventId:'ev_demo1',eventName:'陪同看診',field:'',before:'',after:'系統預設測試資料'})}
+function seed(){const d=todayISO(); state.events.push({id:'ev_demo1',kind:'schedule',status:'未完成',startDate:d,endDate:d,startTime:'上午',endTime:'',type:'醫療(看診、回診、住院、急診、開刀)',name:'陪同看診',locationName:'桃園醫院',address:'',vehicleNo:'',meetingRoom:'不指定',participants:['p_admin','p01'],note:'測試行程',createdBy:'u_admin',createdAt:new Date().toISOString(),updatedBy:'u_admin',updatedAt:new Date().toISOString(),deleted:false}); state.logs.unshift({id:uid('log'),time:new Date().toISOString(),userId:'u_admin',action:'新增',eventId:'ev_demo1',eventName:'陪同看診',field:'',before:'',after:'系統預設測試資料'})}
 function getUser(id){return state.users.find(u=>u.id===id)||{name:'未知'}} function getPerson(id){return state.people.find(p=>p.id===id)||{name:'未知',group:'',lang:''}}
 function userPersonId(){return (currentUser?currentUser.personId:null)} function normalizedRole(){
   if(!currentUser)return '';
@@ -1422,9 +1422,10 @@ function renderFilters(){
   if(firstLoad){
     gv = Array.isArray(prefs.group) ? prefs.group : [];
     pv = Array.isArray(prefs.person) ? prefs.person : [];
-    if((!pv || pv.length===0) && (localStorage.getItem(v105CalendarPrefKey())===null) && ['staff','general'].includes(normalizedRole())){
+    if(localStorage.getItem(v105CalendarPrefKey())===null){
       const pid=currentPersonIdSafe&&currentPersonIdSafe();
-      if(pid) pv=[pid];
+      const p=pid?getPerson(pid):null;
+      if(p&&p.group){gv=[p.group]; pv=[];}
     }
     $('groupFilter').dataset.v105Loaded='1';
     if($('personFilter')) $('personFilter').dataset.v105Loaded='1';
@@ -3233,9 +3234,11 @@ function v105ApplyDefaultCalendarPrefs(){
   const hasSaved = localStorage.getItem(key) !== null;
   if(hasSaved) return;
   const pid = currentPersonIdSafe && currentPersonIdSafe();
-  // 翻譯 / 一般人員第一次進入行程總覽時，預設只看自己；之後依使用者自行選擇並記錄。
-  if(['staff','general'].includes(normalizedRole()) && pid){
-    setMultiValues('personFilter', [pid]);
+  // 第一次進入行程總覽時，預設看自己部門；之後依使用者自行選擇並記錄。
+  const p=pid?getPerson(pid):null;
+  if(p&&p.group){
+    setMultiValues('groupFilter', [p.group]);
+    clearMulti('personFilter');
     v105SaveCalendarPrefs();
   }
 }
@@ -8301,6 +8304,169 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
     display:none!important;
   }
 }
+</style>
+
+
+<script>
+/* V194：核心修正：主管統計、會議室週曆、翻譯測試人員、行程總覽預設部門
+   DRY：會議室只保留一個 v194RenderRoomBookings 週曆渲染器。
+   KISS：不再用多層外掛猜 DOM，直接補強核心輸出與初始化。
+   SOLID：權限、會議室、測試資料、預設篩選各自獨立處理。 */
+(function(){
+  function roleV194(){try{return normalizedRole()}catch(e){return (currentUser&&currentUser.role)||''}}
+  function currentPersonV194(){try{return getPerson(userPersonId())||{}}catch(e){return {}}}
+  function isTranslatorPersonV194(p){
+    const lang=String((p&&p.lang)||'');
+    if(!lang)return false;
+    if(/主管|管理員|行政|海外|宿管|外務/.test(lang))return false;
+    return /泰國|印尼|越南|菲律賓/.test(lang);
+  }
+  function canUseRoomBookingV194(){
+    if(!currentUser)return false;
+    if(roleV194()==='admin')return true;
+    return !isTranslatorPersonV194(currentPersonV194());
+  }
+
+  const oldCanSee=typeof canSeePage==='function'?canSeePage:null;
+  canSeePage=function(page){
+    if(page==='reports')return ['admin','supervisor'].includes(roleV194());
+    if(page==='roomBooking')return canUseRoomBookingV194();
+    return oldCanSee?oldCanSee(page):false;
+  };
+
+  function patchNavV194(){
+    const r=roleV194();
+    document.querySelectorAll('.side .navbtn[data-page="reports"]').forEach(btn=>{
+      const ok=['admin','supervisor'].includes(r);
+      btn.classList.toggle('hide',!ok);btn.classList.toggle('role-hidden',!ok);btn.style.display=ok?'':'none';
+    });
+    document.querySelectorAll('.bottom-nav .navbtn[data-page="reports"],.bottom-nav button[data-page="reports"]').forEach(btn=>{
+      const ok=r==='admin';
+      btn.classList.toggle('hide',!ok);btn.classList.toggle('role-hidden',!ok);btn.style.display=ok?'':'none';
+    });
+  }
+
+  function migrateTranslatorDemoToLiaoV194(){
+    try{
+      if(!state)return;
+      (state.users||[]).forEach(u=>{
+        if(String(u.email||'').toLowerCase()==='staff@demo.com')u.personId='p01';
+      });
+      (state.events||[]).forEach(e=>{
+        if(!e)return;
+        if(e.recordSubmitDemo || String(e.id||'').startsWith('demo_recordsubmit_p03_') || String(e.name||'').includes('測試')){
+          if(Array.isArray(e.participants))e.participants=e.participants.map(x=>x==='p03'?'p01':x).filter((v,i,a)=>a.indexOf(v)===i);
+          if(Array.isArray(e.assigneeIds))e.assigneeIds=e.assigneeIds.map(x=>x==='p03'?'p01':x).filter((v,i,a)=>a.indexOf(v)===i);
+          if(String(e.id||'').startsWith('demo_recordsubmit_p03_'))e.id=String(e.id).replace('demo_recordsubmit_p03_','demo_recordsubmit_p01_');
+        }
+      });
+      if(typeof save==='function')save();
+    }catch(e){console.warn('V194 migrateTranslatorDemoToLiao failed',e)}
+  }
+
+  function dayClassSafe(d){try{return dayClass(d)}catch(e){return ''}}
+  function escSafe(v){try{return esc(v)}catch(e){return String(v==null?'':v).replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}}
+  function escAttrSafe(v){try{return escAttr(v)}catch(e){return escSafe(v)}}
+  function fmtDateSafe(d){try{return fmtDate(d)}catch(e){return String(d||'')}}
+  function holidaySafe(d){try{return holidayBadgeBodyHTML(d)||''}catch(e){return ''}}
+  function roomListSafe(){
+    try{const r=roomList().filter(Boolean); if(r.length)return r;}catch(e){}
+    try{if(Array.isArray(defaultRooms)&&defaultRooms.length)return defaultRooms.filter(Boolean)}catch(e){}
+    return ['大會議室','小會議室'];
+  }
+  function roomWeekDaysV194(d){try{return weekDays(d||todayISO()).slice(0,7)}catch(e){return []}}
+  function roomCanEditV194(b){try{return !!(b&&(roleV194()==='admin'||b.createdBy===currentUser.id))}catch(e){return false}}
+  function ensureRoomStateV194(){try{ensureRoomBookingState();renderRoomBookingOptionLists();}catch(e){console.warn('V194 room option init failed',e)}}
+
+  window.v194RenderRoomBookings=function(){
+    const area=document.getElementById('roomBookingArea');
+    if(!area)return;
+    ensureRoomStateV194();
+    const picker=document.getElementById('roomBookingWeekPicker');
+    if(picker&&!picker.value)picker.value=todayISO();
+    const days=roomWeekDaysV194((picker&&picker.value)||todayISO());
+    const rooms=roomListSafe();
+    const rf=(document.getElementById('roomBookingRoomFilter')||{}).value||'';
+    const dep=(document.getElementById('roomBookingDeptFilter')||{}).value||'';
+    const kw=String((document.getElementById('roomBookingKeyword')||{}).value||'').trim().toLowerCase();
+    const useRooms=rf?rooms.filter(r=>r===rf):rooms;
+    let html='<div class="room-week-wrap"><table class="room-week-table"><thead><tr><th class="room-room-head">會議室</th>'+
+      days.map(d=>{const w=['日','一','二','三','四','五','六'][new Date(d+'T00:00:00').getDay()]||'';return `<th class="${dayClassSafe(d)}"><div>${w}</div><div class="date-num">${fmtDateSafe(d)}</div>${holidaySafe(d)}</th>`}).join('')+
+      '</tr></thead><tbody>';
+    useRooms.forEach(room=>{
+      html+=`<tr data-room-name="${escAttrSafe(room)}"><td class="room-room-cell"><div class="person-name">${escSafe(room)}</div></td>`;
+      days.forEach(day=>{
+        let bookings=((state&&state.roomBookings)||[]).filter(b=>b&&!b.deleted&&b.room===room&&b.date===day);
+        if(dep)bookings=bookings.filter(b=>b.department===dep);
+        if(kw)bookings=bookings.filter(b=>[b.room,b.department,b.title,b.date,b.startTime,b.endTime].join(' ').toLowerCase().includes(kw));
+        bookings.sort((a,b)=>String((a.startTime||'')+' '+(a.title||'')).localeCompare(String((b.startTime||'')+' '+(b.title||''))));
+        html+=`<td class="room-day-cell ${dayClassSafe(day)}" data-room="${escAttrSafe(room)}" data-room-date="${escAttrSafe(day)}" ondblclick="openRoomBookingModal({date:'${escAttrSafe(day)}',room:'${escAttrSafe(room)}'})">`+
+          `<div class="date-num">${fmtDateSafe(day)}</div>${holidaySafe(day)}`+
+          bookings.map(b=>{const can=roomCanEditV194(b);let creator='';try{creator=getUser(b.createdBy).name||''}catch(e){}return `<div class="room-booking-item ${can?'':'readonly'}" onclick="event.stopPropagation();openRoomBookingModal('${escAttrSafe(b.id)}')"><div class="time">${escSafe(b.startTime)}-${escSafe(b.endTime)}</div><div class="room-title">${escSafe(b.title)}</div><div class="room-meta">${escSafe(b.department||'')}｜BOOKING：${escSafe(creator)}</div>${can?`<div class="room-booking-actions"><button class="small" onclick="event.stopPropagation();openRoomBookingModal('${escAttrSafe(b.id)}')">修改</button><button class="small danger" onclick="event.stopPropagation();deleteRoomBookingById('${escAttrSafe(b.id)}')">刪除</button></div>`:''}</div>`}).join('')+
+          '</td>';
+      });
+      html+='</tr>';
+    });
+    html+='</tbody></table></div>';
+    area.innerHTML=html;
+  };
+  try{renderRoomBookings=window.v194RenderRoomBookings;window.renderRoomBookings=window.v194RenderRoomBookings;}catch(e){window.renderRoomBookings=window.v194RenderRoomBookings;}
+
+  function applyCalendarDefaultDeptV194(){
+    try{
+      if(!currentUser||!document.getElementById('groupFilter'))return;
+      const key=(typeof v105CalendarPrefKey==='function')?v105CalendarPrefKey():(KEY+'_calendar_filters_'+currentUser.id);
+      if(localStorage.getItem(key)!==null)return;
+      const p=currentPersonV194();
+      if(!p||!p.group)return;
+      if(typeof setMultiValues==='function')setMultiValues('groupFilter',[p.group]);
+      if(typeof clearMulti==='function')clearMulti('personFilter');
+      if(typeof v105SaveCalendarPrefs==='function')v105SaveCalendarPrefs();
+    }catch(e){console.warn('V194 applyCalendarDefaultDept failed',e)}
+  }
+
+  const oldRenderFilters=typeof renderFilters==='function'?renderFilters:null;
+  if(oldRenderFilters&&!oldRenderFilters.v194Wrapped){
+    const wrapped=function(){
+      const r=oldRenderFilters.apply(this,arguments);
+      applyCalendarDefaultDeptV194();
+      return r;
+    };
+    wrapped.v194Wrapped=true;
+    renderFilters=wrapped;
+  }
+
+  const oldRenderAll=typeof renderAll==='function'?renderAll:null;
+  if(oldRenderAll&&!oldRenderAll.v194Wrapped){
+    const wrapped=function(){
+      migrateTranslatorDemoToLiaoV194();
+      const r=oldRenderAll.apply(this,arguments);
+      patchNavV194();
+      if(currentPage==='roomBooking')setTimeout(window.v194RenderRoomBookings,0);
+      return r;
+    };
+    wrapped.v194Wrapped=true;
+    renderAll=wrapped;
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(function(){migrateTranslatorDemoToLiaoV194();patchNavV194();applyCalendarDefaultDeptV194();if(currentPage==='roomBooking')window.v194RenderRoomBookings();},120);
+    setTimeout(function(){patchNavV194();if(currentPage==='roomBooking')window.v194RenderRoomBookings();},600);
+  });
+  document.addEventListener('click',function(e){
+    const btn=e.target&&e.target.closest&&e.target.closest('.navbtn[data-page="roomBooking"],.navbtn[data-page="calendar"],.navbtn[data-page="reports"],#roomPrevWeek,#roomNextWeek,#clearRoomBookingFilters');
+    if(btn){setTimeout(function(){patchNavV194();if(currentPage==='roomBooking')window.v194RenderRoomBookings();if(currentPage==='calendar')applyCalendarDefaultDeptV194();},100)}
+  },true);
+  document.addEventListener('input',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('#roomBookingPage'))setTimeout(window.v194RenderRoomBookings,80);
+  },true);
+})();
+</script>
+<style>
+/* V194：會議室週曆保底顯示 */
+#roomBookingArea{display:block!important;min-height:180px!important;margin-top:12px!important}
+#roomBookingArea .room-week-wrap{display:block!important;background:#fff!important}
+@media(max-width:760px){.bottom-nav .navbtn[data-page="reports"].role-hidden,.bottom-nav button[data-page="reports"].role-hidden{display:none!important}}
 </style>
 
 </body></html>
