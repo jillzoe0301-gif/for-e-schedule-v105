@@ -2188,9 +2188,10 @@ renderFollowupPersonOptions=function(selected=''){
 const _v86UpdateServiceRecordUI=updateServiceRecordUI;
 updateServiceRecordUI=function(){
   _v86UpdateServiceRecordUI();
-  // V201：一般行程、會議/請假/教育訓練/活動、待辦事項、一般記事不再顯示紅色必填標示
-  v86MarkRequired([]);
-  const isSchedule=$('eventKind')&&$('eventKind').value==='schedule';
+  // V202：只保留「類型 / 行程類型」紅色必填標示；不再用紅框阻擋送出。
+  const kind=$('eventKind')&&$('eventKind').value;
+  v86MarkRequired(kind==='generalNote'?[]:['eventType']);
+  const isSchedule=kind==='schedule';
   const isMed=isSchedule&&displayEventType($('eventType')?$('eventType').value:'')==='醫療';
   if(isMed){
     if($('medicalFollowupBox'))$('medicalFollowupBox').classList.remove('hide');
@@ -8548,10 +8549,136 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 
 
 <style>
-/* V201：取消行程新增/修改表單紅色必填標示 */
-#eventModal .field.required label:first-child::after{content:''!important}
+/* V202：保留「類型」紅色必填星號；取消紅框與錯誤提示 */
 #eventModal .req-missing{border-color:var(--line)!important;box-shadow:none!important;background:#fff!important}
 #eventModal .required-hint.v86{display:none!important}
+</style>
+
+
+<script>
+/* V202：個人待辦穩定化 + 登入前一天行程提醒
+   DRY：共用 v202OwnPersonId / v202OwnTodoRows / v202TomorrowRows。
+   KISS：個人待辦只做清單、開啟、完成、新增待辦；登入提醒只提示明天行程。
+   SOLID：獨立補強，不改原行程儲存與統計資料。 */
+(function(){
+  function q(sel,root){return (root||document).querySelector(sel)}
+  function qa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
+  function html(v){try{return esc(v)}catch(_){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}}
+  function todayStr(){try{return todayISO()}catch(_){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}}
+  function addDays(d,n){try{return dateAdd(d,n)}catch(_){const x=new Date(d+'T00:00:00');x.setDate(x.getDate()+n);return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`}}
+  function ownPersonId(){
+    try{const id=userPersonId(); if(id)return id;}catch(_){}
+    try{if(currentUser&&currentUser.personId)return currentUser.personId;}catch(_){}
+    return '';
+  }
+  function ownName(){
+    const pid=ownPersonId();
+    try{return (getPerson(pid)||{}).name||''}catch(_){return ''}
+  }
+  function isMine(e,pid){return !pid || (e.participants||[]).includes(pid) || e.createdBy===(currentUser&&currentUser.id)}
+  function v202OwnTodoRows(){
+    const pid=ownPersonId();
+    try{
+      return (state.events||[]).filter(e=>e&&!e.deleted&&['generalNote','todo'].includes(e.kind)&&isMine(e,pid))
+        .sort((a,b)=>String(a.status==='已完成').localeCompare(String(b.status==='已完成'))||String(a.startDate||'').localeCompare(String(b.startDate||''))||String(a.startTime||'').localeCompare(String(b.startTime||'')));
+    }catch(_){return []}
+  }
+  function ensurePersonalTodoPage(){
+    let page=q('#personalTodoPage');
+    if(!page){
+      const main=q('.main')||q('main')||document.body;
+      page=document.createElement('section');
+      page.id='personalTodoPage';
+      page.className='page hide';
+      main.appendChild(page);
+    }
+    if(!q('#personalTodoRowsV202',page)){
+      page.innerHTML=`<div class="panel"><div class="section-title"><h2>個人待辦</h2><div class="toolbar"><button id="addPersonalTodoV202" class="primary">新增待辦</button><button id="refreshPersonalTodoV202">重新整理</button></div></div><div class="muted">只集中顯示登入者自己的「一般記事 / 待辦事項」。</div></div><div class="panel"><div class="detail-table-wrap"><table class="table"><thead><tr><th>操作</th><th>狀態</th><th>日期</th><th>時間</th><th>分類</th><th>類型</th><th>標題</th><th>說明</th></tr></thead><tbody id="personalTodoRowsV202"></tbody></table></div></div>`;
+      q('#addPersonalTodoV202',page).onclick=function(){
+        try{openEventModal({date:todayStr(),personId:ownPersonId()});setTimeout(()=>{if(q('#eventKind')){$('eventKind').value='todo';renderTypeOptions();updateEventFormByKindUI();}},100)}catch(e){}
+      };
+      q('#refreshPersonalTodoV202',page).onclick=renderPersonalTodoPage;
+    }
+    return page;
+  }
+  function renderPersonalTodoPage(){
+    const page=ensurePersonalTodoPage();
+    const tbody=q('#personalTodoRowsV202',page);
+    const rows=v202OwnTodoRows();
+    tbody.innerHTML=rows.map(e=>`<tr><td><button class="small primary" data-v202-open="${html(e.id)}">開啟</button> ${e.status==='已完成'?'<span class="badge">已完成</span>':`<button class="small" data-v202-done="${html(e.id)}">完成</button>`}</td><td>${html(e.status||'')}</td><td>${html(e.startDate||'')}</td><td>${html(e.startTime||'')}</td><td>${e.kind==='todo'?'待辦事項':'一般記事'}</td><td>${html(e.type||'')}</td><td>${html(e.name||'')}</td><td>${html(e.note||'')}</td></tr>`).join('')||'<tr><td colspan="8" class="muted">目前沒有個人待辦</td></tr>';
+    qa('[data-v202-open]',tbody).forEach(btn=>btn.onclick=()=>{try{openEventModal({eventId:btn.dataset.v202Open})}catch(e){}});
+    qa('[data-v202-done]',tbody).forEach(btn=>btn.onclick=()=>{try{const e=(state.events||[]).find(x=>x.id===btn.dataset.v202Done); if(!e)return; e.status='已完成'; e.updatedBy=currentUser.id; e.updatedAt=new Date().toISOString(); save(); renderPersonalTodoPage(); if(typeof renderAll==='function')renderAll(); toast('已完成');}catch(err){}});
+  }
+  function showPersonalTodoPage(){
+    ensurePersonalTodoPage();
+    qa('.page').forEach(p=>p.classList.add('hide'));
+    q('#personalTodoPage').classList.remove('hide');
+    qa('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page==='personalTodo'));
+    renderPersonalTodoPage();
+  }
+  function ensurePersonalTodoNav(){
+    if(!currentUser)return;
+    const side=q('.side');
+    if(side&&!side.querySelector('[data-page="personalTodo"]')){
+      const btn=document.createElement('button');
+      btn.className='navbtn';
+      btn.dataset.page='personalTodo';
+      btn.innerHTML='<span class="mono-ico ico-list"></span>個人待辦';
+      side.insertBefore(btn, side.querySelector('[data-page="today"]')||side.querySelector('[data-page="incidents"]')||null);
+    }
+    const bottom=q('.bottom-nav');
+    if(bottom&&!bottom.querySelector('[data-page="personalTodo"]')){
+      const btn=document.createElement('button');
+      btn.className='navbtn';
+      btn.dataset.page='personalTodo';
+      btn.innerHTML='<span class="mono-ico ico-list"></span>待辦';
+      bottom.appendChild(btn);
+    }
+    qa('[data-page="personalTodo"]').forEach(btn=>{
+      btn.classList.remove('role-hidden','hide');
+      btn.style.removeProperty('display');
+    });
+  }
+  document.addEventListener('click',function(e){
+    const btn=e.target&&e.target.closest&&e.target.closest('[data-page="personalTodo"]');
+    if(btn){e.preventDefault();e.stopPropagation();showPersonalTodoPage();}
+  },true);
+
+  function tomorrowRows(){
+    const pid=ownPersonId();
+    const tmr=addDays(todayStr(),1);
+    try{
+      return (state.events||[]).filter(e=>e&&!e.deleted&&e.status!=='已完成'&&e.status!=='取消'&&String(e.startDate||'')<=tmr&&String(e.endDate||e.startDate||'')>=tmr&&isMine(e,pid))
+        .sort((a,b)=>String(a.startTime||'').localeCompare(String(b.startTime||'')));
+    }catch(_){return []}
+  }
+  function showTomorrowReminder(){
+    if(!currentUser)return;
+    const key='fore_v202_tomorrow_reminder_'+(currentUser.id||'user')+'_'+todayStr();
+    if(localStorage.getItem(key)==='1')return;
+    const rows=tomorrowRows();
+    if(!rows.length){localStorage.setItem(key,'1');return;}
+    localStorage.setItem(key,'1');
+    const msg='明天有 '+rows.length+' 筆行程需要留意：\n\n'+rows.slice(0,8).map(e=>`• ${e.startTime||''} ${e.type||''} ${e.name||''}`).join('\n')+(rows.length>8?`\n...另有 ${rows.length-8} 筆`:'');
+    setTimeout(()=>{try{alert(msg)}catch(_){toast('明天有 '+rows.length+' 筆行程需要留意')}} ,350);
+  }
+
+  const oldRenderAll=typeof renderAll==='function'?renderAll:null;
+  if(oldRenderAll&&!oldRenderAll.v202Wrapped){
+    const wrapped=function(){const r=oldRenderAll.apply(this,arguments);setTimeout(()=>{ensurePersonalTodoPage();ensurePersonalTodoNav();showTomorrowReminder();},150);return r};
+    wrapped.v202Wrapped=true;
+    renderAll=window.renderAll=wrapped;
+  }
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(()=>{ensurePersonalTodoPage();ensurePersonalTodoNav();showTomorrowReminder();},600);});
+  setInterval(()=>{ensurePersonalTodoNav();},1500);
+})();
+</script>
+<style>
+/* V202：個人待辦與類型必填標示 */
+#eventModal .field.required label:first-child::after{content:' *';color:#dc2626!important;font-weight:900!important}
+#eventModal .req-missing{border-color:var(--line)!important;box-shadow:none!important;background:#fff!important}
+#eventModal .required-hint.v86{display:none!important}
+@media(max-width:760px){#personalTodoPage .detail-table-wrap{max-height:58vh}}
 </style>
 
 </body></html>
