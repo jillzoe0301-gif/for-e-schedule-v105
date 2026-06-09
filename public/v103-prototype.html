@@ -6783,7 +6783,7 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
     if(!window.assertCsvExportAllowed())return false;
     try{
       if(!Array.isArray(rows)||!rows.length)rows=[['沒有資料']];
-      const body='\ufeff'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n');
+      const body='﻿'+rows.map(r=>r.map(csvCell).join(',')).join('\n');
       const blob=new Blob([body],{type:'text/csv;charset=utf-8;'});
       const url=URL.createObjectURL(blob);
       const a=document.createElement('a');
