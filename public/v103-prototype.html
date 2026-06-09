@@ -3553,7 +3553,7 @@ canSeePage=function(page){
   if(page==='roomBooking')return ['admin','supervisor','adminStaff','general'].includes(r);
   if(page==='fieldCalendar')return ['admin','supervisor','adminStaff'].includes(r);
   if(page==='today'||page==='incidents')return ['admin','supervisor','adminStaff'].includes(r);
-  if(page==='reports')return r==='admin';
+  if(page==='reports')return ['admin','supervisor'].includes(r);
   if(page==='fieldDetails')return ['admin','adminStaff'].includes(r);
   if(page==='serviceRecords')return ['admin','supervisor'].includes(r);
   if(page==='settings'||page==='audit')return r==='admin';
@@ -3865,7 +3865,7 @@ v106BindServiceRecordsUI=function(){
     if(page==='roomBooking')return ['admin','supervisor','adminStaff','general'].includes(r);
     if(page==='fieldCalendar')return ['admin','supervisor','adminStaff'].includes(r);
     if(page==='today'||page==='incidents')return ['admin','supervisor','adminStaff'].includes(r);
-    if(page==='reports')return r==='admin';
+    if(page==='reports')return ['admin','supervisor'].includes(r);
     if(page==='fieldDetails')return ['admin','adminStaff'].includes(r);
     if(page==='serviceRecords')return ['admin','supervisor'].includes(r);
     if(page==='personalDetails')return true;
@@ -3953,7 +3953,7 @@ v106BindServiceRecordsUI=function(){
     if(page==='roomBooking')return ['admin','supervisor','adminStaff','general'].includes(r);
     if(page==='fieldCalendar')return ['admin','supervisor','adminStaff'].includes(r);
     if(page==='today'||page==='incidents')return ['admin','supervisor','adminStaff'].includes(r);
-    if(page==='reports')return r==='admin';
+    if(page==='reports')return ['admin','supervisor'].includes(r);
     if(page==='serviceRecords')return ['admin','supervisor'].includes(r);
     if(page==='fieldDetails')return ['admin','adminStaff'].includes(r);
     if(page==='personalDetails')return true;
@@ -8225,6 +8225,80 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
     background:#16a34a!important;
     border-color:#16a34a!important;
     color:#fff!important;
+  }
+}
+</style>
+
+
+<script>
+/* V193：主管可看統計表，手機底部不顯示統計
+   DRY：集中一個 patchReportsPermissionV193 處理權限與導覽。
+   KISS：只改 reports 權限與手機底部顯示，不動統計資料。
+   SOLID：桌機側欄與手機底部導覽分開處理，避免互相影響。 */
+(function(){
+  function role(){
+    if(typeof normalizedRole==='function') return normalizedRole();
+    const r=(window.currentUser&&window.currentUser.role)||'';
+    if(r==='admin'||r==='options')return 'admin';
+    if(r==='supervisor')return 'supervisor';
+    if(r==='adminStaff')return 'adminStaff';
+    return 'staff';
+  }
+
+  const oldCanSeePage = typeof canSeePage==='function' ? canSeePage : null;
+  canSeePage = function(page){
+    if(page==='reports') return ['admin','supervisor'].includes(role());
+    return oldCanSeePage ? oldCanSeePage(page) : false;
+  };
+
+  function patchReportsPermissionV193(){
+    const r=role();
+
+    // 桌機左側：主管與管理員可看到統計表
+    document.querySelectorAll('.side .navbtn[data-page="reports"]').forEach(function(btn){
+      const ok=['admin','supervisor'].includes(r);
+      btn.classList.toggle('hide',!ok);
+      btn.classList.toggle('role-hidden',!ok);
+      btn.style.display=ok?'':'none';
+    });
+
+    // 手機底部：統計只給管理員顯示；主管手機不顯示
+    document.querySelectorAll('.bottom-nav .navbtn[data-page="reports"], .bottom-nav button[data-page="reports"]').forEach(function(btn){
+      const ok=r==='admin';
+      btn.classList.toggle('hide',!ok);
+      btn.classList.toggle('role-hidden',!ok);
+      btn.style.display=ok?'':'none';
+    });
+  }
+
+  const oldApply = typeof window.v105ApplyNav==='function' ? window.v105ApplyNav : null;
+  window.v105ApplyNav = function(){
+    if(oldApply) oldApply.apply(this,arguments);
+    setTimeout(patchReportsPermissionV193,0);
+  };
+
+  const oldBottom = typeof window.v105MobileBottomNavByRole==='function' ? window.v105MobileBottomNavByRole : null;
+  window.v105MobileBottomNavByRole = function(){
+    if(oldBottom) oldBottom.apply(this,arguments);
+    setTimeout(patchReportsPermissionV193,0);
+  };
+
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(patchReportsPermissionV193,80);
+    setTimeout(patchReportsPermissionV193,500);
+  });
+  document.addEventListener('click',function(){
+    setTimeout(patchReportsPermissionV193,80);
+  },true);
+  setInterval(patchReportsPermissionV193,1200);
+})();
+</script>
+<style>
+/* V193：手機端強制隱藏主管統計按鈕，桌機不受影響 */
+@media(max-width:760px){
+  .bottom-nav .navbtn[data-page="reports"].role-hidden,
+  .bottom-nav button[data-page="reports"].role-hidden{
+    display:none!important;
   }
 }
 </style>
