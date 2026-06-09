@@ -4733,10 +4733,44 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
     box.querySelector('.v167-month').style.display=m==='month'?'inline-flex':'none';
     box.querySelector('.v167-day').style.display=m==='day'?'inline-flex':'none';
   }
+  function supportsPersonFilter(pageId){
+    const cfg=EXPORT_PAGES[pageId];
+    return !!(cfg && ['calendar','field','personal','incidents','reports','service'].includes(cfg.type));
+  }
+  function syncPersonOptions(box,pageId){
+    const sel=box.querySelector('.v197-person');
+    if(!sel)return;
+    const show=supportsPersonFilter(pageId);
+    sel.style.display=show?'inline-flex':'none';
+    if(!show){sel.value='';return;}
+    const people=(state.people||[]).filter(p=>p&&p.active!==false);
+    const old=sel.value||'';
+    const html=['<option value="">全部人員</option>'].concat(people.map(p=>`<option value="${String(p.id||'').replace(/"/g,'&quot;')}">${String(p.name||'').replace(/</g,'&lt;')}</option>`)).join('');
+    if(sel.dataset.v197Html!==html){
+      sel.innerHTML=html;
+      sel.dataset.v197Html=html;
+      if(old && people.some(p=>String(p.id)===String(old)))sel.value=old;
+    }
+  }
+  function filterRowsByPerson(rows,personId){
+    if(!personId)return rows;
+    const person=(getPerson(personId)||{});
+    const name=String(person.name||'').trim();
+    if(!name||!Array.isArray(rows)||rows.length<2)return rows;
+    const header=rows[0]||[];
+    const keys=['相關人員','人員','人員名稱','負責人','協助人員'];
+    const idx=header.map((h,i)=>keys.some(k=>String(h||'').includes(k))?i:-1).filter(i=>i>=0);
+    if(!idx.length)return rows;
+    const body=rows.slice(1).filter(r=>idx.some(i=>String((r||[])[i]||'').includes(name)));
+    return [header].concat(body.length?body:[['沒有符合該人員的資料']]);
+  }
   function exportPage(pageId,box){
     const cfg=EXPORT_PAGES[pageId];if(!cfg)return;
     const r=getRange(box);
-    const ok=downloadCsvV167(rowsFor(cfg.type,r.start,r.end),`${cfg.label}_${r.label}.csv`);
+    const personId=(box.querySelector('.v197-person')||{}).value||'';
+    const rows=filterRowsByPerson(rowsFor(cfg.type,r.start,r.end),personId);
+    const personLabel=personId?('_'+((getPerson(personId)||{}).name||'人員')):'';
+    const ok=downloadCsvV167(rows,`${cfg.label}_${r.label}${personLabel}.csv`);
     if(ok)toast(`已匯出 ${cfg.label} CSV`);
   }
   const REFRESH_PAGES={
@@ -4749,14 +4783,14 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
     const box=document.createElement('div');
     box.className='v115-export-box v167-export-box'+(refreshCfg?' has-refresh':'');
     box.dataset.pageId=pageId;
-    box.innerHTML=(refreshCfg?'<button class="primary v167-refresh-btn" type="button">'+refreshCfg.label+'</button>':'')+'<select class="mini v167-mode" title="匯出範圍"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option></select><input class="mini v167-year" type="number" min="2024" max="2035" title="年度"><input class="mini v167-month" type="month" title="月份"><input class="mini v167-day" type="date" title="日期"><button class="primary v167-btn" type="button">匯出CSV</button>';
+    box.innerHTML=(refreshCfg?'<button class="primary v167-refresh-btn" type="button">'+refreshCfg.label+'</button>':'')+'<select class="mini v167-mode" title="匯出範圍"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option></select><input class="mini v167-year" type="number" min="2024" max="2035" title="年度"><input class="mini v167-month" type="month" title="月份"><input class="mini v167-day" type="date" title="日期"><select class="mini v197-person" title="篩選人員"><option value="">全部人員</option></select><button class="primary v167-btn" type="button">匯出CSV</button>';
     box.querySelector('.v167-year').value=String(new Date().getFullYear());
     box.querySelector('.v167-month').value=monthSafe();
     box.querySelector('.v167-day').value=todaySafe();
     box.querySelector('.v167-mode').addEventListener('change',()=>syncMode(box));
     box.querySelector('.v167-btn').addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();exportPage(pageId,box);return false;});
     if(refreshCfg&&box.querySelector('.v167-refresh-btn'))box.querySelector('.v167-refresh-btn').addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();refreshCfg.fn();toast('已重新整理');return false;});
-    syncMode(box);return box;
+    syncPersonOptions(box,pageId);syncMode(box);return box;
   }
   function pageHeader(pageId){const page=$(pageId);return page&&(page.querySelector(':scope > .panel:first-child .section-title')||page.querySelector('.section-title'));}
   function removeOldExports(page){
@@ -4776,7 +4810,8 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
       const header=pageHeader(pageId);if(!header)return;
       header.querySelectorAll(':scope > .v167-export-box').forEach((box,i)=>{if(i>0)box.remove();});
       let box=header.querySelector(':scope > .v167-export-box');
-      if(!box){box=makeBox(pageId);header.appendChild(box);} 
+      if(!box){box=makeBox(pageId);header.appendChild(box);}
+      syncPersonOptions(box,pageId);
       const allowed=canExportNow();
       box.style.setProperty('display',allowed?'inline-flex':'none','important');
       box.querySelectorAll('select,input,button').forEach(el=>{el.disabled=!allowed;});
@@ -4784,7 +4819,7 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
   }
   window.forEExportSyncV167=syncExports;
   const style=document.createElement('style');
-  style.textContent='.v167-export-box{display:inline-flex;align-items:center;gap:6px;margin-left:auto;flex-wrap:wrap;max-width:100%;}.v167-export-box select,.v167-export-box input{height:30px!important;padding:3px 6px!important;font-size:12px!important;border-radius:8px!important;width:auto!important;min-width:72px!important}.v167-export-box .v167-year{width:76px!important;min-width:76px!important}.v167-export-box .v167-month{min-width:126px!important}.v167-export-box .v167-day{min-width:132px!important}.v167-export-box .v167-btn,.v167-export-box .v167-refresh-btn{height:30px!important;padding:3px 10px!important;font-size:12px!important;border-radius:8px!important;white-space:nowrap!important;display:inline-flex!important;align-items:center!important;justify-content:center!important}.v167-hidden-export{display:none!important}@media(max-width:760px){.v167-export-box:not(.has-refresh){display:none!important}.v167-export-box{width:auto!important;margin-left:0!important;overflow:visible!important}.v167-export-box .v167-mode,.v167-export-box .v167-year,.v167-export-box .v167-month,.v167-export-box .v167-day,.v167-export-box .v167-btn{display:none!important}.v167-export-box .v167-refresh-btn{display:inline-flex!important;flex:0 0 auto!important}}';
+  style.textContent='.v167-export-box{display:inline-flex;align-items:center;gap:6px;margin-left:auto;flex-wrap:wrap;max-width:100%;}.v167-export-box select,.v167-export-box input{height:30px!important;padding:3px 6px!important;font-size:12px!important;border-radius:8px!important;width:auto!important;min-width:72px!important}.v167-export-box .v167-year{width:76px!important;min-width:76px!important}.v167-export-box .v167-month{min-width:126px!important}.v167-export-box .v167-day{min-width:132px!important}.v167-export-box .v197-person{min-width:112px!important}.v167-export-box .v167-btn,.v167-export-box .v167-refresh-btn{height:30px!important;padding:3px 10px!important;font-size:12px!important;border-radius:8px!important;white-space:nowrap!important;display:inline-flex!important;align-items:center!important;justify-content:center!important}.v167-hidden-export{display:none!important}@media(max-width:760px){.v167-export-box:not(.has-refresh){display:none!important}.v167-export-box{width:auto!important;margin-left:0!important;overflow:visible!important}.v167-export-box .v167-mode,.v167-export-box .v167-year,.v167-export-box .v167-month,.v167-export-box .v167-day,.v167-export-box .v197-person,.v167-export-box .v167-btn{display:none!important}.v167-export-box .v167-refresh-btn{display:inline-flex!important;flex:0 0 auto!important}}';
   document.head.appendChild(style);
   const _renderAll=renderAll;renderAll=function(){const r=_renderAll.apply(this,arguments);setTimeout(syncExports,0);setTimeout(syncExports,180);return r;};
   const _applyPermissionsUI=applyPermissionsUI;applyPermissionsUI=function(){const r=_applyPermissionsUI.apply(this,arguments);setTimeout(syncExports,0);return r;};
@@ -8403,6 +8438,14 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 /* V196：主管桌機可看統計報表，手機底部不顯示統計 */
 @media(max-width:760px){
   .bottom-nav .navbtn[data-page="reports"]{display:none!important}
+}
+</style>
+
+
+<style>
+/* V197：CSV 匯出增加人員篩選；手機仍不顯示匯出控制 */
+@media(max-width:760px){
+  .v167-export-box .v197-person{display:none!important}
 }
 </style>
 
