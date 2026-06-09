@@ -8483,4 +8483,239 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 }
 </style>
 
+
+<script>
+/* V191：手機個人頁提醒卡片依指定版型調整
+   DRY：同一個 patchMobileAlertLayoutV191 處理所有提醒卡。
+   KISS：只調整提醒卡片 DOM 與樣式，不改提醒資料與完成/查看功能。
+   SOLID：手機顯示層獨立，不影響桌機、紀錄單繳交與行程資料。 */
+(function(){
+  function q(sel,root){return (root||document).querySelector(sel)}
+  function qa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
+  function isMobile(){return !window.matchMedia || window.matchMedia('(max-width:760px)').matches}
+  function findMobileRoot(){
+    return q('#mobilePage') || q('#mobilePersonalPage') || document;
+  }
+  function ensureTopRow(card){
+    let top=q('.v191-alert-toprow',card);
+    if(top)return top;
+
+    const title=q('.mobile-alert-title,.v189-reminder-title',card);
+    const overdue=qa('*',card).find(el=>{
+      const t=(el.textContent||'').trim();
+      return t.includes('超過時間');
+    });
+
+    top=document.createElement('div');
+    top.className='v191-alert-toprow';
+
+    if(title){
+      title.classList.add('v191-alert-title');
+      top.appendChild(title);
+    }else{
+      const fallback=document.createElement('div');
+      fallback.className='v191-alert-title';
+      fallback.textContent='⚠ 提醒事項';
+      top.appendChild(fallback);
+    }
+
+    if(overdue){
+      overdue.classList.add('v191-overdue-pill');
+      top.appendChild(overdue);
+    }
+
+    card.insertBefore(top,card.firstChild);
+    return top;
+  }
+  function ensureBodyWrap(card){
+    let body=q('.v191-alert-body',card);
+    if(body)return body;
+
+    body=document.createElement('div');
+    body.className='v191-alert-body';
+
+    const main=q('.mobile-alert-main',card);
+    const meta=q('.mobile-alert-meta',card);
+    const note=q('.mobile-alert-note',card);
+
+    [main,meta,note].forEach(el=>{
+      if(el)body.appendChild(el);
+    });
+
+    const top=q('.v191-alert-toprow',card);
+    if(top && top.nextSibling){
+      card.insertBefore(body,top.nextSibling);
+    }else{
+      card.appendChild(body);
+    }
+    return body;
+  }
+  function ensureActions(card){
+    let actions=q('.mobile-alert-actions,.personal-desktop-alert-actions,.v189-actions',card);
+    if(!actions){
+      const buttons=qa('button',card);
+      if(buttons.length){
+        actions=document.createElement('div');
+        actions.className='mobile-alert-actions';
+        buttons[0].parentNode.insertBefore(actions,buttons[0]);
+        buttons.forEach(btn=>actions.appendChild(btn));
+      }
+    }
+    if(actions){
+      actions.classList.add('v191-alert-actions');
+      qa('button',actions).forEach(btn=>{
+        btn.classList.add('v191-small-action-btn');
+        if((btn.textContent||'').includes('已完成'))btn.classList.add('v191-done-btn');
+      });
+      card.appendChild(actions);
+    }
+  }
+  function patchMobileAlertLayoutV191(){
+    if(!isMobile())return;
+    const root=findMobileRoot();
+    qa('.mobile-alert-card,.personal-desktop-alert,.mobile-event-card.alert',root).forEach(card=>{
+      const txt=card.textContent||'';
+      if(!(txt.includes('提醒事項') || txt.includes('超過時間') || txt.includes('待確認') || txt.includes('待通知')))return;
+      card.classList.add('v191-mobile-alert-card');
+      ensureTopRow(card);
+      ensureBodyWrap(card);
+      ensureActions(card);
+    });
+  }
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(patchMobileAlertLayoutV191,80);
+    setTimeout(patchMobileAlertLayoutV191,400);
+  });
+  document.addEventListener('click',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('#mobilePage,.bottom-nav,.navbtn[data-page="personal"],button')){
+      setTimeout(patchMobileAlertLayoutV191,80);
+      setTimeout(patchMobileAlertLayoutV191,280);
+    }
+  },true);
+  document.addEventListener('change',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('#mobilePage')){
+      setTimeout(patchMobileAlertLayoutV191,100);
+    }
+  },true);
+  const obs=new MutationObserver(function(){patchMobileAlertLayoutV191()});
+  document.addEventListener('DOMContentLoaded',function(){
+    const root=findMobileRoot();
+    if(root)obs.observe(root,{childList:true,subtree:true});
+  });
+  setTimeout(patchMobileAlertLayoutV191,900);
+})();
+</script>
+<style>
+/* V191：手機提醒卡片指定版型 */
+@media(max-width:760px){
+  #mobilePage .v191-mobile-alert-card,
+  .v191-mobile-alert-card{
+    position:relative!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) 82px!important;
+    grid-template-areas:
+      "top actions"
+      "body actions"!important;
+    column-gap:10px!important;
+    row-gap:4px!important;
+    align-items:start!important;
+    padding:14px 12px!important;
+    min-height:126px!important;
+    border-radius:18px!important;
+  }
+  #mobilePage .v191-alert-toprow,
+  .v191-alert-toprow{
+    grid-area:top!important;
+    display:flex!important;
+    align-items:center!important;
+    gap:8px!important;
+    min-width:0!important;
+    margin:0!important;
+  }
+  #mobilePage .v191-alert-title,
+  .v191-alert-title{
+    display:inline-flex!important;
+    align-items:center!important;
+    gap:4px!important;
+    margin:0!important;
+    font-size:18px!important;
+    line-height:1.2!important;
+    font-weight:900!important;
+    white-space:nowrap!important;
+  }
+  #mobilePage .v191-overdue-pill,
+  .v191-overdue-pill{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:auto!important;
+    min-width:0!important;
+    margin:0!important;
+    padding:6px 10px!important;
+    border-radius:999px!important;
+    background:#e11d2e!important;
+    color:#fff!important;
+    font-size:15px!important;
+    line-height:1.1!important;
+    font-weight:900!important;
+    white-space:nowrap!important;
+  }
+  #mobilePage .v191-alert-body,
+  .v191-alert-body{
+    grid-area:body!important;
+    min-width:0!important;
+    padding:0!important;
+    margin:0!important;
+  }
+  #mobilePage .v191-alert-body .mobile-alert-main,
+  .v191-alert-body .mobile-alert-main{
+    font-size:18px!important;
+    line-height:1.3!important;
+    font-weight:900!important;
+    margin:4px 0 4px!important;
+  }
+  #mobilePage .v191-alert-body .mobile-alert-meta,
+  #mobilePage .v191-alert-body .mobile-alert-note,
+  .v191-alert-body .mobile-alert-meta,
+  .v191-alert-body .mobile-alert-note{
+    font-size:14px!important;
+    line-height:1.45!important;
+    margin:0!important;
+  }
+  #mobilePage .v191-alert-actions,
+  .v191-alert-actions{
+    grid-area:actions!important;
+    position:static!important;
+    right:auto!important;
+    bottom:auto!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    justify-content:flex-start!important;
+    gap:8px!important;
+    width:82px!important;
+    margin:0!important;
+    padding:0!important;
+  }
+  #mobilePage .v191-alert-actions .v191-small-action-btn,
+  .v191-alert-actions .v191-small-action-btn{
+    width:82px!important;
+    min-width:82px!important;
+    height:42px!important;
+    padding:6px 8px!important;
+    border-radius:13px!important;
+    font-size:15px!important;
+    font-weight:900!important;
+    line-height:1.1!important;
+    white-space:nowrap!important;
+  }
+  #mobilePage .v191-alert-actions .v191-done-btn,
+  .v191-alert-actions .v191-done-btn{
+    background:#16a34a!important;
+    border-color:#16a34a!important;
+    color:#fff!important;
+  }
+}
+</style>
+
 </body></html>
