@@ -2635,16 +2635,16 @@ renderUsers=function(){
   window.v105Role=function(){return currentUser ? (v105RoleMap[currentUser.role]||currentUser.role||'translator') : 'translator'};
   window.v105AllowedPages=function(){
     const r=window.v105Role();
-    if(r==='admin') return ['calendar','fieldCalendar','roomBooking','mobile','today','incidents','reports','line'];
-    if(r==='supervisor') return ['calendar','fieldCalendar','roomBooking','mobile','today','incidents','reports','line'];
-    if(r==='adminStaff') return ['calendar','fieldCalendar','roomBooking','mobile','today','incidents','line'];
-    if(r==='general') return ['calendar','fieldCalendar','roomBooking','mobile','today','line'];
-    return ['calendar','mobile','today','line'];
+    if(r==='admin') return ['calendar','fieldCalendar','roomBooking','mobile','today','incidents','reports','personalGeneralTodo','line'];
+    if(r==='supervisor') return ['calendar','fieldCalendar','roomBooking','mobile','today','incidents','reports','personalGeneralTodo','line'];
+    if(r==='adminStaff') return ['calendar','fieldCalendar','roomBooking','mobile','today','incidents','personalGeneralTodo','line'];
+    if(r==='general') return ['calendar','fieldCalendar','roomBooking','mobile','today','personalGeneralTodo','line'];
+    return ['calendar','mobile','today','personalGeneralTodo','line'];
   };
   const oldCanSeePage=canSeePage;
   canSeePage=function(page){
     const allowed=window.v105AllowedPages();
-    if(['calendar','fieldCalendar','roomBooking','mobile','today','incidents','reports','line'].includes(page)) return allowed.includes(page);
+    if(['calendar','fieldCalendar','roomBooking','mobile','today','incidents','reports','personalGeneralTodo','line'].includes(page)) return allowed.includes(page);
     // 電腦版保留 V103 其他管理頁，但仍依原本權限控管，不顯示於手機底部選單
     return oldCanSeePage ? oldCanSeePage(page) : false;
   };
@@ -2659,7 +2659,7 @@ renderUsers=function(){
     // 桌機側邊欄：保留 V103 功能，但正式主要頁依權限顯示
     document.querySelectorAll('.side .navbtn').forEach(btn=>{
       const page=btn.dataset.page;
-      if(['calendar','fieldCalendar','roomBooking','mobile','today','incidents','reports','line'].includes(page)){
+      if(['calendar','fieldCalendar','roomBooking','mobile','today','incidents','reports','personalGeneralTodo','line'].includes(page)){
         btn.classList.toggle('role-hidden', !allowed.includes(page));
       }
     });
@@ -3582,11 +3582,11 @@ function v106MobileBottomNavByRole(){
   if(!nav||!currentUser)return;
   const r=normalizedRole();
   const rolePages={
-    admin:['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line','reports'],
-    supervisor:['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'],
-    adminStaff:['mobile','calendar','fieldCalendar','today','incidents','roomBooking','line'],
-    general:['mobile','calendar','roomBooking','line'],
-    staff:['mobile','calendar','line']
+    admin:['mobile','calendar','fieldCalendar','today','incidents','roomBooking','personalGeneralTodo','line','reports'],
+    supervisor:['mobile','calendar','fieldCalendar','today','incidents','roomBooking','personalGeneralTodo','line'],
+    adminStaff:['mobile','calendar','fieldCalendar','today','incidents','roomBooking','personalGeneralTodo','line'],
+    general:['mobile','calendar','roomBooking','personalGeneralTodo','line'],
+    staff:['mobile','calendar','personalGeneralTodo','line']
   };
   const allowed=rolePages[r]||rolePages.staff;
   allowed.forEach(page=>{const btn=nav.querySelector(`.navbtn[data-page="${page}"]`); if(btn)nav.appendChild(btn);});
@@ -3606,7 +3606,7 @@ v105MobileBottomNavByRole=v106MobileBottomNavByRole;
 
 canSeePage=function(page){
   const r=normalizedRole();
-  if(page==='mobile'||page==='calendar'||page==='line'||page==='personalDetails')return true;
+  if(page==='mobile'||page==='calendar'||page==='line'||page==='personalDetails'||page==='personalGeneralTodo')return true;
   if(page==='theme'||page==='users')return true;
   if(page==='roomBooking')return ['admin','supervisor','adminStaff','general'].includes(r);
   if(page==='fieldCalendar')return ['admin','supervisor','adminStaff'].includes(r);
@@ -5706,6 +5706,108 @@ renderAll=function(){
   return r;
 };
 setTimeout(()=>{v204SeedAdminTaskNotes();v204EnsureTaskNotePage();v204EnsureTaskNoteNav();},300);
+
+
+/* V205：個人一般待辦導覽保底、管理員測試資料、登入提醒通知、外務必填標示
+   DRY：同一組 v205OwnTaskRows / v205TomorrowRows 做資料篩選。
+   KISS：分頁只含新增待辦、開啟、完成；提醒只顯示明日行程摘要。
+   SOLID：補強導覽與提醒，不改既有行程儲存結構。 */
+function v205OwnPid(){try{return userPersonId()||''}catch(_){return ''}}
+function v205IsOwnEvent(e){const pid=v205OwnPid();return !!e&&(!pid||(e.participants||[]).includes(pid)||e.createdBy===(currentUser&&currentUser.id))}
+function v205OwnTaskRows(){return (state.events||[]).filter(e=>e&&!e.deleted&&['generalNote','todo'].includes(e.kind)&&v205IsOwnEvent(e)).sort((a,b)=>String(a.status==='已完成').localeCompare(String(b.status==='已完成'))||String(a.startDate||'').localeCompare(String(b.startDate||''))||String(a.startTime||'').localeCompare(String(b.startTime||'')))}
+function v205EnsurePersonalTodoPage(){
+  let page=$('personalGeneralTodoPage');
+  if(!page){
+    const main=document.querySelector('.main')||document.querySelector('main');
+    if(!main)return null;
+    page=document.createElement('section');
+    page.id='personalGeneralTodoPage';
+    page.className='page hide';
+    main.appendChild(page);
+  }
+  if(!$('personalGeneralTodoRows')){
+    page.innerHTML=`<div class="panel"><div class="section-title"><h2>個人一般待辦</h2><div class="toolbar"><button id="v205AddTodo" class="primary">新增待辦</button><button id="v205RefreshTodo">重新整理</button></div></div><div class="muted">只集中顯示登入者自己的「一般記事 / 待辦事項」。</div></div><div class="panel"><div class="detail-table-wrap"><table class="table"><thead><tr><th>操作</th><th>狀態</th><th>日期</th><th>時間</th><th>分類</th><th>類型</th><th>標題</th><th>說明</th></tr></thead><tbody id="personalGeneralTodoRows"></tbody></table></div></div>`;
+  }
+  if($('v205AddTodo'))$('v205AddTodo').onclick=function(){openEventModal({date:todayISO(),personId:v205OwnPid()});setTimeout(()=>{if($('eventKind')){$('eventKind').value='todo';renderTypeOptions();updateEventFormByKindUI();}},80)};
+  if($('v205RefreshTodo'))$('v205RefreshTodo').onclick=v205RenderPersonalTodo;
+  return page;
+}
+function v205RenderPersonalTodo(){
+  const page=v205EnsurePersonalTodoPage(); if(!page)return;
+  const tbody=$('personalGeneralTodoRows'); if(!tbody)return;
+  const rows=v205OwnTaskRows();
+  tbody.innerHTML=rows.map(e=>`<tr><td><button class="small primary" data-v205-open="${escAttr(e.id)}">開啟</button> ${e.status==='已完成'?'<span class="badge">已完成</span>':`<button class="small" data-v205-done="${escAttr(e.id)}">完成</button>`}</td><td>${esc(e.status||'')}</td><td>${esc(e.startDate||'')}</td><td>${esc(e.startTime||'')}</td><td>${e.kind==='todo'?'待辦事項':'一般記事'}</td><td>${esc(e.type||'')}</td><td>${esc(e.name||'')}</td><td>${esc(e.note||'')}</td></tr>`).join('')||'<tr><td colspan="8" class="muted">目前沒有一般記事或待辦事項</td></tr>';
+  tbody.querySelectorAll('[data-v205-open]').forEach(btn=>btn.onclick=()=>openEventModal({eventId:btn.dataset.v205Open}));
+  tbody.querySelectorAll('[data-v205-done]').forEach(btn=>btn.onclick=()=>{const e=(state.events||[]).find(x=>x.id===btn.dataset.v205Done);if(!e)return;e.status='已完成';e.updatedBy=currentUser.id;e.updatedAt=new Date().toISOString();save();v205RenderPersonalTodo();renderAll();toast('已完成')});
+}
+function v205ShowPersonalTodo(){
+  v205EnsurePersonalTodoPage();
+  document.querySelectorAll('.page').forEach(p=>p.classList.add('hide'));
+  $('personalGeneralTodoPage').classList.remove('hide');
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page==='personalGeneralTodo'));
+  currentPage='personalGeneralTodo';
+  v205RenderPersonalTodo();
+}
+function v205EnsurePersonalTodoNav(){
+  if(!currentUser)return;
+  const side=document.querySelector('.side');
+  if(side&&!side.querySelector('[data-page="personalGeneralTodo"]')){
+    const btn=document.createElement('button');
+    btn.className='navbtn';
+    btn.dataset.page='personalGeneralTodo';
+    btn.innerHTML='<span class="mono-ico ico-list"></span>個人一般待辦';
+    side.insertBefore(btn,side.querySelector('[data-page="today"]')||null);
+  }
+  const bottom=document.querySelector('.bottom-nav');
+  if(bottom&&!bottom.querySelector('[data-page="personalGeneralTodo"]')){
+    const btn=document.createElement('button');
+    btn.className='navbtn';
+    btn.dataset.page='personalGeneralTodo';
+    btn.innerHTML='<span class="mono-ico ico-list"></span>待辦';
+    bottom.appendChild(btn);
+  }
+  document.querySelectorAll('[data-page="personalGeneralTodo"]').forEach(btn=>{btn.classList.remove('hide','role-hidden');btn.style.removeProperty('display')});
+  document.querySelectorAll('[data-page="personalTodo"],[data-page="taskNoteTracker"]').forEach(btn=>{btn.classList.add('hide','role-hidden');btn.style.setProperty('display','none','important')});
+}
+document.addEventListener('click',function(e){const btn=e.target&&e.target.closest&&e.target.closest('[data-page="personalGeneralTodo"]');if(btn){e.preventDefault();e.stopPropagation();v205ShowPersonalTodo()}},true);
+function v205AdminUser(){return (state.users||[]).find(u=>u&&['admin','options'].includes(String(u.role||'')))||currentUser}
+function v205AdminPid(){const u=v205AdminUser();if(u&&u.personId)return u.personId;const p=(state.people||[]).find(p=>p&&p.active!==false&&String(p.lang||'')==='管理')||(state.people||[]).find(p=>p&&p.active!==false);return p?p.id:''}
+function v205SeedAdminTestData(){
+  const u=v205AdminUser();const pid=v205AdminPid();if(!u||!pid)return;
+  const base={seriesId:'',seriesIndex:0,startDate:todayISO(),endDate:todayISO(),startTime:'上午',endTime:'',locationName:'',address:'',vehicleNo:'',meetingRoom:'不指定',participants:[pid],assigneeIds:[],additionalType:'',additionalNote:'',serviceRecordSubmitted:false,serviceRecordDate:'',followupDate:'',followupTime:'',followupPersonId:'',followupRegNo:'',createdBy:u.id||'admin',createdAt:new Date().toISOString(),updatedBy:u.id||'admin',updatedAt:new Date().toISOString(),deleted:false};
+  let changed=false;
+  if(!(state.events||[]).some(e=>e&&e.kind==='todo'&&e.name==='測試待辦事項')){state.events.push({id:uid('ev'),kind:'todo',status:'未完成',type:'確認',name:'測試待辦事項',note:'管理員測試待辦',...base});changed=true}
+  if(!(state.events||[]).some(e=>e&&e.kind==='generalNote'&&e.name==='測試一般事項')){state.events.push({id:uid('ev'),kind:'generalNote',status:'未完成',type:'一般記事',name:'測試一般事項',note:'管理員測試一般記事',...base});changed=true}
+  if(changed)save();
+}
+function v205TomorrowRows(){
+  const t=dateAdd(todayISO(),1);
+  return (state.events||[]).filter(e=>e&&!e.deleted&&e.status!=='已完成'&&e.status!=='取消'&&String(e.startDate||'')<=t&&String(e.endDate||e.startDate||'')>=t&&v205IsOwnEvent(e)).sort((a,b)=>String(a.startTime||'').localeCompare(String(b.startTime||'')));
+}
+function v205LoginTomorrowNotice(){
+  if(!currentUser)return;
+  const key='fore_v205_login_notice_'+(currentUser.id||'user')+'_'+todayISO();
+  if(localStorage.getItem(key)==='1')return;
+  const rows=v205TomorrowRows();
+  if(!rows.length){localStorage.setItem(key,'1');return;}
+  localStorage.setItem(key,'1');
+  const text='明天有 '+rows.length+' 筆行程需要留意：\n\n'+rows.slice(0,8).map(e=>'• '+(e.startTime||'')+' '+(e.type||'')+' '+(e.name||'')).join('\n')+(rows.length>8?'\n...另有 '+(rows.length-8)+' 筆':'');
+  setTimeout(()=>alert(text),500);
+}
+function v205FieldRequiredVisual(){
+  if(!$('fieldModal')||$('fieldModal').classList.contains('hide'))return;
+  if(typeof v203ClearFieldRequired==='function')v203ClearFieldRequired();
+  if(typeof v203MarkFieldRequired==='function')v203MarkFieldRequired();
+}
+const v205BaseRenderAll=renderAll;
+renderAll=function(){
+  const r=v205BaseRenderAll.apply(this,arguments);
+  setTimeout(()=>{v205SeedAdminTestData();v205EnsurePersonalTodoPage();v205EnsurePersonalTodoNav();v205FieldRequiredVisual();v205LoginTomorrowNotice();},120);
+  return r;
+};
+document.addEventListener('click',function(e){if(e.target&&e.target.closest&&e.target.closest('#fieldAddBtn,.field-event,[data-field-date],#saveFieldBtn'))setTimeout(v205FieldRequiredVisual,120)},true);
+setTimeout(()=>{v205SeedAdminTestData();v205EnsurePersonalTodoPage();v205EnsurePersonalTodoNav();v205LoginTomorrowNotice();},500);
+setInterval(()=>{v205EnsurePersonalTodoNav();v205FieldRequiredVisual();},1200);
 
 })();
 
@@ -8961,6 +9063,19 @@ setTimeout(()=>{v204SeedAdminTaskNotes();v204EnsureTaskNotePage();v204EnsureTask
 #fieldModal .field.required label:first-child::after{content:' *';color:#dc2626!important;font-weight:900!important}
 #fieldModal .req-missing{border-color:#dc2626!important;box-shadow:0 0 0 3px rgba(220,38,38,.16)!important;background:#fff7f7!important}
 #fieldModal .required-hint.v203{display:block!important}
+@media(max-width:760px){
+  .bottom-nav [data-page="personalGeneralTodo"]{display:inline-flex!important}
+  #personalGeneralTodoPage .detail-table-wrap{max-height:58vh}
+}
+</style>
+
+
+<style>
+/* V205：個人一般待辦、外務必填、手機待辦 */
+#eventModal .field.required label:first-child::after,
+#fieldModal .field.required label:first-child::after{content:' *';color:#dc2626!important;font-weight:900!important}
+#fieldModal .req-missing{border-color:#dc2626!important;box-shadow:0 0 0 3px rgba(220,38,38,.16)!important;background:#fff7f7!important}
+#fieldModal .required-hint.v203{display:block!important;color:#dc2626!important;font-weight:900!important}
 @media(max-width:760px){
   .bottom-nav [data-page="personalGeneralTodo"]{display:inline-flex!important}
   #personalGeneralTodoPage .detail-table-wrap{max-height:58vh}
