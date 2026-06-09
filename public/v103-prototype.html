@@ -6862,4 +6862,171 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 })();
 </script>
 
+
+
+<style>
+/* V111：右上角匯出工具最終修正
+   DRY：所有頁面共用同一個 .v111-export-box
+   KISS：只保留 全部 / 年 / 月 / 日
+   SOLID：權限、UI、匯出資料分離 */
+.v111-export-box{display:inline-flex!important;align-items:center;gap:6px;margin-left:auto;flex-wrap:wrap;max-width:100%;}
+.v111-export-box select,.v111-export-box input{height:30px!important;padding:3px 6px!important;font-size:12px!important;border-radius:8px!important;width:auto!important;}
+.v111-export-box .v111-year{width:76px!important;}
+.v111-export-box .v111-btn{height:30px!important;padding:3px 10px!important;font-size:12px!important;border-radius:8px!important;white-space:nowrap!important;display:inline-flex!important;align-items:center!important;}
+@media(max-width:760px){.v111-export-box{display:inline-flex!important;overflow-x:auto}.v111-export-box select,.v111-export-box input{min-width:96px!important}.v111-export-box .v111-year{min-width:76px!important}.v111-export-box .v111-btn{min-width:78px!important}}
+</style>
+<script>
+/* V111：修正 V110 未出現匯出功能
+   原因：舊補丁會移除篩選列匯出，且新匯出盒只同步既有 DOM，登入/切頁後沒有保證重新建立。
+   本段不依賴舊 v141/v163 DOM，統一建立右上角匯出工具。 */
+(function forEExportManagerV111(){
+  const EXPORT_PAGES={
+    calendarPage:{label:'行程總覽',type:'events'},
+    fieldCalendarPage:{label:'外務行程',type:'field'},
+    roomBookingPage:{label:'會議室預約',type:'room'},
+    fieldDetailsPage:{label:'外務明細',type:'field'},
+    personalDetailsPage:{label:'個人行程表',type:'events'},
+    incidentsPage:{label:'異況紀錄',type:'incidents'},
+    reportsPage:{label:'統計報表',type:'reports'},
+    serviceRecordsPage:{label:'服務紀錄單',type:'service'}
+  };
+  function byId(id){return document.getElementById(id)}
+  function role(){
+    const raw=String((window.currentUser&&currentUser.role)||'').trim();
+    const map={admin:'admin',options:'admin',supervisor:'supervisor',adminStaff:'adminStaff',admin_staff:'adminStaff',administrative:'adminStaff',general:'general',staff:'translator',translator:'translator',schedule:'translator',dispatcher:'translator',viewer:'translator',sales:'translator'};
+    return map[raw]||raw;
+  }
+  function canExport(){
+    if(typeof window.canUseCsvExport==='function'){
+      const r=role();
+      if(['admin','supervisor','adminStaff','general'].includes(r))return true;
+      if(['translator','staff'].includes(r))return false;
+      return !!window.canUseCsvExport();
+    }
+    return !!window.currentUser && ['admin','supervisor','adminStaff','general'].includes(role());
+  }
+  window.canUseCsvExport=function(){return canExport()};
+  function pad2(n){return String(n).padStart(2,'0')}
+  function today(){return (typeof todayISO==='function')?todayISO():new Date().toISOString().slice(0,10)}
+  function month(){return (typeof monthISO==='function')?monthISO():today().slice(0,7)}
+  function monthRangeLocal(ym){
+    if(typeof monthRange==='function')return monthRange(ym);
+    const [y,m]=String(ym||month()).split('-').map(Number);
+    return [`${y}-${pad2(m)}-01`,`${y}-${pad2(m)}-${pad2(new Date(y,m,0).getDate())}`];
+  }
+  function csvValue(v){return `"${String(v??'').replace(/"/g,'""')}"`}
+  function downloadCsv(rows,name){
+    if(!canExport()){if(typeof toast==='function')toast('此權限不提供 CSV 匯出');return;}
+    const body='\ufeff'+rows.map(r=>r.map(csvValue).join(',')).join('\n');
+    const blob=new Blob([body],{type:'text/csv;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=name;a.style.display='none';a.rel='noopener';
+    document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},1200);
+  }
+  window.exportCsv=function(rows,name){downloadCsv(rows,name||'FOR-e匯出.csv')};
+  function personName(id){try{return (typeof getPerson==='function'&&getPerson(id).name)||''}catch(e){return ''}}
+  function userName(id){try{return (typeof getUser==='function'&&getUser(id).name)||''}catch(e){return ''}}
+  function typeName(t){try{return (typeof displayEventType==='function'?displayEventType(t):t)||''}catch(e){return t||''}}
+  function kindName(k){try{return (typeof kindLabel==='function'?kindLabel(k):k)||''}catch(e){return k||''}}
+  function eventInRange(e,s,en){return e&&!e.deleted&&String(e.endDate||e.startDate||'')>=s&&String(e.startDate||e.endDate||'')<=en}
+  function rowsEvents(s,en){
+    const rows=[['ID','起日','迄日','開始時間','結束時間','類別','行程類型','附加行程','辦理內容','地點/客戶','地址','狀態','人員','建立人','建立時間','最後修改人','最後修改時間','服務紀錄單','繳交日期','內容說明']];
+    ((window.state&&state.events)||[]).filter(e=>eventInRange(e,s,en)).forEach(e=>{
+      let service='';
+      try{service=(typeof requiresServiceRecord==='function'&&requiresServiceRecord(e))?(e.serviceRecordSubmitted?'已繳交':'未繳交'):''}catch(_){service=''}
+      rows.push([e.id,e.startDate,e.endDate,e.startTime,e.endTime,kindName(e.kind),typeName(e.type),[typeName(e.extraType),e.extraNote].filter(Boolean).join('｜'),e.name,e.locationName,e.address,e.status,(e.participants||[]).map(personName).filter(Boolean).join('、'),userName(e.createdBy),e.createdAt,userName(e.updatedBy),e.updatedAt,service,e.serviceRecordDate||'',e.note||'']);
+    });
+    return rows;
+  }
+  function rowsField(s,en){
+    const rows=[['ID','日期','時間','人員','部門','職務','目的','地點','地址','狀態','送件失敗原因','下一次領件日期','下一次領件人員','現金','印章','證件','必送件','無法更換外務','備註','建立人','最後修改人','是否刪除']];
+    ((window.state&&state.externalEvents)||[]).filter(e=>!e.deleted&&String(e.date||'')>=s&&String(e.date||'')<=en).forEach(e=>{
+      const p=(typeof getPerson==='function'?getPerson(e.personId):{})||{};
+      rows.push([e.id,e.date,e.time,p.name||'',p.group||'',p.lang||'',e.purpose,e.locationName,e.address,e.status,e.failureReason||'',e.pickupDate||'',personName(e.pickupPersonId),e.cash,e.stamp,e.document,e.mustSend?'是':'',e.cannotChange?'是':'',e.note,userName(e.createdBy),userName(e.updatedBy||e.createdBy),e.deleted?'是':'否']);
+    });
+    return rows;
+  }
+  function rowsRoom(s,en){
+    const rows=[['ID','日期','開始時間','結束時間','會議室','部門','會議名稱','建立人','建立時間','最後修改人','最後修改時間']];
+    ((window.state&&state.roomBookings)||[]).filter(b=>!b.deleted&&String(b.date||'')>=s&&String(b.date||'')<=en).forEach(b=>rows.push([b.id,b.date,b.startTime,b.endTime,b.room,b.department,b.title,userName(b.createdBy),b.createdAt,userName(b.updatedBy||b.createdBy),b.updatedAt]));
+    return rows;
+  }
+  function rowsIncidents(s,en){
+    const rows=[['ID','發生日期','發生時間','異況類型','緊急程度','地點/客戶','工人','標題','負責人','協助者','狀態','下次追蹤日期','內容說明']];
+    ((window.state&&state.incidents)||[]).filter(i=>!i.deleted&&String(i.occurrenceDate||'')>=s&&String(i.occurrenceDate||'')<=en).forEach(i=>rows.push([i.id,i.occurrenceDate,i.occurrenceTime,i.incidentType,i.urgency,i.customerName,i.workerName,i.title,personName(i.ownerPersonId),(i.helperPersonIds||[]).map(personName).filter(Boolean).join('、'),i.status,i.nextFollowDate,i.description]));
+    return rows;
+  }
+  function rowsReports(s,en){
+    const ev=((window.state&&state.events)||[]).filter(e=>eventInRange(e,s,en));
+    const fe=((window.state&&state.externalEvents)||[]).filter(e=>!e.deleted&&String(e.date||'')>=s&&String(e.date||'')<=en);
+    const rb=((window.state&&state.roomBookings)||[]).filter(b=>!b.deleted&&String(b.date||'')>=s&&String(b.date||'')<=en);
+    const inc=((window.state&&state.incidents)||[]).filter(i=>!i.deleted&&String(i.occurrenceDate||'')>=s&&String(i.occurrenceDate||'')<=en);
+    const rows=[['類別','項目','數量','起日','迄日'],['總計','行程',ev.length,s,en],['總計','外務',fe.length,s,en],['總計','會議室',rb.length,s,en],['總計','異況',inc.length,s,en]];
+    const byType={};ev.forEach(e=>{const k=typeName(e.type||'未分類');byType[k]=(byType[k]||0)+1});Object.entries(byType).forEach(([k,v])=>rows.push(['行程類型',k,v,s,en]));
+    return rows;
+  }
+  function rowsService(s,en){
+    const rows=[['日期','部門','人員','職務','行程類型','辦理內容','地點/客戶','行程狀態','服務紀錄單','繳交日期']];
+    let list=[];
+    try{list=typeof serviceRecordsInRange==='function'?serviceRecordsInRange(s,en,typeof serviceFilterPeople==='function'?serviceFilterPeople():undefined):[]}catch(_){list=[]}
+    list.forEach(x=>rows.push([x.date,x.person&&x.person.group,x.person&&x.person.name,x.person&&x.person.lang,typeName(x.event&&x.event.type),x.event&&x.event.name,x.event&&x.event.locationName,x.event&&x.event.status,x.submitted?'已繳交':'未繳交',(x.event&&x.event.serviceRecordDate)||'']));
+    return rows;
+  }
+  function rangeFromBox(box){
+    const mode=(box.querySelector('.v111-mode')||{}).value||'month';
+    if(mode==='all')return {s:'0000-01-01',e:'9999-12-31',label:'全部'};
+    if(mode==='year'){const y=(box.querySelector('.v111-year')||{}).value||String(new Date().getFullYear());return {s:`${y}-01-01`,e:`${y}-12-31`,label:y};}
+    if(mode==='day'){const d=(box.querySelector('.v111-day')||{}).value||today();return {s:d,e:d,label:d};}
+    const ym=(box.querySelector('.v111-month')||{}).value||month();const [s,e]=monthRangeLocal(ym);return {s,e,label:ym};
+  }
+  function updateBoxMode(box){
+    const mode=(box.querySelector('.v111-mode')||{}).value||'month';
+    box.querySelectorAll('.v111-year').forEach(x=>x.style.display=mode==='year'?'inline-flex':'none');
+    box.querySelectorAll('.v111-month').forEach(x=>x.style.display=mode==='month'?'inline-flex':'none');
+    box.querySelectorAll('.v111-day').forEach(x=>x.style.display=mode==='day'?'inline-flex':'none');
+  }
+  function makeBox(pageId){
+    const box=document.createElement('div');box.className='v111-export-box';box.dataset.pageId=pageId;
+    box.innerHTML='<select class="mini v111-mode" title="匯出範圍"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option></select><input class="mini v111-year" type="number" min="2024" max="2035" title="年度"><input class="mini v111-month" type="month" title="月份"><input class="mini v111-day" type="date" title="日期"><button class="primary v111-btn" type="button">匯出CSV</button>';
+    box.querySelector('.v111-year').value=String(new Date().getFullYear());box.querySelector('.v111-month').value=month();box.querySelector('.v111-day').value=today();
+    box.querySelector('.v111-mode').addEventListener('change',()=>updateBoxMode(box));
+    box.querySelector('.v111-btn').addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();doExport(pageId,box)});
+    updateBoxMode(box);return box;
+  }
+  function ensureOne(pageId){
+    const page=byId(pageId);if(!page)return;
+    const header=page.querySelector(':scope > .panel:first-child .section-title')||page.querySelector('.section-title');if(!header)return;
+    header.querySelectorAll('.v141-box,.v163-export-box,.v111-export-box').forEach(x=>{if(!x.classList.contains('v111-export-box'))x.remove()});
+    let box=header.querySelector(':scope > .v111-export-box');
+    if(!box){box=makeBox(pageId);header.appendChild(box)}
+    const allowed=canExport();
+    box.style.setProperty('display',allowed?'inline-flex':'none','important');
+    box.querySelectorAll('button,input,select').forEach(el=>el.disabled=!allowed);
+  }
+  function sync(){Object.keys(EXPORT_PAGES).forEach(ensureOne)}
+  function doExport(pageId,box){
+    if(!canExport()){if(typeof toast==='function')toast('此權限不提供 CSV 匯出');return;}
+    const cfg=EXPORT_PAGES[pageId]||EXPORT_PAGES.calendarPage;
+    const r=rangeFromBox(box);
+    const builders={events:rowsEvents,field:rowsField,room:rowsRoom,incidents:rowsIncidents,reports:rowsReports,service:rowsService};
+    const rows=(builders[cfg.type]||rowsEvents)(r.s,r.e);
+    downloadCsv(rows,`${cfg.label}_${r.label}.csv`);
+    if(typeof toast==='function')toast(`已匯出 ${cfg.label} CSV`);
+  }
+  const oldRenderAll=typeof renderAll==='function'?renderAll:null;
+  if(oldRenderAll){renderAll=function(){const ret=oldRenderAll.apply(this,arguments);setTimeout(sync,0);setTimeout(sync,120);return ret;}}
+  const oldShowApp=typeof showApp==='function'?showApp:null;
+  if(oldShowApp){showApp=function(){const ret=oldShowApp.apply(this,arguments);setTimeout(sync,80);setTimeout(sync,300);return ret;}}
+  const oldApply=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
+  if(oldApply){applyPermissionsUI=function(){const ret=oldApply.apply(this,arguments);setTimeout(sync,80);return ret;}}
+  document.addEventListener('DOMContentLoaded',()=>{setTimeout(sync,100);setTimeout(sync,500);setTimeout(sync,1200)});
+  document.addEventListener('click',()=>setTimeout(sync,120),true);
+  window.addEventListener('resize',()=>setTimeout(sync,120));
+  window.forEExportSyncV111=sync;
+  setTimeout(sync,1500);
+})();
+</script>
+
 </body></html>
