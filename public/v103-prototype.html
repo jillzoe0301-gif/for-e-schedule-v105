@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V167 Export Fixed</title>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V184</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -712,7 +712,6 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 }
 
 
-<style>
 /* V116：上一週／日期／下一週固定在篩選外，避免舊版 JS 把 toolbar 收進 details */
 .v116-week-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;width:100%}
 .v116-week-row .mini{width:auto;min-width:150px}
@@ -748,9 +747,100 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
   .v116-static-filter>.toolbar{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;padding:10px!important;border-top:1px solid var(--line)!important;margin:0!important;width:100%!important}
   .v116-static-filter>.toolbar>*,.v116-static-filter>.toolbar input,.v116-static-filter>.toolbar select,.v116-static-filter>.toolbar button,.v116-static-filter>.toolbar .mini,.v116-static-filter>.toolbar .multi-select{width:100%!important;min-width:0!important;max-width:100%!important}
 }
+
+
+/* V179：翻譯手機紀錄單繳交篩選壓縮、重新整理放篩選下方加大 */
+#recordSubmitPage .v179-badge-warn{background:#fef3c7!important;color:#92400e!important}
+#recordSubmitPage .v179-template-box{border:1px solid #fca5a5;background:#fff7f7;border-radius:14px;padding:10px 12px;margin:8px 0}
+#recordSubmitPage .v179-template-box h3{margin:0 0 6px;font-size:15px;color:#991b1b}
+#recordSubmitPage .v179-template-text{width:100%;min-height:112px;border:1px solid #fecaca;border-radius:10px;background:#fff;padding:9px;font-size:13px;line-height:1.55;white-space:pre-wrap}
+#recordSubmitPage .v179-template-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+@media(max-width:760px){
+  #recordSubmitPage .toolbar{display:grid!important;grid-template-columns:minmax(122px,1.4fr) minmax(72px,.8fr) minmax(108px,1.2fr)!important;gap:6px!important;align-items:center!important;overflow:visible!important;padding:0!important;width:100%!important}
+  #recordSubmitPage .toolbar label{display:none!important}
+  #recordSubmitPage .toolbar input,#recordSubmitPage .toolbar select{width:100%!important;min-width:0!important;height:34px!important;font-size:12px!important;padding:4px 7px!important;border-radius:8px!important}
+  #recordSubmitMonth{min-width:0!important}
+  #recordSubmitYear{width:100%!important;min-width:0!important}
+  #recordSubmitStatus{min-width:0!important}
+  #recordSubmitRefresh{grid-column:1/-1!important;width:100%!important;min-width:100%!important;height:44px!important;font-size:15px!important;font-weight:900!important;border-radius:12px!important;margin-top:2px!important;padding:9px 12px!important}
+  #recordSubmitPage .v179-template-actions{justify-content:stretch}
+  #recordSubmitPage .v179-template-actions button{width:100%;height:40px;font-size:14px}
+  #recordSubmitPage .v179-template-text{min-height:150px;font-size:13px}
+}
+
+/* V183：紀錄單繳交提醒文字與顏色；個人行程表篩選修復 */
+#recordSubmitPage .v176-summary-alert.danger{background:#fff200!important;border:2px solid #f59e0b!important;color:#7c2d12!important;box-shadow:0 0 0 4px rgba(245,158,11,.24),0 8px 22px rgba(245,158,11,.18)!important;font-size:17px!important;line-height:1.45!important}
+#recordSubmitPage .v176-summary-alert.week{background:#ffe4ef!important;border:2px solid #f9a8d4!important;color:#9d174d!important;box-shadow:0 6px 18px rgba(249,168,212,.25)!important;font-size:16px!important;line-height:1.45!important}
+#recordSubmitPage .v182-action-btn{white-space:nowrap;background:#2563eb!important;border-color:#2563eb!important;color:#fff!important;font-weight:900!important}
+@media(max-width:760px){#recordSubmitPage .v176-summary-alert.danger{font-size:15px!important;padding:10px 12px!important}#recordSubmitPage .v176-summary-alert.week{font-size:14px!important;padding:10px 12px!important}#recordSubmitPage .v182-action-btn{width:100%;height:38px;font-size:14px}}
+</style>
+<style>
+/* V176：翻譯「紀錄單繳交」獨立分頁 */
+#recordSubmitPage .v176-summary-alert{border-radius:12px;padding:10px 12px;margin:8px 0;font-weight:900}
+#recordSubmitPage .v176-summary-alert.danger{background:#fee2e2;border:1px solid #fecaca;color:#991b1b}
+#recordSubmitPage .v176-summary-alert.ok{background:#ecfdf5;border:1px solid #bbf7d0;color:#166534}
+#recordSubmitPage .v176-row-overdue{background:#fff7ed!important}
+#recordSubmitPage .v176-badge-danger{background:#fee2e2!important;color:#991b1b!important}
+#recordSubmitPage .record-submit-note{font-size:12px;color:#64748b;margin-top:4px}
+@media(max-width:760px){
+  /* V178：紀錄單繳交手機篩選改為一列橫向工具列，避免佔版面 */
+  #recordSubmitPage>.panel:first-child{padding:10px!important;margin-bottom:8px!important}
+  #recordSubmitPage .section-title{margin-bottom:6px!important}
+  #recordSubmitPage .section-title h2{font-size:18px!important}
+  #recordSubmitPage .section-title .muted{display:none!important}
+  #recordSubmitPage .record-submit-note{display:none!important}
+  #recordSubmitPage .toolbar{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;gap:6px!important;width:100%!important;overflow-x:auto!important;overflow-y:hidden!important;-webkit-overflow-scrolling:touch;padding:0 0 4px 0!important}
+  #recordSubmitPage .toolbar label{display:none!important}
+  #recordSubmitPage .toolbar input,#recordSubmitPage .toolbar select,#recordSubmitPage .toolbar button{flex:0 0 auto!important;width:auto!important;min-width:0!important;height:32px!important;padding:4px 8px!important;font-size:12px!important;border-radius:8px!important;margin:0!important}
+  #recordSubmitMonth{min-width:126px!important}
+  #recordSubmitYear{width:72px!important;min-width:72px!important}
+  #recordSubmitStatus{min-width:116px!important}
+  #recordSubmitRefresh{min-width:78px!important;white-space:nowrap!important}
+  #recordSubmitPage .v176-summary-alert{font-size:12px!important;line-height:1.35!important;padding:7px 9px!important;margin:6px 0 0!important}
+  #recordSubmitPage .statgrid{grid-template-columns:repeat(4,minmax(66px,1fr))!important;gap:5px!important}
+  #recordSubmitPage .stat{padding:6px!important;border-radius:10px!important}
+  #recordSubmitPage .stat .muted{font-size:11px!important}
+  #recordSubmitPage .stat b{font-size:18px!important}
+  #recordSubmitPage .detail-table-wrap>.table{min-width:760px}
+  /* V178：手機底部導覽強制同一排，不換行 */
+  .bottom-nav{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:stretch!important;overflow-x:auto!important;overflow-y:hidden!important;white-space:nowrap!important;gap:2px!important;padding:3px 4px!important;-webkit-overflow-scrolling:touch!important}
+  .bottom-nav button,.bottom-nav .navbtn{flex:0 0 auto!important;width:auto!important;min-width:52px!important;max-width:none!important;display:inline-flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;white-space:nowrap!important}
+  .bottom-nav button[data-page="recordSubmit"],.bottom-nav .navbtn[data-page="recordSubmit"]{min-width:54px!important}
+}
 </style>
 
-</style></head><body>
+<style>
+/* V180：翻譯手機紀錄單繳交版面修正與提醒測試 */
+#recordSubmitPage .v180-test-wrap{display:grid;grid-template-columns:1fr;gap:8px;margin:8px 0}
+#recordSubmitPage .v180-test-title{font-size:13px;font-weight:900;color:#475569;margin-top:4px}
+#recordSubmitPage .v180-overdue-test{border:2px solid #dc2626;background:linear-gradient(135deg,#fee2e2,#fff7ed);color:#7f1d1d;border-radius:16px;padding:12px 14px;box-shadow:0 0 0 4px rgba(220,38,38,.16),0 8px 20px rgba(220,38,38,.18);font-weight:900}
+#recordSubmitPage .v180-overdue-test .big{font-size:18px;line-height:1.35;margin-bottom:4px}
+#recordSubmitPage .v180-week-test{border:1px solid #f59e0b;background:#fffbeb;color:#92400e;border-radius:14px;padding:10px 12px;box-shadow:0 4px 12px rgba(245,158,11,.16);font-weight:800}
+#recordSubmitPage .v180-week-test .big{font-size:15px;line-height:1.35;margin-bottom:3px}
+#recordSubmitPage .v180-test-meta{font-size:12px;line-height:1.45;font-weight:700;opacity:.92}
+@media(max-width:760px){
+  #recordSubmitPage .toolbar{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(72px,.72fr)!important;gap:6px!important;align-items:center!important;overflow:visible!important;padding:0!important;width:100%!important}
+  #recordSubmitPage .toolbar label{display:none!important}
+  #recordSubmitPage .toolbar input,#recordSubmitPage .toolbar select{width:100%!important;min-width:0!important;height:34px!important;font-size:12px!important;padding:4px 7px!important;border-radius:8px!important}
+  #recordSubmitMonth{grid-column:1/2!important;grid-row:1!important;min-width:0!important}
+  #recordSubmitYear{grid-column:2/3!important;grid-row:1!important;width:100%!important;min-width:0!important}
+  #recordSubmitRefresh{grid-column:1/-1!important;grid-row:2!important;width:100%!important;min-width:100%!important;height:52px!important;font-size:17px!important;font-weight:900!important;border-radius:14px!important;margin:2px 0 0!important;padding:12px!important;box-shadow:0 6px 16px rgba(37,99,235,.20)!important}
+  #recordSubmitStatus{grid-column:1/-1!important;grid-row:3!important;width:100%!important;min-width:0!important;height:34px!important}
+  #recordSubmitPage .v176-summary-alert.danger{border-width:2px!important;box-shadow:0 0 0 3px rgba(220,38,38,.14)!important;font-size:13px!important}
+  #recordSubmitPage .v176-summary-alert:not(.danger):not(.ok){font-size:12px!important}
+  #recordSubmitPage .v180-overdue-test{padding:12px!important}
+}
+
+
+/* V182：紀錄單繳交提醒改為實際資料提醒，不顯示測試區與催繳範本文字 */
+#recordSubmitPage .v176-summary-alert.danger{background:#fff200!important;border:2px solid #f59e0b!important;color:#7c2d12!important;box-shadow:0 0 0 4px rgba(245,158,11,.22),0 8px 22px rgba(245,158,11,.18)!important;font-size:17px!important;line-height:1.45!important}
+#recordSubmitPage .v176-summary-alert.week{background:#ffe4ef!important;border:2px solid #f9a8d4!important;color:#9d174d!important;box-shadow:0 6px 18px rgba(249,168,212,.25)!important;font-size:16px!important;line-height:1.45!important}
+#recordSubmitPage .v182-action-btn{white-space:nowrap;background:#2563eb!important;border-color:#2563eb!important;color:#fff!important}
+#recordSubmitPage .v176-row-overdue{background:#fffbeb!important}
+@media(max-width:760px){#recordSubmitPage .v176-summary-alert.danger{font-size:15px!important;padding:10px 12px!important}#recordSubmitPage .v176-summary-alert.week{font-size:14px!important;padding:10px 12px!important}#recordSubmitPage .v182-action-btn{width:100%;height:36px;font-size:13px}}
+
+</style>
+</head><body>
 <div id="loginView" class="login-wrap"><div class="login-card"><h1>FOR-e 共享排程系統</h1><div class="toolbar hide"><button type="button" id="loginTab" class="primary">登入</button><button type="button" id="registerTab">註冊</button><button type="button" id="resetBtn" class="ghost">重置測試資料</button></div><div id="loginForm"><div class="field"><label>Email</label><input id="loginEmail" value="" placeholder="name@company.com"></div><div class="field"><label>密碼</label><input id="loginPassword" type="password" value=""></div><button id="doLogin" class="primary" type="button">登入</button><button id="quickLogin" type="button" class="hide">快速登入測試帳號</button><button id="mobileForceLogin" type="button" class="hide">手機測試一鍵進入</button><div id="loginMsg" class="muted" style="margin-top:8px"></div></div><div id="registerForm" class="hide"><div class="row"><div class="field"><label>姓名</label><input id="regName"></div><div class="field"><label>角色</label><select id="regRole"><option value="general">一般人員</option><option value="staff">翻譯</option><option value="supervisor">主管</option><option value="adminStaff">行政系</option></select></div></div><div class="field"><label>Email</label><input id="regEmail"></div><div class="field"><label>密碼</label><input id="regPassword" type="password"></div><button type="button" id="doRegister" class="primary">註冊</button></div></div></div>
 <div id="appView" class="hide"><div class="topbar"><div class="brand">FOR-e 共享排程系統</div><div class="toolbar"><span id="currentUserLabel"></span><button id="logoutBtn">登出</button></div></div><div class="layout"><aside class="side"><button class="navbtn active" data-page="calendar"><span class="mono-ico ico-calendar"></span>行程總覽</button><button class="navbtn" data-page="fieldCalendar"><span class="mono-ico ico-car"></span>外務行程</button><button class="navbtn" data-page="roomBooking"><span class="mono-ico ico-room"></span>會議室預約</button><button class="navbtn" data-page="fieldDetails"><span class="mono-ico ico-list"></span>外務明細</button><button class="navbtn" data-page="personalDetails"><span class="mono-ico ico-star"></span>個人行程表</button><button class="navbtn" data-page="today"><span class="mono-ico ico-sun"></span>今日總覽</button><button class="navbtn" data-page="incidents"><span class="mono-ico ico-warning"></span>異況追蹤</button><button class="navbtn app-only" data-page="mobile"><span class="mono-ico ico-star"></span>APP個人行程</button><button class="navbtn" data-page="reports"><span class="mono-ico ico-chart"></span>統計報表</button><button class="navbtn" data-page="serviceRecords"><span class="mono-ico ico-clipboard"></span>服務紀錄單</button><button class="navbtn" data-page="audit"><span class="mono-ico ico-doc"></span>Audit Log</button><button class="navbtn" data-page="line"><span class="mono-ico ico-chat"></span>LINE通知</button><button class="navbtn" data-page="theme"><span class="mono-ico ico-palette"></span>顏色設定</button><button class="navbtn" data-page="settings"><span class="mono-ico ico-link"></span>Airtable/Webhook</button><button class="navbtn" data-page="users"><span class="mono-ico ico-user"></span>人員/帳號</button><hr></aside><main class="main">
 <div class="bottom-nav"><button class="navbtn active" data-page="calendar"><span class="mono-ico ico-calendar"></span>總覽</button><button class="navbtn" data-page="fieldCalendar"><span class="mono-ico ico-car"></span>外務</button><button class="navbtn" data-page="roomBooking"><span class="mono-ico ico-room"></span>會議室</button><button class="navbtn" data-page="mobile"><span class="mono-ico ico-star"></span>個人</button><button class="navbtn" data-page="today"><span class="mono-ico ico-sun"></span>今日</button><button class="navbtn" data-page="incidents"><span class="mono-ico ico-warning"></span>異況</button><button class="navbtn" data-page="reports"><span class="mono-ico ico-chart"></span>統計</button><button class="navbtn" data-page="line"><span class="mono-ico ico-chat"></span>通知</button></div>
@@ -759,18 +849,18 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 <section id="roomBookingPage" class="page hide"><div class="panel"><div class="section-title"><h2>會議室預約</h2></div><div class="form-top-toolbar v116-week-row"><button id="roomPrevWeek">上一週</button><input id="roomBookingWeekPicker" type="date" class="mini"><button id="roomNextWeek">下一週</button><button id="addRoomBookingBtn" class="primary" style="white-space:nowrap;">新增預約</button></div><div class="calendar-operation-hint">操作提示：雙擊空白格新增，點預約可修改。</div><details class="mobile-filter-collapse v116-static-filter"><summary><span>會議室篩選</span><small>點此展開</small></summary><div class="toolbar"><select id="roomBookingRoomFilter" class="mini"><option value="">全部會議室</option></select><select id="roomBookingDeptFilter" class="mini"><option value="">全部部門</option></select><input id="roomBookingKeyword" class="mini" placeholder="會議名稱/部門/會議室"><button id="clearRoomBookingFilters">清除</button></div></details></div><div id="roomBookingArea"></div></section>
 <section id="fieldCalendarPage" class="page hide"><div class="panel"><div class="section-title"><h2>外務行程</h2></div><div class="form-top-toolbar v116-week-row"><button id="fieldPrevWeek">上一週</button><input id="fieldWeekPicker" type="date" class="mini"><button id="fieldNextWeek">下一週</button><button id="fieldAddBtn" class="primary" style="white-space:nowrap;">新增外務行程</button></div><div class="calendar-operation-hint">操作提示：雙擊空白格新增，點行程可修改。</div><details class="mobile-filter-collapse v116-static-filter"><summary><span>外務篩選</span><small>點此展開</small></summary><div class="toolbar"><select id="fieldViewMode" class="mini"><option value="allWeek">全部人員當週</option><option value="selectedWeek">依所選人員當週</option><option value="personalWeek">個人當周</option><option value="personalMonth">個人當月</option><option value="personalDay">個人當天</option></select><div id="fieldPersonFilter" class="multi-select mini" data-label="全部人員名稱"></div><div id="fieldLocationFilter" class="multi-select mini" data-label="全部地點"></div><div id="fieldPurposeFilter" class="multi-select mini" data-label="全部目的"></div><div id="fieldStatusFilter" class="multi-select mini" data-label="全部狀態"></div><button id="fieldClearFilter">清除</button><button id="fieldExportBtn" class="export-control export-control">匯出外務 CSV</button></div></details></div><div id="fieldCalendarArea"></div></section>
 
-<section id="fieldDetailsPage" class="page hide"><div class="panel"><div class="section-title"><h2>外務明細</h2><button id="refreshFieldDetails" class="primary" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;margin-left:auto;">重新整理</button><div class="v141-box" data-label="外務明細" style="margin-left:0;" data-mode="month" style="display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin-left:auto;"><select class="mini v141-sel" title="匯出方式" style="width:auto;min-width:60px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option><option value="range">區間</option></select><input class="mini v141-year" type="number" min="2024" max="2035" style="display:none;width:72px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="年度"><input class="mini v141-month" type="month" style="display:inline-flex;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="月份"><input class="mini v141-day" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="日期"><input class="mini v141-start" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="起日"><input class="mini v141-end" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="迄日"><button class="primary v141-btn" type="button" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;">匯出CSV</button></div></div><div class="toolbar form-top-toolbar field-detail-actionbar" style="display:none"><button id="exportFieldDetailsBtn" style="display:none!important">匯出外務明細 CSV</button></div><div class="toolbar field-detail-filterbar"><label class="muted">起日</label><input id="fieldDetailStart" type="date" class="mini"><label class="muted">迄日</label><input id="fieldDetailEnd" type="date" class="mini"><select id="fieldDetailPerson" class="mini"><option value="">全部人員</option></select><select id="fieldDetailPurpose" class="mini hide"><option value="">全部目的</option></select><select id="fieldDetailLocation" class="mini"><option value="">全部地點</option></select><select id="fieldDetailStatus" class="mini"><option value="">全部狀態</option></select><input id="fieldDetailKeyword" class="mini" placeholder="內容/地址/關鍵字"><select id="fieldDetailSortBy" class="mini"><option value="date">依日期</option><option value="person">依人員</option><option value="purpose">依目的</option><option value="location">依地點</option><option value="status">依狀態</option></select><select id="fieldDetailSortDir" class="mini"><option value="asc">遞增</option><option value="desc">遞減</option></select><button id="applyFieldDetailSort" class="primary">一鍵排序</button><button id="clearFieldDetails">清除</button></div></div><div class="panel"><div id="fieldDetailStats" class="statgrid"></div></div><div class="panel"><div class="detail-table-wrap"><table class="table"><thead><tr><th>日期</th><th>時間</th><th>人員</th><th>目的</th><th>地點</th><th>地址</th><th>狀態</th><th>內容</th><th>特殊提醒</th><th>現金</th><th>印章</th><th>證件</th><th>下一次領件</th><th>送件失敗原因</th></tr></thead><tbody id="fieldDetailRows"></tbody></table></div></div></section>
-<section id="personalDetailsPage" class="page hide"><div class="panel"><div class="section-title"><h2>個人行程表｜行程總覽</h2><div class="toolbar"><button id="refreshPersonalDetails" class="primary">重新整理</button><button id="exportPersonalDetailsBtn" style="display:none!important">匯出個人行程 CSV</button><div class="v141-box" data-label="個人行程" data-mode="month" style="display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin-left:auto;"><select class="mini v141-sel" title="匯出方式" style="width:auto;min-width:60px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option><option value="range">區間</option></select><input class="mini v141-year" type="number" min="2024" max="2035" style="display:none;width:72px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="年度"><input class="mini v141-month" type="month" style="display:inline-flex;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="月份"><input class="mini v141-day" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="日期"><input class="mini v141-start" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="起日"><input class="mini v141-end" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="迄日"><button class="primary v141-btn" type="button" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;">匯出CSV</button></div></div></div><div class="toolbar"><label class="muted">起日</label><input id="personalDetailStart" type="date" class="mini"><label class="muted">迄日</label><input id="personalDetailEnd" type="date" class="mini"><select id="personalDetailPerson" class="mini"><option value="">全部人員</option></select><select id="personalDetailType" class="mini"><option value="">全部行程類型</option></select><select id="personalDetailStatus" class="mini"><option value="">全部狀態</option><option>未完成</option><option>已完成</option><option>取消</option></select><input id="personalDetailKeyword" class="mini" placeholder="地點 / 客戶/辦理內容/內容說明"><select id="personalDetailSortBy" class="mini"><option value="date">依日期</option><option value="person">依人員</option><option value="type">依行程類型</option><option value="status">依狀態</option><option value="location">依地點 / 客戶</option></select><select id="personalDetailSortDir" class="mini"><option value="asc">遞增</option><option value="desc">遞減</option></select><button id="applyPersonalDetailSort" class="primary">一鍵排序</button><button id="clearPersonalDetails">清除</button></div><div class="muted" style="margin-top:8px">預設顯示登入帳號對應人員的行程；如需查看其他人，請由「人員」下拉選單切換。</div></div><div id="personalDesktopAlertPanel" class="panel"><div class="section-title"><h2>待確認 / 待通知提醒</h2><span class="muted">逃跑、轉出、住變、返台、驗證、提醒事項</span></div><div id="personalDesktopAlertRows"></div></div><div id="assignedTrackingPanel" class="panel"><div class="section-title"><h2>我指派的事項追蹤</h2><span class="muted">只追蹤你建立並指派給他人的任務，不列入個人行程表。</span></div><div class="detail-table-wrap"><table class="table"><thead><tr><th>日期</th><th>時間</th><th>執行者</th><th>行程類型</th><th>地點 / 客戶</th><th>辦理內容</th><th>狀態</th><th>操作</th></tr></thead><tbody id="assignedTrackRows"></tbody></table></div></div><div class="panel"><div id="personalDetailStats" class="statgrid"></div></div><div class="panel"><div class="detail-table-wrap"><table class="table"><thead><tr><th>日期</th><th>時間</th><th>人員</th><th>類別</th><th>行程類型</th><th>附加行程</th><th>地點 / 客戶</th><th>辦理內容</th><th>狀態</th><th>內容說明</th><th>公務車</th><th>服務紀錄單</th></tr></thead><tbody id="personalDetailRows"></tbody></table></div></div></section>
+<section id="fieldDetailsPage" class="page hide"><div class="panel"><div class="section-title"><h2>外務明細</h2><div class="v141-box" data-label="外務明細" style="margin-left:0;" data-mode="month" style="display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin-left:auto;"><button id="refreshFieldDetails" class="primary" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;">重新整理</button><select class="mini v141-sel" title="匯出方式" style="width:auto;min-width:60px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option><option value="range">區間</option></select><input class="mini v141-year" type="number" min="2024" max="2035" style="display:none;width:72px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="年度"><input class="mini v141-month" type="month" style="display:inline-flex;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="月份"><input class="mini v141-day" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="日期"><input class="mini v141-start" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="起日"><input class="mini v141-end" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="迄日"><button class="primary v141-btn" type="button" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;">匯出CSV</button></div></div><div class="toolbar form-top-toolbar field-detail-actionbar" style="display:none"><button id="exportFieldDetailsBtn" style="display:none!important">匯出外務明細 CSV</button></div><div class="toolbar field-detail-filterbar"><label class="muted">起日</label><input id="fieldDetailStart" type="date" class="mini"><label class="muted">迄日</label><input id="fieldDetailEnd" type="date" class="mini"><select id="fieldDetailPerson" class="mini"><option value="">全部人員</option></select><select id="fieldDetailPurpose" class="mini hide"><option value="">全部目的</option></select><select id="fieldDetailLocation" class="mini"><option value="">全部地點</option></select><select id="fieldDetailStatus" class="mini"><option value="">全部狀態</option></select><input id="fieldDetailKeyword" class="mini" placeholder="內容/地址/關鍵字"><select id="fieldDetailSortBy" class="mini"><option value="date">依日期</option><option value="person">依人員</option><option value="purpose">依目的</option><option value="location">依地點</option><option value="status">依狀態</option></select><select id="fieldDetailSortDir" class="mini"><option value="asc">遞增</option><option value="desc">遞減</option></select><button id="applyFieldDetailSort" class="primary">一鍵排序</button><button id="clearFieldDetails">清除</button></div></div><div class="panel"><div id="fieldDetailStats" class="statgrid"></div></div><div class="panel"><div class="detail-table-wrap"><table class="table"><thead><tr><th>日期</th><th>時間</th><th>人員</th><th>目的</th><th>地點</th><th>地址</th><th>狀態</th><th>內容</th><th>特殊提醒</th><th>現金</th><th>印章</th><th>證件</th><th>下一次領件</th><th>送件失敗原因</th></tr></thead><tbody id="fieldDetailRows"></tbody></table></div></div></section>
+<section id="personalDetailsPage" class="page hide"><div class="panel"><div class="section-title"><h2>個人行程表｜行程總覽</h2><div class="toolbar"><button id="exportPersonalDetailsBtn" style="display:none!important">匯出個人行程 CSV</button><div class="v141-box" data-label="個人行程" data-mode="month" style="display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin-left:auto;"><button id="refreshPersonalDetails" class="primary" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;">重新整理</button><select class="mini v141-sel" title="匯出方式" style="width:auto;min-width:60px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option><option value="range">區間</option></select><input class="mini v141-year" type="number" min="2024" max="2035" style="display:none;width:72px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="年度"><input class="mini v141-month" type="month" style="display:inline-flex;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="月份"><input class="mini v141-day" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="日期"><input class="mini v141-start" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="起日"><input class="mini v141-end" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="迄日"><button class="primary v141-btn" type="button" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;">匯出CSV</button></div></div></div><div class="toolbar"><label class="muted">起日</label><input id="personalDetailStart" type="date" class="mini"><label class="muted">迄日</label><input id="personalDetailEnd" type="date" class="mini"><select id="personalDetailPerson" class="mini"><option value="">全部人員</option></select><select id="personalDetailType" class="mini"><option value="">全部行程類型</option></select><select id="personalDetailStatus" class="mini"><option value="">全部狀態</option><option>未完成</option><option>已完成</option><option>取消</option></select><input id="personalDetailKeyword" class="mini" placeholder="地點 / 客戶/辦理內容/內容說明"><select id="personalDetailSortBy" class="mini"><option value="date">依日期</option><option value="person">依人員</option><option value="type">依行程類型</option><option value="status">依狀態</option><option value="location">依地點 / 客戶</option></select><select id="personalDetailSortDir" class="mini"><option value="asc">遞增</option><option value="desc">遞減</option></select><button id="applyPersonalDetailSort" class="primary">一鍵排序</button><button id="clearPersonalDetails">清除</button></div><div class="muted" style="margin-top:8px">預設顯示登入帳號對應人員的行程；如需查看其他人，請由「人員」下拉選單切換。</div></div><div id="personalDesktopAlertPanel" class="panel"><div class="section-title"><h2>待確認 / 待通知提醒</h2><span class="muted">逃跑、轉出、住變、返台、驗證、提醒事項</span></div><div id="personalDesktopAlertRows"></div></div><div id="assignedTrackingPanel" class="panel"><div class="section-title"><h2>我指派的事項追蹤</h2><span class="muted">只追蹤你建立並指派給他人的任務，不列入個人行程表。</span></div><div class="detail-table-wrap"><table class="table"><thead><tr><th>日期</th><th>時間</th><th>執行者</th><th>行程類型</th><th>地點 / 客戶</th><th>辦理內容</th><th>狀態</th><th>操作</th></tr></thead><tbody id="assignedTrackRows"></tbody></table></div></div><div class="panel"><div id="personalDetailStats" class="statgrid"></div></div><div class="panel"><div class="detail-table-wrap"><table class="table"><thead><tr><th>日期</th><th>時間</th><th>人員</th><th>類別</th><th>行程類型</th><th>附加行程</th><th>地點 / 客戶</th><th>辦理內容</th><th>狀態</th><th>內容說明</th><th>公務車</th><th>服務紀錄單</th></tr></thead><tbody id="personalDetailRows"></tbody></table></div></div></section>
 <section id="mobilePage" class="page hide"><div class="mobile-hero"><div class="muted">PWA 手機版</div><h2 id="mobileHello">我的行程</h2><div id="mobileUserInfo" class="muted"></div><div class="install-tip">手機使用方式：用瀏覽器開啟後，選擇「加入主畫面」，即可像 APP 一樣開啟。</div></div><div id="mobilePersonalAlertPanel" class="panel"><div class="section-title"><h2>待確認 / 待通知提醒</h2><span class="muted">逃跑、轉出、住變、返台、驗證、提醒事項</span></div><div id="mobilePersonalAlertRows"></div></div><div class="panel"><div class="mobile-filter"><div><label>查看人員</label><select id="mobilePerson"></select></div><div><label>日期</label><input id="mobileDate" type="date"></div></div><div class="mobile-actions"><button id="mobileToday" class="primary">今天</button><button id="mobileTomorrow">明天</button><button id="mobileWeek">本週</button><button id="mobileAddEvent">新增行程</button></div><div id="mobileStats" class="statgrid"></div></div><div id="mobileList"></div></section>
 <section id="todayPage" class="page hide"><div class="panel"><div class="section-title"><h2>今日行程總覽</h2><button id="refreshToday">重新整理</button></div><div id="todayStats" class="statgrid"></div></div><div id="mobileAlertPanel" class="panel"><div class="section-title"><h2>提醒通知</h2></div><div id="mobileAlertRows"></div></div><div class="panel"><div class="detail-table-wrap today-detail-wrap"><table class="table today-table"><thead><tr><th class="today-executor-th">執行者</th><th class="today-time-th">時間</th><th>類型</th><th>地點 / 客戶</th><th>辦理內容</th><th>狀態</th><th>公務車</th></tr></thead><tbody id="todayRows"></tbody></table></div></div></section>
 
 <section id="incidentsPage" class="page hide"><div class="panel"><div class="section-title"><h2>異況紀錄追蹤</h2><div class="toolbar"><button id="addIncidentBtn" class="primary">新增異況</button><button id="exportIncidentsBtn" style="display:none!important">匯出異況 CSV</button><div class="v141-box" data-label="異況紀錄" data-mode="month" style="display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin-left:auto;"><select class="mini v141-sel" title="匯出方式" style="width:auto;min-width:60px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option><option value="range">區間</option></select><input class="mini v141-year" type="number" min="2024" max="2035" style="display:none;width:72px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="年度"><input class="mini v141-month" type="month" style="display:inline-flex;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="月份"><input class="mini v141-day" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="日期"><input class="mini v141-start" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="起日"><input class="mini v141-end" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="迄日"><button class="primary v141-btn" type="button" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;">匯出CSV</button></div></div></div><div class="incident-toolbar"><label class="muted">發生起日</label><input id="incidentStart" type="date" class="mini"><label class="muted">發生迄日</label><input id="incidentEnd" type="date" class="mini"><select id="incidentTypeFilter" class="mini"><option value="">全部異況類型</option></select><select id="incidentStatusFilter" class="mini"><option value="">全部狀態</option></select><select id="incidentOwnerFilter" class="mini"><option value="">全部負責人</option></select><select id="incidentClosedFilter" class="mini"><option value="open">未結案</option><option value="all">全部</option><option value="closed">已結案</option><option value="overdue">逾期未追蹤</option></select><input id="incidentKeyword" class="mini" placeholder="工人/客戶/地點/關鍵字"><button id="clearIncidentFilters">清除</button></div><div class="muted" style="margin-top:8px">異況是案件本體，可往下新增追蹤紀錄；若最後變成逃跑、轉出、住變、返台、驗證或提醒事項，可直接建立到執行者行事曆。</div></div><div class="panel"><div id="incidentStats" class="incident-kpi"></div></div><div class="panel"><div class="incident-table-wrap"><table class="table incident-table"><thead><tr><th>發生日期</th><th>緊急程度</th><th>異況類型</th><th>地點 / 客戶</th><th>工人</th><th>異況標題</th><th>負責人</th><th>狀態</th><th>下次追蹤日</th><th>最後追蹤</th><th>操作</th></tr></thead><tbody id="incidentRows"></tbody></table></div></div></section>
-<section id="reportsPage" class="page hide"><div class="panel"><div class="section-title"><h2>統計報表｜每月/年度行程總數與分類總數</h2><div class="toolbar"><button id="calcReportBtn" class="primary">產生統計</button><button id="saveReportBtn">記錄本次統計</button><button id="exportReportBtn" style="display:none!important">匯出統計 CSV</button><div class="v141-box" data-label="統計報表" data-mode="month" style="display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin-left:auto;"><select class="mini v141-sel" title="匯出方式" style="width:auto;min-width:60px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option><option value="range">區間</option></select><input class="mini v141-year" type="number" min="2024" max="2035" style="display:none;width:72px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="年度"><input class="mini v141-month" type="month" style="display:inline-flex;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="月份"><input class="mini v141-day" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="日期"><input class="mini v141-start" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="起日"><input class="mini v141-end" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="迄日"><button class="primary v141-btn" type="button" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;">匯出CSV</button></div></div></div><div class="toolbar"><label class="muted">統計年月</label><input id="reportMonth" type="month" class="mini"><label class="muted">統計年度</label><input id="reportYear" type="number" class="mini" min="2024" max="2035" step="1"><select id="reportGroup" class="mini"></select><select id="reportPerson" class="mini"></select></div><div class="muted" style="margin-top:8px">統計方式：依行事曆實際顯示計算；同一行程若跨多日，會依每日各計 1 次；同一行程若顯示在新增者與執行者兩人行事曆，兩人各計 1 次。已刪除行程不列入，取消行程會列入狀態統計。</div></div><div class="panel"><h2>月統計總覽</h2><div id="reportMonthStats" class="statgrid"></div><div class="chart-grid"><div><h3>月分類圓餅圖</h3><canvas id="monthPieChart" width="360" height="260"></canvas></div><div><h3>年度每月曲線圖</h3><canvas id="yearLineChart" width="520" height="260"></canvas></div></div></div><div class="panel"><div class="section-title"><h2>每人每月行程總數與分類總數</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportMonthHead"></thead><tbody id="reportMonthRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>一部翻譯 / 二部翻譯 月數據與總計</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportMonthDeptHead"></thead><tbody id="reportMonthDeptRows"></tbody></table></div></div><div class="panel"><h2>年度統計總覽</h2><div id="reportYearStats" class="statgrid"></div><div class="chart-grid"><div><h3>年度分類圓餅圖</h3><canvas id="yearPieChart" width="360" height="260"></canvas></div></div></div><div class="panel"><div class="section-title"><h2>每人年度行程總數與分類總數</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportYearHead"></thead><tbody id="reportYearRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>一部翻譯 / 二部翻譯 年數據與總計</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportYearDeptHead"></thead><tbody id="reportYearDeptRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>外務行程數據｜目的、地點、趟數</h2><span class="muted">依照外務行程資料計算，可依上方月份與年度切換。</span></div><div id="fieldReportStats" class="statgrid"></div><div class="chart-grid"><div><h3>當月目的圓餅圖</h3><canvas id="fieldMonthPurposePie" width="620" height="320"></canvas></div><div><h3>當月地點圓餅圖</h3><canvas id="fieldMonthLocationPie" width="620" height="320"></canvas></div><div><h3>年度目的圓餅圖</h3><canvas id="fieldYearPurposePie" width="620" height="320"></canvas></div><div><h3>年度地點圓餅圖</h3><canvas id="fieldYearLocationPie" width="620" height="320"></canvas></div><div class="wide-chart"><h3>年度每月外務趟數曲線圖</h3><canvas id="fieldYearMonthlyLine" width="1100" height="440"></canvas></div></div><h3>送件狀況紀錄｜當月</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>狀態</th><th>趟數</th></tr></thead><tbody id="fieldMonthStatusRows"></tbody></table></div><h3>送件狀況紀錄｜年度</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>狀態</th><th>趟數</th></tr></thead><tbody id="fieldYearStatusRows"></tbody></table></div><h3>當月各人員外務趟數明細</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>部門</th><th>人員</th><th>趟數</th></tr></thead><tbody id="fieldMonthReportRows"></tbody></table></div><h3>年度各人員外務趟數明細</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>部門</th><th>人員</th><th>趟數</th></tr></thead><tbody id="fieldYearReportRows"></tbody></table></div><h3>當月各地點外務趟數</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>地點</th><th>趟數</th></tr></thead><tbody id="fieldMonthLocationRows"></tbody></table></div><h3>年度各地點外務趟數</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>地點</th><th>趟數</th></tr></thead><tbody id="fieldYearLocationRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>已記錄的統計快照</h2><span class="muted">點「記錄本次統計」後會保留當下統計結果。</span></div><table class="table"><thead><tr><th>記錄時間</th><th>記錄人</th><th>統計月份</th><th>年度</th><th>月總數</th><th>年總數</th></tr></thead><tbody id="reportSnapshotRows"></tbody></table></div></section>
+<section id="reportsPage" class="page hide"><div class="panel"><div class="section-title"><h2>統計報表</h2><div class="toolbar"><button id="calcReportBtn" class="primary">產生統計</button><button id="saveReportBtn">記錄本次統計</button><button id="exportReportBtn" style="display:none!important">匯出統計 CSV</button><div class="v141-box" data-label="統計報表" data-mode="month" style="display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin-left:auto;"><select class="mini v141-sel" title="匯出方式" style="width:auto;min-width:60px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option><option value="range">區間</option></select><input class="mini v141-year" type="number" min="2024" max="2035" style="display:none;width:72px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="年度"><input class="mini v141-month" type="month" style="display:inline-flex;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="月份"><input class="mini v141-day" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="日期"><input class="mini v141-start" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="起日"><input class="mini v141-end" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="迄日"><button class="primary v141-btn" type="button" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;">匯出CSV</button></div></div></div><div class="toolbar"><label class="muted">統計年月</label><input id="reportMonth" type="month" class="mini"><label class="muted">統計年度</label><input id="reportYear" type="number" class="mini" min="2024" max="2035" step="1"><select id="reportGroup" class="mini"></select><select id="reportPerson" class="mini"></select></div><div class="muted" style="margin-top:8px">統計方式：依行事曆實際顯示計算；同一行程若跨多日，會依每日各計 1 次；同一行程若顯示在新增者與執行者兩人行事曆，兩人各計 1 次。已刪除行程不列入，取消行程會列入狀態統計。</div></div><div class="panel"><h2>月統計總覽</h2><div id="reportMonthStats" class="statgrid"></div><div class="chart-grid"><div><h3>月分類圓餅圖</h3><canvas id="monthPieChart" width="360" height="260"></canvas></div><div><h3>年度每月曲線圖</h3><canvas id="yearLineChart" width="520" height="260"></canvas></div></div></div><div class="panel"><div class="section-title"><h2>每人每月行程總數與分類總數</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportMonthHead"></thead><tbody id="reportMonthRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>一部翻譯 / 二部翻譯 月數據與總計</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportMonthDeptHead"></thead><tbody id="reportMonthDeptRows"></tbody></table></div></div><div class="panel"><h2>年度統計總覽</h2><div id="reportYearStats" class="statgrid"></div><div class="chart-grid"><div><h3>年度分類圓餅圖</h3><canvas id="yearPieChart" width="360" height="260"></canvas></div></div></div><div class="panel"><div class="section-title"><h2>每人年度行程總數與分類總數</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportYearHead"></thead><tbody id="reportYearRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>一部翻譯 / 二部翻譯 年數據與總計</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportYearDeptHead"></thead><tbody id="reportYearDeptRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>外務行程數據｜目的、地點、趟數</h2><span class="muted">依照外務行程資料計算，可依上方月份與年度切換。</span></div><div id="fieldReportStats" class="statgrid"></div><div class="chart-grid"><div><h3>當月目的圓餅圖</h3><canvas id="fieldMonthPurposePie" width="620" height="320"></canvas></div><div><h3>當月地點圓餅圖</h3><canvas id="fieldMonthLocationPie" width="620" height="320"></canvas></div><div><h3>年度目的圓餅圖</h3><canvas id="fieldYearPurposePie" width="620" height="320"></canvas></div><div><h3>年度地點圓餅圖</h3><canvas id="fieldYearLocationPie" width="620" height="320"></canvas></div><div class="wide-chart"><h3>年度每月外務趟數曲線圖</h3><canvas id="fieldYearMonthlyLine" width="1100" height="440"></canvas></div></div><h3>送件狀況紀錄｜當月</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>狀態</th><th>趟數</th></tr></thead><tbody id="fieldMonthStatusRows"></tbody></table></div><h3>送件狀況紀錄｜年度</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>狀態</th><th>趟數</th></tr></thead><tbody id="fieldYearStatusRows"></tbody></table></div><h3>當月各人員外務趟數明細</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>部門</th><th>人員</th><th>趟數</th></tr></thead><tbody id="fieldMonthReportRows"></tbody></table></div><h3>年度各人員外務趟數明細</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>部門</th><th>人員</th><th>趟數</th></tr></thead><tbody id="fieldYearReportRows"></tbody></table></div><h3>當月各地點外務趟數</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>地點</th><th>趟數</th></tr></thead><tbody id="fieldMonthLocationRows"></tbody></table></div><h3>年度各地點外務趟數</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>地點</th><th>趟數</th></tr></thead><tbody id="fieldYearLocationRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>已記錄的統計快照</h2><span class="muted">點「記錄本次統計」後會保留當下統計結果。</span></div><table class="table"><thead><tr><th>記錄時間</th><th>記錄人</th><th>統計月份</th><th>年度</th><th>月總數</th><th>年總數</th></tr></thead><tbody id="reportSnapshotRows"></tbody></table></div></section>
 
 <section id="auditPage" class="page hide"><div class="panel"><div class="section-title"><h2>操作紀錄 Audit Log</h2><button id="exportLogBtn" class="export-control export-control">匯出紀錄 CSV</button></div><table class="table"><thead><tr><th>時間</th><th>操作人</th><th>動作</th><th>行程</th><th>欄位</th><th>修改前</th><th>修改後</th></tr></thead><tbody id="auditRows"></tbody></table></div></section>
 <section id="linePage" class="page hide"><div class="panel"><div class="section-title"><h2>LINE 通知文字</h2><button id="copyLineBtn" class="primary">複製文字</button></div><pre id="lineText"></pre></div></section>
 <section id="themePage" class="page hide"><div class="panel"><div class="section-title"><h2>顏色設定</h2><span class="muted">所有權限皆可調整背景色；儲存後會套用在目前瀏覽器。</span></div><div class="row"><div class="field"><label>日期欄位背景色</label><div class="color-setting"><input id="themeDateHeader" type="color"><span class="color-swatch" data-swatch="themeDateHeader"></span><span class="color-code" data-code="themeDateHeader"></span></div></div><div class="field"><label>人員名稱欄位背景色</label><div class="color-setting"><input id="themePersonCell" type="color"><span class="color-swatch" data-swatch="themePersonCell"></span><span class="color-code" data-code="themePersonCell"></span></div></div></div><div class="row"><div class="field"><label>人員職務/名字顯示背景色（預設）</label><div class="color-setting"><input id="themePersonName" type="color"><span class="color-swatch" data-swatch="themePersonName"></span><span class="color-code" data-code="themePersonName"></span></div></div><div class="field"><label>一部翻譯人員名稱背景色</label><div class="color-setting"><input id="themePersonOne" type="color"><span class="color-swatch" data-swatch="themePersonOne"></span><span class="color-code" data-code="themePersonOne"></span></div></div></div><div class="row"><div class="field"><label>二部翻譯人員名稱背景色</label><div class="color-setting"><input id="themePersonTwo" type="color"><span class="color-swatch" data-swatch="themePersonTwo"></span><span class="color-code" data-code="themePersonTwo"></span></div></div><div class="field"><label>假日/星期六日背景色</label><div class="color-setting"><input id="themeHoliday" type="color"><span class="color-swatch" data-swatch="themeHoliday"></span><span class="color-code" data-code="themeHoliday"></span></div></div></div><div class="row"><div class="field"><label>當日行程/今天背景色</label><div class="color-setting"><input id="themeToday" type="color"><span class="color-swatch" data-swatch="themeToday"></span><span class="color-code" data-code="themeToday"></span></div></div><div class="field"><label>未完成行程背景色</label><div class="color-setting"><input id="themeEventPending" type="color"><span class="color-swatch" data-swatch="themeEventPending"></span><span class="color-code" data-code="themeEventPending"></span></div></div></div><div class="row"><div class="field"><label>已完成行程背景色</label><div class="color-setting"><input id="themeEventDone" type="color"><span class="color-swatch" data-swatch="themeEventDone"></span><span class="color-code" data-code="themeEventDone"></span></div></div><div class="field"><label>預覽</label><div style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 0"><span class="badge" style="background:var(--theme-date-header)">日期</span><span class="badge" style="background:var(--theme-person-one)">一部翻譯</span><span class="badge" style="background:var(--theme-person-two)">二部翻譯</span><span class="badge" style="background:var(--theme-holiday)">假日</span><span class="badge" style="background:var(--theme-today)">今天</span><span class="badge" style="background:var(--theme-event-pending)">未完成</span><span class="badge" style="background:var(--theme-event-done)">已完成</span><span class="badge" style="background:var(--theme-person-name)">職務預設</span></div></div></div><div class="panel" style="box-shadow:none;margin-top:12px"><div class="section-title"><h2>職務顏色設定</h2><span class="muted">可針對不同職務設定人員名稱背景色；儲存後會套用在行事曆左側人員名稱。</span></div><div id="jobColorSettings"></div></div><div class="toolbar"><button id="saveTheme" class="primary">儲存顏色設定</button><button id="resetTheme">還原預設顏色</button></div></div></section>
-<section id="serviceRecordsPage" class="page hide"><div id="srAdminSection"><div class="panel"><div class="section-title"><h2>服務紀錄單</h2><div class="toolbar"><button id="refreshServiceRecords" class="primary">重新整理</button><button id="exportServiceRecordsBtn" style="display:none!important">匯出服務紀錄 CSV</button><div class="v141-box" data-label="服務紀錄單" data-mode="month" style="display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin-left:auto;"><select class="mini v141-sel" title="匯出方式" style="width:auto;min-width:60px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option><option value="range">區間</option></select><input class="mini v141-year" type="number" min="2024" max="2035" style="display:none;width:72px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="年度"><input class="mini v141-month" type="month" style="display:inline-flex;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="月份"><input class="mini v141-day" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="日期"><input class="mini v141-start" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="起日"><input class="mini v141-end" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="迄日"><button class="primary v141-btn" type="button" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;">匯出CSV</button></div></div></div><div class="toolbar"><label class="muted">統計年月</label><input id="serviceMonth" type="month" class="mini"><label class="muted">統計年度</label><input id="serviceYear" type="number" class="mini" min="2024" max="2035" step="1"><label class="muted">部門</label><select id="serviceGroup" class="mini"><option value="">全部部門</option><option>一部翻譯</option><option>二部翻譯</option></select><label class="muted">翻譯</label><select id="servicePerson" class="mini"><option value="">全部翻譯</option></select><select id="serviceStatus" class="mini"><option value="">全部繳交狀態</option><option value="submitted">已繳交</option><option value="unsubmitted">未繳交</option></select></div><div class="muted" style="margin-top:8px">此頁統一放服務紀錄單相關數據；可依年度、部門、翻譯與繳交狀態篩選，已繳交與未繳交都會列出。</div></div><div class="panel"><div class="section-title"><h2>服務紀錄單繳交狀況</h2><span class="muted">依上方統計年月、年度、部門、翻譯與繳交狀態篩選。</span></div><div class="statgrid" id="serviceOverviewStats"></div><h3>當月各翻譯繳交狀況</h3><div class="detail-table-wrap"><table class="table"><thead id="serviceMonthHead"></thead><tbody id="serviceMonthRows"></tbody></table></div><h3>當年各翻譯繳交狀況</h3><div class="detail-table-wrap"><table class="table"><thead id="serviceYearHead"></thead><tbody id="serviceYearRows"></tbody></table></div><h3>一部翻譯 / 二部翻譯繳交狀況</h3><div class="detail-table-wrap"><table class="table"><thead id="serviceDeptHead"></thead><tbody id="serviceDeptRows"></tbody></table></div></div><div class="panel"><h2>當月各翻譯尚未繳交數字</h2><div id="serviceMonthPendingStats" class="statgrid"></div></div><div class="panel"><h2>當月服務紀錄單明細</h2><div id="serviceMonthStats" class="statgrid"></div><div class="detail-table-wrap"><table class="table"><thead><tr><th>日期</th><th>部門</th><th>翻譯</th><th>職務</th><th>行程類型</th><th>辦理內容</th><th>地點 / 客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead><tbody id="serviceMonthDetailRows"></tbody></table></div></div><div class="panel"><h2>當年度服務紀錄單明細</h2><div id="serviceYearStats" class="statgrid"></div><div class="detail-table-wrap"><table class="table"><thead><tr><th>月份</th><th>日期</th><th>部門</th><th>翻譯</th><th>職務</th><th>行程類型</th><th>辦理內容</th><th>地點 / 客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead><tbody id="serviceYearDetailRows"></tbody></table></div></div></div><div id="srStaffPage" style="display:none"></div></section><section id="settingsPage" class="page hide"><div class="panel"><h2>Airtable / Webhook 設定</h2><div class="row"><div class="field"><label>Airtable Base ID</label><input id="airtableBase"></div><div class="field"><label>Table Name</label><input id="airtableTable"></div></div><div class="field"><label>Webhook URL</label><input id="webhookUrl"></div><div class="field"><label>LINE 備註</label><textarea id="lineMemo"></textarea></div><div class="toolbar"><button id="saveSettings" class="primary">儲存設定</button><button id="simulateWebhook">產生 Webhook 模擬通知</button></div></div><div class="panel"><div class="section-title"><h2>管理員｜下拉選項維護</h2><span class="muted">每行一個選項，儲存後會同步到新增/篩選下拉。</span></div><div class="row"><div class="field"><label>行程類型</label><textarea id="optEventTypes"></textarea></div><div class="field"><label>翻譯狀態</label><textarea id="optTranslatorStatus"></textarea></div></div><div class="row"><div class="field"><label>提醒通知類型（每行一項）</label><textarea id="optAlertEventTypes" placeholder="逃跑通知
+<section id="serviceRecordsPage" class="page hide"><div id="srAdminSection"><div class="panel"><div class="section-title"><h2>服務紀錄單</h2><div class="toolbar"><button id="exportServiceRecordsBtn" style="display:none!important">匯出服務紀錄 CSV</button><div class="v141-box" data-label="服務紀錄單" data-mode="month" style="display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin-left:auto;"><button id="refreshServiceRecords" class="primary" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;">重新整理</button><select class="mini v141-sel" title="匯出方式" style="width:auto;min-width:60px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option><option value="range">區間</option></select><input class="mini v141-year" type="number" min="2024" max="2035" style="display:none;width:72px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="年度"><input class="mini v141-month" type="month" style="display:inline-flex;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="月份"><input class="mini v141-day" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="日期"><input class="mini v141-start" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="起日"><input class="mini v141-end" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="迄日"><button class="primary v141-btn" type="button" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;">匯出CSV</button></div></div></div><div class="toolbar"><label class="muted">統計年月</label><input id="serviceMonth" type="month" class="mini"><label class="muted">統計年度</label><input id="serviceYear" type="number" class="mini" min="2024" max="2035" step="1"><label class="muted">部門</label><select id="serviceGroup" class="mini"><option value="">全部部門</option><option>一部翻譯</option><option>二部翻譯</option></select><label class="muted">翻譯</label><select id="servicePerson" class="mini"><option value="">全部翻譯</option></select><select id="serviceStatus" class="mini"><option value="">全部繳交狀態</option><option value="submitted">已繳交</option><option value="unsubmitted">未繳交</option></select></div><div class="muted" style="margin-top:8px">此頁統一放服務紀錄單相關數據；可依年度、部門、翻譯與繳交狀態篩選，已繳交與未繳交都會列出。</div></div><div class="panel"><div class="section-title"><h2>服務紀錄單繳交狀況</h2><span class="muted">依上方統計年月、年度、部門、翻譯與繳交狀態篩選。</span></div><div class="statgrid" id="serviceOverviewStats"></div><h3>當月各翻譯繳交狀況</h3><div class="detail-table-wrap"><table class="table"><thead id="serviceMonthHead"></thead><tbody id="serviceMonthRows"></tbody></table></div><h3>當年各翻譯繳交狀況</h3><div class="detail-table-wrap"><table class="table"><thead id="serviceYearHead"></thead><tbody id="serviceYearRows"></tbody></table></div><h3>一部翻譯 / 二部翻譯繳交狀況</h3><div class="detail-table-wrap"><table class="table"><thead id="serviceDeptHead"></thead><tbody id="serviceDeptRows"></tbody></table></div></div><div class="panel"><h2>當月各翻譯尚未繳交數字</h2><div id="serviceMonthPendingStats" class="statgrid"></div></div><div class="panel"><h2>當月服務紀錄單明細</h2><div id="serviceMonthStats" class="statgrid"></div><div class="detail-table-wrap"><table class="table"><thead><tr><th>日期</th><th>部門</th><th>翻譯</th><th>職務</th><th>行程類型</th><th>辦理內容</th><th>地點 / 客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead><tbody id="serviceMonthDetailRows"></tbody></table></div></div><div class="panel"><h2>當年度服務紀錄單明細</h2><div id="serviceYearStats" class="statgrid"></div><div class="detail-table-wrap"><table class="table"><thead><tr><th>月份</th><th>日期</th><th>部門</th><th>翻譯</th><th>職務</th><th>行程類型</th><th>辦理內容</th><th>地點 / 客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead><tbody id="serviceYearDetailRows"></tbody></table></div></div></div><div id="srStaffPage" style="display:none"></div></section><section id="settingsPage" class="page hide"><div class="panel"><h2>Airtable / Webhook 設定</h2><div class="row"><div class="field"><label>Airtable Base ID</label><input id="airtableBase"></div><div class="field"><label>Table Name</label><input id="airtableTable"></div></div><div class="field"><label>Webhook URL</label><input id="webhookUrl"></div><div class="field"><label>LINE 備註</label><textarea id="lineMemo"></textarea></div><div class="toolbar"><button id="saveSettings" class="primary">儲存設定</button><button id="simulateWebhook">產生 Webhook 模擬通知</button></div></div><div class="panel"><div class="section-title"><h2>管理員｜下拉選項維護</h2><span class="muted">每行一個選項，儲存後會同步到新增/篩選下拉。</span></div><div class="row"><div class="field"><label>行程類型</label><textarea id="optEventTypes"></textarea></div><div class="field"><label>翻譯狀態</label><textarea id="optTranslatorStatus"></textarea></div></div><div class="row"><div class="field"><label>提醒通知類型（每行一項）</label><textarea id="optAlertEventTypes" placeholder="逃跑通知
 轉出追蹤
 住變資訊
 返台提醒
@@ -4644,16 +4734,23 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
     const ok=downloadCsvV167(rowsFor(cfg.type,r.start,r.end),`${cfg.label}_${r.label}.csv`);
     if(ok)toast(`已匯出 ${cfg.label} CSV`);
   }
+  const REFRESH_PAGES={
+    fieldDetailsPage:{label:'重新整理',fn:()=>{if(typeof renderFieldDetails==='function')renderFieldDetails();}},
+    personalDetailsPage:{label:'重新整理',fn:()=>{if(typeof renderPersonalDetails==='function')renderPersonalDetails();}},
+    serviceRecordsPage:{label:'重新整理',fn:()=>{if(typeof renderServiceRecords==='function')renderServiceRecords();}}
+  };
   function makeBox(pageId){
+    const refreshCfg=REFRESH_PAGES[pageId];
     const box=document.createElement('div');
-    box.className='v115-export-box v167-export-box';
+    box.className='v115-export-box v167-export-box'+(refreshCfg?' has-refresh':'');
     box.dataset.pageId=pageId;
-    box.innerHTML='<select class="mini v167-mode" title="匯出範圍"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option></select><input class="mini v167-year" type="number" min="2024" max="2035" title="年度"><input class="mini v167-month" type="month" title="月份"><input class="mini v167-day" type="date" title="日期"><button class="primary v167-btn" type="button">匯出CSV</button>';
+    box.innerHTML=(refreshCfg?'<button class="primary v167-refresh-btn" type="button">'+refreshCfg.label+'</button>':'')+'<select class="mini v167-mode" title="匯出範圍"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option></select><input class="mini v167-year" type="number" min="2024" max="2035" title="年度"><input class="mini v167-month" type="month" title="月份"><input class="mini v167-day" type="date" title="日期"><button class="primary v167-btn" type="button">匯出CSV</button>';
     box.querySelector('.v167-year').value=String(new Date().getFullYear());
     box.querySelector('.v167-month').value=monthSafe();
     box.querySelector('.v167-day').value=todaySafe();
     box.querySelector('.v167-mode').addEventListener('change',()=>syncMode(box));
     box.querySelector('.v167-btn').addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();exportPage(pageId,box);return false;});
+    if(refreshCfg&&box.querySelector('.v167-refresh-btn'))box.querySelector('.v167-refresh-btn').addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();refreshCfg.fn();toast('已重新整理');return false;});
     syncMode(box);return box;
   }
   function pageHeader(pageId){const page=$(pageId);return page&&(page.querySelector(':scope > .panel:first-child .section-title')||page.querySelector('.section-title'));}
@@ -4682,13 +4779,728 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
   }
   window.forEExportSyncV167=syncExports;
   const style=document.createElement('style');
-  style.textContent='.v167-export-box{display:inline-flex;align-items:center;gap:6px;margin-left:auto;flex-wrap:wrap;max-width:100%;}.v167-export-box select,.v167-export-box input{height:30px!important;padding:3px 6px!important;font-size:12px!important;border-radius:8px!important;width:auto!important;min-width:72px!important}.v167-export-box .v167-year{width:76px!important;min-width:76px!important}.v167-export-box .v167-month{min-width:126px!important}.v167-export-box .v167-day{min-width:132px!important}.v167-export-box .v167-btn{height:30px!important;padding:3px 10px!important;font-size:12px!important;border-radius:8px!important;white-space:nowrap!important;display:inline-flex!important;align-items:center!important;justify-content:center!important}.v167-hidden-export{display:none!important}@media(max-width:760px){.v167-export-box{width:100%;margin-left:0!important;overflow-x:auto}.v167-export-box select,.v167-export-box input,.v167-export-box button{flex:0 0 auto!important}}';
+  style.textContent='.v167-export-box{display:inline-flex;align-items:center;gap:6px;margin-left:auto;flex-wrap:wrap;max-width:100%;}.v167-export-box select,.v167-export-box input{height:30px!important;padding:3px 6px!important;font-size:12px!important;border-radius:8px!important;width:auto!important;min-width:72px!important}.v167-export-box .v167-year{width:76px!important;min-width:76px!important}.v167-export-box .v167-month{min-width:126px!important}.v167-export-box .v167-day{min-width:132px!important}.v167-export-box .v167-btn,.v167-export-box .v167-refresh-btn{height:30px!important;padding:3px 10px!important;font-size:12px!important;border-radius:8px!important;white-space:nowrap!important;display:inline-flex!important;align-items:center!important;justify-content:center!important}.v167-hidden-export{display:none!important}@media(max-width:760px){.v167-export-box:not(.has-refresh){display:none!important}.v167-export-box{width:auto!important;margin-left:0!important;overflow:visible!important}.v167-export-box .v167-mode,.v167-export-box .v167-year,.v167-export-box .v167-month,.v167-export-box .v167-day,.v167-export-box .v167-btn{display:none!important}.v167-export-box .v167-refresh-btn{display:inline-flex!important;flex:0 0 auto!important}}';
   document.head.appendChild(style);
   const _renderAll=renderAll;renderAll=function(){const r=_renderAll.apply(this,arguments);setTimeout(syncExports,0);setTimeout(syncExports,180);return r;};
   const _applyPermissionsUI=applyPermissionsUI;applyPermissionsUI=function(){const r=_applyPermissionsUI.apply(this,arguments);setTimeout(syncExports,0);return r;};
   document.addEventListener('click',()=>{setTimeout(syncExports,80);},true);
   document.addEventListener('DOMContentLoaded',()=>{setTimeout(syncExports,100);setTimeout(syncExports,600);});
   setTimeout(syncExports,250);setTimeout(syncExports,900);
+})();
+
+
+
+/* V176：翻譯「紀錄單繳交」獨立分頁（插入主程式 IIFE 內，避免讀不到 currentUser/state）
+   DRY：月/年統計與明細共用同一組 rows/stats/render helper。
+   KISS：只讀既有 events、participants、serviceRecord 欄位，不改原資料結構。
+   SOLID：權限、導覽、資料查詢、渲染各自分離；不碰登入流程與管理員服務紀錄單頁。 */
+(function(){
+  const PAGE='recordSubmit';
+  const PAGE_ID='recordSubmitPage';
+  const LABEL='紀錄單繳交';
+  const ONE_WEEK_DAYS=7;
+  const OVERDUE_DAYS=14;
+  const TRANSLATOR_ROLES=['staff','translator','schedule','dispatcher','sales','viewer'];
+
+  function q(sel,root=document){return root.querySelector(sel)}
+  function qa(sel,root=document){return Array.from(root.querySelectorAll(sel))}
+  function safe(v){return esc(String(v??''))}
+  function currentRawRole(){return currentUser?String(currentUser.role||''):''}
+  function isTranslatorAccount(){return !!(currentUser && TRANSLATOR_ROLES.includes(currentRawRole()))}
+  function currentPerson(){const id=userPersonId&&userPersonId(); return id?getPerson(id):null}
+  function monthNow(){return monthISO?monthISO():todayISO().slice(0,7)}
+  function yearNow(){return todayISO().slice(0,4)}
+  function dayAge(dateStr){
+    if(!dateStr)return 0;
+    const a=new Date(dateStr+'T00:00:00');
+    const b=new Date(todayISO()+'T00:00:00');
+    if(isNaN(a)||isNaN(b))return 0;
+    return Math.floor((b-a)/86400000);
+  }
+  function isServiceEvent(e){
+    if(!e||e.deleted||e.kind==='translatorStatus')return false;
+    try{return requiresServiceRecord(e)}catch(_){return false}
+  }
+  function isSubmitted(e){
+    try{return serviceSubmitted(e)}catch(_){return !!(e&&e.serviceRecordSubmitted&&e.serviceRecordDate)}
+  }
+  function ensureDemoRecordSubmitEvents(){
+    if(!isTranslatorAccount())return;
+    const person=currentPerson();
+    if(!person||!person.id)return;
+    if(!Array.isArray(state.events))state.events=[];
+    const today=todayISO();
+    const demos=[
+      {key:'overdue',date:dateAdd(today,-15),time:'09:00',type:'醫療',locationName:'【測試】桃園醫院',name:'【催繳測試】回診陪同服務紀錄單未繳',note:'此為紀錄單繳交頁面測試資料：超過 2 週未繳，應顯示亮黃色催繳提醒。',submitted:false},
+      {key:'week',date:dateAdd(today,-8),time:'10:30',type:'銀行',locationName:'【測試】第一銀行',name:'【1週提醒測試】開戶陪同服務紀錄單未繳',note:'此為紀錄單繳交頁面測試資料：滿 1 週未繳，應顯示粉紅色提醒。',submitted:false},
+      {key:'submitted',date:dateAdd(today,-3),time:'14:00',type:'面談',locationName:'【測試】工廠會議室',name:'【已繳交測試】工人面談服務紀錄單',note:'此為紀錄單繳交頁面測試資料：已繳交，用於確認已繳交統計。',submitted:true}
+    ];
+    let changed=false;
+    demos.forEach(d=>{
+      const id=`demo_recordsubmit_${person.id}_${d.key}`;
+      const base={
+        id,seriesId:'',seriesIndex:0,kind:'schedule',status:d.submitted?'已完成':'未完成',
+        startDate:d.date,endDate:d.date,startTime:d.time,endTime:'',type:d.type,name:d.name,
+        additionalType:'',additionalNote:'',locationName:d.locationName,address:'',vehicleNo:'',meetingRoom:'不指定',
+        participants:[person.id],assigneeIds:[person.id],note:d.note,
+        serviceRecordSubmitted:!!d.submitted,serviceRecordDate:d.submitted?d.date:'',
+        followupDate:'',followupTime:'',followupPersonId:'',followupRegNo:'',
+        createdBy:(currentUser&&currentUser.id)||'system',updatedBy:(currentUser&&currentUser.id)||'system',
+        createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),deleted:false,
+        recordSubmitDemo:true
+      };
+      const idx=state.events.findIndex(e=>e&&e.id===id);
+      if(idx>=0){
+        const e=state.events[idx];
+        ['startDate','endDate','startTime','type','name','locationName','note','status','serviceRecordSubmitted','serviceRecordDate'].forEach(k=>{
+          if(String(e[k]??'')!==String(base[k]??'')){e[k]=base[k];changed=true;}
+        });
+        if(!Array.isArray(e.participants)||!e.participants.includes(person.id)){e.participants=[person.id];changed=true;}
+        if(!Array.isArray(e.assigneeIds)||!e.assigneeIds.includes(person.id)){e.assigneeIds=[person.id];changed=true;}
+        e.recordSubmitDemo=true;
+      }else{
+        state.events.push(base);
+        changed=true;
+      }
+    });
+    if(changed){try{save();}catch(_){}}
+  }
+  function recordRows(){
+    if(!isTranslatorAccount())return [];
+    const person=currentPerson();
+    if(!person||!person.id)return [];
+    return (state.events||[])
+      .filter(e=>isServiceEvent(e)&&Array.isArray(e.participants)&&e.participants.includes(person.id))
+      .map(e=>({
+        event:e,
+        person,
+        date:e.startDate||'',
+        month:String(e.startDate||'').slice(0,7),
+        year:String(e.startDate||'').slice(0,4),
+        submitted:isSubmitted(e),
+        age:dayAge(e.startDate||'')
+      }))
+      .sort((a,b)=>String((b.date||'')+(b.event.startTime||'')).localeCompare(String((a.date||'')+(a.event.startTime||''))));
+  }
+  function filterStatus(rows,status){
+    if(status==='submitted')return rows.filter(x=>x.submitted);
+    if(status==='unsubmitted')return rows.filter(x=>!x.submitted);
+    return rows;
+  }
+  function stat(rows){
+    return {
+      total:rows.length,
+      submitted:rows.filter(x=>x.submitted).length,
+      unsubmitted:rows.filter(x=>!x.submitted).length,
+      weekWarning:rows.filter(x=>!x.submitted&&x.age>=ONE_WEEK_DAYS&&x.age<OVERDUE_DAYS).length,
+      overdue:rows.filter(x=>!x.submitted&&x.age>=OVERDUE_DAYS).length
+    };
+  }
+  function statHtml(s){
+    return [['總筆數',s.total],['已繳交',s.submitted],['未繳交',s.unsubmitted],['1週未繳提醒',s.weekWarning],['超過2週催繳',s.overdue]]
+      .map(([k,v])=>`<div class="stat"><div class="muted">${safe(k)}</div><b>${v}</b></div>`).join('');
+  }
+  function rowHtml(rows,emptyText){
+    if(!rows.length)return `<tr><td colspan="7" class="muted">${safe(emptyText)}</td></tr>`;
+    return rows.map(x=>{
+      const e=x.event;
+      const type=displayEventType?displayEventType(e.type):String(e.type||'');
+      const status=x.submitted
+        ? `<span class="badge">已繳交${e.serviceRecordDate?'｜'+safe(e.serviceRecordDate):''}</span>`
+        : (x.age>=OVERDUE_DAYS
+          ? `<span class="badge v176-badge-danger">😠 超過2週催繳｜${x.age} 天</span>`
+          : (x.age>=ONE_WEEK_DAYS
+            ? `<span class="badge v179-badge-warn">🙂 1週未繳提醒｜${x.age} 天</span>`
+            : `<span class="badge">未繳交｜${x.age} 天</span>`));
+      const action=x.submitted
+        ? `<span class="v188-paid-action">已繳交</span>`
+        : `<button class="small primary v182-action-btn v188-submit-btn ${x.age>=OVERDUE_DAYS?'v188-submit-overdue':''}" type="button" data-record-open="${safe(e.id)}">繳交</button>`;
+      return `<tr class="${(!x.submitted&&x.age>=OVERDUE_DAYS)?'v176-row-overdue':''}">
+        <td>${action}</td>
+        <td>${status}</td>
+        <td>${safe(x.date)}</td>
+        <td>${safe(type)}</td>
+        <td>${safe(e.locationName||'')}</td>
+        <td>${safe(e.name||'')}</td>
+        <td>${safe(e.status||'')}</td>
+      </tr>`;
+    }).join('');
+  }
+  function bindRecordActionButtons(){
+    qa('[data-record-open]').forEach(btn=>{
+      if(btn.dataset.v182)return;
+      btn.dataset.v182='1';
+      btn.onclick=ev=>{
+        ev.preventDefault();
+        const id=btn.getAttribute('data-record-open');
+        const e=(state.events||[]).find(x=>x&&x.id===id);
+        if(!e)return toast('找不到這筆行程');
+        try{openEventModal(e);}catch(_){toast('無法開啟行程，請從行事曆進入');}
+      };
+    });
+  }
+  function templateText(rows,person){return '';}
+  function templateHtml(rows,person){return '';}
+  function testHtml(){return '';}
+
+  function removeOldRecordPages(){
+    qa('#v173TranslatorServiceDesktop,#v173TranslatorServiceMobile,#translatorServicePage').forEach(el=>el.remove());
+    qa('.navbtn[data-page="translatorService"]').forEach(el=>el.remove());
+    const staff=$('srStaffPage');
+    if(staff){staff.innerHTML='';staff.style.setProperty('display','none','important');}
+  }
+  function ensurePage(){
+    removeOldRecordPages();
+    let page=$(PAGE_ID);
+    if(page)return page;
+    const main=q('.main')||q('main');
+    if(!main)return null;
+    page=document.createElement('section');
+    page.id=PAGE_ID;
+    page.className='page hide';
+    page.innerHTML=`
+      <div class="panel">
+        <div class="section-title">
+          <h2>${LABEL}</h2>
+          <span class="muted">翻譯專屬分頁，只顯示本帳戶服務紀錄單資料</span>
+        </div>
+        <div class="toolbar">
+          <label class="muted">查詢月份</label>
+          <input id="recordSubmitMonth" type="month" class="mini">
+          <label class="muted">查詢年度</label>
+          <input id="recordSubmitYear" type="number" class="mini" min="2024" max="2035" step="1">
+          <select id="recordSubmitStatus" class="mini">
+            <option value="">全部繳交狀態</option>
+            <option value="submitted">已繳交</option>
+            <option value="unsubmitted">未繳交</option>
+          </select>
+          <button id="recordSubmitRefresh" class="primary" type="button">重新整理</button>
+        </div>
+        <div class="record-submit-note">可同時查詢月份與年度資料；未繳交滿 1 週會顯示粉紅提醒，超過 2 週會顯示亮黃色催繳提醒。</div>
+        <div id="recordSubmitAlert"></div>
+        <div id="recordSubmitTest"></div>
+        <div id="recordSubmitTemplate"></div>
+      </div>
+      <div class="panel">
+        <h2>當月繳交紀錄</h2>
+        <div id="recordSubmitMonthStats" class="statgrid"></div>
+        <div class="detail-table-wrap"><table class="table"><thead><tr><th>操作</th><th>服務紀錄單繳交狀況</th><th>日期</th><th>類型</th><th>地點 / 客戶</th><th>辦理內容</th><th>行程狀態</th></tr></thead><tbody id="recordSubmitMonthRows"></tbody></table></div>
+      </div>
+      <div class="panel">
+        <h2>當年度繳交紀錄</h2>
+        <div id="recordSubmitYearStats" class="statgrid"></div>
+        <div class="detail-table-wrap"><table class="table"><thead><tr><th>操作</th><th>服務紀錄單繳交狀況</th><th>日期</th><th>類型</th><th>地點 / 客戶</th><th>辦理內容</th><th>行程狀態</th></tr></thead><tbody id="recordSubmitYearRows"></tbody></table></div>
+      </div>`;
+    main.appendChild(page);
+    return page;
+  }
+  function bindPage(){
+    const m=$('recordSubmitMonth'), y=$('recordSubmitYear'), st=$('recordSubmitStatus'), btn=$('recordSubmitRefresh');
+    if(m&&!m.value)m.value=monthNow();
+    if(y&&!y.value)y.value=yearNow();
+    [m,y,st].forEach(el=>{if(el&&!el.dataset.v176){el.dataset.v176='1';el.addEventListener('input',renderPage);el.addEventListener('change',renderPage);}});
+    if(btn&&!btn.dataset.v176){btn.dataset.v176='1';btn.onclick=ev=>{ev.preventDefault();renderPage();toast('已重新整理');};}
+    const copy=$('recordSubmitCopyTemplate');
+    if(copy&&!copy.dataset.v179){copy.dataset.v179='1';copy.onclick=async ev=>{ev.preventDefault();const t=$('recordSubmitTemplateText');if(!t)return;try{await navigator.clipboard.writeText(t.value);toast('已複製催繳範本');}catch(_){t.focus();t.select();document.execCommand('copy');toast('已複製催繳範本');}};}
+  }
+  function renderPage(){
+    const page=ensurePage();
+    if(!page)return;
+    bindPage();
+    const show=isTranslatorAccount();
+    page.style.display=show?'':'none';
+    if(!show)return;
+    ensureDemoRecordSubmitEvents();
+    const all=recordRows();
+    const month=($('recordSubmitMonth')&&$('recordSubmitMonth').value)||monthNow();
+    const year=String(($('recordSubmitYear')&&$('recordSubmitYear').value)||yearNow());
+    const status=($('recordSubmitStatus')&&$('recordSubmitStatus').value)||'';
+    const monthRows=filterStatus(all.filter(x=>x.month===month),status);
+    const yearRows=filterStatus(all.filter(x=>x.year===year),status);
+    const weekWarning=all.filter(x=>!x.submitted&&x.age>=ONE_WEEK_DAYS&&x.age<OVERDUE_DAYS);
+    const overdue=all.filter(x=>!x.submitted&&x.age>=OVERDUE_DAYS);
+    const p=currentPerson();
+    if($('recordSubmitAlert')){
+      const alerts=[];
+      if(overdue.length)alerts.push(`<div class="v176-summary-alert danger">😡 您有 ${overdue.length} 筆服務紀錄單超過 2 週未繳交，請立即補繳❗❗</div>`);
+      if(weekWarning.length)alerts.push(`<div class="v176-summary-alert week">🙂 您有 ${weekWarning.length} 筆服務紀錄單已滿 1 週未繳交，請留意並盡快繳交。</div>`);
+      if(!alerts.length)alerts.push(`<div class="v176-summary-alert ok">目前沒有超過 1 週未繳交的服務紀錄單。</div>`);
+      $('recordSubmitAlert').innerHTML=alerts.join('');
+    }
+    if($('recordSubmitTest'))$('recordSubmitTest').innerHTML=testHtml();
+    if($('recordSubmitTemplate'))$('recordSubmitTemplate').innerHTML=templateHtml(overdue,p);
+    if($('recordSubmitMonthStats'))$('recordSubmitMonthStats').innerHTML=statHtml(stat(monthRows));
+    if($('recordSubmitYearStats'))$('recordSubmitYearStats').innerHTML=statHtml(stat(yearRows));
+    if($('recordSubmitMonthRows'))$('recordSubmitMonthRows').innerHTML=rowHtml(monthRows,'此月份沒有符合條件的服務紀錄單');
+    if($('recordSubmitYearRows'))$('recordSubmitYearRows').innerHTML=rowHtml(yearRows,'此年度沒有符合條件的服務紀錄單');
+    bindRecordActionButtons();
+  }
+  function openRecordPage(){
+    if(!isTranslatorAccount())return toast('此頁僅供翻譯帳號使用');
+    ensurePage();
+    currentPage=PAGE;
+    qa('.page').forEach(p=>p.classList.add('hide'));
+    const page=$(PAGE_ID);
+    if(page)page.classList.remove('hide');
+    qa('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page===PAGE));
+    renderPage();
+  }
+  function makeBtn(label){
+    const btn=document.createElement('button');
+    btn.className='navbtn';
+    btn.dataset.page=PAGE;
+    btn.innerHTML='<span class="mono-ico ico-clipboard"></span>'+label;
+    btn.onclick=openRecordPage;
+    return btn;
+  }
+  function ensureNav(){
+    ensurePage();
+    const show=isTranslatorAccount();
+    const side=q('.side');
+    if(side){
+      let btn=side.querySelector(`.navbtn[data-page="${PAGE}"]`);
+      if(!btn){
+        btn=makeBtn(LABEL);
+        const ref=side.querySelector('.navbtn[data-page="line"]')||side.querySelector('.navbtn[data-page="serviceRecords"]')||side.lastElementChild;
+        ref?ref.insertAdjacentElement('beforebegin',btn):side.appendChild(btn);
+      }
+      btn.innerHTML='<span class="mono-ico ico-clipboard"></span>'+LABEL;
+      btn.onclick=openRecordPage;
+      btn.classList.toggle('hide',!show);
+      btn.classList.toggle('role-hidden',!show);
+      btn.style.display=show?'':'none';
+    }
+    const bottom=q('.bottom-nav');
+    if(bottom){
+      let btn=bottom.querySelector(`.navbtn[data-page="${PAGE}"]`);
+      if(!btn)btn=makeBtn('紀錄單');
+      btn.innerHTML='<span class="mono-ico ico-clipboard"></span>紀錄單';
+      btn.onclick=openRecordPage;
+      btn.classList.toggle('hide',!show);
+      btn.classList.toggle('role-hidden',!show);
+      btn.style.display=show?'':'none';
+      const ref=bottom.querySelector('.navbtn[data-page="line"]');
+      ref?bottom.insertBefore(btn,ref):bottom.appendChild(btn);
+    }
+    if(!show&&currentPage===PAGE){
+      currentPage=(window.innerWidth<=760)?'mobile':'personalDetails';
+      qa('.page').forEach(p=>p.classList.add('hide'));
+      const fallback=$(currentPage+'Page')||$('calendarPage');
+      if(fallback)fallback.classList.remove('hide');
+    }
+  }
+
+  const baseCanSeePage=canSeePage;
+  canSeePage=function(page){
+    if(page===PAGE)return isTranslatorAccount();
+    if(page==='translatorService')return false;
+    return baseCanSeePage(page);
+  };
+  if(typeof window.v105AllowedPages==='function'){
+    const baseAllowed=window.v105AllowedPages;
+    window.v105AllowedPages=function(){
+      const arr=baseAllowed().filter(x=>x!=='translatorService');
+      return isTranslatorAccount()?[...new Set([...arr,PAGE])]:arr.filter(x=>x!==PAGE);
+    };
+  }
+  if(typeof window.v105ApplyNav==='function'){
+    const baseApplyNav=window.v105ApplyNav;
+    window.v105ApplyNav=function(){baseApplyNav();ensureNav();};
+  }
+  if(typeof v105MobileBottomNavByRole==='function'){
+    const baseBottomNav=v105MobileBottomNavByRole;
+    v105MobileBottomNavByRole=function(){baseBottomNav();ensureNav();};
+    window.v105MobileBottomNavByRole=v105MobileBottomNavByRole;
+  }
+
+  const baseApplyPermissionsUI=applyPermissionsUI;
+  applyPermissionsUI=function(){baseApplyPermissionsUI();ensureNav();};
+  const baseRenderAll=renderAll;
+  renderAll=function(){baseRenderAll();setTimeout(()=>{ensureNav();renderPage();},50);};
+  const baseShowApp=showApp;
+  showApp=function(){baseShowApp();setTimeout(()=>{ensureNav();renderPage();},80);};
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{ensureNav();renderPage();},200));
+  window.renderRecordSubmitPageV176=renderPage;
+  window.ensureRecordSubmitPageV176=ensureNav;
+})();
+
+/* V177：翻譯手機底部新增「紀錄單繳交」按鈕與頁面入口
+   DRY：沿用 V176 的 recordSubmitPage / renderRecordSubmitPageV176，不重做資料計算。
+   KISS：只補手機底部導覽與頁面切換，不動登入與服務紀錄單資料結構。
+   SOLID：手機導覽顯示、頁面切換、權限判斷分開處理。 */
+(function(){
+  const PAGE='recordSubmit';
+  const PAGE_ID='recordSubmitPage';
+  const MOBILE_LABEL='繳交';
+  const FULL_LABEL='紀錄單繳交';
+
+  function q(sel,root=document){return root.querySelector(sel)}
+  function qa(sel,root=document){return Array.from(root.querySelectorAll(sel))}
+  function rawRole(){return String((currentUser&&currentUser.role)||'')}
+  function role(){
+    if(typeof normalizedRole==='function')return normalizedRole();
+    const r=rawRole();
+    if(['staff','translator','schedule','dispatcher','viewer'].includes(r))return 'staff';
+    return r||'staff';
+  }
+  function isTranslator(){
+    const r=rawRole();
+    return role()==='staff' || ['staff','translator','schedule','dispatcher','viewer'].includes(r);
+  }
+  function ensurePageReady(){
+    if(typeof window.ensureRecordSubmitPageV176==='function')window.ensureRecordSubmitPageV176();
+    if(typeof window.renderRecordSubmitPageV176==='function')window.renderRecordSubmitPageV176();
+    return document.getElementById(PAGE_ID);
+  }
+  function openPage(ev){
+    if(ev)ev.preventDefault();
+    if(!isTranslator()){
+      if(typeof toast==='function')toast('此頁僅供翻譯帳號使用');
+      return;
+    }
+    const page=ensurePageReady();
+    if(!page)return;
+    currentPage=PAGE;
+    qa('.page').forEach(p=>p.classList.add('hide'));
+    page.classList.remove('hide');
+    page.style.display='';
+    qa('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page===PAGE));
+    if(typeof window.renderRecordSubmitPageV176==='function')window.renderRecordSubmitPageV176();
+  }
+  function makeMobileBtn(){
+    const btn=document.createElement('button');
+    btn.className='navbtn';
+    btn.type='button';
+    btn.dataset.page=PAGE;
+    btn.innerHTML='<span class="mono-ico ico-clipboard"></span>'+MOBILE_LABEL;
+    btn.addEventListener('click',openPage);
+    return btn;
+  }
+  function makeSideBtn(){
+    const btn=document.createElement('button');
+    btn.className='navbtn';
+    btn.type='button';
+    btn.dataset.page=PAGE;
+    btn.innerHTML='<span class="mono-ico ico-clipboard"></span>'+FULL_LABEL;
+    btn.addEventListener('click',openPage);
+    return btn;
+  }
+  function ensureMobileButton(){
+    const show=isTranslator();
+    ensurePageReady();
+
+    const nav=q('.bottom-nav');
+    if(nav){
+      let btn=nav.querySelector(`.navbtn[data-page="${PAGE}"]`);
+      if(!btn)btn=makeMobileBtn();
+      btn.innerHTML='<span class="mono-ico ico-clipboard"></span>'+MOBILE_LABEL;
+      btn.onclick=openPage;
+      btn.dataset.v177='1';
+      btn.classList.toggle('hide',!show);
+      btn.classList.toggle('role-hidden',!show);
+      btn.style.display=show?'inline-flex':'none';
+      if(show){
+        const line=nav.querySelector('.navbtn[data-page="line"]');
+        line?nav.insertBefore(btn,line):nav.appendChild(btn);
+      }
+    }
+
+    const side=q('.side');
+    if(side){
+      let btn=side.querySelector(`.navbtn[data-page="${PAGE}"]`);
+      if(!btn)btn=makeSideBtn();
+      btn.innerHTML='<span class="mono-ico ico-clipboard"></span>'+FULL_LABEL;
+      btn.onclick=openPage;
+      btn.dataset.v177='1';
+      btn.classList.toggle('hide',!show);
+      btn.classList.toggle('role-hidden',!show);
+      btn.style.display=show?'':'none';
+      if(show){
+        const ref=side.querySelector('.navbtn[data-page="line"]')||side.querySelector('.navbtn[data-page="serviceRecords"]');
+        ref?side.insertBefore(btn,ref):side.appendChild(btn);
+      }
+    }
+
+    const page=document.getElementById(PAGE_ID);
+    if(page){
+      page.classList.toggle('role-hidden',!show);
+      if(!show&&currentPage===PAGE){
+        const fallback=(window.innerWidth<=760)?'mobile':'calendar';
+        const fb=document.querySelector(`.navbtn[data-page="${fallback}"]`);
+        fb?fb.click():(currentPage=fallback);
+      }
+    }
+  }
+
+  const baseCanSeePage=canSeePage;
+  canSeePage=function(page){
+    if(page===PAGE)return isTranslator();
+    return baseCanSeePage(page);
+  };
+
+  function patchAllowedPages(){
+    if(typeof window.v105AllowedPages!=='function'||window.v105AllowedPages.v177)return;
+    const base=window.v105AllowedPages;
+    const wrapped=function(){
+      let arr=base().filter(x=>x!=='translatorService');
+      if(isTranslator())arr=[...new Set([...arr,PAGE])];
+      else arr=arr.filter(x=>x!==PAGE);
+      return arr;
+    };
+    wrapped.v177=true;
+    window.v105AllowedPages=wrapped;
+  }
+
+  function run(){
+    patchAllowedPages();
+    ensureMobileButton();
+    setTimeout(ensureMobileButton,80);
+    setTimeout(ensureMobileButton,260);
+  }
+
+  const baseRenderAll=renderAll;
+  renderAll=function(){const r=baseRenderAll.apply(this,arguments);run();return r;};
+  const baseApplyPermissionsUI=applyPermissionsUI;
+  applyPermissionsUI=function(){const r=baseApplyPermissionsUI.apply(this,arguments);run();return r;};
+  const baseShowApp=showApp;
+  showApp=function(){const r=baseShowApp.apply(this,arguments);run();return r;};
+
+  if(typeof window.v105ApplyNav==='function'){
+    const base=window.v105ApplyNav;
+    window.v105ApplyNav=function(){const r=base.apply(this,arguments);run();return r;};
+  }
+  if(typeof v105MobileBottomNavByRole==='function'){
+    const base=v105MobileBottomNavByRole;
+    v105MobileBottomNavByRole=function(){const r=base.apply(this,arguments);run();return r;};
+    window.v105MobileBottomNavByRole=v105MobileBottomNavByRole;
+  }
+
+  document.addEventListener('DOMContentLoaded',run);
+  window.addEventListener('resize',()=>setTimeout(ensureMobileButton,80));
+  window.ensureRecordSubmitMobileV177=run;
+  setTimeout(run,200);
+})();
+
+
+/* V183：紀錄單繳交提示文案、繳交按鈕、個人行程表篩選與當日行程修復
+   DRY：個人行程表仍沿用同一組 personalDetailRowsFiltered，匯出與畫面共用。
+   KISS：只補 endDate 空值、全部人員可保留、按鈕文字與提示文案，不改資料結構。
+   SOLID：紀錄單頁 UI 修補與個人行程表資料篩選分開處理。 */
+(function(){
+  function q(sel,root=document){return root.querySelector(sel)}
+  function qa(sel,root=document){return Array.from(root.querySelectorAll(sel))}
+  function safe(v){return typeof esc==='function'?esc(String(v??'')):String(v??'')}
+  function safeAttr(v){return typeof escAttr==='function'?escAttr(String(v??'')):String(v??'').replace(/"/g,'&quot;')}
+  function parseCount(text){const m=String(text||'').match(/有\s*(\d+)\s*筆/);return m?m[1]:'0'}
+
+  function patchRecordSubmitUI(){
+    const box=q('#recordSubmitAlert');
+    if(box){
+      const danger=q('.v176-summary-alert.danger',box);
+      if(danger){
+        const n=parseCount(danger.textContent);
+        danger.innerHTML=`😠 您有 ${safe(n)} 筆服務紀錄單超過 2 週未繳交，請立即補繳。`;
+      }
+      const week=q('.v176-summary-alert.week',box);
+      if(week){
+        const n=parseCount(week.textContent);
+        week.innerHTML=`🙂 您有 ${safe(n)} 筆服務紀錄單已滿 1 週未繳交，請留意繳交期限。`;
+      }
+    }
+    qa('#recordSubmitPage .v182-action-btn,[data-record-open]').forEach(btn=>{
+      btn.textContent='繳交';
+      const id=btn.getAttribute('data-record-open')||'';
+      btn.onclick=ev=>{
+        ev.preventDefault();
+        if(!id)return;
+        const found=(state.events||[]).some(x=>x&&x.id===id);
+        if(!found){ if(typeof toast==='function')toast('找不到這筆行程'); return; }
+        try{ openEventModal({eventId:id}); }
+        catch(_){ try{ openEventModal(id); }catch(__){ if(typeof toast==='function')toast('無法開啟行程，請從行事曆進入'); } }
+      };
+    });
+  }
+
+  if(typeof window.renderRecordSubmitPageV176==='function'&&!window.renderRecordSubmitPageV176.v183){
+    const base=window.renderRecordSubmitPageV176;
+    const wrapped=function(){const r=base.apply(this,arguments);setTimeout(patchRecordSubmitUI,0);return r;};
+    wrapped.v183=true;
+    window.renderRecordSubmitPageV176=wrapped;
+  }
+
+  if(typeof renderPersonalDetailOptions==='function'){
+    renderPersonalDetailOptions=function(){
+      const personSel=$('personalDetailPerson');
+      if(!personSel)return;
+      const curP=personSel.value;
+      const curT=$('personalDetailType')?$('personalDetailType').value:'';
+      const curS=$('personalDetailStatus')?$('personalDetailStatus').value:'';
+      const people=personalDetailPeople();
+      personSel.innerHTML='<option value="">全部人員</option>'+people.map(p=>`<option value="${safeAttr(p.id)}">${safe(p.name)}</option>`).join('');
+      const r=normalizedRole();
+      if(r==='staff'||r==='adminStaff'){
+        personSel.value=userPersonId()||'';
+        personSel.disabled=true;
+      }else{
+        personSel.disabled=false;
+        if(personSel.dataset.v183Inited==='1'){
+          personSel.value=curP;
+        }else{
+          const own=userPersonId();
+          personSel.value=(curP!==undefined&&curP!==null)?curP:'';
+          if(!personSel.value&&own&&people.some(p=>p.id===own))personSel.value=own;
+          personSel.dataset.v183Inited='1';
+        }
+      }
+      const typeSel=$('personalDetailType');
+      if(typeSel){
+        typeSel.innerHTML='<option value="">全部行程類型</option>'+eventTypeList().map(t=>`<option value="${safeAttr(t)}">${safe(t)}</option>`).join('');
+        typeSel.value=curT||'';
+      }
+      const statusSel=$('personalDetailStatus');
+      if(statusSel)statusSel.value=curS||'';
+    };
+  }
+
+  if(typeof personalDetailRowsFiltered==='function'){
+    personalDetailRowsFiltered=function(){
+      if(!$('personalDetailStart'))return [];
+      const s=$('personalDetailStart').value||'';
+      const e=$('personalDetailEnd').value||'';
+      let pid=($('personalDetailPerson')&&$('personalDetailPerson').value)||'';
+      if(normalizedRole()==='staff'||normalizedRole()==='adminStaff')pid=userPersonId()||'';
+      const typ=($('personalDetailType')&&$('personalDetailType').value)||'';
+      const st=($('personalDetailStatus')&&$('personalDetailStatus').value)||'';
+      const kw=(($('personalDetailKeyword')&&$('personalDetailKeyword').value)||'').trim().toLowerCase();
+      const allowed=new Set(personalDetailPeople().map(p=>p.id));
+      const rows=[];
+      (state.events||[]).filter(ev=>ev&&!ev.deleted).forEach(ev=>{
+        const start=ev.startDate||ev.date||'';
+        const end=ev.endDate||start;
+        if(!start)return;
+        const exec=(typeof executorPersonIds==='function'?executorPersonIds(ev):[]).filter(x=>allowed.has(x));
+        const fallback=[...new Set([...(ev.assigneeIds||[]),...(ev.participants||[])])].filter(x=>allowed.has(x));
+        const peopleIds=exec.length?exec:fallback;
+        for(const personId of peopleIds){
+          if(pid&&personId!==pid)continue;
+          let d=start, guard=0;
+          while(d&&d<=end&&guard<370){
+            guard++;
+            if(!(s&&d<s)&&!(e&&d>e)&&!(typ&&ev.type!==typ)&&!(st&&ev.status!==st)){
+              const p=getPerson(personId);
+              const blob=[d,ev.startTime,ev.endTime,p.name,p.group,p.lang,kindLabel(ev.kind),ev.type,ev.extraType,ev.extraNote,ev.locationName,ev.name,ev.status,ev.vehicleNo,ev.note].join(' ').toLowerCase();
+              if(!kw||blob.includes(kw))rows.push({date:d,personId,event:ev});
+            }
+            if(d===end)break;
+            d=dateAdd(d,1);
+          }
+        }
+      });
+      const by=($('personalDetailSortBy')&&$('personalDetailSortBy').value)||'date';
+      const dir=(($('personalDetailSortDir')&&$('personalDetailSortDir').value)||'asc')==='desc'?-1:1;
+      const val=r=>{
+        const ev=r.event,p=getPerson(r.personId);
+        if(by==='person')return p.name||'';
+        if(by==='type')return displayEventType(ev.type)||'';
+        if(by==='status')return ev.status||'';
+        if(by==='location')return ev.locationName||'';
+        return r.date+' '+(ev.startTime||'');
+      };
+      rows.sort((a,b)=>{
+        const cmp=String(val(a)).localeCompare(String(val(b)),'zh-Hant',{numeric:true});
+        if(cmp!==0)return cmp*dir;
+        return String(a.date+(a.event.startTime||'')+(getPerson(a.personId).name||'')).localeCompare(String(b.date+(b.event.startTime||'')+(getPerson(b.personId).name||'')),'zh-Hant',{numeric:true});
+      });
+      return rows;
+    };
+  }
+
+  if(typeof renderPersonalDetails==='function'&&!renderPersonalDetails.v183){
+    const baseRenderPersonalDetails=renderPersonalDetails;
+    renderPersonalDetails=function(){
+      if($('personalDetailStart')&&$('personalDetailEnd')&&(!$('personalDetailStart').value||!$('personalDetailEnd').value)){
+        const r=monthRange(monthISO());
+        if(!$('personalDetailStart').value)$('personalDetailStart').value=r[0];
+        if(!$('personalDetailEnd').value)$('personalDetailEnd').value=r[1];
+      }
+      const r=baseRenderPersonalDetails.apply(this,arguments);
+      patchRecordSubmitUI();
+      return r;
+    };
+    renderPersonalDetails.v183=true;
+  }
+
+  const baseRenderAllV183=renderAll;
+  renderAll=function(){const r=baseRenderAllV183.apply(this,arguments);setTimeout(()=>{patchRecordSubmitUI(); if(typeof renderPersonalDetails==='function'&&$('personalDetailsPage'))renderPersonalDetails();},60);return r;};
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{patchRecordSubmitUI(); if(typeof renderPersonalDetails==='function')renderPersonalDetails();},250));
+})();
+
+
+/* V185：紀錄單提醒文字、個人行程表預設今日、會議室預設當週
+   DRY：沿用既有 renderPersonalDetails / renderRoomBookings，不複製列表邏輯。
+   KISS：只在進入頁面與預設空值時調整篩選值。
+   SOLID：分頁初始化責任獨立，避免影響儲存、登入、匯出。 */
+(function(){
+  function setPersonalDetailsTodayDefault(force){
+    if(!$('personalDetailsPage')||!$('personalDetailStart')||!$('personalDetailEnd'))return;
+    const today=todayISO();
+    if(force||!$('personalDetailStart').value)$('personalDetailStart').value=today;
+    if(force||!$('personalDetailEnd').value)$('personalDetailEnd').value=today;
+    const own=userPersonId&&userPersonId();
+    if($('personalDetailPerson')&&own){$('personalDetailPerson').value=own;}
+  }
+  function setRoomBookingThisWeek(force){
+    if(!$('roomBookingWeekPicker'))return;
+    if(force||!$('roomBookingWeekPicker').value)$('roomBookingWeekPicker').value=todayISO();
+  }
+  function clearPersonalDetailFiltersForToday(){
+    ['personalDetailType','personalDetailStatus','personalDetailKeyword'].forEach(id=>{if($(id))$(id).value='';});
+    if($('personalDetailSortBy'))$('personalDetailSortBy').value='date';
+    if($('personalDetailSortDir'))$('personalDetailSortDir').value='asc';
+    setPersonalDetailsTodayDefault(true);
+  }
+
+  if(typeof renderPersonalDetails==='function'&&!renderPersonalDetails.v185){
+    const base=renderPersonalDetails;
+    renderPersonalDetails=function(){
+      setPersonalDetailsTodayDefault(false);
+      return base.apply(this,arguments);
+    };
+    renderPersonalDetails.v185=true;
+  }
+
+  const baseBindUIV185=bindUI;
+  bindUI=function(){
+    baseBindUIV185.apply(this,arguments);
+    if($('clearPersonalDetails')&&!$('clearPersonalDetails').dataset.v185){
+      $('clearPersonalDetails').dataset.v185='1';
+      $('clearPersonalDetails').onclick=function(){
+        clearPersonalDetailFiltersForToday();
+        if(typeof renderPersonalDetails==='function')renderPersonalDetails();
+      };
+    }
+  };
+
+  document.addEventListener('click',function(ev){
+    const btn=ev.target&&ev.target.closest?ev.target.closest('.navbtn[data-page]'):null;
+    if(!btn)return;
+    if(btn.dataset.page==='personalDetails'){
+      clearPersonalDetailFiltersForToday();
+      setTimeout(()=>{if(typeof renderPersonalDetails==='function')renderPersonalDetails();},80);
+    }
+    if(btn.dataset.page==='roomBooking'){
+      setRoomBookingThisWeek(true);
+      setTimeout(()=>{if(typeof renderRoomBookings==='function')renderRoomBookings(); if(typeof v105ScrollRoomBookingToToday==='function')v105ScrollRoomBookingToToday();},100);
+    }
+  },true);
+
+  const baseRenderAllV185=renderAll;
+  renderAll=function(){
+    if(currentPage==='personalDetails')setPersonalDetailsTodayDefault(false);
+    if(currentPage==='roomBooking')setRoomBookingThisWeek(false);
+    const r=baseRenderAllV185.apply(this,arguments);
+    return r;
+  };
 })();
 
 })();
@@ -6913,5 +7725,384 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 
 
 
+
+
+<script>
+/* V184：翻譯手機紀錄單繳交統計精簡與提醒圖示修正
+   DRY：只覆蓋既有 recordSubmit 渲染後的 DOM，不重做資料計算。
+   KISS：手機只隱藏提醒統計框，保留總筆數/已繳交/未繳交。
+   SOLID：版面精簡與提醒文案修補獨立，不影響行程、登入、篩選資料邏輯。 */
+(function(){
+  function q(sel,root){return (root||document).querySelector(sel)}
+  function qa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
+  function getCount(el){
+    const m=String((el&&el.textContent)||'').match(/有\s*(\d+)\s*筆/);
+    return m?m[1]:'';
+  }
+  function patchRecordSubmitV184(){
+    const page=q('#recordSubmitPage');
+    if(!page)return;
+
+    const danger=q('.v176-summary-alert.danger',page);
+    if(danger){
+      const n=getCount(danger)||'0';
+      danger.innerHTML='😡 您有 '+n+' 筆服務紀錄單超過 2 週未繳交，請立即補繳。';
+    }
+
+    const week=q('.v176-summary-alert.week',page);
+    if(week){
+      const n=getCount(week)||'0';
+      week.innerHTML='🙂 您有 '+n+' 筆服務紀錄單已滿 1 週未繳交，請留意繳交期限。';
+    }
+
+    qa('#recordSubmitMonthStats .stat,#recordSubmitYearStats .stat',page).forEach(function(card){
+      const label=(q('.muted',card)||card).textContent||'';
+      if(label.includes('1週') || label.includes('超過2週') || label.includes('催繳')){
+        card.classList.add('record-submit-reminder-stat');
+      }
+    });
+  }
+
+  const oldRender=window.renderRecordSubmitPageV176;
+  if(typeof oldRender==='function'&&!oldRender.v184){
+    const wrapped=function(){
+      const r=oldRender.apply(this,arguments);
+      setTimeout(patchRecordSubmitV184,0);
+      return r;
+    };
+    wrapped.v184=true;
+    window.renderRecordSubmitPageV176=wrapped;
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(patchRecordSubmitV184,120);
+    setTimeout(patchRecordSubmitV184,500);
+  });
+  document.addEventListener('click',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('#recordSubmitPage,.navbtn[data-page="recordSubmit"]')){
+      setTimeout(patchRecordSubmitV184,120);
+    }
+  },true);
+  setTimeout(patchRecordSubmitV184,800);
+})();
+</script>
+<style>
+/* V184 mobile compact stats: 手機紀錄單繳交統計只保留總筆數/已繳交/未繳交 */
+@media(max-width:760px){
+  #recordSubmitPage #recordSubmitMonthStats,
+  #recordSubmitPage #recordSubmitYearStats{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important;margin:6px 0!important}
+  #recordSubmitPage #recordSubmitMonthStats .record-submit-reminder-stat,
+  #recordSubmitPage #recordSubmitYearStats .record-submit-reminder-stat,
+  #recordSubmitPage #recordSubmitMonthStats .stat:nth-child(n+4),
+  #recordSubmitPage #recordSubmitYearStats .stat:nth-child(n+4){display:none!important}
+  #recordSubmitPage #recordSubmitMonthStats .stat,
+  #recordSubmitPage #recordSubmitYearStats .stat{padding:7px 8px!important;border-radius:10px!important}
+  #recordSubmitPage #recordSubmitMonthStats .stat .muted,
+  #recordSubmitPage #recordSubmitYearStats .stat .muted{font-size:11px!important;line-height:1.2!important}
+  #recordSubmitPage #recordSubmitMonthStats .stat b,
+  #recordSubmitPage #recordSubmitYearStats .stat b{font-size:18px!important;line-height:1.1!important}
+  #recordSubmitPage .v176-summary-alert.danger{background:#fff200!important;border:2px solid #f59e0b!important;color:#7c2d12!important;font-size:14px!important;line-height:1.45!important;padding:10px 12px!important}
+  #recordSubmitPage .v176-summary-alert.week{background:#ffe4ef!important;border:2px solid #f9a8d4!important;color:#9d174d!important;font-size:14px!important;line-height:1.45!important;padding:10px 12px!important}
+}
+</style>
+
+
+<script>
+/* V186：統一紀錄單提醒字級，手機放大 emoji，並讓文字不大於 emoji
+   DRY：集中一個函式統一套用提醒 DOM。
+   KISS：只修正提醒文案與樣式，不動資料計算。
+   SOLID：提醒顯示邏輯獨立於繳交紀錄資料邏輯。 */
+(function(){
+  function q(sel,root){return (root||document).querySelector(sel)}
+  function countFromText(el){
+    const m=String((el&&el.textContent)||'').match(/有\s*(\d+)\s*筆/);
+    return m?m[1]:'0';
+  }
+  function buildAlert(type,count){
+    const emoji = type==='danger' ? '😡' : '🙂';
+    const text = type==='danger'
+      ? `您有 ${count} 筆服務紀錄單超過 2 週未繳交，請立即補繳❗❗`
+      : `您有 ${count} 筆服務紀錄單已滿 1 週未繳交，請留意繳交期限。`;
+    return `<span class="v186-alert-emoji" aria-hidden="true">${emoji}</span><span class="v186-alert-text">${text}</span>`;
+  }
+  function patch(){
+    const page=q('#recordSubmitPage');
+    if(!page)return;
+    const danger=q('.v176-summary-alert.danger',page);
+    if(danger){
+      danger.innerHTML=buildAlert('danger',countFromText(danger));
+      danger.classList.add('v186-alert-ready');
+    }
+    const week=q('.v176-summary-alert.week',page);
+    if(week){
+      week.innerHTML=buildAlert('week',countFromText(week));
+      week.classList.add('v186-alert-ready');
+    }
+  }
+  if(typeof window.renderRecordSubmitPageV176==='function' && !window.renderRecordSubmitPageV176.v186Wrapped){
+    const raw=window.renderRecordSubmitPageV176;
+    const wrapped=function(){
+      const r=raw.apply(this,arguments);
+      setTimeout(patch,0);
+      setTimeout(patch,120);
+      return r;
+    };
+    wrapped.v186Wrapped=true;
+    window.renderRecordSubmitPageV176=wrapped;
+  }
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(patch,80);setTimeout(patch,400);});
+  document.addEventListener('click',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('#recordSubmitPage,.navbtn[data-page="recordSubmit"],.bottom-nav [data-page="recordSubmit"]')){
+      setTimeout(patch,80);
+      setTimeout(patch,260);
+    }
+  },true);
+  setTimeout(patch,800);
+})();
+</script>
+<style>
+/* V186：紀錄單提醒樣式統一 */
+#recordSubmitPage .v176-summary-alert.v186-alert-ready{
+  display:flex!important;
+  align-items:flex-start!important;
+  gap:12px!important;
+  font-weight:900!important;
+  border-radius:16px!important;
+}
+#recordSubmitPage .v176-summary-alert.v186-alert-ready .v186-alert-emoji{
+  flex:0 0 auto!important;
+  display:inline-block!important;
+  line-height:1!important;
+  font-size:28px!important;
+  margin-top:1px!important;
+}
+#recordSubmitPage .v176-summary-alert.v186-alert-ready .v186-alert-text{
+  flex:1 1 auto!important;
+  display:block!important;
+  font-size:18px!important;
+  line-height:1.45!important;
+  word-break:break-word!important;
+}
+#recordSubmitPage .v176-summary-alert.danger.v186-alert-ready{
+  background:#fff200!important;
+  border:2px solid #f59e0b!important;
+  color:#7c2d12!important;
+  box-shadow:0 0 0 4px rgba(245,158,11,.22),0 8px 22px rgba(245,158,11,.18)!important;
+}
+#recordSubmitPage .v176-summary-alert.week.v186-alert-ready{
+  background:#ffe4ef!important;
+  border:2px solid #f9a8d4!important;
+  color:#9d174d!important;
+  box-shadow:0 6px 18px rgba(249,168,212,.25)!important;
+}
+@media(max-width:760px){
+  #recordSubmitPage .v176-summary-alert.v186-alert-ready{
+    padding:10px 12px!important;
+    gap:10px!important;
+  }
+  #recordSubmitPage .v176-summary-alert.v186-alert-ready .v186-alert-emoji{
+    font-size:30px!important;
+  }
+  #recordSubmitPage .v176-summary-alert.v186-alert-ready .v186-alert-text{
+    font-size:15px!important;
+    line-height:1.45!important;
+  }
+}
+</style>
+
+
+<script>
+/* V187：紀錄單繳交明細欄位順序與繳交按鈕狀態
+   DRY：只用一個 patchRecordSubmitTablesV187 處理月/年兩張明細表。
+   KISS：不重建資料，只重排既有表格 DOM 與按鈕顯示。
+   SOLID：明細表顯示規則獨立，不影響登入、篩選、行程資料。 */
+(function(){
+  function qa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
+  function normalize(t){return String(t||'').replace(/\s+/g,'').trim();}
+  function isPaidText(t){
+    const v=normalize(t);
+    return v.includes('已繳') || v.includes('已交') || v.includes('完成') || v.includes('已送');
+  }
+  function isOverTwoWeeksRow(row){
+    const text=row.textContent||'';
+    if(text.includes('超過 2 週') || text.includes('超過2週') || text.includes('催繳'))return true;
+    const cells=qa('td',row);
+    for(const td of cells){
+      const v=(td.textContent||'').trim();
+      const m=v.match(/(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+      if(m){
+        const d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
+        if(!isNaN(d.getTime())){
+          const now=new Date();
+          const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+          const diff=Math.floor((today-d)/(24*60*60*1000));
+          if(diff>=14)return true;
+        }
+      }
+    }
+    return false;
+  }
+  function findHeaderIndex(headers, keywords){
+    return headers.findIndex(th=>{
+      const t=normalize(th.textContent);
+      return keywords.some(k=>t.includes(k));
+    });
+  }
+  function patchOneTable(table){
+    if(!table || table.dataset.v187Patched==='1')return;
+    const headRow=table.tHead && table.tHead.rows && table.tHead.rows[0];
+    if(!headRow)return;
+    const headers=qa('th',headRow);
+    if(headers.length<2)return;
+
+    let actionIdx=findHeaderIndex(headers,['操作','繳交']);
+    let statusIdx=findHeaderIndex(headers,['服務紀錄單繳交狀況','繳交狀況','繳交狀態']);
+    if(actionIdx<0 || statusIdx<0)return;
+
+    function moveCell(row,from,to){
+      const cells=Array.from(row.children);
+      const cell=cells[from];
+      if(!cell)return;
+      row.removeChild(cell);
+      const ref=Array.from(row.children)[to] || null;
+      row.insertBefore(cell,ref);
+    }
+
+    // 先把「操作」移到第一欄，再重新計算「服務紀錄單繳交狀況」索引並移到第二欄
+    if(actionIdx!==0){
+      moveCell(headRow,actionIdx,0);
+      qa('tr',table.tBodies[0]||table).forEach(row=>moveCell(row,actionIdx,0));
+    }
+
+    const headersAfterAction=qa('th',headRow);
+    statusIdx=findHeaderIndex(headersAfterAction,['服務紀錄單繳交狀況','繳交狀況','繳交狀態']);
+    if(statusIdx>1){
+      moveCell(headRow,statusIdx,1);
+      qa('tr',table.tBodies[0]||table).forEach(row=>moveCell(row,statusIdx,1));
+    }else if(statusIdx===0){
+      moveCell(headRow,0,1);
+      qa('tr',table.tBodies[0]||table).forEach(row=>moveCell(row,0,1));
+    }
+
+    qa('tbody tr',table).forEach(row=>{
+      const cells=qa('td',row);
+      if(cells.length<2)return;
+      const actionCell=cells[0];
+      const statusCell=cells[1];
+      const paid=isPaidText(statusCell.textContent);
+
+      actionCell.classList.add('v187-action-cell');
+      if(paid){
+        actionCell.innerHTML='<span class="v187-paid-done">已繳交</span>';
+      }else{
+        qa('button',actionCell).forEach(btn=>{
+          btn.textContent='繳交';
+          btn.classList.add('v187-submit-btn');
+          if(isOverTwoWeeksRow(row))btn.classList.add('v187-overdue-btn');
+        });
+      }
+    });
+
+    table.dataset.v187Patched='1';
+  }
+  function patch(){
+    const page=document.querySelector('#recordSubmitPage');
+    if(!page)return;
+    qa('table',page).forEach(patchOneTable);
+  }
+  if(typeof window.renderRecordSubmitPageV176==='function' && !window.renderRecordSubmitPageV176.v187Wrapped){
+    const raw=window.renderRecordSubmitPageV176;
+    const wrapped=function(){
+      const r=raw.apply(this,arguments);
+      setTimeout(patch,0);
+      setTimeout(patch,120);
+      return r;
+    };
+    wrapped.v187Wrapped=true;
+    window.renderRecordSubmitPageV176=wrapped;
+  }
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(patch,80);setTimeout(patch,400);});
+  document.addEventListener('click',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('#recordSubmitPage,.navbtn[data-page="recordSubmit"],.bottom-nav [data-page="recordSubmit"]')){
+      setTimeout(patch,80);
+      setTimeout(patch,260);
+    }
+  },true);
+  setTimeout(patch,900);
+})();
+</script>
+<style>
+/* V187：繳交明細操作欄樣式 */
+#recordSubmitPage .v187-action-cell{white-space:nowrap!important;text-align:center!important}
+#recordSubmitPage .v187-submit-btn{
+  min-width:64px!important;
+  border-radius:10px!important;
+  background:#2563eb!important;
+  border-color:#2563eb!important;
+  color:#fff!important;
+  font-weight:900!important;
+}
+#recordSubmitPage .v187-submit-btn.v187-overdue-btn{
+  background:#dc2626!important;
+  border-color:#dc2626!important;
+  color:#fff!important;
+  box-shadow:0 0 0 3px rgba(220,38,38,.18)!important;
+}
+#recordSubmitPage .v187-paid-done{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border-radius:999px!important;
+  padding:4px 10px!important;
+  background:#dcfce7!important;
+  color:#166534!important;
+  font-weight:900!important;
+  font-size:13px!important;
+}
+@media(max-width:760px){
+  #recordSubmitPage .v187-submit-btn{min-width:58px!important;padding:7px 10px!important}
+  #recordSubmitPage .v187-paid-done{font-size:12px!important;padding:4px 8px!important}
+}
+</style>
+
+
+<style>
+/* V188：紀錄單繳交明細由核心 rowHtml 直接輸出正確欄位順序，避免外掛重排失效 */
+#recordSubmitPage .v188-submit-btn{
+  min-width:64px!important;
+  border-radius:10px!important;
+  background:#2563eb!important;
+  border-color:#2563eb!important;
+  color:#fff!important;
+  font-weight:900!important;
+}
+#recordSubmitPage .v188-submit-btn.v188-submit-overdue{
+  background:#dc2626!important;
+  border-color:#dc2626!important;
+  color:#fff!important;
+  box-shadow:0 0 0 3px rgba(220,38,38,.22)!important;
+}
+#recordSubmitPage .v188-paid-action{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border-radius:999px!important;
+  padding:4px 10px!important;
+  background:#dcfce7!important;
+  color:#166534!important;
+  font-weight:900!important;
+  font-size:13px!important;
+  white-space:nowrap!important;
+}
+#recordSubmitPage #recordSubmitMonthRows td:first-child,
+#recordSubmitPage #recordSubmitYearRows td:first-child{
+  text-align:center!important;
+  white-space:nowrap!important;
+}
+@media(max-width:760px){
+  #recordSubmitPage .v188-submit-btn{min-width:58px!important;padding:7px 10px!important}
+  #recordSubmitPage .v188-paid-action{font-size:12px!important;padding:4px 8px!important}
+}
+</style>
 
 </body></html>
