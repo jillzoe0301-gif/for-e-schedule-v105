@@ -6749,70 +6749,58 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 
 
 <style>
-/* V113：匯出功能最終整理
-   DRY：三個日曆頁共用同一套匯出工具
-   KISS：只保留 全部 / 年 / 月 / 日
-   SOLID：日曆匯出與明細頁操作按鈕分離 */
-.v113-export-box{display:inline-flex!important;align-items:center;gap:6px;margin-left:auto;flex-wrap:wrap;max-width:100%;}
-.v113-export-box select,.v113-export-box input{height:30px!important;padding:3px 6px!important;font-size:12px!important;border-radius:8px!important;width:auto!important;min-width:72px!important;}
-.v113-export-box .v113-year{width:76px!important;min-width:76px!important;}
-.v113-export-box .v113-month{min-width:126px!important;}
-.v113-export-box .v113-day{min-width:132px!important;}
-.v113-export-box .v113-export-btn{height:30px!important;padding:3px 10px!important;font-size:12px!important;border-radius:8px!important;white-space:nowrap!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;}
-#personalDetailsPage .section-title .v112-export-box,
-#personalDetailsPage .section-title .v141-box,
-#incidentsPage .section-title .v112-export-box,
-#incidentsPage .section-title .v141-box,
-#reportsPage .section-title .v112-export-box,
-#reportsPage .section-title .v141-box,
-#serviceRecordsPage .section-title .v112-export-box,
-#serviceRecordsPage .section-title .v141-box,
-#fieldDetailsPage .section-title .v112-export-box,
-#fieldDetailsPage .section-title .v141-box{display:none!important;}
-@media(max-width:760px){.v113-export-box{display:inline-flex!important;width:100%;overflow-x:auto;margin-left:0!important}.v113-export-box select,.v113-export-box input,.v113-export-box button{flex:0 0 auto!important}}
+/* V114：單一右上角 CSV 匯出管理器
+   DRY：8 個頁面共用同一套 UI / 事件 / CSV 下載
+   KISS：範圍只保留 全部 / 年 / 月 / 日
+   SOLID：權限、UI、資料組列、下載各自獨立 */
+.v114-export-box{display:inline-flex!important;align-items:center;gap:6px;margin-left:auto;flex-wrap:wrap;max-width:100%;}
+.v114-export-box select,.v114-export-box input{height:30px!important;padding:3px 6px!important;font-size:12px!important;border-radius:8px!important;width:auto!important;min-width:72px!important;}
+.v114-export-box .v114-year{width:76px!important;min-width:76px!important;}
+.v114-export-box .v114-month{min-width:126px!important;}
+.v114-export-box .v114-day{min-width:132px!important;}
+.v114-export-box .v114-export-btn{height:30px!important;padding:3px 10px!important;font-size:12px!important;border-radius:8px!important;white-space:nowrap!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;}
+.section-title>.v112-export-box,.section-title>.v113-export-box,.section-title>.v141-box,.section-title>.v163-export-box,.section-title>.v111-export-box{display:none!important;}
+@media(max-width:760px){.v114-export-box{display:inline-flex!important;width:100%;overflow-x:auto;margin-left:0!important}.v114-export-box select,.v114-export-box input,.v114-export-box button{flex:0 0 auto!important}}
 </style>
 <script>
-/* V113：只恢復三個行事曆頁右上角匯出，刪除明細/統計頁操作列後方多餘匯出 */
-(function forEExportManagerV113(){
-  const ENABLED_EXPORT_PAGES={
-    calendarPage:{label:'行程總覽',type:'events'},
+/* V114：8 頁右上角匯出修正版 */
+(function forEExportManagerV114(){
+  const EXPORT_PAGES={
+    calendarPage:{label:'行程總覽',type:'calendar'},
     fieldCalendarPage:{label:'外務行程',type:'field'},
-    roomBookingPage:{label:'會議室預約',type:'room'}
+    roomBookingPage:{label:'會議室預約',type:'room'},
+    fieldDetailsPage:{label:'外務明細',type:'field'},
+    personalDetailsPage:{label:'個人行程表',type:'personal'},
+    incidentsPage:{label:'異況追蹤',type:'incidents'},
+    reportsPage:{label:'統計報表',type:'reports'},
+    serviceRecordsPage:{label:'服務紀錄單',type:'service'}
   };
-  const DISABLED_EXPORT_PAGES=['personalDetailsPage','incidentsPage','reportsPage','serviceRecordsPage','fieldDetailsPage'];
+  const PAGE_IDS=Object.keys(EXPORT_PAGES);
+  const ALLOW_ROLES=['admin','supervisor','adminStaff','general'];
 
   function byId(id){return document.getElementById(id)}
-  function roleKey(){
-    try{return typeof normalizedRole==='function'?normalizedRole():String((currentUser&&currentUser.role)||'')}catch(_){return ''}
-  }
-  function exportAllowedV113(){
-    const r=roleKey();
-    return !!currentUser && ['admin','supervisor','adminStaff','general'].includes(r);
-  }
-  window.canUseCsvExport=exportAllowedV113;
+  function roleKey(){try{return typeof normalizedRole==='function'?normalizedRole():String((window.currentUser&&currentUser.role)||'')}catch(_){return ''}}
+  function exportAllowed(){return !!window.currentUser && ALLOW_ROLES.includes(roleKey())}
+  window.canUseCsvExport=exportAllowed;
   window.assertCsvExportAllowed=function(){
-    if(exportAllowedV113())return true;
+    if(exportAllowed())return true;
     if(typeof toast==='function')toast('此權限不提供 CSV 匯出'); else alert('此權限不提供 CSV 匯出');
     return false;
   };
 
-  function pad2Safe(n){return String(n).padStart(2,'0')}
-  function todaySafe(){
-    try{return todayISO()}catch(_){const d=new Date();return `${d.getFullYear()}-${pad2Safe(d.getMonth()+1)}-${pad2Safe(d.getDate())}`}
-  }
-  function monthSafe(){return todaySafe().slice(0,7)}
+  function pad2(n){return String(n).padStart(2,'0')}
+  function todaySafe(){try{return todayISO()}catch(_){const d=new Date();return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`}}
+  function monthSafe(){try{return monthISO()}catch(_){return todaySafe().slice(0,7)}}
   function monthRangeSafe(ym){
-    try{return monthRange(ym)}catch(_){
-      const [y,m]=String(ym||monthSafe()).split('-').map(Number);
-      return [`${y}-${pad2Safe(m)}-01`,`${y}-${pad2Safe(m)}-${pad2Safe(new Date(y,m,0).getDate())}`];
-    }
+    try{return monthRange(ym)}catch(_){const [y,m]=String(ym||monthSafe()).split('-').map(Number);return [`${y}-${pad2(m)}-01`,`${y}-${pad2(m)}-${pad2(new Date(y,m,0).getDate())}`]}
   }
-  function csvCell(v){return `"${String(v??'').replace(/"/g,'""')}"`}
-  function downloadCsvV113(rows,filename){
+  function csvCell(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
+  function downloadCsv(rows,filename){
     if(!window.assertCsvExportAllowed())return false;
     try{
       if(!Array.isArray(rows)||rows.length===0)rows=[['沒有資料']];
-      const blob=new Blob(['\ufeff'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8;'});
+      const body='\ufeff'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n');
+      const blob=new Blob([body],{type:'text/csv;charset=utf-8;'});
       const url=URL.createObjectURL(blob);
       const a=document.createElement('a');
       a.href=url;
@@ -6820,170 +6808,183 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
       a.style.display='none';
       document.body.appendChild(a);
       a.click();
-      setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},800);
+      setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1000);
       return true;
     }catch(err){
-      console.error('V113 export failed',err);
+      console.error('V114 CSV download failed',err);
       alert('匯出失敗：'+(err&&err.message?err.message:err));
       return false;
     }
   }
-  window.exportCsv=downloadCsvV113;
+  window.exportCsv=downloadCsv;
+  try{exportCsv=downloadCsv}catch(_){}
 
-  function getPersonSafe(id){try{return getPerson(id)||{}}catch(_){return {}}}
-  function getUserSafe(id){try{return getUser(id)||{}}catch(_){return {}}}
-  function personNameSafe(id){return getPersonSafe(id).name||''}
-  function userNameSafe(id){return getUserSafe(id).name||''}
-  function typeSafe(type){try{return displayEventType(type)}catch(_){return type||''}}
-  function kindSafe(kind){try{return kindLabel(kind)}catch(_){return kind||''}}
-  function isEventInRange(ev,start,end){return ev&&!ev.deleted&&(ev.endDate||ev.startDate||'')>=start&&(ev.startDate||ev.endDate||'')<=end}
+  function person(id){try{return getPerson(id)||{}}catch(_){return {}}}
+  function user(id){try{return getUser(id)||{}}catch(_){return {}}}
+  function personName(id){return person(id).name||''}
+  function userName(id){return user(id).name||''}
+  function eventType(t){try{return displayEventType(t)}catch(_){return t||''}}
+  function kindLabelSafe(k){try{return kindLabel(k)}catch(_){return k||''}}
+  function serviceText(ev){try{return requiresServiceRecord(ev)?(serviceSubmitted(ev)?'已繳交':'未繳交'):''}catch(_){return ev&&ev.serviceRecordSubmitted?'已繳交':''}}
+  function inRangeDate(date,start,end){date=String(date||'');return date && date>=start && date<=end}
+  function eventInRange(ev,start,end){return ev&&!ev.deleted&&String(ev.endDate||ev.startDate||'')>=start&&String(ev.startDate||ev.endDate||'')<=end}
+  function rangeFromBox(box){
+    const mode=(box&&box.querySelector('.v114-mode')||{}).value||'month';
+    if(mode==='all')return {start:'0000-01-01',end:'9999-12-31',label:'全部'};
+    if(mode==='year'){const y=(box.querySelector('.v114-year')||{}).value||String(new Date().getFullYear());return {start:`${y}-01-01`,end:`${y}-12-31`,label:y}}
+    if(mode==='day'){const d=(box.querySelector('.v114-day')||{}).value||todaySafe();return {start:d,end:d,label:d}}
+    const ym=(box.querySelector('.v114-month')||{}).value||monthSafe();const r=monthRangeSafe(ym);return {start:r[0],end:r[1],label:ym};
+  }
 
   function buildCalendarRows(start,end){
-    const rows=[['ID','起日','迄日','開始時間','結束時間','類別','行程類型','辦理內容','地點/客戶','地址','狀態','相關人員','建立人','建立時間','最後修改人','最後修改時間','服務紀錄單','內容說明']];
-    ((state&&state.events)||[])
-      .filter(ev=>isEventInRange(ev,start,end))
-      .sort((a,b)=>String((a.startDate||'')+(a.startTime||'')).localeCompare(String((b.startDate||'')+(b.startTime||''))))
-      .forEach(ev=>{
-        let sr='';
-        try{sr=requiresServiceRecord(ev)?(ev.serviceRecordSubmitted?'已繳交':'未繳交'):''}catch(_){sr=''}
-        rows.push([ev.id||'',ev.startDate||'',ev.endDate||'',ev.startTime||'',ev.endTime||'',kindSafe(ev.kind),typeSafe(ev.type),ev.name||'',ev.locationName||'',ev.address||'',ev.status||'',(ev.participants||[]).map(personNameSafe).filter(Boolean).join('、'),userNameSafe(ev.createdBy),ev.createdAt||'',userNameSafe(ev.updatedBy),ev.updatedAt||'',sr,ev.note||'']);
-      });
+    const rows=[['ID','起日','迄日','開始時間','結束時間','類別','行程類型','行程標題/辦理內容','地點/客戶','地址','狀態','相關人員','建立人','建立時間','最後修改人','最後修改時間','服務紀錄單','內容說明']];
+    ((window.state&&state.events)||[]).filter(e=>eventInRange(e,start,end)).sort((a,b)=>String((a.startDate||'')+(a.startTime||'')).localeCompare(String((b.startDate||'')+(b.startTime||'')))).forEach(e=>{
+      rows.push([e.id||'',e.startDate||'',e.endDate||'',e.startTime||'',e.endTime||'',kindLabelSafe(e.kind),eventType(e.type),e.name||'',e.locationName||'',e.address||'',e.status||'',(e.participants||[]).map(personName).filter(Boolean).join('、'),userName(e.createdBy),e.createdAt||'',userName(e.updatedBy||e.createdBy),e.updatedAt||'',serviceText(e),e.note||'']);
+    });
+    return rows;
+  }
+  function buildPersonalRows(start,end){
+    const rows=[['ID','日期','起日','迄日','時間','人員','部門','職務','類別','行程類型','地點/客戶','辦理內容','狀態','服務紀錄單','內容說明']];
+    ((window.state&&state.events)||[]).filter(e=>eventInRange(e,start,end)).sort((a,b)=>String((a.startDate||'')+(a.startTime||'')).localeCompare(String((b.startDate||'')+(b.startTime||'')))).forEach(e=>{
+      const ps=(e.participants&&e.participants.length?e.participants:['']);
+      ps.forEach(pid=>{const p=person(pid);rows.push([e.id||'',e.startDate||'',e.startDate||'',e.endDate||'',e.startTime||'',p.name||'',p.group||'',p.lang||'',kindLabelSafe(e.kind),eventType(e.type),e.locationName||'',e.name||'',e.status||'',serviceText(e),e.note||''])});
+    });
     return rows;
   }
   function buildFieldRows(start,end){
-    const rows=[['ID','日期','時間','人員','部門','職務','目的','地點','地址','狀態','送件失敗原因','下一次領件日期','下一次領件人員','現金','印章','證件','必送件','無法更換外務','備註','建立人','最後修改人']];
-    ((state&&state.externalEvents)||[])
-      .filter(e=>!e.deleted&&(e.date||'')>=start&&(e.date||'')<=end)
-      .sort((a,b)=>String((a.date||'')+(a.time||'')).localeCompare(String((b.date||'')+(b.time||''))))
-      .forEach(e=>{
-        const p=getPersonSafe(e.personId);
-        rows.push([e.id||'',e.date||'',e.time||'',p.name||'',p.group||'',p.lang||'',e.purpose||'',e.locationName||'',e.address||'',e.status||'',e.failureReason||'',e.pickupDate||'',personNameSafe(e.pickupPersonId),e.cash||'',e.stamp||'',e.document||'',e.mustSend?'是':'',e.cannotChange?'是':'',e.note||'',userNameSafe(e.createdBy),userNameSafe(e.updatedBy||e.createdBy)]);
-      });
+    try{if(typeof ensureExternalState==='function')ensureExternalState()}catch(_){}
+    const rows=[['ID','日期','時間','人員','部門','職務','目的','地點','地址','狀態','送件失敗原因','領件日期','領件人員','現金','印章','證件','必送件','無法更換外務','備註','建立人','建立時間','最後修改人','最後修改時間']];
+    ((window.state&&state.externalEvents)||[]).filter(e=>!e.deleted&&inRangeDate(e.date,start,end)).sort((a,b)=>String((a.date||'')+(a.time||'')).localeCompare(String((b.date||'')+(b.time||'')))).forEach(e=>{
+      const p=person(e.personId);
+      rows.push([e.id||'',e.date||'',e.time||'',p.name||'',p.group||'',p.lang||'',e.purpose||'',e.locationName||'',e.address||'',e.status||'',e.failureReason||'',e.pickupDate||'',personName(e.pickupPersonId),e.cash||'',e.stamp||'',e.document||'',e.mustSend?'是':'',e.cannotChange?'是':'',e.note||'',userName(e.createdBy),e.createdAt||'',userName(e.updatedBy||e.createdBy),e.updatedAt||'']);
+    });
     return rows;
   }
   function buildRoomRows(start,end){
     const rows=[['ID','日期','開始時間','結束時間','會議室','部門','會議名稱','建立人','建立時間','最後修改人','最後修改時間']];
-    ((state&&state.roomBookings)||[])
-      .filter(b=>!b.deleted&&(b.date||'')>=start&&(b.date||'')<=end)
-      .sort((a,b)=>String((a.date||'')+(a.startTime||'')).localeCompare(String((b.date||'')+(b.startTime||''))))
-      .forEach(b=>rows.push([b.id||'',b.date||'',b.startTime||'',b.endTime||'',b.room||'',b.department||'',b.title||'',userNameSafe(b.createdBy),b.createdAt||'',userNameSafe(b.updatedBy||b.createdBy),b.updatedAt||'']));
+    ((window.state&&state.roomBookings)||[]).filter(b=>!b.deleted&&inRangeDate(b.date,start,end)).sort((a,b)=>String((a.date||'')+(a.startTime||'')).localeCompare(String((b.date||'')+(b.startTime||'')))).forEach(b=>{
+      rows.push([b.id||'',b.date||'',b.startTime||'',b.endTime||'',b.room||'',b.department||'',b.title||'',userName(b.createdBy),b.createdAt||'',userName(b.updatedBy||b.createdBy),b.updatedAt||'']);
+    });
     return rows;
   }
-  function rangeFromBox(box){
-    const mode=(box&&box.querySelector('.v113-mode')||{}).value||'month';
-    if(mode==='all')return {start:'0000-01-01',end:'9999-12-31',label:'全部'};
-    if(mode==='year'){
-      const y=(box.querySelector('.v113-year')||{}).value||String(new Date().getFullYear());
-      return {start:`${y}-01-01`,end:`${y}-12-31`,label:y};
-    }
-    if(mode==='day'){
-      const d=(box.querySelector('.v113-day')||{}).value||todaySafe();
-      return {start:d,end:d,label:d};
-    }
-    const ym=(box.querySelector('.v113-month')||{}).value||monthSafe();
-    const [start,end]=monthRangeSafe(ym);
-    return {start,end,label:ym};
+  function buildIncidentRows(start,end){
+    try{if(typeof ensureIncidentState==='function')ensureIncidentState()}catch(_){}
+    const rows=[['ID','發生日期','急迫性','異況類型','客戶/雇主','地點','工人姓名','工人證號','標題','說明','負責人','協助人員','狀態','下次追蹤日期','下次追蹤時間','建立人','建立時間','最後修改時間']];
+    ((window.state&&state.incidents)||[]).filter(x=>!x.deleted&&inRangeDate(x.occurrenceDate,start,end)).sort((a,b)=>String(b.occurrenceDate||'').localeCompare(String(a.occurrenceDate||''))).forEach(x=>{
+      rows.push([x.id||'',x.occurrenceDate||'',x.urgency||'',x.incidentType||'',x.customerName||'',x.location||'',x.workerName||'',x.workerId||'',x.title||'',x.description||'',personName(x.ownerPersonId),(x.helperPersonIds||[]).map(personName).filter(Boolean).join('、'),x.status||'',x.nextFollowDate||'',x.nextFollowTime||'',userName(x.createdBy),x.createdAt||'',x.updatedAt||'']);
+    });
+    return rows;
+  }
+  function buildReportRows(start,end){
+    const rows=[['區間','部門','人員名稱','職務','總數','未完成','已完成','取消','分類','分類數']];
+    try{
+      if(typeof buildReportData==='function'){
+        const data=buildReportData(start,end);
+        const active=(data.types||[]).filter(t=>(data.totals&&data.totals.byType&&data.totals.byType[t])>0||(data.rows||[]).some(r=>(r.byType&&r.byType[t])>0));
+        (data.rows||[]).forEach(r=>{rows.push([`${start}~${end}`,r.person&&r.person.group||'',r.person&&r.person.name||'',r.person&&r.person.lang||'',r.total||0,r.undone||0,r.done||0,r.cancel||0,'全部',r.total||0]);active.forEach(t=>rows.push([`${start}~${end}`,r.person&&r.person.group||'',r.person&&r.person.name||'',r.person&&r.person.lang||'',r.total||0,r.undone||0,r.done||0,r.cancel||0,t,(r.byType&&r.byType[t])||0]));});
+        ['一部翻譯','二部翻譯','總計'].forEach(g=>{const r=data.dept&&data.dept[g];if(r)rows.push([`${start}~${end}`,g,'部門總計','',r.total||0,r.undone||0,r.done||0,r.cancel||0,'全部',r.total||0])});
+        return rows;
+      }
+    }catch(err){console.warn('V114 report export fallback',err)}
+    return rows.concat(tableRowsFromPage('reportsPage'));
+  }
+  function buildServiceRows(start,end){
+    const rows=[['區間','人員名稱','部門','職務','需繳交總數','已交','未交','行程日期','行程類型','地點/客戶','辦理內容','繳交狀態']];
+    try{
+      if(typeof buildServiceData==='function'){
+        const data=buildServiceData(start,end);
+        (data.rows||[]).forEach(r=>rows.push([`${start}~${end}`,r.person&&r.person.name||'',r.person&&r.person.group||'',r.person&&r.person.lang||'',r.total||0,r.submitted||0,r.unsubmitted||0,'','','','', '統計']));
+        (data.details||[]).forEach(x=>rows.push([`${start}~${end}`,x.person&&x.person.name||'',x.person&&x.person.group||'',x.person&&x.person.lang||'','','','',x.date||'',eventType(x.event&&x.event.type),x.event&&x.event.locationName||'',x.event&&x.event.name||'',x.submitted?'已交':'未交']));
+        return rows;
+      }
+    }catch(err){console.warn('V114 service export fallback',err)}
+    return rows.concat(tableRowsFromPage('serviceRecordsPage'));
+  }
+  function tableRowsFromPage(pageId){
+    const page=byId(pageId); const out=[]; if(!page)return out;
+    const table=page.querySelector('table'); if(!table)return out;
+    table.querySelectorAll('tr').forEach(tr=>{const row=[...tr.children].map(td=>(td.innerText||td.textContent||'').trim().replace(/\s+/g,' '));if(row.length)out.push(row)});
+    return out;
+  }
+  function rowsFor(type,start,end){
+    if(type==='calendar')return buildCalendarRows(start,end);
+    if(type==='personal')return buildPersonalRows(start,end);
+    if(type==='field')return buildFieldRows(start,end);
+    if(type==='room')return buildRoomRows(start,end);
+    if(type==='incidents')return buildIncidentRows(start,end);
+    if(type==='reports')return buildReportRows(start,end);
+    if(type==='service')return buildServiceRows(start,end);
+    return [['沒有資料']];
   }
   function syncMode(box){
-    const mode=(box.querySelector('.v113-mode')||{}).value||'month';
-    box.querySelector('.v113-year').style.display=mode==='year'?'inline-flex':'none';
-    box.querySelector('.v113-month').style.display=mode==='month'?'inline-flex':'none';
-    box.querySelector('.v113-day').style.display=mode==='day'?'inline-flex':'none';
-  }
-  function exportPage(pageId,box){
-    const cfg=ENABLED_EXPORT_PAGES[pageId];
-    if(!cfg)return;
-    const r=rangeFromBox(box);
-    const rows=cfg.type==='field'?buildFieldRows(r.start,r.end):cfg.type==='room'?buildRoomRows(r.start,r.end):buildCalendarRows(r.start,r.end);
-    if(downloadCsvV113(rows,`${cfg.label}_${r.label}.csv`)&&typeof toast==='function')toast(`已匯出 ${cfg.label} CSV`);
+    const mode=(box.querySelector('.v114-mode')||{}).value||'month';
+    box.querySelector('.v114-year').style.display=mode==='year'?'inline-flex':'none';
+    box.querySelector('.v114-month').style.display=mode==='month'?'inline-flex':'none';
+    box.querySelector('.v114-day').style.display=mode==='day'?'inline-flex':'none';
   }
   function makeBox(pageId){
     const box=document.createElement('div');
-    box.className='v113-export-box';
+    box.className='v114-export-box';
     box.dataset.pageId=pageId;
-    box.innerHTML=`<select class="mini v113-mode" title="匯出範圍"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option></select><input class="mini v113-year" type="number" min="2024" max="2035" title="年度"><input class="mini v113-month" type="month" title="月份"><input class="mini v113-day" type="date" title="日期"><button class="primary v113-export-btn" type="button">匯出CSV</button>`;
-    box.querySelector('.v113-year').value=String(new Date().getFullYear());
-    box.querySelector('.v113-month').value=monthSafe();
-    box.querySelector('.v113-day').value=todaySafe();
-    box.querySelector('.v113-mode').addEventListener('change',()=>syncMode(box));
-    box.querySelector('.v113-export-btn').addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();exportPage(pageId,box);return false;});
+    box.innerHTML='<select class="mini v114-mode" title="匯出範圍"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option></select><input class="mini v114-year" type="number" min="2024" max="2035" title="年度"><input class="mini v114-month" type="month" title="月份"><input class="mini v114-day" type="date" title="日期"><button class="primary v114-export-btn" type="button">匯出CSV</button>';
+    box.querySelector('.v114-year').value=String(new Date().getFullYear());
+    box.querySelector('.v114-month').value=monthSafe();
+    box.querySelector('.v114-day').value=todaySafe();
+    box.querySelector('.v114-mode').addEventListener('change',()=>syncMode(box));
+    box.querySelector('.v114-export-btn').addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();exportPage(pageId,box);return false;});
     syncMode(box);
     return box;
   }
-  function pageHeader(pageId){
-    const page=byId(pageId);
-    if(!page)return null;
-    return page.querySelector(':scope > .panel:first-child .section-title')||page.querySelector('.section-title');
+  function pageHeader(pageId){const page=byId(pageId);return page&&(page.querySelector(':scope > .panel:first-child .section-title')||page.querySelector('.section-title'))}
+  function cleanOldHeaderExports(header){
+    if(!header)return;
+    header.querySelectorAll('.v112-export-box,.v113-export-box,.v141-box,.v163-export-box,.v111-export-box,.v138-export-inline').forEach(el=>el.remove());
+    header.querySelectorAll('button').forEach(btn=>{const txt=(btn.textContent||'').replace(/\s+/g,'');const id=btn.id||'';if((/^export/i.test(id)||/ExportBtn$/.test(id)||/匯出.*CSV/.test(txt))&&!btn.closest('.v114-export-box'))btn.remove();});
   }
-  function removeAllExportWidgets(container){
-    if(!container)return;
-    container.querySelectorAll('.v112-export-box,.v113-export-box,.v141-box,.v163-export-box,.v111-export-box,.v138-export-inline').forEach(el=>el.remove());
-    container.querySelectorAll('button').forEach(btn=>{
-      const txt=(btn.textContent||'').replace(/\s+/g,'');
-      const id=btn.id||'';
-      if(/匯出.*CSV/.test(txt)||/^export/i.test(id)||/ExportBtn$/.test(id))btn.remove();
-    });
+  function exportPage(pageId,box){
+    const cfg=EXPORT_PAGES[pageId]; if(!cfg)return;
+    const r=rangeFromBox(box);
+    const rows=rowsFor(cfg.type,r.start,r.end);
+    if(downloadCsv(rows,`${cfg.label}_${r.label}.csv`)&&typeof toast==='function')toast(`已匯出 ${cfg.label} CSV`);
   }
-  function cleanDisabledPages(){
-    DISABLED_EXPORT_PAGES.forEach(pageId=>{
-      const page=byId(pageId);
-      if(!page)return;
-      const header=pageHeader(pageId);
-      removeAllExportWidgets(header);
-      ['exportFieldDetailsBtn','exportPersonalDetailsBtn','exportIncidentsBtn','exportReportBtn','exportLogBtn','exportServiceRecordsBtn','exportFieldServiceRecordsBtn'].forEach(id=>{
-        const el=byId(id);
-        if(el&&page.contains(el))el.remove();
-      });
-    });
-  }
-  function cleanEnabledPages(){
-    Object.keys(ENABLED_EXPORT_PAGES).forEach(pageId=>{
-      const page=byId(pageId);
-      if(!page)return;
+  function syncExportV114(){
+    PAGE_IDS.forEach(pageId=>{
+      const page=byId(pageId); if(!page)return;
+      // 篩選列與舊 inline 匯出一律移除，只保留 section-title 右上角
       page.querySelectorAll('.v116-static-filter button.export-control,#exportCsvBtn,#fieldExportBtn').forEach(el=>el.remove());
-      const header=pageHeader(pageId);
-      if(!header)return;
-      header.querySelectorAll('.v112-export-box,.v141-box,.v163-export-box,.v111-export-box,.v138-export-inline').forEach(el=>el.remove());
-      let box=header.querySelector(':scope > .v113-export-box');
-      if(!box){box=makeBox(pageId);header.appendChild(box);}
-      const allow=exportAllowedV113();
+      const header=pageHeader(pageId); if(!header)return;
+      cleanOldHeaderExports(header);
+      let box=header.querySelector(':scope > .v114-export-box');
+      if(!box){box=makeBox(pageId);header.appendChild(box)}
+      const allow=exportAllowed();
       box.style.setProperty('display',allow?'inline-flex':'none','important');
       box.querySelectorAll('button,input,select').forEach(el=>el.disabled=!allow);
     });
   }
-  function syncExportV113(){
-    cleanDisabledPages();
-    cleanEnabledPages();
-  }
-  window.forEExportSyncV113=syncExportV113;
+  window.forEExportSyncV114=syncExportV114;
 
   document.addEventListener('click',function(ev){
-    const btn=ev.target&&ev.target.closest&&ev.target.closest('.v113-export-btn');
-    if(btn){
-      ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();
-      const box=btn.closest('.v113-export-box');
-      exportPage(box&&box.dataset.pageId,box);
-      return false;
-    }
-    setTimeout(syncExportV113,80);
-    setTimeout(syncExportV113,250);
+    const btn=ev.target&&ev.target.closest&&ev.target.closest('.v114-export-btn');
+    if(btn){ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();const box=btn.closest('.v114-export-box');exportPage(box&&box.dataset.pageId,box);return false;}
+    setTimeout(syncExportV114,80);setTimeout(syncExportV114,250);
   },true);
-
-  ['renderAll','showPage','applyPermissionsUI'].forEach(fn=>{
-    const old=window[fn]||eval(`typeof ${fn}==='function'?${fn}:null`);
-    if(typeof old==='function'){
-      const wrapped=function(){const ret=old.apply(this,arguments);setTimeout(syncExportV113,0);setTimeout(syncExportV113,180);return ret;};
-      try{window[fn]=wrapped;eval(`${fn}=wrapped`);}catch(_){window[fn]=wrapped;}
-    }
+  ['renderAll','showPage','applyPermissionsUI','renderCalendar','renderFieldCalendar','renderRoomBooking','renderFieldDetails','renderPersonalDetails','renderIncidents','renderReports','renderServiceRecords'].forEach(fn=>{
+    try{
+      const old=window[fn]||eval(`typeof ${fn}==='function'?${fn}:null`);
+      if(typeof old==='function'&&!old.__v114Wrapped){
+        const wrapped=function(){const ret=old.apply(this,arguments);setTimeout(syncExportV114,0);setTimeout(syncExportV114,180);return ret;};
+        wrapped.__v114Wrapped=true;
+        window[fn]=wrapped;
+        try{eval(`${fn}=wrapped`)}catch(_){}
+      }
+    }catch(_){}
   });
-
-  const mo=new MutationObserver(()=>{clearTimeout(window.__v113ExportTimer);window.__v113ExportTimer=setTimeout(syncExportV113,80);});
-  setTimeout(()=>{try{mo.observe(document.body,{childList:true,subtree:true});}catch(_){}},500);
-  document.addEventListener('DOMContentLoaded',()=>{setTimeout(syncExportV113,100);setTimeout(syncExportV113,500);});
-  setTimeout(syncExportV113,100);
-  setTimeout(syncExportV113,700);
-  setTimeout(syncExportV113,1500);
+  const mo=new MutationObserver(()=>{clearTimeout(window.__v114ExportTimer);window.__v114ExportTimer=setTimeout(syncExportV114,80)});
+  setTimeout(()=>{try{mo.observe(document.body,{childList:true,subtree:true})}catch(_){}},500);
+  document.addEventListener('DOMContentLoaded',()=>{setTimeout(syncExportV114,120);setTimeout(syncExportV114,600);});
+  setTimeout(syncExportV114,150);setTimeout(syncExportV114,800);setTimeout(syncExportV114,1600);
 })();
 </script>
+
 
 </body></html>
