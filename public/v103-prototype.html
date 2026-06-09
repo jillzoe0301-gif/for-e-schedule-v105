@@ -1330,11 +1330,19 @@ function renderFilters(){
   const tv=getMultiValues('typeFilter');
 
   if(firstLoad){
+    const hasSavedCalendarPrefs = localStorage.getItem(v105CalendarPrefKey()) !== null;
     gv = Array.isArray(prefs.group) ? prefs.group : [];
     pv = Array.isArray(prefs.person) ? prefs.person : [];
-    if((!pv || pv.length===0) && (localStorage.getItem(v105CalendarPrefKey())===null) && ['staff','general'].includes(normalizedRole())){
+
+    // V168：一般／翻譯人員第一次開啟行程總覽時，預設看「自己部門」而不是只看自己。
+    // DRY：預設篩選集中在 renderFilters；KISS：只設定 groupFilter；SOLID：權限預設與畫面渲染分離。
+    if(!hasSavedCalendarPrefs && ['staff','general'].includes(normalizedRole())){
       const pid=currentPersonIdSafe&&currentPersonIdSafe();
-      if(pid) pv=[pid];
+      const me=pid?getPerson(pid):null;
+      if(me&&me.group){
+        gv=[me.group];
+        pv=[];
+      }
     }
     $('groupFilter').dataset.v105Loaded='1';
     if($('personFilter')) $('personFilter').dataset.v105Loaded='1';
@@ -6719,6 +6727,226 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
     setTimeout(removeFilterExportButtonsV166,500);
   });
   setTimeout(removeFilterExportButtonsV166,900);
+})();
+</script>
+
+
+
+<style>
+/* V167：清理篩選列後方重複匯出按鈕
+   DRY：集中管理所有「篩選列內」舊匯出按鈕
+   KISS：只隱藏重複入口，不改動既有資料與匯出核心
+   SOLID：篩選列只負責篩選；匯出入口保留在標題列/右上角工具
+*/
+#calendarPage #exportCsvBtn,
+#fieldCalendarPage #fieldExportBtn,
+#roomBookingPage .v116-static-filter button.export-control,
+#calendarPage .v116-static-filter button.export-control,
+#fieldCalendarPage .v116-static-filter button.export-control,
+#fieldDetailsPage .field-detail-actionbar,
+#fieldDetailsPage #exportFieldDetailsBtn,
+#personalDetailsPage #exportPersonalDetailsBtn,
+#incidentsPage #exportIncidentsBtn,
+#reportsPage #exportReportBtn,
+#serviceRecordsPage #exportServiceRecordsBtn{
+  display:none!important;
+}
+</style>
+
+<script>
+/* V167：防止 restore/render 後舊匯出按鈕再次露出 */
+(function(){
+  const HIDE_EXPORT_IDS=[
+    'exportCsvBtn',
+    'fieldExportBtn',
+    'exportFieldDetailsBtn',
+    'exportPersonalDetailsBtn',
+    'exportIncidentsBtn',
+    'exportReportBtn',
+    'exportServiceRecordsBtn'
+  ];
+  const FILTER_PAGE_IDS=['calendarPage','fieldCalendarPage','roomBookingPage'];
+
+  function hideLegacyFilterExportsV167(){
+    HIDE_EXPORT_IDS.forEach(id=>{
+      const el=document.getElementById(id);
+      if(!el)return;
+      el.classList.add('hide');
+      el.style.setProperty('display','none','important');
+      el.setAttribute('aria-hidden','true');
+      el.tabIndex=-1;
+    });
+
+    FILTER_PAGE_IDS.forEach(pageId=>{
+      const page=document.getElementById(pageId);
+      if(!page)return;
+      page.querySelectorAll('.v116-static-filter button.export-control,.calendar-filter-toolbar-v165 button.export-control')
+        .forEach(btn=>{
+          btn.classList.add('hide');
+          btn.style.setProperty('display','none','important');
+          btn.setAttribute('aria-hidden','true');
+          btn.tabIndex=-1;
+        });
+    });
+  }
+
+  window.hideLegacyFilterExportsV167=hideLegacyFilterExportsV167;
+
+  const oldRestore=window.restoreCalendarFiltersV165;
+  if(typeof oldRestore==='function'){
+    window.restoreCalendarFiltersV165=function(){
+      oldRestore();
+      hideLegacyFilterExportsV167();
+    };
+  }
+
+  const oldRenderAll=typeof renderAll==='function'?renderAll:null;
+  if(oldRenderAll){
+    renderAll=function(){
+      oldRenderAll();
+      hideLegacyFilterExportsV167();
+    };
+  }
+
+  const oldApplyPermissions=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
+  if(oldApplyPermissions){
+    applyPermissionsUI=function(){
+      oldApplyPermissions();
+      hideLegacyFilterExportsV167();
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(hideLegacyFilterExportsV167,120);
+    setTimeout(hideLegacyFilterExportsV167,450);
+    setTimeout(hideLegacyFilterExportsV167,1000);
+  });
+  setTimeout(hideLegacyFilterExportsV167,1200);
+})();
+</script>
+
+
+<style>
+/* V168：CSV 匯出權限集中管理
+   DRY：匯出顯示統一交給 JS 權限函式
+   KISS：篩選列內舊匯出鈕永遠不顯示
+   SOLID：一般/翻譯人員只看排程，不提供資料匯出責任
+*/
+#calendarPage .v116-static-filter button.export-control,
+#fieldCalendarPage .v116-static-filter button.export-control,
+#roomBookingPage .v116-static-filter button.export-control{
+  display:none!important;
+}
+</style>
+
+<script>
+/* V168：翻譯/一般人員移除 CSV 匯出；一般人員行程總覽預設看自己部門 */
+(function(){
+  const LEGACY_FILTER_EXPORT_IDS=['exportCsvBtn','fieldExportBtn'];
+  const MANAGED_EXPORT_IDS=[
+    'exportFieldDetailsBtn',
+    'exportPersonalDetailsBtn',
+    'exportIncidentsBtn',
+    'exportReportBtn',
+    'exportLogBtn',
+    'exportServiceRecordsBtn'
+  ];
+
+  function v168Role(){
+    try{return typeof normalizedRole==='function'?normalizedRole():'';}catch(e){return '';}
+  }
+  function v168IsTranslatorStaff(){
+    return ['staff','general'].includes(v168Role());
+  }
+  function v168CanUseCsvExport(id){
+    if(v168IsTranslatorStaff()) return false;
+    if(window.innerWidth<=760) return false;
+    if(id==='exportLogBtn') return typeof isAdmin==='function' && isAdmin();
+    return !!currentUser;
+  }
+  function v168Hide(el){
+    if(!el) return;
+    el.classList.add('hide');
+    el.style.setProperty('display','none','important');
+    el.setAttribute('aria-hidden','true');
+    el.tabIndex=-1;
+  }
+  function v168Show(el){
+    if(!el) return;
+    el.classList.remove('hide');
+    el.style.removeProperty('display');
+    el.removeAttribute('aria-hidden');
+    el.removeAttribute('tabindex');
+  }
+  function v168ApplyCsvExportPermission(){
+    LEGACY_FILTER_EXPORT_IDS.forEach(id=>v168Hide(document.getElementById(id)));
+
+    document
+      .querySelectorAll('#calendarPage .v116-static-filter button.export-control,#fieldCalendarPage .v116-static-filter button.export-control,#roomBookingPage .v116-static-filter button.export-control')
+      .forEach(v168Hide);
+
+    MANAGED_EXPORT_IDS.forEach(id=>{
+      const el=document.getElementById(id);
+      if(!el) return;
+      if(v168CanUseCsvExport(id)) v168Show(el);
+      else v168Hide(el);
+    });
+  }
+
+  function v168CurrentUserGroup(){
+    try{
+      const pid=(typeof currentPersonIdSafe==='function'&&currentPersonIdSafe())||(typeof userPersonId==='function'&&userPersonId())||(currentUser&&currentUser.personId)||'';
+      const p=pid&&typeof getPerson==='function'?getPerson(pid):null;
+      return p&&p.group?p.group:'';
+    }catch(e){return '';}
+  }
+  function v168CalendarPrefKey(){
+    try{return typeof v105CalendarPrefKey==='function'?v105CalendarPrefKey():KEY+'_calendar_filters_'+((currentUser&&currentUser.id)||'guest');}
+    catch(e){return 'for_e_calendar_filters_'+((currentUser&&currentUser.id)||'guest');}
+  }
+  function v168SeedStaffDepartmentCalendarDefault(){
+    if(!currentUser || !v168IsTranslatorStaff()) return;
+    const key=v168CalendarPrefKey();
+    if(localStorage.getItem(key)!==null) return;
+    const group=v168CurrentUserGroup();
+    if(!group) return;
+    localStorage.setItem(key,JSON.stringify({group:[group],person:[]}));
+    if(document.getElementById('groupFilter')) document.getElementById('groupFilter').dataset.v105Loaded='';
+    if(document.getElementById('personFilter')) document.getElementById('personFilter').dataset.v105Loaded='';
+  }
+
+  const oldShowApp=typeof showApp==='function'?showApp:null;
+  if(oldShowApp){
+    showApp=function(){
+      oldShowApp();
+      v168SeedStaffDepartmentCalendarDefault();
+      v168ApplyCsvExportPermission();
+      if(typeof renderFilters==='function') renderFilters();
+      if(typeof renderCalendar==='function') renderCalendar();
+    };
+  }
+
+  const oldApplyPermissionsUI=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
+  if(oldApplyPermissionsUI){
+    applyPermissionsUI=function(){
+      oldApplyPermissionsUI();
+      v168ApplyCsvExportPermission();
+    };
+  }
+
+  const oldRenderAll=typeof renderAll==='function'?renderAll:null;
+  if(oldRenderAll){
+    renderAll=function(){
+      oldRenderAll();
+      v168SeedStaffDepartmentCalendarDefault();
+      v168ApplyCsvExportPermission();
+    };
+  }
+
+  window.v168ApplyCsvExportPermission=v168ApplyCsvExportPermission;
+  window.v168SeedStaffDepartmentCalendarDefault=v168SeedStaffDepartmentCalendarDefault;
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{v168SeedStaffDepartmentCalendarDefault();v168ApplyCsvExportPermission();},150));
+  setTimeout(()=>{v168SeedStaffDepartmentCalendarDefault();v168ApplyCsvExportPermission();},700);
 })();
 </script>
 
