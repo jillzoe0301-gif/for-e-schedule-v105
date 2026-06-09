@@ -6293,6 +6293,206 @@ setInterval(v206SetupNavOrder,1500);
   setInterval(()=>{v209PlacePersonalTodoAfterPersonalDetails();},1500);
 })();
 
+
+/* V210：會議室七日表格修正、各承辦外務測試不集中同日、帳號資料修正、黃明書全類型測試
+   DRY：日期處理集中 v210Iso/v210WeekDays，測試資料集中 v210SeedExternalTests/v210SeedMingAllTypes。
+   KISS：只修會議室顯示、測試資料、指定帳號資料。
+   SOLID：會議室、外務測試、帳號修正互相獨立。 */
+(function(){
+  function q(sel,root){return (root||document).querySelector(sel)}
+  function qa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
+  function isoToday(){
+    try{return todayISO()}catch(_){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+  }
+  function v210Iso(v){
+    v=String(v||'').trim();
+    if(!v)return isoToday();
+    const m=v.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+    if(m)return `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
+    return v;
+  }
+  function v210AddDays(v,n){
+    const d=new Date(v210Iso(v)+'T00:00:00');
+    if(isNaN(d))return isoToday();
+    d.setDate(d.getDate()+n);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+  function v210WeekDays(base){
+    const iso=v210Iso(base);
+    const d=new Date(iso+'T00:00:00');
+    if(isNaN(d))return [0,1,2,3,4,5,6].map(i=>v210AddDays(isoToday(),i));
+    const day=d.getDay();                 // 0 Sun, 1 Mon
+    const mondayOffset=(day===0?-6:1-day);
+    const monday=v210AddDays(iso,mondayOffset);
+    return [0,1,2,3,4,5,6].map(i=>v210AddDays(monday,i));
+  }
+  function v210Esc(v){try{return esc(v)}catch(_){return String(v??'')}}
+  function v210EscAttr(v){try{return escAttr(v)}catch(_){return String(v??'').replace(/"/g,'&quot;')}}
+  function v210RoomList(){
+    try{const r=roomList().filter(Boolean);if(r.length)return r}catch(_){}
+    try{if(Array.isArray(defaultRooms)&&defaultRooms.length)return defaultRooms.filter(Boolean)}catch(_){}
+    return ['大會議室','小會議室'];
+  }
+  function v210Bookings(date,room){
+    const rf=(q('#roomBookingRoomFilter')||{}).value||'';
+    const dep=(q('#roomBookingDeptFilter')||{}).value||'';
+    const kw=String((q('#roomBookingKeyword')||{}).value||'').trim().toLowerCase();
+    return (state.roomBookings||[]).filter(b=>{
+      if(!b||b.deleted||b.date!==date||b.room!==room)return false;
+      if(rf&&b.room!==rf)return false;
+      if(dep&&b.department!==dep)return false;
+      if(kw&&![b.room,b.department,b.title,b.date].join(' ').toLowerCase().includes(kw))return false;
+      return true;
+    }).sort((a,b)=>String(a.startTime||'').localeCompare(String(b.startTime||'')));
+  }
+  window.v210RenderRoomWeek=function(){
+    const area=q('#roomBookingArea'); if(!area)return;
+    try{ensureRoomBookingState();renderRoomBookingOptionLists();}catch(_){}
+    const picker=q('#roomBookingWeekPicker');
+    if(picker&&!picker.value)picker.value=isoToday();
+    const base=(picker&&picker.value)||isoToday();
+    const days=v210WeekDays(base);
+    const filterRoom=(q('#roomBookingRoomFilter')||{}).value||'';
+    const rooms=filterRoom?v210RoomList().filter(r=>r===filterRoom):v210RoomList();
+    let html='<div class="calendar-wrap v210-room-week"><table class="calendar-table room-week-table"><thead><tr><th class="person-head">會議室 × 日期</th>';
+    html+=days.map(d=>`<th class="${dayClass(d)}"><div>${weekdayFull(d)}</div><div class="date-num">${fmtDate(d)}</div>${holidayBadgeHTML(d)}</th>`).join('');
+    html+='</tr></thead><tbody>';
+    rooms.forEach(room=>{
+      html+=`<tr><td class="person-cell room-name-cell"><span class="person-name">${v210Esc(room)}</span></td>`;
+      days.forEach(d=>{
+        const bs=v210Bookings(d,room);
+        html+=`<td class="day-cell ${dayClass(d)}" data-room-date="${v210EscAttr(d)}" data-room-name="${v210EscAttr(room)}"><div class="date-num">${fmtDate(d)}</div>${holidayBadgeBodyHTML(d)}${
+          bs.map(b=>`<div class="event room-booking-event" data-room-booking-id="${v210EscAttr(b.id)}"><span class="time">${v210Esc(b.startTime)}-${v210Esc(b.endTime)}</span>｜${v210Esc(b.title||'預約')}<div class="who">${v210Esc(b.department||'')}</div></div>`).join('')
+        }</td>`;
+      });
+      html+='</tr>';
+    });
+    html+='</tbody></table></div>';
+    area.innerHTML=html;
+    area.querySelectorAll('[data-room-date]').forEach(td=>{
+      td.ondblclick=(e)=>{if(e.target.closest('.room-booking-event'))return;openRoomBookingModal('',{date:td.dataset.roomDate,room:td.dataset.roomName});};
+    });
+    area.querySelectorAll('.room-booking-event').forEach(el=>el.onclick=(e)=>{e.stopPropagation();openRoomBookingModal(el.dataset.roomBookingId);});
+  };
+  const v210OldRenderRoomBookings=renderRoomBookings;
+  renderRoomBookings=function(){
+    if(q('#roomBookingPage')&&!q('#roomBookingPage').classList.contains('hide')){v210RenderRoomWeek();return;}
+    return v210OldRenderRoomBookings.apply(this,arguments);
+  };
+  function v210FixRoom(){
+    const page=q('#roomBookingPage');
+    if(!page||page.classList.contains('hide'))return;
+    setTimeout(v210RenderRoomWeek,30);
+    setTimeout(()=>{const area=q('#roomBookingArea'); if(area&&(!area.querySelector('th:nth-child(8)')))v210RenderRoomWeek();},160);
+  }
+  document.addEventListener('click',e=>{
+    if(e.target&&e.target.closest&&e.target.closest('[data-page="roomBooking"],#roomPrevWeek,#roomNextWeek,#clearRoomBookingFilters'))v210FixRoom();
+  },true);
+  document.addEventListener('input',e=>{if(e.target&&e.target.closest&&e.target.closest('#roomBookingPage'))v210FixRoom()},true);
+
+  // 帳號/人員資料修正
+  function ensurePerson(name,group,lang){
+    let p=(state.people||[]).find(x=>x&&x.name===name);
+    if(!p){p={id:uid('p'),name,group,lang,active:true,deleted:false,sort:(state.people||[]).length+1};state.people.push(p);}
+    p.group=group;p.lang=lang;p.active=true;p.deleted=false;
+    return p;
+  }
+  function v210FixAccounts(){
+    let changed=false;
+    const before=JSON.stringify({u:state.users,p:state.people});
+    const liu=ensurePerson('劉詩涵','行政系','行政');
+    const huang=ensurePerson('黃明書','營運處','管理');
+    const su=ensurePerson('蘇若儀','營運處','管理');
+    const deng=(state.people||[]).find(p=>p&&p.name==='鄧玉荀'); if(deng){deng.group='二部';deng.lang='宿管';deng.active=true;deng.deleted=false;}
+    const li=(state.people||[]).find(p=>p&&p.name==='李秀玲'); if(li){li.group='二部';li.lang='主管';li.active=true;li.deleted=false;}
+
+    // 刪除前版自動新增的「劉詩涵測試帳號」，但保留人員資料供行政系對應
+    (state.users||[]).forEach(u=>{
+      if(!u)return;
+      const isLiuTest=(u.name==='劉詩涵'&&(u.email==='adminstaff@test.local'||String(u.email||'').includes('test.local')));
+      if(isLiuTest){u.deleted=true;u.active=false;}
+    });
+    // 既有行政系帳號改掛劉詩涵，不另新增測試帳號
+    (state.users||[]).forEach(u=>{
+      if(u&&u.role==='adminStaff'&&!u.deleted){u.personId=liu.id;}
+    });
+    // 黃明書帳號
+    let huangUser=(state.users||[]).find(u=>u&&u.name==='黃明書'&&!u.deleted) || (state.users||[]).find(u=>u&&u.email==='mint@forwardhrm.com');
+    if(!huangUser){huangUser={id:uid('u'),name:'黃明書',email:'mint@forwardhrm.com',password:'1234',role:'admin',personId:huang.id,active:true,deleted:false,lineId:''};state.users.push(huangUser);}
+    huangUser.name='黃明書';huangUser.email='mint@forwardhrm.com';huangUser.role='admin';huangUser.personId=huang.id;huangUser.active=true;huangUser.deleted=false;
+    // 蘇若儀管理員
+    let suUser=(state.users||[]).find(u=>u&&u.name==='蘇若儀'&&!u.deleted) || (state.users||[]).find(u=>u&&u.email==='jillzoe0301@gmail.com');
+    if(!suUser){suUser={id:uid('u'),name:'蘇若儀',email:'jillzoe0301@gmail.com',password:'1234',role:'admin',personId:su.id,active:true,deleted:false,lineId:''};state.users.push(suUser);}
+    suUser.name='蘇若儀';suUser.role='admin';suUser.personId=su.id;suUser.active=true;suUser.deleted=false;
+    if(JSON.stringify({u:state.users,p:state.people})!==before){changed=true;save();}
+    return changed;
+  }
+
+  // 外務行程：所有可外務人員加入測試資料，不要同一天
+  function v210FieldExists(marker){return (state.externalEvents||[]).some(e=>e&&e.v210Marker===marker)}
+  function v210SeedExternalTests(){
+    ensureExternalState&&ensureExternalState();
+    const people=externalPeople();
+    let changed=false;
+    people.forEach((p,i)=>{
+      const marker='v210_external_'+p.id;
+      if(v210FieldExists(marker))return;
+      const d=v210AddDays('2026-06-11',i); // 每位承辦不同天
+      const ev={id:uid('field'),v210Marker:marker,repeatGroupId:'',personId:p.id,date:d,time:i%2?'下午':'上午',status:'未完成',failureReason:'',locationName:'V210外務測試地點',address:'',purpose:i%3===0?'送件':(i%3===1?'領件':'補件'),note:'V210：各承辦外務測試行程（不同日期）',cash:'',stamp:'',document:'測試文件',mustSend:i%2===0,cannotChange:false,pickupDate:v210AddDays(d,3),pickupPersonId:p.id,createdBy:(currentUser&&currentUser.id)||'system',createdAt:new Date().toISOString(),updatedBy:(currentUser&&currentUser.id)||'system',updatedAt:new Date().toISOString(),deleted:false};
+      state.externalEvents.push(ev);
+      try{syncMainEventFromField(ev,'新增');upsertPickupFieldEvent(ev);}catch(_){}
+      changed=true;
+    });
+    if(changed)save();
+  }
+
+  // 黃明書帳號：所有類型測試行程
+  function v210EventExists(marker){return (state.events||[]).some(e=>e&&e.v210Marker===marker)}
+  function v210SeedMingAllTypes(){
+    const huangP=(state.people||[]).find(p=>p&&p.name==='黃明書');
+    const huangU=(state.users||[]).find(u=>u&&u.email==='mint@forwardhrm.com')||(state.users||[]).find(u=>u&&u.name==='黃明書');
+    if(!huangP||!huangU)return;
+    let changed=false;
+    const types=[
+      ['外務','V210 黃明書測試外務'],
+      ['醫療(看診、回診、住院、急診、開刀)','V210 黃明書測試醫療'],
+      ['收送簽文件(證件、用印、簽文件)','V210 黃明書測試收送簽文件'],
+      ['銀行(開戶、補辦、領錢、異動)','V210 黃明書測試銀行'],
+      ['定期 (開會)','V210 黃明書測試定期'],
+      ['送工(新入境、承接)','V210 黃明書測試送工'],
+      ['車禍處理(做筆錄、現場協調、和解、出庭)','V210 黃明書測試車禍處理'],
+      ['面談','V210 黃明書測試面談'],
+      ['逃跑通知','V210 黃明書測試逃跑通知'],
+      ['轉出追蹤','V210 黃明書測試轉出追蹤'],
+      ['住變資訊','V210 黃明書測試住變資訊'],
+      ['提醒事項','V210 黃明書測試提醒事項']
+    ];
+    types.forEach((arr,i)=>{
+      const marker='v210_ming_type_'+i;
+      if(v210EventExists(marker))return;
+      const d=v210AddDays('2026-06-11',i);
+      state.events.push({id:uid('ev'),v210Marker:marker,seriesId:'',seriesIndex:0,kind:'schedule',status:'未完成',startDate:d,endDate:d,startTime:i%2?'下午':'上午',endTime:'',type:arr[0],name:arr[1],additionalType:'',additionalNote:'',locationName:'黃明書測試地點',address:'',vehicleNo:'',meetingRoom:'不指定',participants:[huangP.id],assigneeIds:[huangP.id],note:'V210：黃明書所有類型測試行程',serviceRecordSubmitted:false,serviceRecordDate:'',followupDate:arr[0].includes('醫療')?v210AddDays(d,7):'',followupTime:arr[0].includes('醫療')?'上午':'',followupPersonId:arr[0].includes('醫療')?huangP.id:'',followupRegNo:'',createdBy:huangU.id,createdAt:new Date().toISOString(),updatedBy:huangU.id,updatedAt:new Date().toISOString(),deleted:false});
+      changed=true;
+    });
+    // 活動、待辦、一般記事
+    [['translatorStatus','會議','V210 黃明書測試會議活動'],['todo','確認','V210 黃明書測試待辦事項'],['generalNote','一般記事','V210 黃明書測試一般記事']].forEach((x,i)=>{
+      const marker='v210_ming_extra_'+i;if(v210EventExists(marker))return;
+      state.events.push({id:uid('ev'),v210Marker:marker,seriesId:'',seriesIndex:0,kind:x[0],status:'未完成',startDate:v210AddDays('2026-06-11',20+i),endDate:v210AddDays('2026-06-11',20+i),startTime:'上午',endTime:'',type:x[1],name:x[2],additionalType:'',additionalNote:'',locationName:'',address:'',vehicleNo:'',meetingRoom:'不指定',participants:[huangP.id],assigneeIds:[huangP.id],note:'V210：黃明書額外類別測試',serviceRecordSubmitted:false,serviceRecordDate:'',followupDate:'',followupTime:'',followupPersonId:'',followupRegNo:'',createdBy:huangU.id,createdAt:new Date().toISOString(),updatedBy:huangU.id,updatedAt:new Date().toISOString(),deleted:false});
+      changed=true;
+    });
+    if(changed)save();
+  }
+
+  const v210BaseRenderAll=renderAll;
+  renderAll=function(){
+    const r=v210BaseRenderAll.apply(this,arguments);
+    setTimeout(()=>{v210FixAccounts();v210SeedExternalTests();v210SeedMingAllTypes();v210FixRoom();},120);
+    return r;
+  };
+  setTimeout(()=>{v210FixAccounts();v210SeedExternalTests();v210SeedMingAllTypes();v210FixRoom();},600);
+  setInterval(v210FixRoom,1400);
+})();
+
 })();
 
 </script>
@@ -9687,6 +9887,33 @@ setInterval(v206SetupNavOrder,1500);
 #roomBookingArea{display:block!important;min-height:220px!important;margin-top:12px!important}
 #roomBookingArea .v209-room-week{display:block!important;background:#fff!important}
 #roomBookingArea .room-booking-event{cursor:pointer}
+</style>
+
+
+<script>
+/* V210 外層保底：會議室頁面必顯示 會議室 × 週一～週日 */
+(function(){
+  function fix(){
+    try{
+      const page=document.getElementById('roomBookingPage');
+      if(!page||page.classList.contains('hide'))return;
+      if(window.v210RenderRoomWeek)window.v210RenderRoomWeek();
+      const area=document.getElementById('roomBookingArea');
+      if(area && !area.querySelector('th:nth-child(8)') && window.v210RenderRoomWeek)window.v210RenderRoomWeek();
+    }catch(e){}
+  }
+  document.addEventListener('click',e=>{
+    if(e.target&&e.target.closest&&e.target.closest('[data-page="roomBooking"],#roomPrevWeek,#roomNextWeek'))setTimeout(fix,100);
+  },true);
+  setTimeout(fix,900);
+})();
+</script>
+<style>
+/* V210：會議室七日週曆強制顯示 */
+#roomBookingArea{display:block!important;min-height:240px!important;margin-top:12px!important}
+#roomBookingArea .v210-room-week{display:block!important;background:#fff!important}
+#roomBookingArea .calendar-table th,#roomBookingArea .calendar-table td{min-width:128px!important}
+#roomBookingArea .person-head{min-width:130px!important}
 </style>
 
 </body></html>
