@@ -6129,6 +6129,170 @@ setInterval(v206SetupNavOrder,1500);
   setInterval(()=>{v208SetupNavReorder();v208PatchFieldRows();},1500);
 })();
 
+
+/* V209：個人一般待辦移到個人行程表下面、指定人員/角色調整、會議室七日週曆保底
+   DRY：導覽位置集中 v209PlacePersonalTodoAfterPersonalDetails，角色/人員集中 v209ApplyPeopleRoleFix。
+   KISS：只調整位置、名稱/角色、會議室週曆，不動原資料結構。
+   SOLID：個人待辦、角色資料、會議室顯示三段獨立。 */
+(function(){
+  function q(sel,root){return (root||document).querySelector(sel)}
+  function qa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
+  function setPerson(name, group, lang){
+    const p=(state.people||[]).find(x=>x&&x.name===name);
+    if(p){p.group=group||p.group;p.lang=lang||p.lang;p.active=true;p.deleted=false;}
+    return p;
+  }
+  function setUserByName(name, role, personName){
+    const u=(state.users||[]).find(x=>x&&x.name===name);
+    const p=personName?(state.people||[]).find(x=>x&&x.name===personName):null;
+    if(u){u.role=role||u.role;if(p)u.personId=p.id;u.active=true;u.deleted=false;}
+    return u;
+  }
+  function ensurePerson(name, group, lang){
+    let p=(state.people||[]).find(x=>x&&x.name===name);
+    if(!p){
+      p={id:uid('p'),name,group,lang,active:true,deleted:false,sort:(state.people||[]).length+1};
+      state.people.push(p);
+    }else{p.group=group;p.lang=lang;p.active=true;p.deleted=false;}
+    return p;
+  }
+  function ensureUser(name, email, role, personId){
+    let u=(state.users||[]).find(x=>x&&x.name===name) || (state.users||[]).find(x=>x&&x.email===email);
+    if(!u){
+      u={id:uid('u'),name,email,password:'1234',role,personId,active:true,deleted:false,lineId:''};
+      state.users.push(u);
+    }else{u.name=name;u.email=u.email||email;u.role=role;u.personId=personId||u.personId;u.active=true;u.deleted=false;}
+    return u;
+  }
+  function v209ApplyPeopleRoleFix(){
+    let changed=false;
+    const before=JSON.stringify({p:state.people,u:state.users});
+    setPerson('鄧玉荀','二部','宿管');
+    setPerson('李秀玲','二部','主管');
+    const liu=ensurePerson('劉詩涵','行政系','行政');
+    const huang=ensurePerson('黃明書','營運處','管理');
+    const su=ensurePerson('蘇若儀','營運處','管理');
+    // 行政系：以劉詩涵為行政系帳號/對應人員
+    ensureUser('劉詩涵','adminstaff@test.local','adminStaff',liu.id);
+    // 管理員：黃明書、蘇若儀
+    ensureUser('黃明書','ming-shu@test.local','admin',huang.id);
+    ensureUser('蘇若儀','jillzoe0301@gmail.com','admin',su.id);
+    setUserByName('黃明書','admin','黃明書');
+    setUserByName('蘇若儀','admin','蘇若儀');
+    // 若有舊的「管理員」展示帳號，改掛到黃明書，避免只顯示泛稱
+    const adminGeneric=(state.users||[]).find(u=>u&&u.name==='管理員');
+    if(adminGeneric){adminGeneric.name='黃明書';adminGeneric.role='admin';adminGeneric.personId=huang.id;adminGeneric.active=true;adminGeneric.deleted=false;}
+    const after=JSON.stringify({p:state.people,u:state.users});
+    changed=before!==after;
+    if(changed)save();
+  }
+  function v209TodoButtonHtml(isBottom){
+    return '<img class="mono-ico v207-neutral-face" src="'+(q('[data-page="personalGeneralTodo"] img.v207-neutral-face')?.src||'')+'" alt="">'+(isBottom?'待辦':'個人一般待辦');
+  }
+  function v209EnsurePersonalTodoButton(container,isBottom){
+    if(!container)return null;
+    let btn=container.querySelector('[data-page="personalGeneralTodo"]');
+    if(!btn){
+      btn=document.createElement('button');
+      btn.className='navbtn';
+      btn.dataset.page='personalGeneralTodo';
+    }
+    if(!btn.innerHTML.trim()||!btn.querySelector('.v207-neutral-face')){
+      // 圖示若還沒由 V207 套入，保留文字，V207 會再補圖。
+      if(!btn.querySelector('.v207-neutral-face'))btn.innerHTML=(isBottom?'待辦':'個人一般待辦');
+    }
+    return btn;
+  }
+  function v209PlacePersonalTodoAfterPersonalDetails(){
+    const placements=[
+      {container:q('.side'), after:'personalDetails', bottom:false},
+      {container:q('.bottom-nav'), after:'personalDetails', bottom:true}
+    ];
+    placements.forEach(cfg=>{
+      const c=cfg.container;if(!c)return;
+      const btn=v209EnsurePersonalTodoButton(c,cfg.bottom);
+      const anchor=c.querySelector(`[data-page="${cfg.after}"]`);
+      if(anchor&&anchor.nextSibling!==btn)c.insertBefore(btn,anchor.nextSibling);
+      else if(!anchor&&!btn.parentElement)c.appendChild(btn);
+      btn.classList.remove('hide','role-hidden');
+      btn.style.removeProperty('display');
+    });
+  }
+  function v209RoomList(){
+    try{const r=roomList().filter(Boolean); if(r.length)return r;}catch(_){}
+    try{if(Array.isArray(defaultRooms)&&defaultRooms.length)return defaultRooms.filter(Boolean)}catch(_){}
+    return ['大會議室','小會議室'];
+  }
+  function v209Esc(v){try{return esc(v)}catch(_){return String(v??'')}}
+  function v209EscAttr(v){try{return escAttr(v)}catch(_){return String(v??'').replace(/"/g,'&quot;')}}
+  function v209RoomBookingsOn(date,room){
+    const rf=($('roomBookingRoomFilter')||{}).value||'';
+    const dep=($('roomBookingDeptFilter')||{}).value||'';
+    const kw=String(($('roomBookingKeyword')||{}).value||'').trim().toLowerCase();
+    return (state.roomBookings||[]).filter(b=>{
+      if(!b||b.deleted||b.date!==date||b.room!==room)return false;
+      if(rf&&b.room!==rf)return false;
+      if(dep&&b.department!==dep)return false;
+      if(kw&&![b.room,b.department,b.title,b.date].join(' ').toLowerCase().includes(kw))return false;
+      return true;
+    }).sort((a,b)=>String(a.startTime||'').localeCompare(String(b.startTime||'')));
+  }
+  window.v209RenderRoomBookingWeek=function(){
+    const area=$('roomBookingArea'); if(!area)return;
+    try{ensureRoomBookingState();renderRoomBookingOptionLists();}catch(_){}
+    const picker=$('roomBookingWeekPicker'); if(picker&&!picker.value)picker.value=todayISO();
+    const base=(picker&&picker.value)||todayISO();
+    const days=weekDays(base).slice(0,7);
+    const rooms=(($('roomBookingRoomFilter')||{}).value)?v209RoomList().filter(r=>r===($('roomBookingRoomFilter')||{}).value):v209RoomList();
+    let html='<div class="room-week-wrap v209-room-week"><table class="room-week-table calendar-table"><thead><tr><th class="room-room-head">會議室</th>'+
+      days.map(d=>`<th class="${dayClass(d)}"><div>${weekdayFull(d)}</div><div class="date-num">${fmtDate(d)}</div>${holidayBadgeHTML(d)}</th>`).join('')+
+      '</tr></thead><tbody>';
+    rooms.forEach(room=>{
+      html+=`<tr><td class="person-cell room-name-cell"><span class="person-name">${v209Esc(room)}</span></td>`;
+      days.forEach(d=>{
+        const bookings=v209RoomBookingsOn(d,room);
+        html+=`<td class="day-cell ${dayClass(d)}" data-room-date="${v209EscAttr(d)}" data-room-name="${v209EscAttr(room)}"><div class="date-num">${fmtDate(d)}</div>${holidayBadgeBodyHTML(d)}${
+          bookings.map(b=>`<div class="event room-booking-event" data-room-booking-id="${v209EscAttr(b.id)}"><span class="time">${v209Esc(b.startTime)}-${v209Esc(b.endTime)}</span>｜${v209Esc(b.title||'預約')}<div class="who">${v209Esc(b.department||'')}</div></div>`).join('')
+        }</td>`;
+      });
+      html+='</tr>';
+    });
+    html+='</tbody></table></div>';
+    area.innerHTML=html;
+    area.querySelectorAll('[data-room-date]').forEach(td=>{
+      td.ondblclick=(e)=>{if(e.target.closest('.room-booking-event'))return;openRoomBookingModal('',{date:td.dataset.roomDate,room:td.dataset.roomName});};
+    });
+    area.querySelectorAll('.room-booking-event').forEach(el=>{
+      el.onclick=(e)=>{e.stopPropagation();openRoomBookingModal(el.dataset.roomBookingId);};
+    });
+  };
+  const v209OldRenderRoomBookings=renderRoomBookings;
+  renderRoomBookings=function(){
+    const page=$('roomBookingPage');
+    if(page&&!page.classList.contains('hide')){v209RenderRoomBookingWeek();return;}
+    return v209OldRenderRoomBookings.apply(this,arguments);
+  };
+  function v209RoomFix(){
+    const page=$('roomBookingPage'), area=$('roomBookingArea');
+    if(!page||page.classList.contains('hide')||!area)return;
+    if(!$('roomBookingWeekPicker').value)$('roomBookingWeekPicker').value=todayISO();
+    v209RenderRoomBookingWeek();
+  }
+  document.addEventListener('click',e=>{
+    const btn=e.target&&e.target.closest&&e.target.closest('[data-page="roomBooking"],#roomPrevWeek,#roomNextWeek,#clearRoomBookingFilters');
+    if(btn)setTimeout(v209RoomFix,60);
+  },true);
+  document.addEventListener('input',e=>{if(e.target&&e.target.closest&&e.target.closest('#roomBookingPage'))setTimeout(v209RoomFix,60)},true);
+  const v209BaseRenderAll=renderAll;
+  renderAll=function(){
+    const r=v209BaseRenderAll.apply(this,arguments);
+    setTimeout(()=>{v209ApplyPeopleRoleFix();v209PlacePersonalTodoAfterPersonalDetails();v209RoomFix();},100);
+    return r;
+  };
+  setTimeout(()=>{v209ApplyPeopleRoleFix();v209PlacePersonalTodoAfterPersonalDetails();v209RoomFix();},500);
+  setInterval(()=>{v209PlacePersonalTodoAfterPersonalDetails();},1500);
+})();
+
 })();
 
 </script>
@@ -9498,6 +9662,31 @@ setInterval(v206SetupNavOrder,1500);
 .v208-dragging,.v208-nav-dragging{opacity:.45;outline:2px dashed var(--brand)}
 .side .navbtn[data-page],.bottom-nav .navbtn[data-page]{touch-action:none;cursor:grab}
 #roomBookingArea{display:block!important;min-height:180px!important}
+</style>
+
+
+<script>
+/* V209 外層保底：點會議室頁後強制補畫七日行事曆 */
+(function(){
+  function fix(){
+    try{
+      const page=document.getElementById('roomBookingPage');
+      if(!page||page.classList.contains('hide'))return;
+      if(window.v209RenderRoomBookingWeek)window.v209RenderRoomBookingWeek();
+      else if(window.v194RenderRoomBookings)window.v194RenderRoomBookings();
+    }catch(e){}
+  }
+  document.addEventListener('click',e=>{
+    if(e.target&&e.target.closest&&e.target.closest('[data-page="roomBooking"],#roomPrevWeek,#roomNextWeek'))setTimeout(fix,100);
+  },true);
+  setTimeout(fix,800);
+})();
+</script>
+<style>
+/* V209：會議室七日週曆與個人待辦位置保底 */
+#roomBookingArea{display:block!important;min-height:220px!important;margin-top:12px!important}
+#roomBookingArea .v209-room-week{display:block!important;background:#fff!important}
+#roomBookingArea .room-booking-event{cursor:pointer}
 </style>
 
 </body></html>
