@@ -2151,7 +2151,38 @@ function upsertPickupFieldEvent(sourceEv){
   const ev={id:uid('field'),repeatGroupId:'',createdBy:currentUser.id,createdAt:new Date().toISOString(),...data};
   state.externalEvents.push(ev); addLog('新增','外務領件行程',ev.purpose,'下一次領件','',`${ev.date} ${getPerson(ev.personId).name} ${ev.locationName}`); syncMainEventFromField(ev,'新增'); return ev;
 }
-function saveFieldEvent(){ensureExternalState(); if(!$('fieldPerson').value||!$('fieldDate').value)return toast('請選擇人員與日期'); const id=$('editFieldId').value; const data=collectFieldEvent(); if(data.status==='送件失敗'&&!data.failureReason)return toast('請填寫送件失敗原因'); if(id){const idx=state.externalEvents.findIndex(x=>x.id===id); if(idx>=0){const old=clone(state.externalEvents[idx]); const mainOld=clone(state.events.find(x=>x.externalEventId===id)||null); state.externalEvents[idx]={...state.externalEvents[idx],...data}; addLog('修改','外務行程',state.externalEvents[idx].purpose,'外務行程','修改前',JSON.stringify(old)); syncMainEventFromField(state.externalEvents[idx],'修改',mainOld); upsertPickupFieldEvent(state.externalEvents[idx]);}}
+
+function v203ClearFieldRequired(){
+  document.querySelectorAll('#fieldModal .field.required').forEach(f=>f.classList.remove('required'));
+  document.querySelectorAll('#fieldModal .req-missing').forEach(el=>el.classList.remove('req-missing'));
+  document.querySelectorAll('#fieldModal .required-hint.v203').forEach(el=>el.remove());
+}
+function v203MarkFieldRequired(){
+  ['fieldPerson','fieldDate','fieldTime','fieldLocation','fieldPurpose'].forEach(id=>{
+    const el=$(id); if(!el)return;
+    const field=el.closest('.field'); if(field)field.classList.add('required');
+  });
+}
+function v203ShowFieldMissing(id,msg){
+  const el=$(id); if(!el)return;
+  el.classList.add('req-missing');
+  const field=el.closest('.field');
+  if(field&&!field.querySelector('.required-hint.v203')){
+    const div=document.createElement('div'); div.className='required-hint v203'; div.textContent=msg||'此欄位必填'; field.appendChild(div);
+  }
+}
+function v203ValidateFieldRequired(){
+  v203ClearFieldRequired(); v203MarkFieldRequired();
+  const missing=[];
+  if(!$('fieldPerson').value)missing.push(['fieldPerson','請選擇人員']);
+  if(!$('fieldDate').value)missing.push(['fieldDate','請選擇日期']);
+  if(!$('fieldTime').value)missing.push(['fieldTime','請選擇時間']);
+  if(!$('fieldLocation').value)missing.push(['fieldLocation','請選擇地點']);
+  if(!$('fieldPurpose').value)missing.push(['fieldPurpose','請選擇目的']);
+  missing.forEach(([id,msg])=>v203ShowFieldMissing(id,msg));
+  return missing.length===0;
+}
+function saveFieldEvent(){ensureExternalState(); if(!v203ValidateFieldRequired())return toast('請確認外務行程必填欄位'); const id=$('editFieldId').value; const data=collectFieldEvent(); if(data.status==='送件失敗'&&!data.failureReason)return toast('請填寫送件失敗原因'); if(id){const idx=state.externalEvents.findIndex(x=>x.id===id); if(idx>=0){const old=clone(state.externalEvents[idx]); const mainOld=clone(state.events.find(x=>x.externalEventId===id)||null); state.externalEvents[idx]={...state.externalEvents[idx],...data}; addLog('修改','外務行程',state.externalEvents[idx].purpose,'外務行程','修改前',JSON.stringify(old)); syncMainEventFromField(state.externalEvents[idx],'修改',mainOld); upsertPickupFieldEvent(state.externalEvents[idx]);}}
   else{const group=uid('fg'); let firstMain=null; for(const d of fieldRepeatDates()){const ev={id:uid('field'),repeatGroupId:group,createdBy:currentUser.id,createdAt:new Date().toISOString(),deleted:false,...data,date:d}; state.externalEvents.push(ev); addLog('新增','外務行程',ev.purpose,'外務行程','',`${ev.date} ${getPerson(ev.personId).name} ${ev.locationName}`); const main=syncMainEventFromField(ev,'新增'); if(!firstMain){firstMain=main; upsertPickupFieldEvent(ev);}} if(firstMain)state.lastLineText=lineMessage('新增',firstMain)+(fieldRepeatDates().length>1?`\n重複行程：共 ${fieldRepeatDates().length} 筆，已同步加入行程總覽。`:'');}
   save(); $('fieldModal').classList.add('hide'); renderAll(); toast('外務行程已儲存，並已同步至行程總覽')}
 function deleteFieldEvent(){const id=$('editFieldId').value; const e=(state.externalEvents||[]).find(x=>x.id===id); if(!e)return; if(!canDelete())return toast('目前權限不可刪除'); if(!confirm('確定刪除此筆外務行程？'))return; e.deleted=true; e.updatedBy=currentUser.id; e.updatedAt=new Date().toISOString(); const main=state.events.find(x=>x.externalEventId===id); const before=main?clone(main):null; if(main){main.deleted=true; main.updatedBy=currentUser.id; main.updatedAt=new Date().toISOString(); state.lastLineText=lineMessage('刪除',main,before);} addLog('刪除','外務行程',e.purpose,'外務行程','顯示','已刪除'); save(); $('fieldModal').classList.add('hide'); renderAll(); toast('已刪除外務行程，並同步取消行程總覽')}
@@ -2188,9 +2219,9 @@ renderFollowupPersonOptions=function(selected=''){
 const _v86UpdateServiceRecordUI=updateServiceRecordUI;
 updateServiceRecordUI=function(){
   _v86UpdateServiceRecordUI();
-  // V202：只保留「類型 / 行程類型」紅色必填標示；不再用紅框阻擋送出。
+  // V203：只有「類別=行程」顯示必填星號；活動/待辦/一般記事不顯示紅色必填。
   const kind=$('eventKind')&&$('eventKind').value;
-  v86MarkRequired(kind==='generalNote'?[]:['eventType']);
+  v86MarkRequired(kind==='schedule'?['startDate','endDate','eventType','locationName','eventName','participantsBox']:[]);
   const isSchedule=kind==='schedule';
   const isMed=isSchedule&&displayEventType($('eventType')?$('eventType').value:'')==='醫療';
   if(isMed){
@@ -2207,12 +2238,33 @@ function v86ShowMissing(id,msg){
   }
 }
 function v86ValidateEventRequired(){
-  // V201：取消行程表單紅色必填欄位與必填阻擋。
-  // 只清除舊紅框，實際儲存交回核心 saveEvent 的基本資料保護。
   document.querySelectorAll('.req-missing').forEach(el=>el.classList.remove('req-missing'));
   document.querySelectorAll('.required-hint.v86').forEach(el=>el.remove());
-  document.querySelectorAll('.field.required').forEach(f=>f.classList.remove('required'));
-  return true;
+  const kind=$('eventKind')&&$('eventKind').value;
+  if(kind!=='schedule')return true;
+  const missing=[];
+  if(!$('startDate').value)missing.push(['startDate','請選擇起日']);
+  if(!$('endDate').value)missing.push(['endDate','請選擇迄日']);
+  if(!$('eventType').value)missing.push(['eventType','請選擇行程類型']);
+  if(!$('locationName').value.trim())missing.push(['locationName','請填寫地點 / 客戶']);
+  if(!$('eventName').value.trim())missing.push(['eventName','請填寫內容']);
+  const participants=[...document.querySelectorAll('#participantsBox input:checked')];
+  if(!participants.length){
+    const box=$('participantsBox');
+    if(box){
+      box.classList.add('req-missing');
+      const field=box.closest('.field');
+      if(field&&!field.querySelector('.required-hint.v86')){
+        const div=document.createElement('div');
+        div.className='required-hint v86';
+        div.textContent='請至少勾選一位相關人員';
+        field.appendChild(div);
+      }
+    }
+    missing.push(['participantsBox','請至少勾選一位相關人員']);
+  }
+  missing.forEach(([id,msg])=>v86ShowMissing(id,msg));
+  return missing.length===0;
 }
 const _v86SaveEvent=saveEvent;
 saveEvent=function(){
@@ -8679,6 +8731,116 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 #eventModal .req-missing{border-color:var(--line)!important;box-shadow:none!important;background:#fff!important}
 #eventModal .required-hint.v86{display:none!important}
 @media(max-width:760px){#personalTodoPage .detail-table-wrap{max-height:58vh}}
+</style>
+
+
+<script>
+/* V203：獨立「待辦事項記事追蹤」分頁 + 管理員測試資料
+   DRY：共用 v203TaskRows 篩選一般記事/待辦事項。
+   KISS：只做新增待辦、開啟原行程、完成。
+   SOLID：獨立頁面 data-page=taskNoteTracker，不混入原個人行程/待確認提醒。 */
+(function(){
+  function q(sel,root){return (root||document).querySelector(sel)}
+  function qa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
+  function safe(v){try{return esc(v)}catch(_){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}}
+  function today(){try{return todayISO()}catch(_){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}}
+  function ownPid(){try{return userPersonId()||''}catch(_){try{return currentUser.personId||''}catch(e){return ''}}}
+  function isAdminUser(u){return u&&['admin','options'].includes(String(u.role||''))}
+  function adminUser(){try{return (state.users||[]).find(isAdminUser)||currentUser}catch(_){return currentUser}}
+  function adminPid(){
+    const u=adminUser();
+    if(u&&u.personId)return u.personId;
+    try{return (state.people||[]).find(p=>p&&p.active!==false&&p.lang==='管理')?.id || (state.people||[])[0]?.id || ''}catch(_){return ''}
+  }
+  function seedAdminTaskNote(){
+    try{
+      if(!state||!state.events)return;
+      const u=adminUser(); const pid=adminPid(); if(!u||!pid)return;
+      const existsTodo=state.events.some(e=>e&&e.kind==='todo'&&e.name==='測試待辦事項');
+      const existsNote=state.events.some(e=>e&&e.kind==='generalNote'&&e.name==='測試一般事項');
+      if(existsTodo&&existsNote)return;
+      const base={seriesId:'',seriesIndex:0,startDate:today(),endDate:today(),startTime:'上午',endTime:'',locationName:'',address:'',vehicleNo:'',meetingRoom:'不指定',participants:[pid],assigneeIds:[],serviceRecordSubmitted:false,serviceRecordDate:'',followupDate:'',followupTime:'',followupPersonId:'',followupRegNo:'',createdBy:u.id||'admin',createdAt:new Date().toISOString(),updatedBy:u.id||'admin',updatedAt:new Date().toISOString(),deleted:false};
+      if(!existsTodo)state.events.push(Object.assign({id:uid('ev'),kind:'todo',status:'未完成',type:'確認',name:'測試待辦事項',additionalType:'',additionalNote:'',note:'管理員測試待辦'},base));
+      if(!existsNote)state.events.push(Object.assign({id:uid('ev'),kind:'generalNote',status:'未完成',type:'一般記事',name:'測試一般事項',additionalType:'',additionalNote:'',note:'管理員測試一般記事'},base));
+      save();
+    }catch(e){console.warn('V203 seed failed',e)}
+  }
+  function isMine(e){
+    const pid=ownPid();
+    try{return (e.participants||[]).includes(pid)||e.createdBy===(currentUser&&currentUser.id)}catch(_){return false}
+  }
+  function v203TaskRows(){
+    try{return (state.events||[]).filter(e=>e&&!e.deleted&&['generalNote','todo'].includes(e.kind)&&isMine(e)).sort((a,b)=>String(a.status==='已完成').localeCompare(String(b.status==='已完成'))||String(a.startDate||'').localeCompare(String(b.startDate||''))||String(a.startTime||'').localeCompare(String(b.startTime||'')))}catch(_){return []}
+  }
+  function ensurePage(){
+    let page=q('#taskNoteTrackerPage');
+    if(!page){
+      const main=q('.main')||q('main')||document.body;
+      page=document.createElement('section');
+      page.id='taskNoteTrackerPage';
+      page.className='page hide';
+      main.appendChild(page);
+    }
+    page.innerHTML=`<div class="panel"><div class="section-title"><h2>待辦事項記事追蹤</h2><div class="toolbar"><button id="v203AddTodo" class="primary">新增待辦</button><button id="v203RefreshTodo">重新整理</button></div></div><div class="muted">只集中顯示登入者自己的「一般記事 / 待辦事項」，不混在原個人行程表。</div></div><div class="panel"><div class="detail-table-wrap"><table class="table"><thead><tr><th>操作</th><th>狀態</th><th>日期</th><th>時間</th><th>分類</th><th>類型</th><th>標題</th><th>說明</th></tr></thead><tbody id="taskNoteTrackerRows"></tbody></table></div></div>`;
+    q('#v203AddTodo',page).onclick=function(){try{openEventModal({date:today(),personId:ownPid()});setTimeout(()=>{if(q('#eventKind')){$('eventKind').value='todo';renderTypeOptions();updateEventFormByKindUI();}},100)}catch(e){}};
+    q('#v203RefreshTodo',page).onclick=renderPage;
+    return page;
+  }
+  function renderPage(){
+    const page=q('#taskNoteTrackerPage')||ensurePage();
+    const tbody=q('#taskNoteTrackerRows',page);
+    const rows=v203TaskRows();
+    tbody.innerHTML=rows.map(e=>`<tr><td><button class="small primary" data-v203-open="${safe(e.id)}">開啟</button> ${e.status==='已完成'?'<span class="badge">已完成</span>':`<button class="small" data-v203-done="${safe(e.id)}">完成</button>`}</td><td>${safe(e.status||'')}</td><td>${safe(e.startDate||'')}</td><td>${safe(e.startTime||'')}</td><td>${e.kind==='todo'?'待辦事項':'一般記事'}</td><td>${safe(e.type||'')}</td><td>${safe(e.name||'')}</td><td>${safe(e.note||'')}</td></tr>`).join('')||'<tr><td colspan="8" class="muted">目前沒有待辦事項或一般記事</td></tr>';
+    qa('[data-v203-open]',tbody).forEach(btn=>btn.onclick=()=>openEventModal({eventId:btn.dataset.v203Open}));
+    qa('[data-v203-done]',tbody).forEach(btn=>btn.onclick=()=>{const e=(state.events||[]).find(x=>x.id===btn.dataset.v203Done);if(!e)return;e.status='已完成';e.updatedBy=currentUser.id;e.updatedAt=new Date().toISOString();save();renderPage();if(typeof renderAll==='function')renderAll();toast('已完成')});
+  }
+  function showPageV203(){
+    ensurePage();
+    qa('.page').forEach(p=>p.classList.add('hide'));
+    q('#taskNoteTrackerPage').classList.remove('hide');
+    qa('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page==='taskNoteTracker'));
+    renderPage();
+  }
+  function ensureNav(){
+    if(!currentUser)return;
+    const side=q('.side');
+    if(side&&!side.querySelector('[data-page="taskNoteTracker"]')){
+      const btn=document.createElement('button');
+      btn.className='navbtn';
+      btn.dataset.page='taskNoteTracker';
+      btn.innerHTML='<span class="mono-ico ico-list"></span>待辦事項記事追蹤';
+      side.insertBefore(btn,side.querySelector('[data-page="today"]')||null);
+    }
+    const bottom=q('.bottom-nav');
+    if(bottom&&!bottom.querySelector('[data-page="taskNoteTracker"]')){
+      const btn=document.createElement('button');
+      btn.className='navbtn';
+      btn.dataset.page='taskNoteTracker';
+      btn.innerHTML='<span class="mono-ico ico-list"></span>待辦';
+      bottom.appendChild(btn);
+    }
+    qa('[data-page="taskNoteTracker"]').forEach(btn=>{btn.classList.remove('hide','role-hidden');btn.style.removeProperty('display')});
+    // 舊 personalTodo 若存在，避免跟新分頁混淆
+    qa('[data-page="personalTodo"]').forEach(btn=>{btn.classList.add('hide','role-hidden');btn.style.setProperty('display','none','important')});
+  }
+  document.addEventListener('click',function(e){const btn=e.target&&e.target.closest&&e.target.closest('[data-page="taskNoteTracker"]');if(btn){e.preventDefault();e.stopPropagation();showPageV203()}},true);
+  const oldRenderAll=typeof renderAll==='function'?renderAll:null;
+  if(oldRenderAll&&!oldRenderAll.v203Wrapped){
+    const wrapped=function(){const r=oldRenderAll.apply(this,arguments);setTimeout(()=>{seedAdminTaskNote();ensurePage();ensureNav();},120);return r};
+    wrapped.v203Wrapped=true; renderAll=window.renderAll=wrapped;
+  }
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(()=>{seedAdminTaskNote();ensurePage();ensureNav();},700)});
+  setTimeout(()=>{seedAdminTaskNote();ensurePage();ensureNav();},1200);
+  setInterval(ensureNav,1500);
+})();
+</script>
+<style>
+/* V203：待辦事項記事追蹤與必填樣式 */
+#eventModal .field.required label:first-child::after,
+#fieldModal .field.required label:first-child::after{content:' *';color:#dc2626!important;font-weight:900!important}
+#eventModal .req-missing,#fieldModal .req-missing{border-color:#dc2626!important;box-shadow:0 0 0 3px rgba(220,38,38,.16)!important;background:#fff7f7!important}
+#eventModal .required-hint.v86,#fieldModal .required-hint.v203{display:block!important}
+@media(max-width:760px){#taskNoteTrackerPage .detail-table-wrap{max-height:58vh}.bottom-nav [data-page="taskNoteTracker"]{display:inline-flex!important}}
 </style>
 
 </body></html>
