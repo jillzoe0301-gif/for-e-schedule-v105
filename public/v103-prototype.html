@@ -8105,4 +8105,206 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 }
 </style>
 
+
+<script>
+/* V189：翻譯手機個人行程精簡排版
+   DRY：集中一個 patchPersonalMobileV189 處理統計與提醒卡片。
+   KISS：只調整手機 DOM 位置與樣式，不改行程資料與提醒判斷。
+   SOLID：手機個人頁顯示邏輯獨立，不影響桌機、紀錄單繳交、會議室。 */
+(function(){
+  function q(sel,root){return (root||document).querySelector(sel)}
+  function qa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
+  function isPersonalPageVisible(){
+    const page=q('#personalPage') || q('#personalDetailsPage') || q('[data-page-panel="personal"]');
+    return page && !page.classList.contains('hide') ? page : null;
+  }
+  function isMobile(){
+    return window.matchMedia && window.matchMedia('(max-width:760px)').matches;
+  }
+  function patchStats(page){
+    const statGrids=qa('.statgrid',page).filter(g=>{
+      const t=g.textContent||'';
+      return t.includes('行程') && t.includes('未完成') && t.includes('已完成');
+    });
+    statGrids.forEach(g=>{
+      g.classList.add('v189-personal-mobile-stats');
+      const cards=qa('.stat',g);
+      cards.forEach(card=>{
+        const label=(q('.muted',card)||card).textContent||'';
+        if(label.includes('行程') || label.includes('未完成') || label.includes('已完成')){
+          card.classList.add('v189-keep-stat');
+        }
+      });
+    });
+  }
+  function patchReminderCards(page){
+    qa('.mobile-alert-card,.personal-desktop-alert,.mobile-event-card.alert',page).forEach(card=>{
+      const txt=card.textContent||'';
+      if(!(txt.includes('提醒事項') || txt.includes('待確認') || txt.includes('待通知') || txt.includes('超過時間')))return;
+      card.classList.add('v189-compact-reminder-card');
+
+      let title=q('.mobile-alert-title',card) || q('.mobile-event-title',card) || q('b,strong',card);
+      if(title && !title.classList.contains('v189-reminder-title')){
+        title.classList.add('v189-reminder-title');
+      }
+
+      let overdue=qa('*',card).find(el=>(el.textContent||'').trim().includes('超過時間'));
+      if(overdue){
+        overdue.classList.add('v189-overdue-badge');
+        const holder=title || q('.mobile-alert-main',card) || q('.mobile-event-title',card);
+        if(holder && overdue.parentElement!==holder.parentElement){
+          holder.insertAdjacentElement('afterend',overdue);
+        }
+      }
+
+      let actions=q('.mobile-alert-actions,.personal-desktop-alert-actions',card);
+      if(!actions){
+        const buttons=qa('button',card);
+        if(buttons.length){
+          actions=document.createElement('div');
+          actions.className='mobile-alert-actions v189-actions';
+          buttons[0].parentNode.insertBefore(actions,buttons[0]);
+          buttons.forEach(b=>actions.appendChild(b));
+        }
+      }
+      if(actions){
+        actions.classList.add('v189-actions');
+        const done=qa('button',actions).find(b=>(b.textContent||'').includes('已完成'));
+        const view=qa('button',actions).find(b=>(b.textContent||'').includes('查看'));
+        if(done)done.classList.add('v189-done-btn');
+        if(view)view.classList.add('v189-view-btn');
+      }
+    });
+  }
+  function patchPersonalMobileV189(){
+    if(!isMobile())return;
+    const page=isPersonalPageVisible() || document;
+    patchStats(page);
+    patchReminderCards(page);
+  }
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(patchPersonalMobileV189,100);
+    setTimeout(patchPersonalMobileV189,500);
+  });
+  document.addEventListener('click',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('.navbtn[data-page="personal"],.bottom-nav [data-page="personal"],#personalPage,#personalDetailsPage')){
+      setTimeout(patchPersonalMobileV189,80);
+      setTimeout(patchPersonalMobileV189,350);
+    }
+  },true);
+  document.addEventListener('change',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('#personalPage,#personalDetailsPage')){
+      setTimeout(patchPersonalMobileV189,120);
+    }
+  },true);
+  setInterval(patchPersonalMobileV189,1200);
+})();
+</script>
+<style>
+/* V189：翻譯手機個人行程頁精簡 */
+@media(max-width:760px){
+  #personalPage .v189-personal-mobile-stats,
+  #personalDetailsPage .v189-personal-mobile-stats{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:6px!important;
+    margin:8px 0!important;
+  }
+  #personalPage .v189-personal-mobile-stats .stat,
+  #personalDetailsPage .v189-personal-mobile-stats .stat{
+    display:none!important;
+  }
+  #personalPage .v189-personal-mobile-stats .stat.v189-keep-stat,
+  #personalDetailsPage .v189-personal-mobile-stats .stat.v189-keep-stat{
+    display:block!important;
+    padding:8px 9px!important;
+    border-radius:10px!important;
+    min-height:58px!important;
+  }
+  #personalPage .v189-personal-mobile-stats .stat .muted,
+  #personalDetailsPage .v189-personal-mobile-stats .stat .muted{
+    font-size:12px!important;
+    line-height:1.2!important;
+  }
+  #personalPage .v189-personal-mobile-stats .stat b,
+  #personalDetailsPage .v189-personal-mobile-stats .stat b{
+    font-size:22px!important;
+    line-height:1.1!important;
+  }
+
+  #personalPage .v189-compact-reminder-card,
+  #personalDetailsPage .v189-compact-reminder-card{
+    position:relative!important;
+    padding:12px 12px 62px 12px!important;
+    min-height:0!important;
+    margin:8px 0!important;
+    border-radius:16px!important;
+  }
+  #personalPage .v189-compact-reminder-card .v189-reminder-title,
+  #personalDetailsPage .v189-compact-reminder-card .v189-reminder-title,
+  #personalPage .v189-compact-reminder-card .mobile-alert-title,
+  #personalDetailsPage .v189-compact-reminder-card .mobile-alert-title{
+    display:inline-flex!important;
+    align-items:center!important;
+    gap:6px!important;
+    margin:0 8px 6px 0!important;
+    font-size:18px!important;
+    line-height:1.25!important;
+    vertical-align:middle!important;
+  }
+  #personalPage .v189-overdue-badge,
+  #personalDetailsPage .v189-overdue-badge{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:auto!important;
+    background:#dc2626!important;
+    color:#fff!important;
+    border-radius:999px!important;
+    padding:5px 10px!important;
+    margin:0 0 6px 0!important;
+    font-size:14px!important;
+    line-height:1.15!important;
+    font-weight:900!important;
+    vertical-align:middle!important;
+  }
+  #personalPage .v189-compact-reminder-card .mobile-alert-main,
+  #personalDetailsPage .v189-compact-reminder-card .mobile-alert-main{
+    font-size:17px!important;
+    line-height:1.35!important;
+    margin:4px 0!important;
+  }
+  #personalPage .v189-compact-reminder-card .mobile-alert-meta,
+  #personalDetailsPage .v189-compact-reminder-card .mobile-alert-meta,
+  #personalPage .v189-compact-reminder-card .mobile-alert-note,
+  #personalDetailsPage .v189-compact-reminder-card .mobile-alert-note{
+    font-size:14px!important;
+    line-height:1.45!important;
+    margin-top:2px!important;
+  }
+  #personalPage .v189-actions,
+  #personalDetailsPage .v189-actions{
+    position:absolute!important;
+    right:12px!important;
+    bottom:12px!important;
+    display:flex!important;
+    gap:8px!important;
+    justify-content:flex-end!important;
+    align-items:center!important;
+    margin:0!important;
+    width:auto!important;
+  }
+  #personalPage .v189-actions button,
+  #personalDetailsPage .v189-actions button{
+    width:auto!important;
+    min-width:72px!important;
+    height:38px!important;
+    padding:7px 12px!important;
+    border-radius:12px!important;
+    font-size:14px!important;
+    white-space:nowrap!important;
+  }
+}
+</style>
+
 </body></html>
