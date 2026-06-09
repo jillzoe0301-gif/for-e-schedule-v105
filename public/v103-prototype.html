@@ -8307,4 +8307,180 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 }
 </style>
 
+
+<script>
+/* V190：修正 V189 手機版未套用原因：實際手機個人頁是 #mobilePage，不是 #personalPage。
+   DRY：單一 patchMobilePersonalV190 處理統計與提醒卡。
+   KISS：不改資料、不重寫行程，只調整 #mobilePage 的 DOM 與 CSS。
+   SOLID：手機顯示層獨立，renderMobile 重繪後用 MutationObserver 自動再套用。 */
+(function(){
+  function q(sel,root){return (root||document).querySelector(sel)}
+  function qa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
+  function patchStats(page){
+    const stats=q('#mobileStats',page);
+    if(!stats)return;
+    stats.classList.add('v190-mobile-stats');
+    qa('.stat',stats).forEach(card=>{
+      const label=(q('.muted',card)||card).textContent||'';
+      card.classList.toggle('v190-keep-stat', label.includes('行程') || label.includes('未完成') || label.includes('已完成'));
+    });
+  }
+  function makeHeader(card){
+    const title=q('.mobile-alert-title',card);
+    if(!title || title.closest('.v190-alert-head'))return;
+    const head=document.createElement('div');
+    head.className='v190-alert-head';
+    card.insertBefore(head,title);
+    head.appendChild(title);
+    const overdue=q('.mobile-alert-overdue',card);
+    if(overdue)head.appendChild(overdue);
+  }
+  function patchAlertCard(card){
+    if(!card)return;
+    card.classList.add('v190-compact-alert-card');
+    makeHeader(card);
+    const actions=q('.mobile-alert-actions',card);
+    if(actions)actions.classList.add('v190-alert-actions');
+    const done=qa('button',actions||card).find(b=>(b.textContent||'').includes('已完成'));
+    const open=qa('button',actions||card).find(b=>(b.textContent||'').includes('查看'));
+    if(done)done.classList.add('v190-done-btn');
+    if(open)open.classList.add('v190-open-btn');
+  }
+  function patchAlerts(page){
+    const panel=q('#mobilePersonalAlertPanel',page)||q('#mobilePersonalAlertRows',page);
+    if(panel)panel.classList.add('v190-alert-panel');
+    qa('#mobilePersonalAlertRows .mobile-alert-card',page).forEach(patchAlertCard);
+  }
+  function patchMobilePersonalV190(){
+    const page=q('#mobilePage');
+    if(!page)return;
+    patchStats(page);
+    patchAlerts(page);
+  }
+  function startObserver(){
+    const page=q('#mobilePage');
+    if(!page || page.dataset.v190Observed==='1')return;
+    page.dataset.v190Observed='1';
+    const obs=new MutationObserver(function(){patchMobilePersonalV190();});
+    obs.observe(page,{childList:true,subtree:true,characterData:true});
+  }
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(function(){patchMobilePersonalV190();startObserver();},80);
+    setTimeout(function(){patchMobilePersonalV190();startObserver();},500);
+  });
+  document.addEventListener('click',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('.bottom-nav [data-page="mobile"],.navbtn[data-page="mobile"],#mobilePage')){
+      setTimeout(function(){patchMobilePersonalV190();startObserver();},60);
+      setTimeout(function(){patchMobilePersonalV190();startObserver();},300);
+    }
+  },true);
+  document.addEventListener('change',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('#mobilePage')){
+      setTimeout(patchMobilePersonalV190,80);
+    }
+  },true);
+  setInterval(function(){patchMobilePersonalV190();startObserver();},1000);
+})();
+</script>
+<style>
+/* V190：實際手機個人頁 #mobilePage 的精簡樣式 */
+@media(max-width:760px){
+  #mobilePage #mobileStats.v190-mobile-stats{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:6px!important;
+    margin:8px 0 0!important;
+  }
+  #mobilePage #mobileStats.v190-mobile-stats .stat{
+    display:none!important;
+  }
+  #mobilePage #mobileStats.v190-mobile-stats .stat.v190-keep-stat{
+    display:block!important;
+    padding:8px 9px!important;
+    border-radius:10px!important;
+    min-height:56px!important;
+  }
+  #mobilePage #mobileStats.v190-mobile-stats .stat .muted{
+    font-size:12px!important;
+    line-height:1.15!important;
+  }
+  #mobilePage #mobileStats.v190-mobile-stats .stat b{
+    font-size:22px!important;
+    line-height:1.05!important;
+  }
+
+  #mobilePage #mobilePersonalAlertPanel.v190-alert-panel{
+    padding:10px!important;
+  }
+  #mobilePage #mobilePersonalAlertPanel .section-title{
+    margin-bottom:6px!important;
+  }
+  #mobilePage #mobilePersonalAlertPanel .section-title h2{
+    font-size:20px!important;
+    line-height:1.2!important;
+  }
+  #mobilePage #mobilePersonalAlertPanel .section-title .muted{
+    font-size:12px!important;
+    line-height:1.25!important;
+  }
+  #mobilePage #mobilePersonalAlertRows .mobile-alert-card.v190-compact-alert-card{
+    position:relative!important;
+    padding:10px 10px 56px 10px!important;
+    margin:8px 0!important;
+    border-radius:16px!important;
+    min-height:0!important;
+  }
+  #mobilePage #mobilePersonalAlertRows .v190-alert-head{
+    display:flex!important;
+    align-items:center!important;
+    gap:8px!important;
+    flex-wrap:wrap!important;
+    margin-bottom:5px!important;
+  }
+  #mobilePage #mobilePersonalAlertRows .v190-alert-head .mobile-alert-title{
+    margin:0!important;
+    font-size:17px!important;
+    line-height:1.25!important;
+  }
+  #mobilePage #mobilePersonalAlertRows .v190-alert-head .mobile-alert-overdue{
+    margin:0!important;
+    padding:5px 10px!important;
+    font-size:14px!important;
+    line-height:1.15!important;
+    border-radius:999px!important;
+  }
+  #mobilePage #mobilePersonalAlertRows .mobile-alert-main{
+    font-size:17px!important;
+    line-height:1.32!important;
+    margin:4px 0!important;
+  }
+  #mobilePage #mobilePersonalAlertRows .mobile-alert-meta,
+  #mobilePage #mobilePersonalAlertRows .mobile-alert-note{
+    font-size:13px!important;
+    line-height:1.42!important;
+    margin-top:2px!important;
+  }
+  #mobilePage #mobilePersonalAlertRows .mobile-alert-actions.v190-alert-actions{
+    position:absolute!important;
+    right:10px!important;
+    bottom:10px!important;
+    display:flex!important;
+    gap:8px!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    margin:0!important;
+    width:auto!important;
+  }
+  #mobilePage #mobilePersonalAlertRows .mobile-alert-actions.v190-alert-actions button{
+    width:auto!important;
+    min-width:70px!important;
+    height:36px!important;
+    padding:6px 10px!important;
+    border-radius:12px!important;
+    font-size:14px!important;
+    white-space:nowrap!important;
+  }
+}
+</style>
+
 </body></html>
