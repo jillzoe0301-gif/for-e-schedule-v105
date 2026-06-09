@@ -5955,6 +5955,180 @@ renderAll=function(){
 setTimeout(()=>{v206SeedAllAccountTests();v206SetupNavOrder();},700);
 setInterval(v206SetupNavOrder,1500);
 
+
+/* V208：個人明細排除記事/待辦、外務人員拖曳排序、6/11各承辦測試行程、手機/左側導覽拖曳保底、會議室開頁補畫
+   DRY：測試資料共用 v208SeedForPerson，排序共用 v208SetupPointerReorder。
+   KISS：只加必要篩選、拖曳、補畫，不改原資料結構。
+   SOLID：各功能獨立，避免互相覆蓋。 */
+(function(){
+  function v208IsTaskNoteEvent(e){return !!e&&['generalNote','todo'].includes(e.kind)}
+  const v208OldPersonalDetailRowsFiltered=personalDetailRowsFiltered;
+  personalDetailRowsFiltered=function(){
+    return v208OldPersonalDetailRowsFiltered.apply(this,arguments).filter(r=>!v208IsTaskNoteEvent(r.event));
+  };
+
+  // 外務行程人員順序：localStorage 保存，render 前排序，render 後可拖曳
+  function v208FieldOrderKey(){return KEY+'_field_person_order_v208'}
+  function v208GetFieldOrder(){try{return JSON.parse(localStorage.getItem(v208FieldOrderKey())||'[]')}catch(_){return []}}
+  function v208SaveFieldOrder(arr){localStorage.setItem(v208FieldOrderKey(),JSON.stringify(arr||[]))}
+  const v208OldExternalPeople=externalPeople;
+  externalPeople=function(){
+    const list=v208OldExternalPeople.apply(this,arguments);
+    const order=v208GetFieldOrder();
+    if(!order.length)return list;
+    const idx=new Map(order.map((id,i)=>[id,i]));
+    return list.slice().sort((a,b)=>(idx.has(a.id)?idx.get(a.id):9999)-(idx.has(b.id)?idx.get(b.id):9999)||String(a.group+a.name).localeCompare(String(b.group+b.name),'zh-Hant'));
+  };
+  function v208PatchFieldRows(){
+    const tbody=document.querySelector('#fieldCalendarArea .calendar-table tbody');
+    if(!tbody)return;
+    [...tbody.querySelectorAll('tr')].forEach(row=>{
+      const pid=row.querySelector('[data-field-person]')&&row.querySelector('[data-field-person]').dataset.fieldPerson;
+      if(!pid)return;
+      row.dataset.fieldPersonId=pid;
+      row.draggable=true;
+      row.classList.add('v208-field-draggable-row');
+      const cell=row.querySelector('.person-cell');
+      if(cell&&!cell.querySelector('.v208-drag-handle')){
+        const h=document.createElement('span');
+        h.className='v208-drag-handle';
+        h.textContent='☰';
+        h.title='可拖曳調整外務人員順序';
+        cell.insertBefore(h,cell.firstChild);
+      }
+    });
+    if(tbody.dataset.v208Drag==='1')return;
+    tbody.dataset.v208Drag='1';
+    let dragging=null;
+    tbody.addEventListener('dragstart',e=>{
+      const row=e.target.closest&&e.target.closest('tr[data-field-person-id]');
+      if(!row)return;
+      dragging=row; row.classList.add('v208-dragging');
+      e.dataTransfer.effectAllowed='move';
+    });
+    tbody.addEventListener('dragover',e=>{
+      if(!dragging)return;
+      e.preventDefault();
+      const row=e.target.closest&&e.target.closest('tr[data-field-person-id]');
+      if(!row||row===dragging)return;
+      const rect=row.getBoundingClientRect();
+      tbody.insertBefore(dragging,e.clientY>rect.top+rect.height/2?row.nextSibling:row);
+    });
+    tbody.addEventListener('dragend',()=>{
+      if(dragging)dragging.classList.remove('v208-dragging');
+      dragging=null;
+      v208SaveFieldOrder([...tbody.querySelectorAll('tr[data-field-person-id]')].map(r=>r.dataset.fieldPersonId));
+      renderFieldCalendar();
+    });
+  }
+  const v208OldRenderFieldCalendar=renderFieldCalendar;
+  renderFieldCalendar=function(){
+    const r=v208OldRenderFieldCalendar.apply(this,arguments);
+    setTimeout(v208PatchFieldRows,0);
+    return r;
+  };
+
+  // 手機底部與左側欄位：pointer/touch 可拖曳，手機可用
+  function v208NavKey(container){return container&&container.classList.contains('bottom-nav')?KEY+'_bottom_nav_order_v208':KEY+'_side_nav_order_v208'}
+  function v208ApplyNavOrder(container){
+    if(!container)return;
+    let order=[];try{order=JSON.parse(localStorage.getItem(v208NavKey(container))||'[]')}catch(_){}
+    if(Array.isArray(order))order.forEach(page=>{const b=container.querySelector(`.navbtn[data-page="${page}"]`); if(b)container.appendChild(b);});
+  }
+  function v208SaveNavOrder(container){
+    if(!container)return;
+    localStorage.setItem(v208NavKey(container),JSON.stringify([...container.querySelectorAll('.navbtn[data-page]')].map(b=>b.dataset.page)));
+  }
+  function v208SetupPointerReorder(container){
+    if(!container||container.dataset.v208Pointer==='1')return;
+    container.dataset.v208Pointer='1';
+    v208ApplyNavOrder(container);
+    let drag=null, startX=0, startY=0, moved=false;
+    container.addEventListener('pointerdown',e=>{
+      const btn=e.target.closest&&e.target.closest('.navbtn[data-page]');
+      if(!btn)return;
+      drag=btn; moved=false; startX=e.clientX; startY=e.clientY;
+      btn.setPointerCapture&&btn.setPointerCapture(e.pointerId);
+    });
+    container.addEventListener('pointermove',e=>{
+      if(!drag)return;
+      if(Math.abs(e.clientX-startX)+Math.abs(e.clientY-startY)<12)return;
+      moved=true; drag.classList.add('v208-nav-dragging');
+      const target=document.elementFromPoint(e.clientX,e.clientY);
+      const over=target&&target.closest&&target.closest('.navbtn[data-page]');
+      if(over&&over!==drag&&over.parentElement===container){
+        const rect=over.getBoundingClientRect();
+        const after=container.classList.contains('bottom-nav')?e.clientX>rect.left+rect.width/2:e.clientY>rect.top+rect.height/2;
+        container.insertBefore(drag,after?over.nextSibling:over);
+      }
+    });
+    container.addEventListener('pointerup',e=>{
+      if(!drag)return;
+      drag.classList.remove('v208-nav-dragging');
+      if(moved){e.preventDefault();e.stopPropagation();v208SaveNavOrder(container);}
+      drag=null;
+    },true);
+    container.addEventListener('click',e=>{
+      if(moved){e.preventDefault();e.stopPropagation();moved=false;}
+    },true);
+  }
+  function v208SetupNavReorder(){
+    v208SetupPointerReorder(document.querySelector('.side'));
+    v208SetupPointerReorder(document.querySelector('.bottom-nav'));
+  }
+
+  // 6/11 各承辦測試行程
+  function v208PersonUsers(){
+    const users=state.users||[];
+    const map=new Map();
+    (state.people||[]).filter(p=>p&&p.active!==false&&p.deleted!==true&&String(p.lang||'')!=='管理').forEach(p=>{
+      const u=users.find(u=>u&&u.personId===p.id)||currentUser||users[0]||{id:'system'};
+      map.set(p.id,{p,u});
+    });
+    return [...map.values()];
+  }
+  function v208Exists(marker){return (state.events||[]).some(e=>e&&e.v208Marker===marker)}
+  function v208SeedEvent(p,u,marker,type,name,extra={}){
+    if(v208Exists(marker))return false;
+    state.events.push({id:uid('ev'),v208Marker:marker,seriesId:'',seriesIndex:0,kind:extra.kind||'schedule',status:extra.status||'未完成',startDate:'2026-06-11',endDate:'2026-06-11',startTime:extra.startTime||'上午',endTime:extra.endTime||'',type,name,additionalType:'',additionalNote:'',locationName:extra.locationName===undefined?'6/11測試地點':extra.locationName,address:'',vehicleNo:'',meetingRoom:'不指定',participants:[p.id],assigneeIds:[p.id],note:extra.note||'6/11 V208 各承辦測試行程',serviceRecordSubmitted:!!extra.serviceRecordSubmitted,serviceRecordDate:extra.serviceRecordDate||'',followupDate:extra.followupDate||'',followupTime:extra.followupTime||'',followupPersonId:extra.followupPersonId||'',followupRegNo:'',createdBy:u.id||currentUser.id,createdAt:new Date().toISOString(),updatedBy:u.id||currentUser.id,updatedAt:new Date().toISOString(),deleted:false});
+    return true;
+  }
+  function v208Seed611Tests(){
+    let changed=false;
+    v208PersonUsers().forEach(({p,u})=>{
+      const base='v208_611_'+p.id;
+      changed = v208SeedEvent(p,u,base+'_normal','提醒事項','6/11 測試一般行程',{note:'測試：一般行程、登入提醒、個人行程'}) || changed;
+      changed = v208SeedEvent(p,u,base+'_medical','醫療(看診、回診、住院、急診、開刀)','6/11 測試醫療服務紀錄單',{note:'測試：服務紀錄單、回診連動',followupDate:'2026-06-18',followupTime:'上午',followupPersonId:p.id}) || changed;
+      changed = v208SeedEvent(p,u,base+'_activity','會議','6/11 測試會議活動',{kind:'translatorStatus',locationName:'',note:'測試：會議/請假/教育訓練/活動'}) || changed;
+      changed = v208SeedEvent(p,u,base+'_todo','確認','6/11 測試待辦事項',{kind:'todo',locationName:'',note:'測試：個人一般待辦'}) || changed;
+      changed = v208SeedEvent(p,u,base+'_note','一般記事','6/11 測試一般記事',{kind:'generalNote',locationName:'',note:'測試：一般記事不進個人行程明細'}) || changed;
+    });
+    if(changed)save();
+  }
+
+  // 會議室開頁空白保底補畫
+  function v208RenderRoomWeekNow(){
+    if(!$('roomBookingPage')||$('roomBookingPage').classList.contains('hide'))return;
+    const picker=$('roomBookingWeekPicker'); if(picker&&!picker.value)picker.value=todayISO();
+    setTimeout(()=>{try{if(typeof window.v194RenderRoomBookings==='function')window.v194RenderRoomBookings(); else if(typeof renderRoomBookings==='function')renderRoomBookings();}catch(e){console.warn('V208 room render failed',e)}},40);
+    setTimeout(()=>{const area=$('roomBookingArea'); if(area&&(!area.innerHTML.trim()||area.children.length===0)){try{if(typeof window.v194RenderRoomBookings==='function')window.v194RenderRoomBookings(); else renderRoomBookings();}catch(e){}}},180);
+  }
+  document.addEventListener('click',e=>{
+    const btn=e.target&&e.target.closest&&e.target.closest('[data-page="roomBooking"],#roomPrevWeek,#roomNextWeek,#clearRoomBookingFilters');
+    if(btn)setTimeout(v208RenderRoomWeekNow,80);
+  },true);
+  document.addEventListener('input',e=>{if(e.target&&e.target.closest&&e.target.closest('#roomBookingPage'))setTimeout(v208RenderRoomWeekNow,80)},true);
+
+  const v208BaseRenderAll=renderAll;
+  renderAll=function(){
+    const r=v208BaseRenderAll.apply(this,arguments);
+    setTimeout(()=>{v208Seed611Tests();v208SetupNavReorder();v208PatchFieldRows();v208RenderRoomWeekNow();},120);
+    return r;
+  };
+  setTimeout(()=>{v208Seed611Tests();v208SetupNavReorder();v208PatchFieldRows();v208RenderRoomWeekNow();},500);
+  setInterval(()=>{v208SetupNavReorder();v208PatchFieldRows();},1500);
+})();
+
 })();
 
 </script>
@@ -9293,6 +9467,37 @@ setInterval(v206SetupNavOrder,1500);
   height:20px!important;
   min-width:20px!important;
 }
+</style>
+
+
+<script>
+/* V208 外層保底：會議室頁開啟後立即補畫，避免第一次空白 */
+(function(){
+  function q(id){return document.getElementById(id)}
+  function fixRoom(){
+    const page=q('roomBookingPage'), area=q('roomBookingArea');
+    if(!page||page.classList.contains('hide')||!area)return;
+    if(q('roomBookingWeekPicker')&&!q('roomBookingWeekPicker').value){
+      const d=new Date(); q('roomBookingWeekPicker').value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+    try{
+      if(typeof window.v194RenderRoomBookings==='function')window.v194RenderRoomBookings();
+      else if(typeof window.renderRoomBookings==='function')window.renderRoomBookings();
+    }catch(e){}
+  }
+  document.addEventListener('click',e=>{
+    if(e.target&&e.target.closest&&e.target.closest('[data-page="roomBooking"],#roomPrevWeek,#roomNextWeek'))setTimeout(fixRoom,120);
+  },true);
+  setTimeout(fixRoom,800);
+})();
+</script>
+<style>
+/* V208：外務人員與導覽拖曳、會議室補畫 */
+.v208-drag-handle{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;margin-right:6px;border:1px solid #ddd;border-radius:7px;background:#fff;cursor:grab;color:#64748b;font-weight:900}
+.v208-field-draggable-row{cursor:grab}
+.v208-dragging,.v208-nav-dragging{opacity:.45;outline:2px dashed var(--brand)}
+.side .navbtn[data-page],.bottom-nav .navbtn[data-page]{touch-action:none;cursor:grab}
+#roomBookingArea{display:block!important;min-height:180px!important}
 </style>
 
 </body></html>
