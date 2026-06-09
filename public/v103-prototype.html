@@ -1603,7 +1603,7 @@ function renderMobilePersonalAlerts(pid){
   if(!rows.length){box.innerHTML='<div class="mobile-alert-empty">目前沒有待確認或待通知提醒</div>';return;}
   box.innerHTML=rows.map(e=>{
     const overdue=String(e.endDate||e.startDate||'')<today;
-    return `<div class="mobile-alert-card urgent ${overdue?'overdue':''}" data-id="${escAttr(e.id)}"><div class="mobile-alert-title">⚠ ${esc(displayEventType(e.type))}</div>${overdue?'<div class="mobile-alert-overdue">超過時間了!!!</div>':''}<div class="mobile-alert-main">${esc(e.name||'')}</div><div class="mobile-alert-meta">日期：${esc(e.startDate||'')} ${esc(ampm(e.startTime)||'')}｜狀態：${esc(e.status||'')}</div><div class="mobile-alert-meta">地點 / 客戶：${esc(e.locationName||'')}</div><div class="mobile-alert-actions"><button type="button" class="mobile-alert-done" data-id="${escAttr(e.id)}">已完成</button><button type="button" class="mobile-alert-open" data-id="${escAttr(e.id)}">${reminderItemReadOnly(e)?'查看':'查看/修改'}</button></div></div>`;
+    return `<div class="mobile-alert-card urgent ${overdue?'overdue':''} v192-mobile-alert-card" data-id="${escAttr(e.id)}"><div class="v192-alert-content"><div class="v192-alert-head"><div class="mobile-alert-title">⚠ ${esc(displayEventType(e.type))}</div>${overdue?'<div class="mobile-alert-overdue">超過時間了!!!</div>':''}</div><div class="mobile-alert-main">${esc(e.name||'')}</div><div class="mobile-alert-meta">日期：${esc(e.startDate||'')} ${esc(ampm(e.startTime)||'')}｜狀態：${esc(e.status||'')}</div><div class="mobile-alert-meta">地點 / 客戶：${esc(e.locationName||'')}</div></div><div class="mobile-alert-actions v192-alert-actions"><button type="button" class="mobile-alert-done" data-id="${escAttr(e.id)}">已完成</button><button type="button" class="mobile-alert-open" data-id="${escAttr(e.id)}">查看</button></div></div>`;
   }).join('');
   box.querySelectorAll('.mobile-alert-done').forEach(btn=>btn.onclick=()=>completeMobileAlert(btn.dataset.id));
   box.querySelectorAll('.mobile-alert-open').forEach(btn=>btn.onclick=()=>openEventModal({eventId:btn.dataset.id}));
@@ -8106,310 +8106,33 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 </style>
 
 
-<script>
-/* V189：翻譯手機個人行程精簡排版
-   DRY：集中一個 patchPersonalMobileV189 處理統計與提醒卡片。
-   KISS：只調整手機 DOM 位置與樣式，不改行程資料與提醒判斷。
-   SOLID：手機個人頁顯示邏輯獨立，不影響桌機、紀錄單繳交、會議室。 */
-(function(){
-  function q(sel,root){return (root||document).querySelector(sel)}
-  function qa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
-  function isPersonalPageVisible(){
-    const page=q('#personalPage') || q('#personalDetailsPage') || q('[data-page-panel="personal"]');
-    return page && !page.classList.contains('hide') ? page : null;
-  }
-  function isMobile(){
-    return window.matchMedia && window.matchMedia('(max-width:760px)').matches;
-  }
-  function patchStats(page){
-    const statGrids=qa('.statgrid',page).filter(g=>{
-      const t=g.textContent||'';
-      return t.includes('行程') && t.includes('未完成') && t.includes('已完成');
-    });
-    statGrids.forEach(g=>{
-      g.classList.add('v189-personal-mobile-stats');
-      const cards=qa('.stat',g);
-      cards.forEach(card=>{
-        const label=(q('.muted',card)||card).textContent||'';
-        if(label.includes('行程') || label.includes('未完成') || label.includes('已完成')){
-          card.classList.add('v189-keep-stat');
-        }
-      });
-    });
-  }
-  function patchReminderCards(page){
-    qa('.mobile-alert-card,.personal-desktop-alert,.mobile-event-card.alert',page).forEach(card=>{
-      const txt=card.textContent||'';
-      if(!(txt.includes('提醒事項') || txt.includes('待確認') || txt.includes('待通知') || txt.includes('超過時間')))return;
-      card.classList.add('v189-compact-reminder-card');
-
-      let title=q('.mobile-alert-title',card) || q('.mobile-event-title',card) || q('b,strong',card);
-      if(title && !title.classList.contains('v189-reminder-title')){
-        title.classList.add('v189-reminder-title');
-      }
-
-      let overdue=qa('*',card).find(el=>(el.textContent||'').trim().includes('超過時間'));
-      if(overdue){
-        overdue.classList.add('v189-overdue-badge');
-        const holder=title || q('.mobile-alert-main',card) || q('.mobile-event-title',card);
-        if(holder && overdue.parentElement!==holder.parentElement){
-          holder.insertAdjacentElement('afterend',overdue);
-        }
-      }
-
-      let actions=q('.mobile-alert-actions,.personal-desktop-alert-actions',card);
-      if(!actions){
-        const buttons=qa('button',card);
-        if(buttons.length){
-          actions=document.createElement('div');
-          actions.className='mobile-alert-actions v189-actions';
-          buttons[0].parentNode.insertBefore(actions,buttons[0]);
-          buttons.forEach(b=>actions.appendChild(b));
-        }
-      }
-      if(actions){
-        actions.classList.add('v189-actions');
-        const done=qa('button',actions).find(b=>(b.textContent||'').includes('已完成'));
-        const view=qa('button',actions).find(b=>(b.textContent||'').includes('查看'));
-        if(done)done.classList.add('v189-done-btn');
-        if(view)view.classList.add('v189-view-btn');
-      }
-    });
-  }
-  function patchPersonalMobileV189(){
-    if(!isMobile())return;
-    const page=isPersonalPageVisible() || document;
-    patchStats(page);
-    patchReminderCards(page);
-  }
-  document.addEventListener('DOMContentLoaded',function(){
-    setTimeout(patchPersonalMobileV189,100);
-    setTimeout(patchPersonalMobileV189,500);
-  });
-  document.addEventListener('click',function(e){
-    if(e.target&&e.target.closest&&e.target.closest('.navbtn[data-page="personal"],.bottom-nav [data-page="personal"],#personalPage,#personalDetailsPage')){
-      setTimeout(patchPersonalMobileV189,80);
-      setTimeout(patchPersonalMobileV189,350);
-    }
-  },true);
-  document.addEventListener('change',function(e){
-    if(e.target&&e.target.closest&&e.target.closest('#personalPage,#personalDetailsPage')){
-      setTimeout(patchPersonalMobileV189,120);
-    }
-  },true);
-  setInterval(patchPersonalMobileV189,1200);
-})();
-</script>
 <style>
-/* V189：翻譯手機個人行程頁精簡 */
+/* V192：手機個人頁核心輸出版面修正
+   DRY：直接修正 renderMobilePersonalAlerts 輸出，不再用外掛反覆搬 DOM。
+   KISS：手機提醒卡只分成左內容、右按鈕兩區。
+   SOLID：只作用 #mobilePage，不影響桌機與其他分頁。 */
 @media(max-width:760px){
-  #personalPage .v189-personal-mobile-stats,
-  #personalDetailsPage .v189-personal-mobile-stats{
-    display:grid!important;
-    grid-template-columns:repeat(3,minmax(0,1fr))!important;
-    gap:6px!important;
-    margin:8px 0!important;
-  }
-  #personalPage .v189-personal-mobile-stats .stat,
-  #personalDetailsPage .v189-personal-mobile-stats .stat{
-    display:none!important;
-  }
-  #personalPage .v189-personal-mobile-stats .stat.v189-keep-stat,
-  #personalDetailsPage .v189-personal-mobile-stats .stat.v189-keep-stat{
-    display:block!important;
-    padding:8px 9px!important;
-    border-radius:10px!important;
-    min-height:58px!important;
-  }
-  #personalPage .v189-personal-mobile-stats .stat .muted,
-  #personalDetailsPage .v189-personal-mobile-stats .stat .muted{
-    font-size:12px!important;
-    line-height:1.2!important;
-  }
-  #personalPage .v189-personal-mobile-stats .stat b,
-  #personalDetailsPage .v189-personal-mobile-stats .stat b{
-    font-size:22px!important;
-    line-height:1.1!important;
-  }
-
-  #personalPage .v189-compact-reminder-card,
-  #personalDetailsPage .v189-compact-reminder-card{
-    position:relative!important;
-    padding:12px 12px 62px 12px!important;
-    min-height:0!important;
-    margin:8px 0!important;
-    border-radius:16px!important;
-  }
-  #personalPage .v189-compact-reminder-card .v189-reminder-title,
-  #personalDetailsPage .v189-compact-reminder-card .v189-reminder-title,
-  #personalPage .v189-compact-reminder-card .mobile-alert-title,
-  #personalDetailsPage .v189-compact-reminder-card .mobile-alert-title{
-    display:inline-flex!important;
-    align-items:center!important;
-    gap:6px!important;
-    margin:0 8px 6px 0!important;
-    font-size:18px!important;
-    line-height:1.25!important;
-    vertical-align:middle!important;
-  }
-  #personalPage .v189-overdue-badge,
-  #personalDetailsPage .v189-overdue-badge{
-    display:inline-flex!important;
-    align-items:center!important;
-    justify-content:center!important;
-    width:auto!important;
-    background:#dc2626!important;
-    color:#fff!important;
-    border-radius:999px!important;
-    padding:5px 10px!important;
-    margin:0 0 6px 0!important;
-    font-size:14px!important;
-    line-height:1.15!important;
-    font-weight:900!important;
-    vertical-align:middle!important;
-  }
-  #personalPage .v189-compact-reminder-card .mobile-alert-main,
-  #personalDetailsPage .v189-compact-reminder-card .mobile-alert-main{
-    font-size:17px!important;
-    line-height:1.35!important;
-    margin:4px 0!important;
-  }
-  #personalPage .v189-compact-reminder-card .mobile-alert-meta,
-  #personalDetailsPage .v189-compact-reminder-card .mobile-alert-meta,
-  #personalPage .v189-compact-reminder-card .mobile-alert-note,
-  #personalDetailsPage .v189-compact-reminder-card .mobile-alert-note{
-    font-size:14px!important;
-    line-height:1.45!important;
-    margin-top:2px!important;
-  }
-  #personalPage .v189-actions,
-  #personalDetailsPage .v189-actions{
-    position:absolute!important;
-    right:12px!important;
-    bottom:12px!important;
-    display:flex!important;
-    gap:8px!important;
-    justify-content:flex-end!important;
-    align-items:center!important;
-    margin:0!important;
-    width:auto!important;
-  }
-  #personalPage .v189-actions button,
-  #personalDetailsPage .v189-actions button{
-    width:auto!important;
-    min-width:72px!important;
-    height:38px!important;
-    padding:7px 12px!important;
-    border-radius:12px!important;
-    font-size:14px!important;
-    white-space:nowrap!important;
-  }
-}
-</style>
-
-
-<script>
-/* V190：修正 V189 手機版未套用原因：實際手機個人頁是 #mobilePage，不是 #personalPage。
-   DRY：單一 patchMobilePersonalV190 處理統計與提醒卡。
-   KISS：不改資料、不重寫行程，只調整 #mobilePage 的 DOM 與 CSS。
-   SOLID：手機顯示層獨立，renderMobile 重繪後用 MutationObserver 自動再套用。 */
-(function(){
-  function q(sel,root){return (root||document).querySelector(sel)}
-  function qa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
-  function patchStats(page){
-    const stats=q('#mobileStats',page);
-    if(!stats)return;
-    stats.classList.add('v190-mobile-stats');
-    qa('.stat',stats).forEach(card=>{
-      const label=(q('.muted',card)||card).textContent||'';
-      card.classList.toggle('v190-keep-stat', label.includes('行程') || label.includes('未完成') || label.includes('已完成'));
-    });
-  }
-  function makeHeader(card){
-    const title=q('.mobile-alert-title',card);
-    if(!title || title.closest('.v190-alert-head'))return;
-    const head=document.createElement('div');
-    head.className='v190-alert-head';
-    card.insertBefore(head,title);
-    head.appendChild(title);
-    const overdue=q('.mobile-alert-overdue',card);
-    if(overdue)head.appendChild(overdue);
-  }
-  function patchAlertCard(card){
-    if(!card)return;
-    card.classList.add('v190-compact-alert-card');
-    makeHeader(card);
-    const actions=q('.mobile-alert-actions',card);
-    if(actions)actions.classList.add('v190-alert-actions');
-    const done=qa('button',actions||card).find(b=>(b.textContent||'').includes('已完成'));
-    const open=qa('button',actions||card).find(b=>(b.textContent||'').includes('查看'));
-    if(done)done.classList.add('v190-done-btn');
-    if(open)open.classList.add('v190-open-btn');
-  }
-  function patchAlerts(page){
-    const panel=q('#mobilePersonalAlertPanel',page)||q('#mobilePersonalAlertRows',page);
-    if(panel)panel.classList.add('v190-alert-panel');
-    qa('#mobilePersonalAlertRows .mobile-alert-card',page).forEach(patchAlertCard);
-  }
-  function patchMobilePersonalV190(){
-    const page=q('#mobilePage');
-    if(!page)return;
-    patchStats(page);
-    patchAlerts(page);
-  }
-  function startObserver(){
-    const page=q('#mobilePage');
-    if(!page || page.dataset.v190Observed==='1')return;
-    page.dataset.v190Observed='1';
-    const obs=new MutationObserver(function(){patchMobilePersonalV190();});
-    obs.observe(page,{childList:true,subtree:true,characterData:true});
-  }
-  document.addEventListener('DOMContentLoaded',function(){
-    setTimeout(function(){patchMobilePersonalV190();startObserver();},80);
-    setTimeout(function(){patchMobilePersonalV190();startObserver();},500);
-  });
-  document.addEventListener('click',function(e){
-    if(e.target&&e.target.closest&&e.target.closest('.bottom-nav [data-page="mobile"],.navbtn[data-page="mobile"],#mobilePage')){
-      setTimeout(function(){patchMobilePersonalV190();startObserver();},60);
-      setTimeout(function(){patchMobilePersonalV190();startObserver();},300);
-    }
-  },true);
-  document.addEventListener('change',function(e){
-    if(e.target&&e.target.closest&&e.target.closest('#mobilePage')){
-      setTimeout(patchMobilePersonalV190,80);
-    }
-  },true);
-  setInterval(function(){patchMobilePersonalV190();startObserver();},1000);
-})();
-</script>
-<style>
-/* V190：實際手機個人頁 #mobilePage 的精簡樣式 */
-@media(max-width:760px){
-  #mobilePage #mobileStats.v190-mobile-stats{
+  #mobilePage #mobileStats{
     display:grid!important;
     grid-template-columns:repeat(3,minmax(0,1fr))!important;
     gap:6px!important;
     margin:8px 0 0!important;
   }
-  #mobilePage #mobileStats.v190-mobile-stats .stat{
-    display:none!important;
-  }
-  #mobilePage #mobileStats.v190-mobile-stats .stat.v190-keep-stat{
-    display:block!important;
+  #mobilePage #mobileStats .stat{
     padding:8px 9px!important;
     border-radius:10px!important;
     min-height:56px!important;
   }
-  #mobilePage #mobileStats.v190-mobile-stats .stat .muted{
+  #mobilePage #mobileStats .stat .muted{
     font-size:12px!important;
     line-height:1.15!important;
   }
-  #mobilePage #mobileStats.v190-mobile-stats .stat b{
+  #mobilePage #mobileStats .stat b{
     font-size:22px!important;
     line-height:1.05!important;
   }
 
-  #mobilePage #mobilePersonalAlertPanel.v190-alert-panel{
+  #mobilePage #mobilePersonalAlertPanel{
     padding:10px!important;
   }
   #mobilePage #mobilePersonalAlertPanel .section-title{
@@ -8423,294 +8146,82 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
     font-size:12px!important;
     line-height:1.25!important;
   }
-  #mobilePage #mobilePersonalAlertRows .mobile-alert-card.v190-compact-alert-card{
-    position:relative!important;
-    padding:10px 10px 56px 10px!important;
+
+  #mobilePage #mobilePersonalAlertRows .v192-mobile-alert-card{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) 74px!important;
+    gap:10px!important;
+    align-items:start!important;
+    padding:12px 10px!important;
     margin:8px 0!important;
-    border-radius:16px!important;
+    border-radius:18px!important;
     min-height:0!important;
   }
-  #mobilePage #mobilePersonalAlertRows .v190-alert-head{
-    display:flex!important;
-    align-items:center!important;
-    gap:8px!important;
-    flex-wrap:wrap!important;
-    margin-bottom:5px!important;
-  }
-  #mobilePage #mobilePersonalAlertRows .v190-alert-head .mobile-alert-title{
-    margin:0!important;
-    font-size:17px!important;
-    line-height:1.25!important;
-  }
-  #mobilePage #mobilePersonalAlertRows .v190-alert-head .mobile-alert-overdue{
-    margin:0!important;
-    padding:5px 10px!important;
-    font-size:14px!important;
-    line-height:1.15!important;
-    border-radius:999px!important;
-  }
-  #mobilePage #mobilePersonalAlertRows .mobile-alert-main{
-    font-size:17px!important;
-    line-height:1.32!important;
-    margin:4px 0!important;
-  }
-  #mobilePage #mobilePersonalAlertRows .mobile-alert-meta,
-  #mobilePage #mobilePersonalAlertRows .mobile-alert-note{
-    font-size:13px!important;
-    line-height:1.42!important;
-    margin-top:2px!important;
-  }
-  #mobilePage #mobilePersonalAlertRows .mobile-alert-actions.v190-alert-actions{
-    position:absolute!important;
-    right:10px!important;
-    bottom:10px!important;
-    display:flex!important;
-    gap:8px!important;
-    align-items:center!important;
-    justify-content:flex-end!important;
-    margin:0!important;
-    width:auto!important;
-  }
-  #mobilePage #mobilePersonalAlertRows .mobile-alert-actions.v190-alert-actions button{
-    width:auto!important;
-    min-width:70px!important;
-    height:36px!important;
-    padding:6px 10px!important;
-    border-radius:12px!important;
-    font-size:14px!important;
-    white-space:nowrap!important;
-  }
-}
-</style>
-
-
-<script>
-/* V191：手機個人頁提醒卡片依指定版型調整
-   DRY：同一個 patchMobileAlertLayoutV191 處理所有提醒卡。
-   KISS：只調整提醒卡片 DOM 與樣式，不改提醒資料與完成/查看功能。
-   SOLID：手機顯示層獨立，不影響桌機、紀錄單繳交與行程資料。 */
-(function(){
-  function q(sel,root){return (root||document).querySelector(sel)}
-  function qa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
-  function isMobile(){return !window.matchMedia || window.matchMedia('(max-width:760px)').matches}
-  function findMobileRoot(){
-    return q('#mobilePage') || q('#mobilePersonalPage') || document;
-  }
-  function ensureTopRow(card){
-    let top=q('.v191-alert-toprow',card);
-    if(top)return top;
-
-    const title=q('.mobile-alert-title,.v189-reminder-title',card);
-    const overdue=qa('*',card).find(el=>{
-      const t=(el.textContent||'').trim();
-      return t.includes('超過時間');
-    });
-
-    top=document.createElement('div');
-    top.className='v191-alert-toprow';
-
-    if(title){
-      title.classList.add('v191-alert-title');
-      top.appendChild(title);
-    }else{
-      const fallback=document.createElement('div');
-      fallback.className='v191-alert-title';
-      fallback.textContent='⚠ 提醒事項';
-      top.appendChild(fallback);
-    }
-
-    if(overdue){
-      overdue.classList.add('v191-overdue-pill');
-      top.appendChild(overdue);
-    }
-
-    card.insertBefore(top,card.firstChild);
-    return top;
-  }
-  function ensureBodyWrap(card){
-    let body=q('.v191-alert-body',card);
-    if(body)return body;
-
-    body=document.createElement('div');
-    body.className='v191-alert-body';
-
-    const main=q('.mobile-alert-main',card);
-    const meta=q('.mobile-alert-meta',card);
-    const note=q('.mobile-alert-note',card);
-
-    [main,meta,note].forEach(el=>{
-      if(el)body.appendChild(el);
-    });
-
-    const top=q('.v191-alert-toprow',card);
-    if(top && top.nextSibling){
-      card.insertBefore(body,top.nextSibling);
-    }else{
-      card.appendChild(body);
-    }
-    return body;
-  }
-  function ensureActions(card){
-    let actions=q('.mobile-alert-actions,.personal-desktop-alert-actions,.v189-actions',card);
-    if(!actions){
-      const buttons=qa('button',card);
-      if(buttons.length){
-        actions=document.createElement('div');
-        actions.className='mobile-alert-actions';
-        buttons[0].parentNode.insertBefore(actions,buttons[0]);
-        buttons.forEach(btn=>actions.appendChild(btn));
-      }
-    }
-    if(actions){
-      actions.classList.add('v191-alert-actions');
-      qa('button',actions).forEach(btn=>{
-        btn.classList.add('v191-small-action-btn');
-        if((btn.textContent||'').includes('已完成'))btn.classList.add('v191-done-btn');
-      });
-      card.appendChild(actions);
-    }
-  }
-  function patchMobileAlertLayoutV191(){
-    if(!isMobile())return;
-    const root=findMobileRoot();
-    qa('.mobile-alert-card,.personal-desktop-alert,.mobile-event-card.alert',root).forEach(card=>{
-      const txt=card.textContent||'';
-      if(!(txt.includes('提醒事項') || txt.includes('超過時間') || txt.includes('待確認') || txt.includes('待通知')))return;
-      card.classList.add('v191-mobile-alert-card');
-      ensureTopRow(card);
-      ensureBodyWrap(card);
-      ensureActions(card);
-    });
-  }
-  document.addEventListener('DOMContentLoaded',function(){
-    setTimeout(patchMobileAlertLayoutV191,80);
-    setTimeout(patchMobileAlertLayoutV191,400);
-  });
-  document.addEventListener('click',function(e){
-    if(e.target&&e.target.closest&&e.target.closest('#mobilePage,.bottom-nav,.navbtn[data-page="personal"],button')){
-      setTimeout(patchMobileAlertLayoutV191,80);
-      setTimeout(patchMobileAlertLayoutV191,280);
-    }
-  },true);
-  document.addEventListener('change',function(e){
-    if(e.target&&e.target.closest&&e.target.closest('#mobilePage')){
-      setTimeout(patchMobileAlertLayoutV191,100);
-    }
-  },true);
-  const obs=new MutationObserver(function(){patchMobileAlertLayoutV191()});
-  document.addEventListener('DOMContentLoaded',function(){
-    const root=findMobileRoot();
-    if(root)obs.observe(root,{childList:true,subtree:true});
-  });
-  setTimeout(patchMobileAlertLayoutV191,900);
-})();
-</script>
-<style>
-/* V191：手機提醒卡片指定版型 */
-@media(max-width:760px){
-  #mobilePage .v191-mobile-alert-card,
-  .v191-mobile-alert-card{
-    position:relative!important;
-    display:grid!important;
-    grid-template-columns:minmax(0,1fr) 82px!important;
-    grid-template-areas:
-      "top actions"
-      "body actions"!important;
-    column-gap:10px!important;
-    row-gap:4px!important;
-    align-items:start!important;
-    padding:14px 12px!important;
-    min-height:126px!important;
-    border-radius:18px!important;
-  }
-  #mobilePage .v191-alert-toprow,
-  .v191-alert-toprow{
-    grid-area:top!important;
-    display:flex!important;
-    align-items:center!important;
-    gap:8px!important;
+  #mobilePage #mobilePersonalAlertRows .v192-alert-content{
     min-width:0!important;
-    margin:0!important;
   }
-  #mobilePage .v191-alert-title,
-  .v191-alert-title{
-    display:inline-flex!important;
+  #mobilePage #mobilePersonalAlertRows .v192-alert-head{
+    display:flex!important;
     align-items:center!important;
-    gap:4px!important;
+    gap:8px!important;
+    flex-wrap:nowrap!important;
+    min-width:0!important;
+    margin:0 0 5px!important;
+  }
+  #mobilePage #mobilePersonalAlertRows .v192-alert-head .mobile-alert-title{
+    flex:0 0 auto!important;
     margin:0!important;
-    font-size:18px!important;
+    font-size:17px!important;
     line-height:1.2!important;
     font-weight:900!important;
     white-space:nowrap!important;
   }
-  #mobilePage .v191-overdue-pill,
-  .v191-overdue-pill{
-    display:inline-flex!important;
-    align-items:center!important;
-    justify-content:center!important;
-    width:auto!important;
-    min-width:0!important;
+  #mobilePage #mobilePersonalAlertRows .v192-alert-head .mobile-alert-overdue{
+    flex:0 1 auto!important;
     margin:0!important;
-    padding:6px 10px!important;
+    padding:5px 9px!important;
     border-radius:999px!important;
-    background:#e11d2e!important;
+    background:#dc2626!important;
     color:#fff!important;
-    font-size:15px!important;
+    font-size:14px!important;
     line-height:1.1!important;
     font-weight:900!important;
     white-space:nowrap!important;
   }
-  #mobilePage .v191-alert-body,
-  .v191-alert-body{
-    grid-area:body!important;
-    min-width:0!important;
-    padding:0!important;
-    margin:0!important;
-  }
-  #mobilePage .v191-alert-body .mobile-alert-main,
-  .v191-alert-body .mobile-alert-main{
+  #mobilePage #mobilePersonalAlertRows .v192-mobile-alert-card .mobile-alert-main{
     font-size:18px!important;
     line-height:1.3!important;
     font-weight:900!important;
-    margin:4px 0 4px!important;
+    margin:4px 0!important;
   }
-  #mobilePage .v191-alert-body .mobile-alert-meta,
-  #mobilePage .v191-alert-body .mobile-alert-note,
-  .v191-alert-body .mobile-alert-meta,
-  .v191-alert-body .mobile-alert-note{
-    font-size:14px!important;
-    line-height:1.45!important;
-    margin:0!important;
+  #mobilePage #mobilePersonalAlertRows .v192-mobile-alert-card .mobile-alert-meta{
+    font-size:13px!important;
+    line-height:1.42!important;
+    margin-top:2px!important;
   }
-  #mobilePage .v191-alert-actions,
-  .v191-alert-actions{
-    grid-area:actions!important;
+  #mobilePage #mobilePersonalAlertRows .v192-alert-actions{
     position:static!important;
-    right:auto!important;
-    bottom:auto!important;
     display:flex!important;
     flex-direction:column!important;
+    gap:8px!important;
     align-items:stretch!important;
     justify-content:flex-start!important;
-    gap:8px!important;
-    width:82px!important;
+    width:74px!important;
     margin:0!important;
     padding:0!important;
   }
-  #mobilePage .v191-alert-actions .v191-small-action-btn,
-  .v191-alert-actions .v191-small-action-btn{
-    width:82px!important;
-    min-width:82px!important;
-    height:42px!important;
-    padding:6px 8px!important;
-    border-radius:13px!important;
-    font-size:15px!important;
+  #mobilePage #mobilePersonalAlertRows .v192-alert-actions button{
+    width:74px!important;
+    min-width:74px!important;
+    height:38px!important;
+    padding:5px 7px!important;
+    border-radius:12px!important;
+    font-size:14px!important;
     font-weight:900!important;
     line-height:1.1!important;
     white-space:nowrap!important;
   }
-  #mobilePage .v191-alert-actions .v191-done-btn,
-  .v191-alert-actions .v191-done-btn{
+  #mobilePage #mobilePersonalAlertRows .v192-alert-actions .mobile-alert-done{
     background:#16a34a!important;
     border-color:#16a34a!important;
     color:#fff!important;
