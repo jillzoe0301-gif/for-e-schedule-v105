@@ -5596,6 +5596,117 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
   };
 })();
 
+
+/* V204：核心內修正「個人一般待辦」與管理員測試資料
+   DRY：共用 v204TaskNoteRows 篩選一般記事/待辦事項。
+   KISS：獨立頁面只提供新增待辦、開啟、完成。
+   SOLID：放在主程式 IIFE 內，可直接使用 state/currentUser，避免外掛讀不到權限與資料。 */
+function v204TaskNoteOwnPersonId(){
+  try{return userPersonId()||''}catch(_){return ''}
+}
+function v204TaskNoteIsOwn(e){
+  const pid=v204TaskNoteOwnPersonId();
+  return !!e && (!pid || (e.participants||[]).includes(pid) || e.createdBy===(currentUser&&currentUser.id));
+}
+function v204TaskNoteRows(){
+  return (state.events||[])
+    .filter(e=>e&&!e.deleted&&['generalNote','todo'].includes(e.kind)&&v204TaskNoteIsOwn(e))
+    .sort((a,b)=>String(a.status==='已完成').localeCompare(String(b.status==='已完成'))||String(a.startDate||'').localeCompare(String(b.startDate||''))||String(a.startTime||'').localeCompare(String(b.startTime||'')));
+}
+function v204AdminUser(){
+  return (state.users||[]).find(u=>u&&['admin','options'].includes(String(u.role||''))) || currentUser;
+}
+function v204AdminPersonId(){
+  const u=v204AdminUser();
+  if(u&&u.personId)return u.personId;
+  const p=(state.people||[]).find(p=>p&&p.active!==false&&String(p.lang||'')==='管理') || (state.people||[]).find(p=>p&&p.active!==false);
+  return p?p.id:'';
+}
+function v204SeedAdminTaskNotes(){
+  if(!state||!state.events)return;
+  const u=v204AdminUser();
+  const pid=v204AdminPersonId();
+  if(!u||!pid)return;
+  const today=todayISO();
+  const base={seriesId:'',seriesIndex:0,startDate:today,endDate:today,startTime:'上午',endTime:'',locationName:'',address:'',vehicleNo:'',meetingRoom:'不指定',participants:[pid],assigneeIds:[],additionalType:'',additionalNote:'',serviceRecordSubmitted:false,serviceRecordDate:'',followupDate:'',followupTime:'',followupPersonId:'',followupRegNo:'',createdBy:u.id||'admin',createdAt:new Date().toISOString(),updatedBy:u.id||'admin',updatedAt:new Date().toISOString(),deleted:false};
+  let changed=false;
+  if(!(state.events||[]).some(e=>e&&e.kind==='todo'&&e.name==='測試待辦事項')){
+    state.events.push({id:uid('ev'),kind:'todo',status:'未完成',type:'確認',name:'測試待辦事項',note:'管理員測試待辦',...base});
+    changed=true;
+  }
+  if(!(state.events||[]).some(e=>e&&e.kind==='generalNote'&&e.name==='測試一般事項')){
+    state.events.push({id:uid('ev'),kind:'generalNote',status:'未完成',type:'一般記事',name:'測試一般事項',note:'管理員測試一般記事',...base});
+    changed=true;
+  }
+  if(changed)save();
+}
+function v204EnsureTaskNotePage(){
+  let page=$('personalGeneralTodoPage');
+  if(!page){
+    const main=document.querySelector('.main')||document.querySelector('main');
+    if(!main)return null;
+    page=document.createElement('section');
+    page.id='personalGeneralTodoPage';
+    page.className='page hide';
+    main.appendChild(page);
+  }
+  page.innerHTML=`<div class="panel"><div class="section-title"><h2>個人一般待辦</h2><div class="toolbar"><button id="v204AddTodo" class="primary">新增待辦</button><button id="v204RefreshTodo">重新整理</button></div></div><div class="muted">只集中顯示登入者自己的「一般記事 / 待辦事項」。</div></div><div class="panel"><div class="detail-table-wrap"><table class="table"><thead><tr><th>操作</th><th>狀態</th><th>日期</th><th>時間</th><th>分類</th><th>類型</th><th>標題</th><th>說明</th></tr></thead><tbody id="personalGeneralTodoRows"></tbody></table></div></div>`;
+  $('v204AddTodo').onclick=function(){
+    openEventModal({date:todayISO(),personId:v204TaskNoteOwnPersonId()});
+    setTimeout(()=>{if($('eventKind')){$('eventKind').value='todo';renderTypeOptions();updateEventFormByKindUI();}},80);
+  };
+  $('v204RefreshTodo').onclick=v204RenderTaskNotePage;
+  return page;
+}
+function v204RenderTaskNotePage(){
+  const page=v204EnsureTaskNotePage();
+  if(!page)return;
+  const tbody=$('personalGeneralTodoRows');
+  const rows=v204TaskNoteRows();
+  tbody.innerHTML=rows.map(e=>`<tr><td><button class="small primary" data-v204-open="${escAttr(e.id)}">開啟</button> ${e.status==='已完成'?'<span class="badge">已完成</span>':`<button class="small" data-v204-done="${escAttr(e.id)}">完成</button>`}</td><td>${esc(e.status||'')}</td><td>${esc(e.startDate||'')}</td><td>${esc(e.startTime||'')}</td><td>${e.kind==='todo'?'待辦事項':'一般記事'}</td><td>${esc(e.type||'')}</td><td>${esc(e.name||'')}</td><td>${esc(e.note||'')}</td></tr>`).join('')||'<tr><td colspan="8" class="muted">目前沒有一般記事或待辦事項</td></tr>';
+  tbody.querySelectorAll('[data-v204-open]').forEach(btn=>btn.onclick=()=>openEventModal({eventId:btn.dataset.v204Open}));
+  tbody.querySelectorAll('[data-v204-done]').forEach(btn=>btn.onclick=()=>{const e=(state.events||[]).find(x=>x.id===btn.dataset.v204Done); if(!e)return; e.status='已完成'; e.updatedBy=currentUser.id; e.updatedAt=new Date().toISOString(); save(); v204RenderTaskNotePage(); renderAll(); toast('已完成');});
+}
+function v204ShowTaskNotePage(){
+  v204EnsureTaskNotePage();
+  document.querySelectorAll('.page').forEach(p=>p.classList.add('hide'));
+  $('personalGeneralTodoPage').classList.remove('hide');
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page==='personalGeneralTodo'));
+  v204RenderTaskNotePage();
+}
+function v204EnsureTaskNoteNav(){
+  if(!currentUser)return;
+  const side=document.querySelector('.side');
+  if(side&&!side.querySelector('[data-page="personalGeneralTodo"]')){
+    const btn=document.createElement('button');
+    btn.className='navbtn';
+    btn.dataset.page='personalGeneralTodo';
+    btn.innerHTML='<span class="mono-ico ico-list"></span>個人一般待辦';
+    side.insertBefore(btn,side.querySelector('[data-page="today"]')||null);
+  }
+  const bottom=document.querySelector('.bottom-nav');
+  if(bottom&&!bottom.querySelector('[data-page="personalGeneralTodo"]')){
+    const btn=document.createElement('button');
+    btn.className='navbtn';
+    btn.dataset.page='personalGeneralTodo';
+    btn.innerHTML='<span class="mono-ico ico-list"></span>待辦';
+    bottom.appendChild(btn);
+  }
+  document.querySelectorAll('[data-page="personalGeneralTodo"]').forEach(btn=>{btn.classList.remove('hide','role-hidden');btn.style.removeProperty('display');});
+  document.querySelectorAll('[data-page="personalTodo"],[data-page="taskNoteTracker"]').forEach(btn=>{btn.classList.add('hide','role-hidden');btn.style.setProperty('display','none','important');});
+}
+document.addEventListener('click',function(e){
+  const btn=e.target&&e.target.closest&&e.target.closest('[data-page="personalGeneralTodo"]');
+  if(btn){e.preventDefault();e.stopPropagation();v204ShowTaskNotePage();}
+},true);
+const v204BaseRenderAll=renderAll;
+renderAll=function(){
+  const r=v204BaseRenderAll.apply(this,arguments);
+  setTimeout(()=>{v204SeedAdminTaskNotes();v204EnsureTaskNotePage();v204EnsureTaskNoteNav();},80);
+  return r;
+};
+setTimeout(()=>{v204SeedAdminTaskNotes();v204EnsureTaskNotePage();v204EnsureTaskNoteNav();},300);
+
 })();
 
 </script>
@@ -8841,6 +8952,19 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
 #eventModal .req-missing,#fieldModal .req-missing{border-color:#dc2626!important;box-shadow:0 0 0 3px rgba(220,38,38,.16)!important;background:#fff7f7!important}
 #eventModal .required-hint.v86,#fieldModal .required-hint.v203{display:block!important}
 @media(max-width:760px){#taskNoteTrackerPage .detail-table-wrap{max-height:58vh}.bottom-nav [data-page="taskNoteTracker"]{display:inline-flex!important}}
+</style>
+
+
+<style>
+/* V204：個人一般待辦與外務必填欄位 */
+#eventModal .field.required label:first-child::after,
+#fieldModal .field.required label:first-child::after{content:' *';color:#dc2626!important;font-weight:900!important}
+#fieldModal .req-missing{border-color:#dc2626!important;box-shadow:0 0 0 3px rgba(220,38,38,.16)!important;background:#fff7f7!important}
+#fieldModal .required-hint.v203{display:block!important}
+@media(max-width:760px){
+  .bottom-nav [data-page="personalGeneralTodo"]{display:inline-flex!important}
+  #personalGeneralTodoPage .detail-table-wrap{max-height:58vh}
+}
 </style>
 
 </body></html>
