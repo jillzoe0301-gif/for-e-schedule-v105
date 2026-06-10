@@ -12148,138 +12148,8 @@ setInterval(v206SetupNavOrder,1500);
 
 
 
-<!-- V184 三原則修正：停用左側/底部導覽拖曳，改用穩定委派點擊 -->
-<style id="v184-nav-click-fix-style">
-/* DRY：導覽列統一只保留點擊，不再讓按鈕可拖曳移動 */
-.side .navbtn[data-page],
-.bottom-nav .navbtn[data-page]{
-  cursor:pointer!important;
-  touch-action:manipulation!important;
-  user-select:none!important;
-}
-.side .navbtn.v206-dragging,
-.bottom-nav .navbtn.v206-dragging,
-.side .navbtn.v208-nav-dragging,
-.bottom-nav .navbtn.v208-nav-dragging{
-  opacity:1!important;
-  outline:none!important;
-}
-</style>
-<script id="v184-nav-click-fix-script">
-(function(){
-  'use strict';
-  if(window.__v184NavClickFixApplied)return;
-  window.__v184NavClickFixApplied=true;
-
-  function qs(sel,root){return (root||document).querySelector(sel)}
-  function qsa(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel))}
-  function getPageEl(page){return document.getElementById(page+'Page')}
-  function safeToast(msg){try{ if(typeof toast==='function') toast(msg); else console.warn(msg); }catch(_){}}
-
-  // KISS：導覽按鈕不需要拖曳排序，避免 dragstart / dragover 攔截正常 click。
-  function disableNavDrag(){
-    qsa('.side .navbtn[data-page], .bottom-nav .navbtn[data-page]').forEach(function(btn){
-      btn.draggable=false;
-      btn.removeAttribute('draggable');
-      btn.classList.remove('v206-dragging','v208-nav-dragging');
-      btn.style.cursor='pointer';
-      btn.style.touchAction='manipulation';
-      if(btn.title) btn.title=btn.title.replace(/｜?可拖曳調整位置/g,'').trim();
-    });
-  }
-
-  function activateNav(page){
-    qsa('.navbtn[data-page]').forEach(function(b){b.classList.toggle('active', b.dataset.page===page)});
-  }
-
-  function showGenericPage(page){
-    var target=getPageEl(page);
-    if(!target) return false;
-    if(typeof canSeePage==='function' && !canSeePage(page)){
-      safeToast('此權限無法開啟此頁面');
-      return true;
-    }
-    try{ window.currentPage=page; }catch(_){ currentPage=page; }
-    qsa('.page').forEach(function(p){p.classList.add('hide')});
-    target.classList.remove('hide');
-    activateNav(page);
-
-    // SOLID：頁面切換只負責切換頁面，特殊頁面的補畫交給原本各自 render 函式。
-    try{
-      if(page==='calendar' && window.innerWidth<=760 && qs('#weekPicker')) qs('#weekPicker').value=todayISO();
-      if(page==='fieldCalendar' && window.innerWidth<=760 && qs('#fieldWeekPicker')) qs('#fieldWeekPicker').value=todayISO();
-      if(page==='roomBooking' && window.innerWidth<=760 && qs('#roomBookingWeekPicker')) qs('#roomBookingWeekPicker').value=todayISO();
-    }catch(_){ }
-    try{ if(typeof renderAll==='function') renderAll(); }catch(err){ console.error(err); safeToast('頁面切換時發生錯誤：'+err.message); }
-    try{ if(page==='calendar' && typeof scrollCalendarToToday==='function') setTimeout(scrollCalendarToToday,100); }catch(_){ }
-    try{ if(page==='fieldCalendar' && typeof scrollFieldCalendarToToday==='function') setTimeout(scrollFieldCalendarToToday,100); }catch(_){ }
-    try{ if(page==='roomBooking' && typeof v105ScrollRoomBookingToToday==='function') setTimeout(v105ScrollRoomBookingToToday,120); }catch(_){ }
-    return true;
-  }
-
-  function showNavPage(page){
-    // 保留後續版本新增的特殊待辦頁入口。
-    if(page==='personalGeneralTodo' && typeof window.v204ShowTaskNotePage==='function'){
-      window.v204ShowTaskNotePage();
-      activateNav(page);
-      return true;
-    }
-    if(page==='taskNoteTracker' && typeof window.showPageV203==='function'){
-      window.showPageV203();
-      activateNav(page);
-      return true;
-    }
-    if(page==='personalTodo' && typeof window.showPersonalTodoPage==='function'){
-      window.showPersonalTodoPage();
-      activateNav(page);
-      return true;
-    }
-    return showGenericPage(page);
-  }
-
-  // 阻止導覽列拖曳事件，避免拖曳功能吃掉 click。
-  ['dragstart','dragover','drop'].forEach(function(type){
-    document.addEventListener(type,function(e){
-      var btn=e.target && e.target.closest && e.target.closest('.side .navbtn[data-page], .bottom-nav .navbtn[data-page]');
-      if(!btn)return;
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      disableNavDrag();
-    },true);
-  });
-
-  // 事件委派：不管按鈕是原本存在或 renderAll 後新增，都一定能點擊切換。
-  document.addEventListener('click',function(e){
-    var btn=e.target && e.target.closest && e.target.closest('.side .navbtn[data-page], .bottom-nav .navbtn[data-page]');
-    if(!btn)return;
-    var page=btn.dataset.page;
-    if(!page)return;
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    disableNavDrag();
-    showNavPage(page);
-  },true);
-
-  var oldRenderAll=window.renderAll;
-  if(typeof oldRenderAll==='function' && !oldRenderAll.__v184NavClickFixWrapped){
-    var wrapped=function(){
-      var result=oldRenderAll.apply(this,arguments);
-      setTimeout(disableNavDrag,0);
-      return result;
-    };
-    wrapped.__v184NavClickFixWrapped=true;
-    window.renderAll=wrapped;
-  }
-
-  disableNavDrag();
-  setTimeout(disableNavDrag,300);
-  setTimeout(disableNavDrag,1000);
-})();
-</script>
-
-
-<style id="v184-left-nav-true-fix-style">
-/* V184 TRUE FIX：左側/底部導覽只允許點擊，不允許拖曳；人員列與外務列拖曳不受影響 */
+<!-- V184 LEFT NAV ROOT FIX: disable nav drag, restore reliable page switching -->
+<style id="v184-left-nav-root-fix-style">
 .side .navbtn[data-page],
 .bottom-nav .navbtn[data-page]{
   cursor:pointer!important;
@@ -12295,24 +12165,48 @@ setInterval(v206SetupNavOrder,1500);
   outline:none!important;
 }
 </style>
-<script id="v184-left-nav-true-fix-script">
+<script id="v184-left-nav-root-fix-script">
 (function(){
   'use strict';
-  if(window.__v184LeftNavTrueFixApplied)return;
-  window.__v184LeftNavTrueFixApplied=true;
+  if(window.__v184LeftNavRootFixApplied)return;
+  window.__v184LeftNavRootFixApplied=true;
 
-  function qs(sel,root){return (root||document).querySelector(sel)}
-  function qsa(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel))}
-  function toastSafe(msg){try{ if(typeof toast==='function')toast(msg); else console.warn(msg); }catch(_){}}
-  function setCurrentPage(page){
-    // 真正問題：currentPage 是全域 lexical 變數，不是 window.currentPage；只設 window.currentPage 會導致 renderAll 又畫回舊頁。
-    try{ currentPage=page; }catch(_){ }
-    try{ window.currentPage=page; }catch(_){ }
+  function $(id){return document.getElementById(id)}
+  function qa(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel))}
+  function roleKey(){
+    try{
+      var r=String((currentUser&&currentUser.role)||'');
+      if(r==='options')return 'admin';
+      if(r==='admin_staff')return 'adminStaff';
+      return r||'staff';
+    }catch(_){return 'staff'}
   }
-  function removeNavDragState(){
-    try{ localStorage.removeItem('fore_v206_side_nav_order'); }catch(_){ }
-    try{ if(typeof KEY!=='undefined')localStorage.removeItem(KEY+'_side_nav_order_v208'); }catch(_){ }
-    qsa('.side .navbtn[data-page], .bottom-nav .navbtn[data-page]').forEach(function(btn){
+  var pageAllow={
+    admin:['calendar','fieldCalendar','roomBooking','fieldDetails','personalDetails','today','incidents','mobile','reports','serviceRecords','audit','line','theme','settings','users','personalGeneralTodo','personalTodo','taskNoteTracker','recordSubmit','translatorService'],
+    supervisor:['calendar','fieldCalendar','roomBooking','fieldDetails','personalDetails','today','incidents','mobile','reports','serviceRecords','audit','line','theme','users','personalGeneralTodo','recordSubmit','translatorService'],
+    adminStaff:['calendar','fieldCalendar','roomBooking','fieldDetails','personalDetails','today','incidents','mobile','reports','audit','line','theme','settings','users','personalGeneralTodo','recordSubmit'],
+    general:['calendar','roomBooking','personalDetails','today','mobile','incidents','line','theme','users','personalGeneralTodo','recordSubmit'],
+    translator:['calendar','roomBooking','personalDetails','today','mobile','line','theme','serviceRecords','personalGeneralTodo','recordSubmit','translatorService'],
+    staff:['calendar','roomBooking','personalDetails','today','mobile','line','theme','users','personalGeneralTodo','recordSubmit']
+  };
+  function allowed(page){
+    if(!page)return false;
+    var r=roleKey();
+    var arr=pageAllow[r]||pageAllow.staff;
+    return arr.indexOf(page)>=0 || !!$(page+'Page');
+  }
+
+  // 根因之一：原 canSeePage 沒有 adminStaff/general 等分支，renderAll 會把 currentPage 拉回 calendar。
+  try{
+    canSeePage=function(page){return allowed(page)};
+    window.canSeePage=canSeePage;
+  }catch(_){ }
+
+  function cleanNavDrag(){
+    try{localStorage.removeItem('fore_v206_side_nav_order')}catch(_){ }
+    try{localStorage.removeItem('fore_v206_bottom_nav_order')}catch(_){ }
+    try{if(typeof KEY!=='undefined'){localStorage.removeItem(KEY+'_side_nav_order_v208');localStorage.removeItem(KEY+'_bottom_nav_order_v208')}}catch(_){ }
+    qa('.side .navbtn[data-page], .bottom-nav .navbtn[data-page]').forEach(function(btn){
       btn.draggable=false;
       btn.removeAttribute('draggable');
       btn.classList.remove('v206-dragging','v208-nav-dragging');
@@ -12322,110 +12216,110 @@ setInterval(v206SetupNavOrder,1500);
       if(btn.title)btn.title=btn.title.replace(/｜?可拖曳調整位置/g,'').trim();
     });
   }
-  function activate(page){
-    qsa('.navbtn[data-page]').forEach(function(b){b.classList.toggle('active',b.dataset.page===page)});
-  }
-  function pageEl(page){return document.getElementById(page+'Page')}
-  function showNormalPage(page){
-    var target=pageEl(page);
-    if(!target){return false;}
-    if(typeof canSeePage==='function' && !canSeePage(page)){toastSafe('此權限無法開啟此頁面'); return true;}
-    setCurrentPage(page);
-    qsa('.page').forEach(function(p){p.classList.add('hide')});
-    target.classList.remove('hide');
-    target.style.display='';
-    activate(page);
+  try{v206EnableNavDrag=function(){};window.v206EnableNavDrag=v206EnableNavDrag}catch(_){ }
+  try{v206SetupNavOrder=function(){cleanNavDrag()};window.v206SetupNavOrder=v206SetupNavOrder}catch(_){ }
+
+  function setPageVar(page){try{currentPage=page}catch(_){ } try{window.currentPage=page}catch(_){ }}
+  function activeNav(page){qa('.navbtn[data-page]').forEach(function(b){b.classList.toggle('active',b.dataset.page===page)})}
+  function toastSafe(msg){try{if(typeof toast==='function')toast(msg);else console.warn(msg)}catch(_){ }}
+  function renderFor(page){
     try{
-      if(page==='calendar' && window.innerWidth<=760 && qs('#weekPicker')) qs('#weekPicker').value=todayISO();
-      if(page==='fieldCalendar' && window.innerWidth<=760 && qs('#fieldWeekPicker')) qs('#fieldWeekPicker').value=todayISO();
-      if(page==='roomBooking' && window.innerWidth<=760 && qs('#roomBookingWeekPicker')) qs('#roomBookingWeekPicker').value=todayISO();
+      if(typeof renderAll==='function')renderAll();
+      if(page==='fieldCalendar'&&typeof renderFieldCalendar==='function')renderFieldCalendar();
+      if(page==='roomBooking'&&typeof renderRoomBookings==='function')renderRoomBookings();
+      if(page==='personalDetails'&&typeof renderPersonalDetails==='function')renderPersonalDetails();
+      if(page==='today'&&typeof renderToday==='function')renderToday();
+      if(page==='incidents'&&typeof renderIncidents==='function')renderIncidents();
+      if(page==='reports'&&typeof renderReports==='function')renderReports();
+      if(page==='serviceRecords'&&typeof renderServiceRecords==='function')renderServiceRecords();
+      if(page==='line'&&typeof renderLine==='function')renderLine();
+      if(page==='settings'&&typeof renderSettings==='function')renderSettings();
+      if(page==='users'&&typeof renderUsers==='function')renderUsers();
+      if(page==='theme'&&typeof renderTheme==='function')renderTheme();
+      if(page==='mobile'&&typeof renderMobile==='function')renderMobile();
+    }catch(err){console.error('nav render failed',err);toastSafe('頁面載入錯誤：'+(err&&err.message?err.message:err));}
+  }
+  function showPage(page){
+    if(!page)return;
+    cleanNavDrag();
+    if(!allowed(page)){toastSafe('此權限無法開啟此頁面');return;}
+    if(page==='personalGeneralTodo'&&typeof v205ShowPersonalTodo==='function'){v205ShowPersonalTodo();activeNav(page);setPageVar(page);return;}
+    var el=$(page+'Page');
+    if(!el){toastSafe('找不到頁面：'+page);return;}
+    setPageVar(page);
+    qa('.page').forEach(function(p){p.classList.add('hide');p.style.display=''});
+    el.classList.remove('hide');
+    activeNav(page);
+    try{
+      if(page==='calendar'&&window.innerWidth<=760&&$('weekPicker'))$('weekPicker').value=todayISO();
+      if(page==='fieldCalendar'&&window.innerWidth<=760&&$('fieldWeekPicker'))$('fieldWeekPicker').value=todayISO();
+      if(page==='roomBooking'&&window.innerWidth<=760&&$('roomBookingWeekPicker'))$('roomBookingWeekPicker').value=todayISO();
     }catch(_){ }
-    try{ if(typeof renderAll==='function')renderAll(); }catch(err){console.error(err); toastSafe('頁面切換錯誤：'+(err&&err.message?err.message:err));}
-    try{ if(page==='calendar' && typeof scrollCalendarToToday==='function')setTimeout(scrollCalendarToToday,100); }catch(_){ }
-    try{ if(page==='fieldCalendar' && typeof scrollFieldCalendarToToday==='function')setTimeout(scrollFieldCalendarToToday,100); }catch(_){ }
-    try{ if(page==='roomBooking' && typeof v105ScrollRoomBookingToToday==='function')setTimeout(v105ScrollRoomBookingToToday,120); }catch(_){ }
-    return true;
+    renderFor(page);
+    // renderAll 可能因舊權限/舊補丁又切頁；最後再強制顯示使用者點的頁面。
+    setPageVar(page);
+    qa('.page').forEach(function(p){p.classList.add('hide')});
+    el.classList.remove('hide');
+    activeNav(page);
+    setTimeout(function(){
+      cleanNavDrag();
+      try{if(page==='calendar'&&typeof scrollCalendarToToday==='function')scrollCalendarToToday()}catch(_){ }
+      try{if(page==='fieldCalendar'&&typeof scrollFieldCalendarToToday==='function')scrollFieldCalendarToToday()}catch(_){ }
+      try{if(page==='roomBooking'&&typeof v105ScrollRoomBookingToToday==='function')v105ScrollRoomBookingToToday()}catch(_){ }
+    },100);
   }
-  function showSpecialOrNormal(page){
-    // 特殊頁若沒有全域函式，也改用一般 pageId 顯示，避免點了完全沒反應。
-    if(page==='personalGeneralTodo'){
-      if(typeof window.v204ShowTaskNotePage==='function'){window.v204ShowTaskNotePage(); activate(page); setCurrentPage(page); return true;}
-      return showNormalPage(page);
-    }
-    if(page==='taskNoteTracker'){
-      if(typeof window.showPageV203==='function'){window.showPageV203(); activate(page); setCurrentPage(page); return true;}
-      return showNormalPage(page);
-    }
-    if(page==='personalTodo'){
-      if(typeof window.showPersonalTodoPage==='function'){window.showPersonalTodoPage(); activate(page); setCurrentPage(page); return true;}
-      return showNormalPage(page);
-    }
-    if(page==='recordSubmit'){
-      return showNormalPage(page);
-    }
-    return showNormalPage(page);
-  }
+  window.v184ShowPageRootFixed=showPage;
 
-  // 停用舊版 v206 導覽拖曳入口；保留人員/外務列拖曳。
-  try{ if(typeof v206EnableNavDrag==='function') v206EnableNavDrag=function(){}; }catch(_){ }
-  try{ if(typeof v206SetupNavOrder==='function') v206SetupNavOrder=function(){removeNavDragState();}; }catch(_){ }
-
-  // 關鍵：pointerdown / pointermove 若放到 .side 容器，舊 v208 會啟動拖曳狀態；在 document capture 階段攔截導覽按鈕。
+  // 根因之二：舊版 pointer/touch 拖曳掛在 side 容器 capture 階段，會吃掉點擊。
   ['pointerdown','pointermove','pointerup','touchstart','touchmove','touchend','dragstart','dragover','drop'].forEach(function(type){
     document.addEventListener(type,function(e){
       var btn=e.target&&e.target.closest&&e.target.closest('.side .navbtn[data-page], .bottom-nav .navbtn[data-page]');
       if(!btn)return;
-      if(type!=='pointerup' && type!=='touchend') e.preventDefault();
+      if(type.indexOf('drag')===0||type==='drop')e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-      removeNavDragState();
+      cleanNavDrag();
     },true);
   });
-
   document.addEventListener('click',function(e){
     var btn=e.target&&e.target.closest&&e.target.closest('.side .navbtn[data-page], .bottom-nav .navbtn[data-page]');
     if(!btn)return;
-    var page=btn.dataset.page;
-    if(!page)return;
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation();
-    removeNavDragState();
-    showSpecialOrNormal(page);
+    showPage(btn.dataset.page);
   },true);
 
-  // renderAll 之後舊程式會重新加 draggable，這裡最後再拔掉。
   try{
-    var oldRenderAll=renderAll;
-    if(typeof oldRenderAll==='function' && !oldRenderAll.__v184TrueLeftNavFixed){
-      renderAll=function(){
-        var r=oldRenderAll.apply(this,arguments);
-        setTimeout(removeNavDragState,0);
-        setTimeout(removeNavDragState,80);
+    var oldApply=applyPermissionsUI;
+    if(typeof oldApply==='function'&&!oldApply.__v184RootNavFixed){
+      applyPermissionsUI=function(){
+        var r=oldApply.apply(this,arguments);
+        qa('.navbtn[data-page]').forEach(function(btn){btn.classList.toggle('hide',!allowed(btn.dataset.page));});
+        cleanNavDrag();
         return r;
       };
-      renderAll.__v184TrueLeftNavFixed=true;
-      window.renderAll=renderAll;
+      applyPermissionsUI.__v184RootNavFixed=true;
+      window.applyPermissionsUI=applyPermissionsUI;
     }
   }catch(_){ }
-
   try{
-    var oldShowApp=showApp;
-    if(typeof oldShowApp==='function' && !oldShowApp.__v184TrueLeftNavFixed){
-      showApp=function(){
-        var r=oldShowApp.apply(this,arguments);
-        setTimeout(removeNavDragState,80);
-        setTimeout(removeNavDragState,500);
-        return r;
-      };
-      showApp.__v184TrueLeftNavFixed=true;
-      window.showApp=showApp;
+    var oldRender=renderAll;
+    if(typeof oldRender==='function'&&!oldRender.__v184RootNavFixed){
+      renderAll=function(){var r=oldRender.apply(this,arguments);setTimeout(cleanNavDrag,0);setTimeout(cleanNavDrag,120);return r};
+      renderAll.__v184RootNavFixed=true;window.renderAll=renderAll;
     }
   }catch(_){ }
-
-  removeNavDragState();
-  setTimeout(removeNavDragState,300);
-  setTimeout(removeNavDragState,1200);
+  try{
+    var oldShow=showApp;
+    if(typeof oldShow==='function'&&!oldShow.__v184RootNavFixed){
+      showApp=function(){var r=oldShow.apply(this,arguments);setTimeout(cleanNavDrag,80);setTimeout(cleanNavDrag,500);return r};
+      showApp.__v184RootNavFixed=true;window.showApp=showApp;
+    }
+  }catch(_){ }
+  cleanNavDrag();
+  setTimeout(cleanNavDrag,300);
+  setInterval(cleanNavDrag,1200);
 })();
 </script>
 
