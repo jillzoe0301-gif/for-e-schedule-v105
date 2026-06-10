@@ -12146,4 +12146,134 @@ setInterval(v206SetupNavOrder,1500);
 @media(max-width:760px){.room-room-head{width:88px!important;min-width:88px!important;max-width:88px!important}.room-room-cell{width:88px!important;min-width:88px!important;max-width:88px!important;padding:5px!important;font-size:11px!important}.room-day-cell{width:132px!important;min-width:132px!important}.room-week-table{min-width:760px!important}}
 </style>
 
+
+
+<!-- V184 三原則修正：停用左側/底部導覽拖曳，改用穩定委派點擊 -->
+<style id="v184-nav-click-fix-style">
+/* DRY：導覽列統一只保留點擊，不再讓按鈕可拖曳移動 */
+.side .navbtn[data-page],
+.bottom-nav .navbtn[data-page]{
+  cursor:pointer!important;
+  touch-action:manipulation!important;
+  user-select:none!important;
+}
+.side .navbtn.v206-dragging,
+.bottom-nav .navbtn.v206-dragging,
+.side .navbtn.v208-nav-dragging,
+.bottom-nav .navbtn.v208-nav-dragging{
+  opacity:1!important;
+  outline:none!important;
+}
+</style>
+<script id="v184-nav-click-fix-script">
+(function(){
+  'use strict';
+  if(window.__v184NavClickFixApplied)return;
+  window.__v184NavClickFixApplied=true;
+
+  function qs(sel,root){return (root||document).querySelector(sel)}
+  function qsa(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel))}
+  function getPageEl(page){return document.getElementById(page+'Page')}
+  function safeToast(msg){try{ if(typeof toast==='function') toast(msg); else console.warn(msg); }catch(_){}}
+
+  // KISS：導覽按鈕不需要拖曳排序，避免 dragstart / dragover 攔截正常 click。
+  function disableNavDrag(){
+    qsa('.side .navbtn[data-page], .bottom-nav .navbtn[data-page]').forEach(function(btn){
+      btn.draggable=false;
+      btn.removeAttribute('draggable');
+      btn.classList.remove('v206-dragging','v208-nav-dragging');
+      btn.style.cursor='pointer';
+      btn.style.touchAction='manipulation';
+      if(btn.title) btn.title=btn.title.replace(/｜?可拖曳調整位置/g,'').trim();
+    });
+  }
+
+  function activateNav(page){
+    qsa('.navbtn[data-page]').forEach(function(b){b.classList.toggle('active', b.dataset.page===page)});
+  }
+
+  function showGenericPage(page){
+    var target=getPageEl(page);
+    if(!target) return false;
+    if(typeof canSeePage==='function' && !canSeePage(page)){
+      safeToast('此權限無法開啟此頁面');
+      return true;
+    }
+    try{ window.currentPage=page; }catch(_){ currentPage=page; }
+    qsa('.page').forEach(function(p){p.classList.add('hide')});
+    target.classList.remove('hide');
+    activateNav(page);
+
+    // SOLID：頁面切換只負責切換頁面，特殊頁面的補畫交給原本各自 render 函式。
+    try{
+      if(page==='calendar' && window.innerWidth<=760 && qs('#weekPicker')) qs('#weekPicker').value=todayISO();
+      if(page==='fieldCalendar' && window.innerWidth<=760 && qs('#fieldWeekPicker')) qs('#fieldWeekPicker').value=todayISO();
+      if(page==='roomBooking' && window.innerWidth<=760 && qs('#roomBookingWeekPicker')) qs('#roomBookingWeekPicker').value=todayISO();
+    }catch(_){ }
+    try{ if(typeof renderAll==='function') renderAll(); }catch(err){ console.error(err); safeToast('頁面切換時發生錯誤：'+err.message); }
+    try{ if(page==='calendar' && typeof scrollCalendarToToday==='function') setTimeout(scrollCalendarToToday,100); }catch(_){ }
+    try{ if(page==='fieldCalendar' && typeof scrollFieldCalendarToToday==='function') setTimeout(scrollFieldCalendarToToday,100); }catch(_){ }
+    try{ if(page==='roomBooking' && typeof v105ScrollRoomBookingToToday==='function') setTimeout(v105ScrollRoomBookingToToday,120); }catch(_){ }
+    return true;
+  }
+
+  function showNavPage(page){
+    // 保留後續版本新增的特殊待辦頁入口。
+    if(page==='personalGeneralTodo' && typeof window.v204ShowTaskNotePage==='function'){
+      window.v204ShowTaskNotePage();
+      activateNav(page);
+      return true;
+    }
+    if(page==='taskNoteTracker' && typeof window.showPageV203==='function'){
+      window.showPageV203();
+      activateNav(page);
+      return true;
+    }
+    if(page==='personalTodo' && typeof window.showPersonalTodoPage==='function'){
+      window.showPersonalTodoPage();
+      activateNav(page);
+      return true;
+    }
+    return showGenericPage(page);
+  }
+
+  // 阻止導覽列拖曳事件，避免拖曳功能吃掉 click。
+  ['dragstart','dragover','drop'].forEach(function(type){
+    document.addEventListener(type,function(e){
+      var btn=e.target && e.target.closest && e.target.closest('.side .navbtn[data-page], .bottom-nav .navbtn[data-page]');
+      if(!btn)return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      disableNavDrag();
+    },true);
+  });
+
+  // 事件委派：不管按鈕是原本存在或 renderAll 後新增，都一定能點擊切換。
+  document.addEventListener('click',function(e){
+    var btn=e.target && e.target.closest && e.target.closest('.side .navbtn[data-page], .bottom-nav .navbtn[data-page]');
+    if(!btn)return;
+    var page=btn.dataset.page;
+    if(!page)return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    disableNavDrag();
+    showNavPage(page);
+  },true);
+
+  var oldRenderAll=window.renderAll;
+  if(typeof oldRenderAll==='function' && !oldRenderAll.__v184NavClickFixWrapped){
+    var wrapped=function(){
+      var result=oldRenderAll.apply(this,arguments);
+      setTimeout(disableNavDrag,0);
+      return result;
+    };
+    wrapped.__v184NavClickFixWrapped=true;
+    window.renderAll=wrapped;
+  }
+
+  disableNavDrag();
+  setTimeout(disableNavDrag,300);
+  setTimeout(disableNavDrag,1000);
+})();
+</script>
 </body></html>
