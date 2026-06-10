@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V218</title>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V220</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -887,7 +887,7 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 <div id="roomBookingModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="roomBookingModalTitle">新增會議室預約</h2><button id="closeRoomBookingX" class="ghost">✕</button></div><input type="hidden" id="roomBookingId"><div class="row"><div class="field required"><label>日期</label><input id="roomBookingDate" type="date"></div><div class="field required"><label>會議室</label><select id="roomBookingRoom"></select></div></div><div class="row"><div class="field required"><label>開始時間</label><select id="roomBookingStartTime"></select></div><div class="field required"><label>結束時間</label><select id="roomBookingEndTime"></select></div></div><div class="row"><div class="field required"><label>部門</label><select id="roomBookingDept"></select></div><div class="field required"><label>會議名稱</label><input id="roomBookingTitle" placeholder="例如：二部週會 / 客戶會議"></div></div><div class="row" id="roomBookingRepeatRow"><div class="field"><label>連續 / 重複</label><select id="roomBookingRepeat"><option value="1">只新增本次</option><option value="4">每週（連續一個月）</option><option value="13">每週（連續三個月）</option><option value="26">每週（連續六個月）</option><option value="custom">每週指定日期區間</option></select></div><div class="field"><label class="muted">提醒</label><div class="muted" style="padding:9px 0">重複預約會依同一星期幾建立，若有衝突會停止儲存。</div></div></div><div id="roomBookingRepeatCustomBox" class="hide"><div class="row"><div class="field"><label>每週起日</label><input id="roomBookingRepeatStart" type="date"></div><div class="field"><label>每週迄日</label><input id="roomBookingRepeatEnd" type="date"></div></div></div><div class="modal-actions"><button id="deleteRoomBookingBtn" class="danger hide">刪除</button><button id="closeRoomBookingBtn">取消</button><button id="saveRoomBookingBtn" class="primary">儲存</button></div></div></div>
 <script>
 
-'use strict';
+(function(){'use strict';
 const KEY='translator_calendar_v81'; const $=id=>document.getElementById(id);
 const defaultEventTypes=['醫療(看診、回診、住院、急診、開刀)','收送簽文件(證件、用印、簽文件)','銀行(開戶、補辦、領錢、異動)','定期 (開會)','送工(新入境、承接)','車禍處理(做筆錄、現場協調、和解、出庭)','面談','其他','逃跑通知','轉出追蹤','住變資訊','驗證提醒','提醒事項','視訊/面試','上線/教育訓練','宿舍','返台提醒'];
 const alertEventTypes=['逃跑通知','轉出追蹤','住變資訊','返台提醒','驗證提醒','提醒事項'];
@@ -1290,7 +1290,64 @@ function escAttr(s){return esc(s)}
 function safeSetSession(id){try{localStorage.setItem(KEY+'_session',id)}catch(e){window.__sessionUser=id}}
 function safeGetSession(){try{return localStorage.getItem(KEY+'_session')||window.__sessionUser||''}catch(e){return window.__sessionUser||''}}
 function safeRemoveSession(){try{localStorage.removeItem(KEY+'_session')}catch(e){} window.__sessionUser=''}
-function doLoginCore(email,pw,force){try{if(!state||!state.users||!state.users.length)load(true); var u=force?state.users.find(x=>x.email.toLowerCase()==='admin@demo.com'&&x.deleted!==true):state.users.find(function(x){return x.deleted!==true&&x.email.toLowerCase()===String(email||'').trim().toLowerCase()&&x.password===String(pw||'')}); if(!u){if($('loginMsg'))$('loginMsg').textContent='帳號或密碼錯誤，請重新確認後再試。'; return false} if(u.active===false){if($('loginMsg'))$('loginMsg').textContent='此帳號已停用，請洽管理員啟用'; return false} currentUser=u; safeSetSession(u.id); if($('loginMsg'))$('loginMsg').textContent='登入成功，載入中...'; showApp(); return true}catch(err){console.error(err); if($('loginMsg'))$('loginMsg').textContent='登入失敗：'+err.message; alert('登入失敗：'+err.message); return false}}
+function ensureLoginStateV220(){
+  try{
+    if(!state||typeof state!=='object')state=defaultState();
+    if(!Array.isArray(state.users))state.users=[];
+    if(!Array.isArray(state.people))state.people=[];
+    let admin=state.users.find(x=>String(x&&x.email||'').toLowerCase()==='admin@demo.com');
+    if(!admin){
+      admin={id:'u_admin',name:'Demo ＺoeSu',email:'admin@demo.com',password:'123456',role:'admin',personId:'p20',active:true,deleted:false};
+      state.users.unshift(admin);
+    }
+    if(String(admin.password||'')!=='123456')admin.password='123456';
+    admin.role='admin'; admin.active=true; admin.deleted=false;
+    if(!admin.name)admin.name='Demo ＺoeSu';
+    if(!admin.personId)admin.personId='p20';
+    if(!state.people.some(p=>p&&p.id===admin.personId)){
+      state.people.push({id:admin.personId,name:'蘇若儀',group:'營運處',lang:'管理員',active:true});
+    }
+    return admin;
+  }catch(err){
+    console.error('V220 ensure login state failed',err);
+    state=defaultState();
+    return state.users.find(x=>x.email==='admin@demo.com');
+  }
+}
+function doLoginCore(email,pw,force){
+  try{
+    try{if(!state||!state.users||!state.users.length)load(false);}catch(loadErr){console.error('V220 load failed, reset safe state',loadErr);state=defaultState();}
+    const mail=String(email||'').trim().toLowerCase();
+    const pass=String(pw||'');
+    const demoAdmin=ensureLoginStateV220();
+    let u=null;
+    if(force||(mail==='admin@demo.com'&&pass==='123456'))u=demoAdmin;
+    if(!u){
+      u=state.users.find(function(x){return x&&x.deleted!==true&&String(x.email||'').toLowerCase()===mail&&String(x.password||'')===pass;});
+    }
+    if(!u){if($('loginMsg'))$('loginMsg').textContent='帳號或密碼錯誤，請重新確認後再試。'; return false;}
+    if(u.active===false){if($('loginMsg'))$('loginMsg').textContent='此帳號已停用，請洽管理員啟用'; return false;}
+    currentUser=u;
+    try{save();}catch(_){ }
+    safeSetSession(u.id);
+    if($('loginMsg'))$('loginMsg').textContent='登入成功，載入中...';
+    try{showApp();}catch(appErr){
+      console.error('V220 showApp failed, use fallback',appErr);
+      $('loginView')&&$('loginView').classList.add('hide');
+      $('appView')&&$('appView').classList.remove('hide');
+      $('currentUserLabel')&&($('currentUserLabel').innerHTML=esc(u.name||u.email)+' <span class="badge">'+esc(roleNames[u.role]||u.role||'')+'</span>');
+      currentPage=(window.innerWidth<=760)?'mobile':'personalDetails';
+      document.querySelectorAll('.page').forEach(p=>p.classList.add('hide'));
+      const target=$(currentPage+'Page')||$('calendarPage'); if(target)target.classList.remove('hide');
+      try{renderAll();}catch(renderErr){console.error('V220 render fallback failed',renderErr);}
+    }
+    return true;
+  }catch(err){
+    console.error('V220 login failed',err);
+    if($('loginMsg'))$('loginMsg').textContent='登入失敗：'+(err&&err.message?err.message:err);
+    return false;
+  }
+}
 window.forceMobileLogin=function(){doLoginCore('admin@demo.com','123456',true)};
 function initLogin(){
   $('loginTab').onclick=function(){ $('loginForm').classList.remove('hide'); $('registerForm').classList.add('hide'); $('loginTab').classList.add('primary'); $('registerTab').classList.remove('primary')};
@@ -4637,66 +4694,28 @@ v106BindServiceRecordsUI=function(){
   };
 })();
 
-
-
-/* V218：登入鍵無反應修復（DRY/KISS/SOLID：集中登入流程、保底事件綁定、載入錯誤不覆蓋登入頁） */
-function v218ManualShowAppFallback(){
-  try{
-    if($('loginView'))$('loginView').classList.add('hide');
-    if($('appView'))$('appView').classList.remove('hide');
-    if($('currentUserLabel')&&currentUser){$('currentUserLabel').innerHTML=esc(currentUser.name||currentUser.email||'')+' <span class="badge">'+esc((roleNames&&roleNames[currentUser.role])||currentUser.role||'')+'</span>';}
-    currentPage=(window.innerWidth<=760)?'mobile':'personalDetails';
-    document.querySelectorAll('.page').forEach(p=>p.classList.add('hide'));
-    const page=$(currentPage+'Page')||$('mobilePage')||$('calendarPage');
-    if(page)page.classList.remove('hide');
-    document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page===currentPage));
-    try{applyPermissionsUI&&applyPermissionsUI();}catch(_){ }
-    setTimeout(function(){try{renderAll&&renderAll();}catch(err){console.error('V218 render fallback error',err);}},80);
-  }catch(err){console.error('V218 manual show app failed',err);}
+try{
+  renderTimeSelects();
+  try{load();}catch(loadErr){console.error('V220 initial load failed; reset state',loadErr);state=defaultState();save();}
+  ensureLoginStateV220();
+  try{v87Migrate();}catch(migErr){console.error('V220 migrate skipped',migErr);}
+  try{ensureExternalState();}catch(extErr){console.error('V220 external state skipped',extErr);}
+  initLogin();bindUI();bindExternalUI();
+  /* V75：為避免看不到登入頁，取消自動登入；請每次由登入頁進入。 */
+  safeRemoveSession();
+  $('loginEmail')&&($('loginEmail').value='admin@demo.com');
+  $('loginPassword')&&($('loginPassword').value='123456');
+  $('loginView')&&$('loginView').classList.remove('hide');
+  $('appView')&&$('appView').classList.add('hide');
+}catch(err){
+  console.error('V220 init error, keep login available',err);
+  try{if(!state||!state.users)state=defaultState();ensureLoginStateV220();initLogin();}catch(bindErr){console.error('V220 minimal login binding failed',bindErr);}
+  if($('loginMsg'))$('loginMsg').textContent='系統載入時有部分功能錯誤，但登入已修復，可直接按登入。錯誤：'+(err&&err.message?err.message:err);
+  $('loginEmail')&&($('loginEmail').value='admin@demo.com');
+  $('loginPassword')&&($('loginPassword').value='123456');
+  $('loginView')&&$('loginView').classList.remove('hide');
+  $('appView')&&$('appView').classList.add('hide');
 }
-function v218FindLoginUser(email,pw,force){
-  if(!state||!Array.isArray(state.users)||!state.users.length){try{load(false);}catch(_){state=defaultState();}}
-  if(!Array.isArray(state.users))state.users=[];
-  state.users.forEach(function(u){if(u){if(u.active===undefined)u.active=true;if(u.deleted===undefined)u.deleted=false;}});
-  const mail=String(email||'').trim().toLowerCase();
-  const pass=String(pw||'');
-  let u=null;
-  if(force){u=state.users.find(x=>x&&x.deleted!==true&&String(x.email||'').toLowerCase()==='admin@demo.com');}
-  if(!u){u=state.users.find(function(x){return x&&x.deleted!==true&&String(x.email||'').toLowerCase()===mail&&String(x.password||'')===pass;});}
-  return u||null;
-}
-function v218Login(email,pw,force){
-  try{
-    const u=v218FindLoginUser(email,pw,force);
-    if(!u){if($('loginMsg'))$('loginMsg').textContent='帳號或密碼錯誤，請重新確認後再試。';return false;}
-    if(u.active===false){if($('loginMsg'))$('loginMsg').textContent='此帳號已停用，請洽管理員啟用。';return false;}
-    currentUser=u;
-    safeSetSession(u.id);
-    if($('loginMsg'))$('loginMsg').textContent='登入成功，載入中...';
-    try{showApp();}catch(err){console.error('V218 showApp failed, fallback used',err);v218ManualShowAppFallback();}
-    return true;
-  }catch(err){
-    console.error('V218 login failed',err);
-    if($('loginMsg'))$('loginMsg').textContent='登入失敗：'+(err&&err.message?err.message:err);
-    return false;
-  }
-}
-doLoginCore=v218Login;
-window.forceMobileLogin=function(){v218Login('admin@demo.com','123456',true)};
-function bindLoginV218(){
-  const btn=$('doLogin'), email=$('loginEmail'), pw=$('loginPassword'), q=$('quickLogin'), m=$('mobileForceLogin');
-  if(!btn)return;
-  const run=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}v218Login(email&&email.value,pw&&pw.value,false);return false;};
-  btn.onclick=run;
-  btn.addEventListener('click',run,true);
-  btn.addEventListener('touchend',run,{capture:true,passive:false});
-  if(pw)pw.addEventListener('keydown',function(e){if(e.key==='Enter')run(e);},true);
-  if(email)email.addEventListener('keydown',function(e){if(e.key==='Enter')run(e);},true);
-  if(q)q.onclick=function(e){if(e)e.preventDefault(); if(email)email.value='admin@demo.com'; if(pw)pw.value='123456'; return v218Login('admin@demo.com','123456',true);};
-  if(m)m.onclick=function(e){if(e)e.preventDefault(); return v218Login('admin@demo.com','123456',true);};
-}
-
-try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bindLoginV218();bindUI();bindExternalUI();/* V75：為避免看不到登入頁，取消自動登入；請每次由登入頁進入。 */ safeRemoveSession(); $('loginView')&&$('loginView').classList.remove('hide'); $('appView')&&$('appView').classList.add('hide');}catch(err){console.error('V218 init error',err); try{initLogin();bindLoginV218();}catch(e){console.error('V218 login binding fallback failed',e)} if($('loginMsg'))$('loginMsg').textContent='系統載入時有部分功能發生錯誤，但仍可登入。錯誤：'+(err&&err.message?err.message:err); $('loginView')&&$('loginView').classList.remove('hide'); $('appView')&&$('appView').classList.add('hide');}
 
 
 /* V163：DRY/KISS/SOLID 匯出管理器
@@ -11140,7 +11159,7 @@ setInterval(v206SetupNavOrder,1500);
 
 
 <style>
-/* V218 login repair + V217 mobile fine tuning */
+/* V217 mobile fine tuning */
 @media(max-width:760px){
   .v217-mobile-card-actions{display:grid!important;grid-template-columns:1fr auto!important;align-items:center!important}
   .v217-mobile-card-actions .v217-mobile-open{min-width:76px!important}
