@@ -11884,4 +11884,266 @@ setInterval(v206SetupNavOrder,1500);
 @media(max-width:760px){.room-room-head{width:92px!important;min-width:92px!important;max-width:92px!important}.room-room-cell{width:92px!important;min-width:92px!important;max-width:92px!important;padding:5px!important;font-size:11px!important}.room-day-cell{width:136px!important;min-width:136px!important}.room-week-table{min-width:780px!important}}
 </style>
 
+
+
+<script>
+/* V223：三原則根因修正
+   DRY：外務地點、顏色、查看、已完成只保留一組最終覆蓋函式。
+   KISS：外務地點下拉只顯示地點名稱，新增地點只留一個欄位，不再把地址塞進新增欄位。
+   SOLID：儲存、查看、通知、顏色、相關人員各自獨立，避免舊 V220~V222 setInterval 重複覆蓋。 */
+(function(){
+  if(window.__FOR_E_V223__)return; window.__FOR_E_V223__=true;
+  const FIELD_LOCATIONS_V223=[
+    ['內湖_印辦','台北市內湖區瑞光路550號2樓'],
+    ['內湖_菲辦','台北市內湖區洲子街55-57號2樓'],
+    ['台北_越辦(領件只能下午)','臺北市中山區松江路101號2樓'],
+    ['台北_越南換護照','臺北市中山區松江路65號2，3樓'],
+    ['台北_泰辦','台北市大安區信義路三段151號 10 樓'],
+    ['台北_勞動部','臺北市中正區中華路1段39號10樓'],
+    ['桃園移民署','桃園市桃園區縣府路106號1樓'],
+    ['中壢就業中心','桃園市中壢區新興路182號'],
+    ['桃園就業中心','桃園市桃園區縣府路59號'],
+    ['中和就業中心','新北市中和區景安路118號'],
+    ['板橋就業中心','新北市板橋區漢生東路163號'],
+    ['三重就業中心(不同仲介要不同天)','新北市三重區重新路四段12號'],
+    ['新竹就業中心','新竹市光華東街56號'],
+    ['竹北就業中心','新竹縣竹北市光明九路7-3號'],
+    ['宜蘭羅東就業中心','宜蘭縣羅東鎮東榮路二段91號'],
+    ['苗栗就業中心','苗栗市中山路558號'],
+    ['新北移民署','新北市中和區民安街135號'],
+    ['竹北移民署','新竹縣竹北市三民路133號1樓'],
+    ['基隆移民署','基隆市中正區義一路18號11樓A棟'],
+    ['新竹移民署','新竹市北區中華路三段12號1樓']
+  ];
+  const $=id=>document.getElementById(id);
+  const qa=(s,r=document)=>Array.from(r.querySelectorAll(s));
+  function esc(v){try{return window.esc?window.esc(v):String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}catch(_){return String(v??'')}}
+  function attr(v){return esc(v).replace(/"/g,'&quot;')}
+  function today(){try{return todayISO()}catch(_){return new Date().toISOString().slice(0,10)}}
+  function pid(){try{return userPersonId()}catch(_){return (currentUser&&currentUser.personId)||''}}
+  function personName(id){try{return ((getPerson(id)||{}).name)||''}catch(_){const p=(state.people||[]).find(x=>x.id===id);return (p&&p.name)||''}}
+  function userName(id){try{return ((getUser(id)||{}).name)||''}catch(_){return ''}}
+  function dType(t){try{return displayEventType(t||'')}catch(_){return t||''}}
+  function timeText(t){try{return ampm(t||'')}catch(_){return t||''}}
+  function parseLoc(v){const s=String(v||'').trim(); if(!s||s==='新增'||s==='__new__')return null; const p=s.split('｜'); return {name:(p[0]||'').trim(),address:p.slice(1).join('｜').trim()}}
+  function uniqueLocations(){
+    const map=new Map(); FIELD_LOCATIONS_V223.forEach(x=>map.set(x[0],{name:x[0],address:x[1]}));
+    try{(state.options&&Array.isArray(state.options.fieldLocations)?state.options.fieldLocations:[]).forEach(v=>{const x=parseLoc(v); if(x&&x.name&&!map.has(x.name))map.set(x.name,x)})}catch(_){ }
+    return Array.from(map.values());
+  }
+  function normalizeFieldState(){
+    try{
+      state.options=state.options||{};
+      const list=uniqueLocations();
+      state.options.fieldLocations=list.map(x=>x.address?x.name+'｜'+x.address:x.name);
+      if($('optFieldLocations'))$('optFieldLocations').value=state.options.fieldLocations.join('\n');
+    }catch(_){ }
+  }
+  function clearRequired(){
+    qa('#fieldModal .required').forEach(x=>x.classList.remove('required'));
+    qa('#fieldModal .req-missing').forEach(x=>x.classList.remove('req-missing'));
+    qa('#fieldModal .required-hint,.field-required-hint').forEach(x=>x.remove());
+  }
+  window.v203ValidateFieldRequired=function(){clearRequired();return true};
+  window.v203MarkFieldRequired=function(){clearRequired();return true};
+  window.v203ShowFieldMissing=function(){clearRequired();return true};
+  try{v203ValidateFieldRequired=window.v203ValidateFieldRequired; v203MarkFieldRequired=window.v203MarkFieldRequired; v203ShowFieldMissing=window.v203ShowFieldMissing;}catch(_){ }
+
+  function ensureNewLocationOnly(){
+    const sel=$('fieldLocation'); if(!sel)return;
+    let box=$('fieldLocationNewBox');
+    if(!box){box=document.createElement('div'); box.id='fieldLocationNewBox'; const anchor=sel.closest('.field')||sel.parentElement; (anchor||sel).insertAdjacentElement('afterend',box)}
+    box.className='v223-new-field-box';
+    box.innerHTML='<label>新增外務地點</label><input id="fieldLocationNew" placeholder="下拉沒有的地點才填寫；可空白">';
+    const oldAddr=$('fieldAddressNew'); if(oldAddr){const wrap=oldAddr.closest('.field')||oldAddr.parentElement; if(wrap)wrap.remove(); else oldAddr.remove();}
+  }
+  function renderFieldLocationStable(keep){
+    normalizeFieldState();
+    let sel=$('fieldLocation'); if(!sel)return;
+    const oldValue=keep!==undefined?keep:(sel.value||'');
+    if(sel.tagName!=='SELECT'){
+      const n=document.createElement('select'); n.id='fieldLocation'; n.className=sel.className||''; sel.replaceWith(n); sel=n;
+    }
+    const list=uniqueLocations();
+    const optionHTML='<option value="">（空白）</option>'+list.map(x=>'<option value="'+attr(x.name)+'" data-address="'+attr(x.address)+'">'+esc(x.name)+'</option>').join('');
+    if(sel.dataset.v223Options!==optionHTML){sel.innerHTML=optionHTML; sel.dataset.v223Options=optionHTML;}
+    const normalized=list.some(x=>x.name===oldValue)?oldValue:'';
+    if(sel.value!==normalized)sel.value=normalized;
+    const item=list.find(x=>x.name===sel.value);
+    if(item&&$('fieldAddress'))$('fieldAddress').value=item.address||'';
+    sel.onchange=function(){const item=uniqueLocations().find(x=>x.name===this.value); if($('fieldAddress'))$('fieldAddress').value=item?item.address:'';};
+    ensureNewLocationOnly(); clearRequired();
+  }
+
+  function collectField(){
+    const newLoc=($('fieldLocationNew')&&$('fieldLocationNew').value||'').trim();
+    const sel=$('fieldLocation'); const item=uniqueLocations().find(x=>x.name===(sel&&sel.value));
+    const locName=newLoc || (sel&&sel.value) || '';
+    const addr=newLoc ? '' : (item?item.address:(($('fieldAddress')&&$('fieldAddress').value)||''));
+    if(newLoc){try{state.options=state.options||{}; state.options.fieldLocations=state.options.fieldLocations||[]; if(!state.options.fieldLocations.some(x=>(parseLoc(x)||{}).name===newLoc))state.options.fieldLocations.push(newLoc)}catch(_){ }}
+    return {
+      personId:($('fieldPerson')&&$('fieldPerson').value)||pid()||((state.people||[])[0]||{}).id||'',
+      date:($('fieldDate')&&$('fieldDate').value)||today(),
+      time:($('fieldTime')&&$('fieldTime').value)||'',
+      status:($('fieldStatus')&&$('fieldStatus').value)||'未完成',
+      failureReason:($('fieldFailureReason')&&$('fieldFailureReason').value.trim())||'',
+      locationName:locName,address:addr,
+      purpose:($('fieldPurpose')&&$('fieldPurpose').value)||'',note:($('fieldNote')&&$('fieldNote').value)||'',
+      cash:($('fieldCash')&&$('fieldCash').value)||'',stamp:($('fieldStamp')&&$('fieldStamp').value)||'',document:($('fieldDocument')&&$('fieldDocument').value)||'',
+      mustSend:!!($('fieldMustSend')&&$('fieldMustSend').checked),cannotChange:!!($('fieldCannotChange')&&$('fieldCannotChange').checked),
+      pickupDate:($('fieldPickupDate')&&$('fieldPickupDate').value)||'',pickupPersonId:($('fieldPickupPerson')&&$('fieldPickupPerson').value)||'',
+      updatedBy:(currentUser&&currentUser.id)||'system',updatedAt:new Date().toISOString()
+    };
+  }
+  window.collectFieldEvent=collectField; try{collectFieldEvent=collectField}catch(_){ }
+  function saveField(){
+    try{ensureExternalState()}catch(_){state.externalEvents=state.externalEvents||[]}
+    clearRequired();
+    const id=$('editFieldId')&&$('editFieldId').value; const data=collectField();
+    if(data.status==='送件失敗'&&!data.failureReason){try{toast('請填寫送件失敗原因')}catch(_){alert('請填寫送件失敗原因')} return;}
+    if(id){
+      const idx=(state.externalEvents||[]).findIndex(x=>x.id===id);
+      if(idx>=0){const old=Object.assign({},state.externalEvents[idx]); state.externalEvents[idx]=Object.assign({},state.externalEvents[idx],data); try{syncMainEventFromField(state.externalEvents[idx],'修改',old)}catch(_){ }}
+    }else{
+      const dates=(typeof fieldRepeatDates==='function'?fieldRepeatDates():[data.date||today()]);
+      const group=(typeof uid==='function'?uid('fg'):'fg'+Date.now());
+      dates.forEach(function(d){const ev=Object.assign({id:(typeof uid==='function'?uid('field'):'field'+Date.now()+Math.random()),repeatGroupId:group,createdBy:(currentUser&&currentUser.id)||'system',createdAt:new Date().toISOString(),deleted:false},data,{date:d}); state.externalEvents=state.externalEvents||[]; state.externalEvents.push(ev); try{syncMainEventFromField(ev,'新增')}catch(_){ }});
+    }
+    try{save()}catch(_){ }
+    if($('fieldModal'))$('fieldModal').classList.add('hide');
+    try{renderAll()}catch(_){ }
+    try{toast('外務行程已儲存')}catch(_){ }
+  }
+  window.saveFieldEvent=saveField; try{saveFieldEvent=saveField}catch(_){ }
+  function bindFieldSave(){const b=$('saveFieldBtn'); if(b)b.onclick=function(e){e&&e.preventDefault&&e.preventDefault(); saveField();};}
+
+  function eventById(id){try{return (state.events||[]).find(x=>x&&x.id===id)||null}catch(_){return null}}
+  function fieldById(id){try{return (state.externalEvents||[]).find(x=>x&&x.id===id)||null}catch(_){return null}}
+  function completeById(id){
+    const e=eventById(id); const f=fieldById(id);
+    if(e){e.status='已完成'; e.updatedBy=(currentUser&&currentUser.id)||e.updatedBy; e.updatedAt=new Date().toISOString();}
+    if(f){f.status='已送件'; f.updatedBy=(currentUser&&currentUser.id)||f.updatedBy; f.updatedAt=new Date().toISOString();}
+    try{save()}catch(_){ }
+    qa('.modal').forEach(m=>m.classList.add('hide'));
+    try{renderAll()}catch(_){ }
+    try{toast('已完成')}catch(_){ }
+  }
+  function addDoneButton(){
+    const modal=$('eventModal'); if(!modal||modal.classList.contains('hide'))return;
+    const id=$('eventId')&&$('eventId').value; if(!id)return;
+    const e=eventById(id); if(!e||e.status==='已完成'||e.status==='取消')return;
+    let btn=$('v223DoneBtn');
+    if(!btn){btn=document.createElement('button'); btn.id='v223DoneBtn'; btn.type='button'; btn.className='primary'; btn.textContent='已完成'; const actions=modal.querySelector('.modal-actions')||modal.querySelector('.modal-card'); actions&&actions.appendChild(btn);}
+    btn.style.display='inline-flex'; btn.onclick=function(ev){ev.preventDefault();ev.stopPropagation();completeById(id)};
+  }
+  function openView(id){
+    if(!id)return;
+    const ev=eventById(id); const fe=fieldById(id);
+    if(ev){try{openEventModal({eventId:id})}catch(_){ } setTimeout(addDoneButton,80); return;}
+    if(fe){try{openFieldModal({id:id})}catch(_){ } setTimeout(function(){renderFieldLocationStable(fe.locationName||''); bindFieldSave();},80); return;}
+  }
+  window.v223OpenView=openView;
+
+  function executorText(e){try{return executorNames(e)||''}catch(_){ } const ids=(e.assigneeIds&&e.assigneeIds.length?e.assigneeIds:e.participants)||[]; return ids.map(personName).filter(Boolean).join('、')}
+  function renderPersonalDetails(){
+    const tbody=$('personalDetailRows'); if(!tbody||typeof personalDetailRowsFiltered!=='function')return;
+    try{renderPersonalDetailOptions()}catch(_){ } try{renderPersonalDesktopAlerts()}catch(_){ } try{renderAssignedTracking()}catch(_){ }
+    const rows=personalDetailRowsFiltered()||[]; const table=tbody.closest('table');
+    if(table&&table.tHead&&table.tHead.rows[0])table.tHead.rows[0].innerHTML='<th>行程明細</th><th style="width:92px;text-align:right">操作</th>';
+    tbody.innerHTML=rows.map(function(r){const e=r.event||{}; const note=String(e.note||'').split(/\n/).slice(0,3).join('\n');
+      const top='開始時間：'+esc((e.startDate||r.date||'')+' '+timeText(e.startTime))+'　/　行程類型：'+esc(dType(e.type)||e.kind||'')+'　/　地點客戶名稱：'+esc(e.locationName||'');
+      const body='<div class="v223-detail-top">'+top+'</div><div class="v223-detail-name">辦理內容：'+esc(e.name||'')+'</div><div class="v223-note-label">內容說明：</div><div class="v223-note-3">'+esc(note||'')+'</div><div class="v223-detail-meta"><span>公務車：'+esc(e.vehicleNo||'')+'</span><span>狀態：'+esc(e.status||'')+'</span><span>指派人員：'+esc(executorText(e)||personName(r.personId)||'')+'</span></div>';
+      return '<tr><td>'+body+'</td><td class="v223-action-cell"><button type="button" class="small primary" data-v223-view="'+attr(e.id||'')+'">查看</button></td></tr>';
+    }).join('')||'<tr><td colspan="2" class="muted">沒有個人行程表</td></tr>';
+  }
+
+  function kindOf(e,el){
+    const txt=[e&&e.kind,e&&e.type,e&&e.name,e&&e.note,e&&e.purpose,el&&el.textContent].join(' ');
+    const status=String((e&&(e.status||e.fieldStatus))||'');
+    if(/已完成|已送件/.test(status))return 'done';
+    if(e&&(e.externalSource||e.externalEventId||e.purpose)||el&&el.classList.contains('field-event'))return 'field';
+    try{if(e&&(alertEventTypeList()||[]).map(dType).includes(dType(e.type)))return 'incident'}catch(_){ }
+    if(/逃跑|轉出|住變|返台|驗證|異況/.test(txt))return 'incident';
+    if(/個人待辦|personalGeneralTodo|personalTodo/.test(txt))return 'personalTodo';
+    if(/待辦|提醒事項|確認/.test(txt)||e&&e.kind==='todo')return 'todo';
+    if(/一般記事|generalNote/.test(txt)||e&&e.kind==='generalNote')return 'note';
+    if(/會議|請假|教育訓練|活動|上課|外訓|返鄉|translatorStatus/.test(txt)||e&&e.kind==='translatorStatus')return 'status';
+    return 'schedule';
+  }
+  function applyColors(){
+    qa('.event[data-id],.field-event[data-id],.mobile-event-card[data-id],.mobile-alert-card[data-id]').forEach(function(el){
+      const id=el.dataset.id; const e=eventById(id)||fieldById(id); const k=kindOf(e,el);
+      ['field','note','schedule','todo','personalTodo','status','incident','done'].forEach(x=>el.classList.remove('v223-kind-'+x,'v222-kind-'+x,'v221-kind-'+x,'event-kind-'+x));
+      el.classList.add('v223-kind-'+k);
+    });
+  }
+  function patchMobileCards(){
+    qa('.mobile-event-card[data-id],.mobile-alert-card[data-id]').forEach(function(card){
+      const id=card.dataset.id; const e=eventById(id)||fieldById(id);
+      qa('button',card).forEach(function(b){const t=(b.textContent||'').trim(); if(t==='複製內容')b.remove(); if(/詳細|修改|查看/.test(t)){b.textContent='查看'; b.classList.add('primary'); b.onclick=function(ev){ev.preventDefault();ev.stopPropagation();openView(id)}}});
+      if(e&&card.classList.contains('mobile-event-card')&&!card.querySelector('.v223-card-note')){const note=String(e.note||'').split(/\n/).slice(0,3).join('\n'); const div=document.createElement('div'); div.className='v223-card-note'; div.textContent='內容說明：'+note; const meta=card.querySelector('.mobile-meta')||card.querySelector('.mobile-event-title'); meta?meta.insertAdjacentElement('afterend',div):card.appendChild(div);}
+    });
+  }
+  function todayRows(){
+    const d=today(), p=pid();
+    return (state.events||[]).filter(function(e){if(!e||e.deleted||e.status==='取消'||e.status==='已完成')return false; const inDay=String(e.startDate||'')<=d&&String(e.endDate||e.startDate||'')>=d; if(!inDay)return false; const ids=[].concat(e.participants||[],e.assigneeIds||[]); return !p||ids.includes(p)||e.createdBy===(currentUser&&currentUser.id)||['admin','supervisor'].includes(currentUser&&currentUser.role)}).sort((a,b)=>String(a.startTime||'').localeCompare(String(b.startTime||'')));
+  }
+  function loginNotice(){
+    if(!currentUser)return;
+    const rows=todayRows(); const body=rows.length?rows.slice(0,12).map(e=>'• '+(timeText(e.startTime)||'')+'｜'+(dType(e.type)||e.kind||'')+'｜'+(e.name||'')).join('\n')+(rows.length>12?'\n...另有 '+(rows.length-12)+' 筆':''):'今天沒有未完成行程或待辦。';
+    setTimeout(function(){try{alert('當日待辦提醒\n\n'+body)}catch(_){ }},500);
+  }
+  function patchParticipants(){
+    if(typeof window.renderParticipants==='function'&&!window.renderParticipants.v223){
+      const old=window.renderParticipants;
+      window.renderParticipants=function(defaultPid,sel=[]){
+        const me=pid(); const selected=Array.from(new Set([...(sel||[]),me,defaultPid].filter(Boolean)));
+        let ps=[]; try{ps=state.people.filter(p=>p.active!==false&&p.deleted!==true&&p.lang!=='管理')}catch(_){ }
+        const mine=(state.people||[]).find(p=>p.id===me); if(mine&&!ps.some(p=>p.id===me))ps.unshift(mine);
+        const box=$('participantsBox'); if(!box)return old.apply(this,arguments);
+        box.innerHTML=ps.map(p=>'<label class="checkline"><input type="checkbox" value="'+attr(p.id)+'" '+(selected.includes(p.id)?'checked':'')+'> '+esc(p.name)+' <span class="muted">'+esc(p.group||'')+'</span></label>').join('');
+      }; window.renderParticipants.v223=true; try{renderParticipants=window.renderParticipants}catch(_){ }
+    }
+  }
+  function after(){clearRequired(); renderFieldLocationStable(); bindFieldSave(); addDoneButton(); applyColors(); patchMobileCards(); patchParticipants(); if($('personalDetailsPage')&&!$('personalDetailsPage').classList.contains('hide'))renderPersonalDetails();}
+
+  if(typeof window.renderFieldOptions==='function'&&!window.renderFieldOptions.v223){const old=window.renderFieldOptions; window.renderFieldOptions=function(){const keep=$('fieldLocation')&&$('fieldLocation').value; const r=old.apply(this,arguments); setTimeout(()=>renderFieldLocationStable(keep),0); return r}; window.renderFieldOptions.v223=true; try{renderFieldOptions=window.renderFieldOptions}catch(_){ }}
+  if(typeof window.openFieldModal==='function'&&!window.openFieldModal.v223){const old=window.openFieldModal; window.openFieldModal=function(opts){const r=old.apply(this,arguments); setTimeout(function(){const id=$('editFieldId')&&$('editFieldId').value; const f=id?fieldById(id):null; renderFieldLocationStable(f?f.locationName||'':(($('fieldLocation')&&$('fieldLocation').value)||'')); bindFieldSave(); clearRequired();},80); return r}; window.openFieldModal.v223=true; try{openFieldModal=window.openFieldModal}catch(_){ }}
+  if(typeof window.openEventModal==='function'&&!window.openEventModal.v223){const old=window.openEventModal; window.openEventModal=function(){const r=old.apply(this,arguments); setTimeout(addDoneButton,100); return r}; window.openEventModal.v223=true; try{openEventModal=window.openEventModal}catch(_){ }}
+  if(typeof window.renderAll==='function'&&!window.renderAll.v223){const old=window.renderAll; window.renderAll=function(){const r=old.apply(this,arguments); [60,220,520].forEach(ms=>setTimeout(after,ms)); return r}; window.renderAll.v223=true; try{renderAll=window.renderAll}catch(_){ }}
+  if(typeof window.showApp==='function'&&!window.showApp.v223){const old=window.showApp; window.showApp=function(){window.__v222_login_notice_showing__=true; const r=old.apply(this,arguments); setTimeout(function(){window.__v222_login_notice_showing__=false; loginNotice();},900); return r}; window.showApp.v223=true; try{showApp=window.showApp}catch(_){ }}
+  if(typeof window.doLoginCore==='function'&&!window.doLoginCore.v223){const old=window.doLoginCore; window.doLoginCore=function(){window.__v222_login_notice_showing__=true; const ok=old.apply(this,arguments); if(ok)setTimeout(function(){window.__v222_login_notice_showing__=false;},1600); return ok}; window.doLoginCore.v223=true; try{doLoginCore=window.doLoginCore}catch(_){ }}
+
+  document.addEventListener('click',function(e){
+    const saveBtn=e.target&&e.target.closest&&e.target.closest('#saveFieldBtn'); if(saveBtn){e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); saveField(); return;}
+    const view=e.target&&e.target.closest&&e.target.closest('[data-v223-view],[data-v222-view],[data-v221-view],.mobile-alert-open'); if(view){e.preventDefault(); e.stopPropagation(); openView(view.dataset.v223View||view.dataset.v222View||view.dataset.v221View||view.dataset.id); return;}
+    if(e.target&&e.target.closest&&e.target.closest('[data-page],#refreshPersonalDetails,#applyPersonalDetailSort,#mobileToday,#mobileTomorrow,#mobileWeek'))setTimeout(after,120);
+  },true);
+  document.addEventListener('change',function(e){if(e.target&&e.target.id==='fieldLocation')setTimeout(after,20)},true);
+  try{new MutationObserver(function(){if($('fieldModal')&&!$('fieldModal').classList.contains('hide'))renderFieldLocationStable(); applyColors();}).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']})}catch(_){ }
+  setTimeout(function(){for(let i=1;i<2500;i++){try{clearInterval(i)}catch(_){ }} after(); setInterval(after,1200);},2200);
+  setTimeout(after,300); setTimeout(after,900);
+})();
+</script>
+<style>
+/* V223 最終色票：所有行事曆與手機卡片統一 */
+.event.v223-kind-field,.field-event.v223-kind-field,.mobile-event-card.v223-kind-field{background:#ffedd5!important;border-color:#fed7aa!important;border-left-color:#fb923c!important;color:#0f172a!important;opacity:1!important}
+.event.v223-kind-note,.mobile-event-card.v223-kind-note{background:#fff!important;border-color:#d8dde8!important;border-left-color:#94a3b8!important;color:#0f172a!important;opacity:1!important}
+.event.v223-kind-schedule,.mobile-event-card.v223-kind-schedule{background:#fce7f3!important;border-color:#f9a8d4!important;border-left-color:#ec4899!important;color:#0f172a!important;opacity:1!important}
+.event.v223-kind-todo,.mobile-event-card.v223-kind-todo{background:#fef9c3!important;border-color:#fde68a!important;border-left-color:#f59e0b!important;color:#0f172a!important;opacity:1!important}
+.event.v223-kind-personalTodo,.mobile-event-card.v223-kind-personalTodo{background:#dbeafe!important;border-color:#93c5fd!important;border-left-color:#3b82f6!important;color:#0f172a!important;opacity:1!important}
+.event.v223-kind-status,.mobile-event-card.v223-kind-status{background:#f3e8ff!important;border-color:#d8b4fe!important;border-left-color:#9333ea!important;color:#0f172a!important;opacity:1!important}
+.event.v223-kind-incident,.mobile-alert-card.v223-kind-incident,.mobile-event-card.v223-kind-incident,.mobile-alert-card:not(.v223-kind-done){background:#fef08a!important;border-color:#facc15!important;border-left-color:#eab308!important;color:#0f172a!important;opacity:1!important;box-shadow:0 4px 14px rgba(234,179,8,.20)!important}
+.event.v223-kind-done,.field-event.v223-kind-done,.mobile-event-card.v223-kind-done,.mobile-alert-card.v223-kind-done{background:#e5e7eb!important;border-color:#cbd5e1!important;border-left-color:#64748b!important;color:#334155!important;opacity:1!important}
+#fieldLocation option[value="__new__"]{display:none!important}
+#fieldLocationNewBox.v223-new-field-box{display:block!important;margin:8px 0 10px!important;padding:10px!important;border:1px dashed #fdba74!important;border-radius:12px!important;background:#fff7ed!important}
+#fieldLocationNewBox.v223-new-field-box label{font-weight:900;display:block;margin-bottom:5px}
+#fieldAddressNew{display:none!important}
+#fieldModal .required label:first-child:after{content:''!important}#fieldModal .required-hint{display:none!important}#fieldModal .req-missing{border-color:var(--line)!important;box-shadow:none!important;background:#fff!important}
+.v223-action-cell{text-align:right!important;white-space:nowrap!important;vertical-align:middle!important}.v223-action-cell button{min-width:72px!important}
+.v223-detail-top{font-weight:900;margin-bottom:4px;line-height:1.45}.v223-detail-name{font-weight:900;margin-bottom:4px}.v223-note-label{font-size:12px;color:#64748b;font-weight:900}.v223-note-3,.v223-card-note{white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;line-height:1.45;color:#475569;margin-top:3px}.v223-detail-meta{display:flex;gap:22px;flex-wrap:wrap;margin-top:6px;color:#475569;font-size:13px}
+.mobile-event-card .toolbar,.mobile-alert-card .mobile-alert-actions,.mobile-alert-card .personal-desktop-alert-actions{justify-content:flex-end!important}.mobile-event-card button,.mobile-alert-card button{margin-left:auto!important;display:block!important;max-width:160px!important}.mobile-alert-card .mobile-alert-done{display:none!important}
+@media(max-width:760px){.room-room-head{width:88px!important;min-width:88px!important;max-width:88px!important}.room-room-cell{width:88px!important;min-width:88px!important;max-width:88px!important;padding:5px!important;font-size:11px!important}.room-day-cell{width:132px!important;min-width:132px!important}.room-week-table{min-width:760px!important}}
+</style>
+
 </body></html>
