@@ -6923,6 +6923,204 @@ setInterval(v206SetupNavOrder,1500);
   setTimeout(()=>fixRoomSoon(true),500);
 })();
 
+
+/* V215：Airtable/Webhook 改為選項管理、重整選項維護、增加待辦/活動類型管理、行政可維護外務選項
+   原因：
+   1. 原「Airtable/Webhook」頁混合串接設定與選項設定，標題與實際欄位不一致。
+   2. 待辦事項、會議/請假/教育訓練/活動的類型目前寫死在 JS，無法由後台管理。
+   3. 行政系需要調整外務地點/地址與外務目的，但原權限只允許管理員儲存選項。
+   DRY：所有選項頁面用一個 v215EnsureSettingsLayout 建立。
+   KISS：維持 textarea 每行一項，不做複雜表格。
+   SOLID：類型管理、外務選項、串接設定三區分開。 */
+(function(){
+  function q(sel,root){return (root||document).querySelector(sel)}
+  function qa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
+  function arr(v){try{return linesToArray(v)}catch(_){return String(v||'').split(/\n|,/).map(x=>x.trim()).filter(Boolean)}}
+  function join(a){return (a||[]).join('\n')}
+  const defaultTodoTypesV215=['送件','回覆','確認','補件','其他'];
+  const defaultActivityTypesV215=['請假','返鄉','會議','上課（外訓）','公司活動'];
+
+  // 側邊名稱：Airtable/Webhook -> 選項管理
+  function v215PatchNavTitle(){
+    qa('[data-page="settings"]').forEach(btn=>{
+      btn.innerHTML='<span class="mono-ico ico-link"></span>選項管理';
+    });
+  }
+
+  // 權限：行政系可以進選項管理，並可儲存外務地點/地址與外務目的
+  const baseCanManageOptionsV215=canManageOptions;
+  canManageOptions=function(){return isAdmin()||normalizedRole()==='adminStaff'};
+  const baseCanSeePageV215=canSeePage;
+  canSeePage=function(page){
+    if(page==='settings')return isAdmin()||normalizedRole()==='adminStaff';
+    return baseCanSeePageV215(page);
+  };
+
+  function v215EnsureOptionState(){
+    if(!state.options)state.options={};
+    if(!Array.isArray(state.options.todoTypes)||!state.options.todoTypes.length)state.options.todoTypes=[...defaultTodoTypesV215];
+    if(!Array.isArray(state.options.activityTypes)||!state.options.activityTypes.length){
+      state.options.activityTypes=[...(state.options.translatorStatusTypes&&state.options.translatorStatusTypes.length?state.options.translatorStatusTypes:defaultActivityTypesV215)];
+    }
+    state.options.translatorStatusTypes=[...state.options.activityTypes];
+    if(!Array.isArray(state.options.fieldLocations)||!state.options.fieldLocations.length){
+      try{ensureExternalState()}catch(_){}
+    }
+    if(!Array.isArray(state.options.fieldPurposes)||!state.options.fieldPurposes.length){
+      try{ensureExternalState()}catch(_){}
+    }
+  }
+
+  // 新增可管理的類型清單
+  todoTypeList=function(){v215EnsureOptionState();return state.options.todoTypes&&state.options.todoTypes.length?state.options.todoTypes:defaultTodoTypesV215};
+  activityTypeList=function(){v215EnsureOptionState();return state.options.activityTypes&&state.options.activityTypes.length?state.options.activityTypes:defaultActivityTypesV215};
+  translatorStatusList=function(){return activityTypeList()};
+
+  function v215SettingsHTML(){
+    return `
+      <div class="panel v215-settings-hero">
+        <div class="section-title">
+          <h2>選項管理</h2>
+          <span class="muted">下方每行一個選項，儲存後會同步到表單下拉選單。</span>
+        </div>
+      </div>
+
+      <div class="panel v215-option-panel">
+        <div class="section-title"><h2>行程表單選項</h2><span class="muted">對應「新增行程」表單欄位。</span></div>
+        <div class="v215-grid">
+          <div class="field"><label>類別</label><textarea id="optCategories" placeholder="行程\n會議/請假/教育訓練/活動"></textarea></div>
+          <div class="field"><label>行程類型</label><textarea id="optEventTypes"></textarea></div>
+          <div class="field"><label>待辦事項類型</label><textarea id="optTodoTypes" placeholder="送件\n回覆\n確認\n補件\n其他"></textarea></div>
+          <div class="field"><label>會議/請假/教育訓練/活動類型</label><textarea id="optActivityTypes" placeholder="請假\n返鄉\n會議\n上課（外訓）\n公司活動"></textarea><textarea id="optTranslatorStatus" class="hide"></textarea></div>
+        </div>
+      </div>
+
+      <div class="panel v215-option-panel">
+        <div class="section-title"><h2>行程內容與提醒選項</h2><span class="muted">對應行程內容、通知與服務追蹤。</span></div>
+        <div class="v215-grid">
+          <div class="field v215-wide"><label>行程類型對應內容</label><select id="optEventTypeContentType"></select><textarea id="optEventTypeContentEditor" placeholder="每行一項，例如：逃跑通報、失聯追蹤、警察局通知"></textarea><input type="hidden" id="optEventTypeContents"><div class="muted">先選行程類型，下方框框會帶出該類型內容；每行一項。</div></div>
+          <div class="field"><label>提醒通知類型</label><textarea id="optAlertEventTypes" placeholder="逃跑通知\n轉出追蹤\n住變資訊\n返台提醒\n驗證提醒"></textarea></div>
+          <div class="field"><label>異況類型</label><textarea id="optIncidentTypes" placeholder="逃跑 / 失聯\n轉出異常\n住變異常\n醫療 / 受傷"></textarea></div>
+        </div>
+      </div>
+
+      <div class="panel v215-option-panel">
+        <div class="section-title"><h2>外務行程選項</h2><span class="muted">行政系可維護；對應外務行程表單欄位。</span></div>
+        <div class="v215-grid">
+          <div class="field"><label>外務地點與地址</label><textarea id="optFieldLocations" placeholder="桃園就業中心｜桃園市桃園區..."></textarea><div class="muted">格式：地點｜地址。每行一筆。</div></div>
+          <div class="field"><label>外務目的</label><textarea id="optFieldPurposes" placeholder="送件\n領件\n補件\n外務日"></textarea></div>
+        </div>
+      </div>
+
+      <div class="panel v215-option-panel">
+        <div class="section-title"><h2>人員與資源選項</h2><span class="muted">對應人員、會議室與車輛欄位。</span></div>
+        <div class="v215-grid">
+          <div class="field"><label>職務</label><textarea id="optLangs"></textarea></div>
+          <div class="field"><label>群組</label><textarea id="optGroups"></textarea></div>
+          <div class="field"><label>會議室</label><textarea id="optMeetingRooms" placeholder="大會議室\n小會議室"></textarea></div>
+          <div class="field"><label>部門</label><textarea id="optDepartments" placeholder="營運一部\n營運二部\n營運處"></textarea></div>
+          <div class="field"><label>公務車車號</label><textarea id="optVehicleNumbers"></textarea></div>
+        </div>
+        <div class="toolbar v215-savebar"><button id="saveOptions" class="primary">儲存選項</button><button id="resetOptions">還原預設選項</button></div>
+      </div>
+
+      <div class="panel v215-option-panel v215-connect-panel">
+        <details>
+          <summary>系統串接設定</summary>
+          <div class="v215-grid" style="margin-top:12px">
+            <div class="field"><label>Airtable Base ID</label><input id="airtableBase"></div>
+            <div class="field"><label>Airtable Table Name</label><input id="airtableTable"></div>
+            <div class="field v215-wide"><label>Webhook URL</label><input id="webhookUrl"></div>
+            <div class="field v215-wide"><label>LINE 備註</label><textarea id="lineMemo"></textarea></div>
+          </div>
+          <div class="toolbar"><button id="saveSettings" class="primary">儲存串接設定</button><button id="simulateWebhook">產生 Webhook 模擬通知</button></div>
+        </details>
+      </div>`;
+  }
+
+  function v215EnsureSettingsLayout(){
+    const page=q('#settingsPage'); if(!page)return;
+    if(page.dataset.v215Layout==='1')return;
+    page.innerHTML=v215SettingsHTML();
+    page.dataset.v215Layout='1';
+    v215BindSettingsActions();
+  }
+
+  function v215BindSettingsActions(){
+    if(q('#saveSettings'))q('#saveSettings').onclick=function(){
+      state.settings={airtableBase:q('#airtableBase').value,airtableTable:q('#airtableTable').value,webhookUrl:q('#webhookUrl').value,lineMemo:q('#lineMemo').value};
+      save();toast('已儲存串接設定');
+    };
+    if(q('#simulateWebhook'))q('#simulateWebhook').onclick=function(){
+      state.lastLineText='【Webhook 模擬】\n已準備送出最新行程資料到：\n'+(q('#webhookUrl').value||'尚未設定 Webhook URL');
+      save();renderLine();toast('已產生模擬通知');
+    };
+    if(q('#saveOptions'))q('#saveOptions').onclick=saveOptions;
+    if(q('#resetOptions'))q('#resetOptions').onclick=resetOptions;
+    if(q('#optEventTypeContentType'))q('#optEventTypeContentType').onchange=function(){syncEventTypeContentEditorToHidden(eventTypeContentEditingType);renderEventTypeContentEditor(q('#optEventTypeContentType').value)};
+    if(q('#optEventTypeContentEditor'))q('#optEventTypeContentEditor').addEventListener('input',()=>syncEventTypeContentEditorToHidden());
+    if(q('#optEventTypes'))q('#optEventTypes').addEventListener('input',refreshEventTypeContentEditorOptions);
+  }
+
+  const baseRenderSettingsV215=renderSettings;
+  renderSettings=function(){
+    v215EnsureSettingsLayout();
+    v215EnsureOptionState();
+    baseRenderSettingsV215();
+    // baseRenderSettings 會填 optTranslatorStatus；這裡同步新欄位
+    if(q('#optTodoTypes'))q('#optTodoTypes').value=join(todoTypeList());
+    if(q('#optActivityTypes'))q('#optActivityTypes').value=join(activityTypeList());
+    if(q('#optTranslatorStatus'))q('#optTranslatorStatus').value=join(activityTypeList());
+    if(q('#optFieldLocations')){try{q('#optFieldLocations').value=fieldLocationLines().join('\n')}catch(_){}}
+    if(q('#optFieldPurposes')){try{q('#optFieldPurposes').value=fieldPurposeList().join('\n')}catch(_){}}
+    const disabled=!canManageOptions();
+    ['optEventTypes','optTodoTypes','optActivityTypes','optTranslatorStatus','optAlertEventTypes','optEventTypeContentType','optEventTypeContentEditor','optLangs','optGroups','optCategories','optVehicleNumbers','optMeetingRooms','optDepartments','optIncidentTypes','saveOptions','resetOptions'].forEach(id=>{if(q('#'+id))q('#'+id).disabled=disabled});
+    // 行政系可編輯外務選項
+    const canField=isAdmin()||normalizedRole()==='adminStaff';
+    ['optFieldLocations','optFieldPurposes'].forEach(id=>{if(q('#'+id))q('#'+id).disabled=!canField});
+    v215BindSettingsActions();
+  };
+
+  const baseSaveOptionsV215=saveOptions;
+  saveOptions=function(){
+    v215EnsureOptionState();
+    if(q('#optActivityTypes'))q('#optTranslatorStatus').value=q('#optActivityTypes').value;
+    baseSaveOptionsV215();
+    v215EnsureOptionState();
+    state.options.todoTypes=arr(q('#optTodoTypes')?q('#optTodoTypes').value:'').length?arr(q('#optTodoTypes').value):[...defaultTodoTypesV215];
+    state.options.activityTypes=arr(q('#optActivityTypes')?q('#optActivityTypes').value:'').length?arr(q('#optActivityTypes').value):[...defaultActivityTypesV215];
+    state.options.translatorStatusTypes=[...state.options.activityTypes];
+    if(q('#optFieldLocations')){
+      try{
+        const loc=arr(q('#optFieldLocations').value);
+        const pur=arr(q('#optFieldPurposes')?q('#optFieldPurposes').value:'');
+        state.options.fieldLocations=loc.length?loc:[...defaultFieldLocations];
+        state.options.fieldPurposes=pur.length?pur:[...defaultFieldPurposes];
+      }catch(_){}
+    }
+    save();renderAll();toast('已儲存選項');
+  };
+
+  const baseResetOptionsV215=resetOptions;
+  resetOptions=function(){
+    baseResetOptionsV215();
+    state.options.todoTypes=[...defaultTodoTypesV215];
+    state.options.activityTypes=[...defaultActivityTypesV215];
+    state.options.translatorStatusTypes=[...defaultActivityTypesV215];
+    try{state.options.fieldLocations=[...defaultFieldLocations];state.options.fieldPurposes=[...defaultFieldPurposes]}catch(_){}
+    save();renderAll();toast('已還原預設選項');
+  };
+
+  const baseRenderAllV215=renderAll;
+  renderAll=function(){
+    const r=baseRenderAllV215.apply(this,arguments);
+    v215PatchNavTitle();
+    if(currentPage==='settings')renderSettings();
+    return r;
+  };
+  setTimeout(()=>{v215PatchNavTitle();v215EnsureOptionState();},500);
+})();
+
 })();
 
 </script>
@@ -10468,6 +10666,25 @@ setInterval(v206SetupNavOrder,1500);
 #roomBookingArea .v214-room-week{display:block!important;background:#fff!important}
 #roomBookingArea .calendar-table th,#roomBookingArea .calendar-table td{min-width:128px!important}
 #roomBookingArea .person-head{min-width:130px!important}
+</style>
+
+
+<style>
+/* V215：選項管理排版 */
+#settingsPage .v215-settings-hero{background:linear-gradient(135deg,#f8fafc,#eef6ff)!important}
+#settingsPage .v215-option-panel{border:1px solid var(--line)!important}
+#settingsPage .v215-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;align-items:start!important}
+#settingsPage .v215-wide{grid-column:1 / -1!important}
+#settingsPage textarea{min-height:120px!important;line-height:1.55!important}
+#settingsPage #optEventTypeContentEditor{min-height:160px!important}
+#settingsPage label{font-weight:900!important;color:#334155!important}
+#settingsPage .v215-savebar{justify-content:flex-end!important;margin-top:12px!important}
+#settingsPage details summary{cursor:pointer;font-weight:900;color:#334155;padding:4px 0}
+.side [data-page="settings"]::after{content:''}
+@media(max-width:760px){
+  #settingsPage .v215-grid{grid-template-columns:1fr!important}
+  #settingsPage .v215-wide{grid-column:auto!important}
+}
 </style>
 
 </body></html>
