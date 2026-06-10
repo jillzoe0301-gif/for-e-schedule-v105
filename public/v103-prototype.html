@@ -4924,10 +4924,8 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
     if(!Array.isArray(state.events))state.events=[];
     const today=todayISO();
     const demos=[
-      {key:'overdue',date:dateAdd(today,-15),time:'09:00',type:'醫療',locationName:'【測試】桃園醫院',name:'【催繳測試】回診陪同服務紀錄單未繳',note:'此為紀錄單繳交頁面測試資料：超過 2 週未繳，應顯示亮黃色催繳提醒。',submitted:false},
-      {key:'week',date:dateAdd(today,-8),time:'10:30',type:'銀行',locationName:'【測試】第一銀行',name:'【1週提醒測試】開戶陪同服務紀錄單未繳',note:'此為紀錄單繳交頁面測試資料：滿 1 週未繳，應顯示粉紅色提醒。',submitted:false},
-      {key:'submitted',date:dateAdd(today,-3),time:'14:00',type:'面談',locationName:'【測試】工廠會議室',name:'【已繳交測試】工人面談服務紀錄單',note:'此為紀錄單繳交頁面測試資料：已繳交，用於確認已繳交統計。',submitted:true}
-    ];
+{key:'week',date:dateAdd(today,-8),time:'10:30',type:'銀行',locationName:'【測試】第一銀行',name:'【1週提醒測試】開戶陪同服務紀錄單未繳',note:'此為紀錄單繳交頁面測試資料：滿 1 週未繳，應顯示粉紅色提醒。',submitted:false},
+];
     let changed=false;
     demos.forEach(d=>{
       const id=`demo_recordsubmit_${person.id}_${d.key}`;
@@ -5842,8 +5840,7 @@ function v206SeedOneUser(u){
     {marker:baseKey+'_tomorrow',offset:1,type:'提醒事項',name:'測試明日登入提醒',note:'測試：登入前一天提醒通知'},
     {marker:baseKey+'_medical',offset:2,type:'醫療(看診、回診、住院、急診、開刀)',name:'測試醫療服務紀錄單',note:'測試：服務紀錄單繳交、回診連動',followupDate:dateAdd(todayISO(),9),followupTime:'上午',followupPersonId:p.id},
     {marker:baseKey+'_bank_done',offset:3,type:'銀行(開戶、補辦、領錢、異動)',name:'測試已繳服務紀錄單',note:'測試：已繳服務紀錄單',serviceRecordSubmitted:true,serviceRecordDate:todayISO(),status:'已完成'},
-    {marker:baseKey+'_activity',offset:4,kind:'translatorStatus',type:'會議',name:'測試會議活動',locationName:'',note:'測試：會議/請假/教育訓練/活動類別'},
-    {marker:baseKey+'_todo',offset:0,kind:'todo',type:'確認',name:'測試待辦事項',locationName:'',note:'測試：個人一般待辦－待辦事項'},
+{marker:baseKey+'_todo',offset:0,kind:'todo',type:'確認',name:'測試待辦事項',locationName:'',note:'測試：個人一般待辦－待辦事項'},
     {marker:baseKey+'_note',offset:0,kind:'generalNote',type:'一般記事',name:'測試一般事項',locationName:'',note:'測試：個人一般待辦－一般記事'}
   ];
   samples.forEach(x=>{
@@ -11032,6 +11029,174 @@ setInterval(v206SetupNavOrder,1500);
   let n=0;
   const timer=setInterval(()=>{boot(); if(++n>=10)clearInterval(timer);},800);
   window.v218CleanTestData=()=>cleanTestData(true);
+})();
+</script>
+
+
+<script id="v219-remove-test-schedules-relax-required">
+(function(){
+  'use strict';
+
+  var TEST_WORDS = [
+    '測試行程',
+    '測試外務',
+    '測試會議',
+    '測試資料',
+    'test schedule',
+    'test event',
+    'demo schedule',
+    'demo event',
+    'mock schedule',
+    'mock event',
+    'sample schedule',
+    'sample event'
+  ];
+
+  function hasTestText(value) {
+    if (value == null) return false;
+    var text = '';
+    try {
+      text = JSON.stringify(value).toLowerCase();
+    } catch (e) {
+      text = String(value).toLowerCase();
+    }
+
+    return TEST_WORDS.some(function(word){
+      return text.indexOf(String(word).toLowerCase()) !== -1;
+    }) || /"isTest"\s*:\s*true/i.test(text)
+       || /"testData"\s*:\s*true/i.test(text)
+       || /"demoData"\s*:\s*true/i.test(text)
+       || /"mockData"\s*:\s*true/i.test(text);
+  }
+
+  function cleanArray(arr) {
+    var changed = false;
+    var next = arr.filter(function(item){
+      var remove = hasTestText(item);
+      if (remove) changed = true;
+      return !remove;
+    });
+    return { value: next, changed: changed };
+  }
+
+  function cleanObject(obj) {
+    var changed = false;
+
+    Object.keys(obj || {}).forEach(function(key){
+      var val = obj[key];
+
+      if (Array.isArray(val)) {
+        var result = cleanArray(val);
+        if (result.changed) {
+          obj[key] = result.value;
+          changed = true;
+        }
+      } else if (val && typeof val === 'object') {
+        if (hasTestText(val)) {
+          delete obj[key];
+          changed = true;
+        } else {
+          var sub = cleanObject(val);
+          if (sub.changed) {
+            obj[key] = sub.value;
+            changed = true;
+          }
+        }
+      } else if (hasTestText(val)) {
+        delete obj[key];
+        changed = true;
+      }
+    });
+
+    return { value: obj, changed: changed };
+  }
+
+  function cleanLocalStorageTestSchedules() {
+    try {
+      Object.keys(localStorage).forEach(function(key){
+        var raw = localStorage.getItem(key);
+        if (!raw) return;
+
+        var parsed;
+        try {
+          parsed = JSON.parse(raw);
+        } catch (e) {
+          if (hasTestText(raw)) {
+            localStorage.removeItem(key);
+          }
+          return;
+        }
+
+        if (Array.isArray(parsed)) {
+          var arrResult = cleanArray(parsed);
+          if (arrResult.changed) {
+            localStorage.setItem(key, JSON.stringify(arrResult.value));
+          }
+        } else if (parsed && typeof parsed === 'object') {
+          if (hasTestText(parsed) && /test|demo|mock|sample|測試/i.test(key)) {
+            localStorage.removeItem(key);
+          } else {
+            var objResult = cleanObject(parsed);
+            if (objResult.changed) {
+              localStorage.setItem(key, JSON.stringify(objResult.value));
+            }
+          }
+        }
+      });
+    } catch (e) {
+      console.warn('V219 clean test schedules failed', e);
+    }
+  }
+
+  function relaxRequiredFields() {
+    try {
+      document.querySelectorAll('input, select, textarea').forEach(function(el){
+        el.removeAttribute('required');
+        el.removeAttribute('aria-required');
+
+        if (el.required) {
+          el.required = false;
+        }
+
+        if (typeof el.setCustomValidity === 'function') {
+          el.setCustomValidity('');
+        }
+      });
+
+      document.querySelectorAll('form').forEach(function(form){
+        form.setAttribute('novalidate', 'novalidate');
+      });
+    } catch (e) {
+      console.warn('V219 relax required fields failed', e);
+    }
+  }
+
+  function runV219Fix() {
+    cleanLocalStorageTestSchedules();
+    relaxRequiredFields();
+  }
+
+  document.addEventListener('DOMContentLoaded', runV219Fix);
+  window.addEventListener('load', runV219Fix);
+  document.addEventListener('click', function(){
+    setTimeout(runV219Fix, 50);
+    setTimeout(runV219Fix, 300);
+  }, true);
+
+  var observer = new MutationObserver(function(){
+    relaxRequiredFields();
+  });
+
+  document.addEventListener('DOMContentLoaded', function(){
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['required', 'aria-required']
+    });
+  });
+
+  window.FORE_V219_CLEAN_TEST_AND_RELAX_REQUIRED = runV219Fix;
 })();
 </script>
 
