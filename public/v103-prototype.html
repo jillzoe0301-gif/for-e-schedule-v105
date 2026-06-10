@@ -12276,4 +12276,157 @@ setInterval(v206SetupNavOrder,1500);
   setTimeout(disableNavDrag,1000);
 })();
 </script>
+
+
+<style id="v184-left-nav-true-fix-style">
+/* V184 TRUE FIX：左側/底部導覽只允許點擊，不允許拖曳；人員列與外務列拖曳不受影響 */
+.side .navbtn[data-page],
+.bottom-nav .navbtn[data-page]{
+  cursor:pointer!important;
+  touch-action:manipulation!important;
+  user-select:none!important;
+  -webkit-user-drag:none!important;
+}
+.side .navbtn[data-page].v206-dragging,
+.side .navbtn[data-page].v208-nav-dragging,
+.bottom-nav .navbtn[data-page].v206-dragging,
+.bottom-nav .navbtn[data-page].v208-nav-dragging{
+  opacity:1!important;
+  outline:none!important;
+}
+</style>
+<script id="v184-left-nav-true-fix-script">
+(function(){
+  'use strict';
+  if(window.__v184LeftNavTrueFixApplied)return;
+  window.__v184LeftNavTrueFixApplied=true;
+
+  function qs(sel,root){return (root||document).querySelector(sel)}
+  function qsa(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel))}
+  function toastSafe(msg){try{ if(typeof toast==='function')toast(msg); else console.warn(msg); }catch(_){}}
+  function setCurrentPage(page){
+    // 真正問題：currentPage 是全域 lexical 變數，不是 window.currentPage；只設 window.currentPage 會導致 renderAll 又畫回舊頁。
+    try{ currentPage=page; }catch(_){ }
+    try{ window.currentPage=page; }catch(_){ }
+  }
+  function removeNavDragState(){
+    try{ localStorage.removeItem('fore_v206_side_nav_order'); }catch(_){ }
+    try{ if(typeof KEY!=='undefined')localStorage.removeItem(KEY+'_side_nav_order_v208'); }catch(_){ }
+    qsa('.side .navbtn[data-page], .bottom-nav .navbtn[data-page]').forEach(function(btn){
+      btn.draggable=false;
+      btn.removeAttribute('draggable');
+      btn.classList.remove('v206-dragging','v208-nav-dragging');
+      btn.style.cursor='pointer';
+      btn.style.touchAction='manipulation';
+      btn.style.webkitUserDrag='none';
+      if(btn.title)btn.title=btn.title.replace(/｜?可拖曳調整位置/g,'').trim();
+    });
+  }
+  function activate(page){
+    qsa('.navbtn[data-page]').forEach(function(b){b.classList.toggle('active',b.dataset.page===page)});
+  }
+  function pageEl(page){return document.getElementById(page+'Page')}
+  function showNormalPage(page){
+    var target=pageEl(page);
+    if(!target){return false;}
+    if(typeof canSeePage==='function' && !canSeePage(page)){toastSafe('此權限無法開啟此頁面'); return true;}
+    setCurrentPage(page);
+    qsa('.page').forEach(function(p){p.classList.add('hide')});
+    target.classList.remove('hide');
+    target.style.display='';
+    activate(page);
+    try{
+      if(page==='calendar' && window.innerWidth<=760 && qs('#weekPicker')) qs('#weekPicker').value=todayISO();
+      if(page==='fieldCalendar' && window.innerWidth<=760 && qs('#fieldWeekPicker')) qs('#fieldWeekPicker').value=todayISO();
+      if(page==='roomBooking' && window.innerWidth<=760 && qs('#roomBookingWeekPicker')) qs('#roomBookingWeekPicker').value=todayISO();
+    }catch(_){ }
+    try{ if(typeof renderAll==='function')renderAll(); }catch(err){console.error(err); toastSafe('頁面切換錯誤：'+(err&&err.message?err.message:err));}
+    try{ if(page==='calendar' && typeof scrollCalendarToToday==='function')setTimeout(scrollCalendarToToday,100); }catch(_){ }
+    try{ if(page==='fieldCalendar' && typeof scrollFieldCalendarToToday==='function')setTimeout(scrollFieldCalendarToToday,100); }catch(_){ }
+    try{ if(page==='roomBooking' && typeof v105ScrollRoomBookingToToday==='function')setTimeout(v105ScrollRoomBookingToToday,120); }catch(_){ }
+    return true;
+  }
+  function showSpecialOrNormal(page){
+    // 特殊頁若沒有全域函式，也改用一般 pageId 顯示，避免點了完全沒反應。
+    if(page==='personalGeneralTodo'){
+      if(typeof window.v204ShowTaskNotePage==='function'){window.v204ShowTaskNotePage(); activate(page); setCurrentPage(page); return true;}
+      return showNormalPage(page);
+    }
+    if(page==='taskNoteTracker'){
+      if(typeof window.showPageV203==='function'){window.showPageV203(); activate(page); setCurrentPage(page); return true;}
+      return showNormalPage(page);
+    }
+    if(page==='personalTodo'){
+      if(typeof window.showPersonalTodoPage==='function'){window.showPersonalTodoPage(); activate(page); setCurrentPage(page); return true;}
+      return showNormalPage(page);
+    }
+    if(page==='recordSubmit'){
+      return showNormalPage(page);
+    }
+    return showNormalPage(page);
+  }
+
+  // 停用舊版 v206 導覽拖曳入口；保留人員/外務列拖曳。
+  try{ if(typeof v206EnableNavDrag==='function') v206EnableNavDrag=function(){}; }catch(_){ }
+  try{ if(typeof v206SetupNavOrder==='function') v206SetupNavOrder=function(){removeNavDragState();}; }catch(_){ }
+
+  // 關鍵：pointerdown / pointermove 若放到 .side 容器，舊 v208 會啟動拖曳狀態；在 document capture 階段攔截導覽按鈕。
+  ['pointerdown','pointermove','pointerup','touchstart','touchmove','touchend','dragstart','dragover','drop'].forEach(function(type){
+    document.addEventListener(type,function(e){
+      var btn=e.target&&e.target.closest&&e.target.closest('.side .navbtn[data-page], .bottom-nav .navbtn[data-page]');
+      if(!btn)return;
+      if(type!=='pointerup' && type!=='touchend') e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      removeNavDragState();
+    },true);
+  });
+
+  document.addEventListener('click',function(e){
+    var btn=e.target&&e.target.closest&&e.target.closest('.side .navbtn[data-page], .bottom-nav .navbtn[data-page]');
+    if(!btn)return;
+    var page=btn.dataset.page;
+    if(!page)return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    removeNavDragState();
+    showSpecialOrNormal(page);
+  },true);
+
+  // renderAll 之後舊程式會重新加 draggable，這裡最後再拔掉。
+  try{
+    var oldRenderAll=renderAll;
+    if(typeof oldRenderAll==='function' && !oldRenderAll.__v184TrueLeftNavFixed){
+      renderAll=function(){
+        var r=oldRenderAll.apply(this,arguments);
+        setTimeout(removeNavDragState,0);
+        setTimeout(removeNavDragState,80);
+        return r;
+      };
+      renderAll.__v184TrueLeftNavFixed=true;
+      window.renderAll=renderAll;
+    }
+  }catch(_){ }
+
+  try{
+    var oldShowApp=showApp;
+    if(typeof oldShowApp==='function' && !oldShowApp.__v184TrueLeftNavFixed){
+      showApp=function(){
+        var r=oldShowApp.apply(this,arguments);
+        setTimeout(removeNavDragState,80);
+        setTimeout(removeNavDragState,500);
+        return r;
+      };
+      showApp.__v184TrueLeftNavFixed=true;
+      window.showApp=showApp;
+    }
+  }catch(_){ }
+
+  removeNavDragState();
+  setTimeout(removeNavDragState,300);
+  setTimeout(removeNavDragState,1200);
+})();
+</script>
+
 </body></html>
