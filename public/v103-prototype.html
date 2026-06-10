@@ -11284,4 +11284,286 @@ setInterval(v206SetupNavOrder,1500);
 })();
 </script>
 
+
+
+<style>
+/* V221：最終覆蓋修正（個人明細、外務地點、顏色、手機會議室） */
+.event.v221-kind-field,.mobile-event-card.v221-kind-field,.field-event.v221-kind-field{background:#fff7ed!important;border-color:#fed7aa!important;border-left-color:#f97316!important;color:#1f2937!important;opacity:1!important}
+.event.v221-kind-note,.mobile-event-card.v221-kind-note{background:#fff!important;border-color:#d8dde8!important;border-left-color:#cbd5e1!important;color:#1f2937!important;opacity:1!important}
+.event.v221-kind-schedule,.mobile-event-card.v221-kind-schedule{background:#fce7f3!important;border-color:#f9a8d4!important;border-left-color:#ec4899!important;color:#1f2937!important;opacity:1!important}
+.event.v221-kind-todo,.mobile-event-card.v221-kind-todo{background:#fef9c3!important;border-color:#fde68a!important;border-left-color:#f59e0b!important;color:#1f2937!important;opacity:1!important}
+.event.v221-kind-status,.mobile-event-card.v221-kind-status{background:#f3e8ff!important;border-color:#d8b4fe!important;border-left-color:#9333ea!important;color:#1f2937!important;opacity:1!important}
+.event.v221-kind-incident,.mobile-event-card.v221-kind-incident,.mobile-alert-card{background:#fef08a!important;border-color:#facc15!important;border-left-color:#eab308!important;color:#1f2937!important;opacity:1!important}
+.event.v221-kind-done,.mobile-event-card.v221-kind-done,.event.done,.mobile-event-card.done,.field-event.field-status-complete,.field-event.field-status-sent{background:#e5e7eb!important;border-color:#cbd5e1!important;border-left-color:#64748b!important;color:#374151!important;opacity:1!important}
+#personalDetailsPage .v221-detail-main{line-height:1.55;min-width:520px;white-space:normal!important}
+#personalDetailsPage .v221-detail-line1{font-weight:900;color:#0f172a;margin-bottom:3px}
+#personalDetailsPage .v221-detail-name{font-weight:900;margin-bottom:3px}
+#personalDetailsPage .v221-note-3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap!important;line-height:1.45;color:#374151;margin:2px 0 6px}
+#personalDetailsPage .v221-detail-meta{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:12px;color:#475569;font-size:13px;white-space:normal!important}
+#personalDetailsPage .v221-action-cell{text-align:right!important;white-space:nowrap!important;min-width:92px!important;vertical-align:middle!important}
+#personalDetailsPage .v221-action-cell button{min-width:72px!important}
+#personalDetailsPage .detail-table-wrap>.table{min-width:760px!important;width:100%!important}
+#personalDetailsPage .detail-table-wrap>.table th,#personalDetailsPage .detail-table-wrap>.table td{white-space:normal!important}
+#fieldModal .field.required label:first-child::after{content:''!important;display:none!important}
+#fieldModal .req-missing{border-color:var(--line)!important;box-shadow:none!important;background:#fff!important}
+#fieldModal .required-hint,.required-hint.v203{display:none!important}
+#fieldLocationNewBox{margin-top:8px!important;border:1px dashed #cbd5e1!important;border-radius:12px!important;padding:10px!important;background:#f8fafc!important}
+#fieldLocationNewBox.hide{display:none!important}
+#fieldLocationNewBox .row{margin-top:6px!important}
+#eventModal #v221DoneBtn{background:#16a34a!important;border-color:#16a34a!important;color:#fff!important}
+@media(max-width:760px){
+  .room-room-head{width:86px!important;min-width:86px!important;max-width:86px!important;padding:5px!important;font-size:11px!important}
+  .room-room-cell{width:86px!important;min-width:86px!important;max-width:86px!important;padding:5px!important;font-size:11px!important;line-height:1.2!important}
+  .room-day-cell{width:132px!important;min-width:132px!important;padding:5px!important}
+  #roomBookingArea .person-head{width:86px!important;min-width:86px!important;max-width:86px!important;padding:5px!important;font-size:11px!important}
+  #roomBookingArea .person-cell{width:86px!important;min-width:86px!important;max-width:86px!important;padding:5px!important;font-size:11px!important}
+}
+</style>
+<script>
+/* V221：用最後一層覆蓋修正，避免舊版 renderAll / setInterval 把設定蓋回去 */
+(function(){
+  const FIELD_LOCATIONS_V221=[
+    '內湖_印辦｜台北市內湖區瑞光路550號2樓',
+    '內湖_菲辦｜台北市內湖區洲子街55-57號2樓',
+    '台北_越辦(領件只能下午)｜臺北市中山區松江路101號2樓',
+    '台北_越南換護照｜臺北市中山區松江路65號2，3樓',
+    '台北_泰辦｜台北市大安區信義路三段151號 10 樓',
+    '台北_勞動部｜臺北市中正區中華路1段39號10樓',
+    '桃園移民署｜桃園市桃園區縣府路106號1樓',
+    '中壢就業中心｜桃園市中壢區新興路182號',
+    '桃園就業中心｜桃園市桃園區縣府路59號',
+    '中和就業中心｜新北市中和區景安路118號',
+    '板橋就業中心｜新北市板橋區漢生東路163號',
+    '三重就業中心(不同仲介要不同天)｜新北市三重區重新路四段12號',
+    '新竹就業中心｜新竹市光華東街56號',
+    '竹北就業中心｜新竹縣竹北市光明九路7-3號',
+    '宜蘭羅東就業中心｜宜蘭縣羅東鎮東榮路二段91號',
+    '苗栗就業中心｜苗栗市中山路558號',
+    '新北移民署｜新北市中和區民安街135號',
+    '竹北移民署｜新竹縣竹北市三民路133號1樓',
+    '基隆移民署｜基隆市中正區義一路18號11樓A棟',
+    '新竹移民署｜新竹市北區中華路三段12號1樓'
+  ];
+  function q(s,r){return (r||document).querySelector(s)}
+  function qa(s,r){return Array.from((r||document).querySelectorAll(s))}
+  function hasState(){try{return typeof state!=='undefined'&&state}catch(_){return false}}
+  function escV(v){try{return esc(v)}catch(_){return String(v??'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]})}}
+  function attrV(v){return escV(v).replace(/"/g,'&quot;')}
+  function dispType(t){try{return displayEventType(t||'')}catch(_){return t||''}}
+  function saveV(){try{if(typeof save==='function')save()}catch(_){}}
+  function renderV(){try{if(typeof renderAll==='function')renderAll()}catch(_){}}
+  function parseLoc(line){const parts=String(line||'').split('｜');return {name:(parts[0]||'').trim(),address:parts.slice(1).join('｜').trim()}}
+  function locs(){return FIELD_LOCATIONS_V221.map(parseLoc)}
+  function ensureFieldOptions(){
+    if(!hasState())return;
+    state.options=state.options||{};
+    const old=Array.isArray(state.options.fieldLocations)?state.options.fieldLocations:[];
+    const custom=old.filter(x=>x&&!FIELD_LOCATIONS_V221.includes(x)&&!/^新增$/.test(x));
+    state.options.fieldLocations=[...FIELD_LOCATIONS_V221,...custom];
+    if(q('#optFieldLocations'))q('#optFieldLocations').value=state.options.fieldLocations.join('\n');
+  }
+  window.v221FieldLocations=FIELD_LOCATIONS_V221;
+
+  function ensureNewBox(){
+    const sel=q('#fieldLocation'); if(!sel)return null;
+    let box=q('#fieldLocationNewBox');
+    if(!box){
+      box=document.createElement('div'); box.id='fieldLocationNewBox'; box.className='hide';
+      box.innerHTML='<div class="muted"><b>新增外務地點與地址</b></div><div class="row"><div><label>外務地點</label><input id="fieldLocationNew" placeholder="請輸入外務地點"></div><div><label>地址</label><input id="fieldAddressNew" placeholder="請輸入地址"></div></div>';
+      sel.closest('.field')?.appendChild(box);
+    }
+    return box;
+  }
+  function bindFieldLocationSelect(){
+    ensureFieldOptions();
+    const sel=q('#fieldLocation'); if(!sel)return;
+    if(sel.tagName!=='SELECT'){
+      const old=sel.value||''; const n=document.createElement('select'); n.id='fieldLocation'; n.className=sel.className||''; n.dataset.pendingValue=old; sel.replaceWith(n);
+    }
+    const current=(q('#fieldLocation').dataset.pendingValue!==undefined?q('#fieldLocation').dataset.pendingValue:q('#fieldLocation').value)||'';
+    const list=locs();
+    const found=list.find(x=>x.name===current);
+    q('#fieldLocation').innerHTML='<option value="">（空白）</option><option value="__new__">新增</option>'+list.map(x=>'<option value="'+attrV(x.name)+'">'+escV(x.name)+'｜'+escV(x.address)+'</option>').join('');
+    q('#fieldLocation').value=found?found.name:(current&&!found?'__new__':'');
+    const box=ensureNewBox();
+    if(q('#fieldLocation').value==='__new__'){
+      box&&box.classList.remove('hide');
+      if(q('#fieldLocationNew'))q('#fieldLocationNew').value=current&&!found?current:'';
+    }else{
+      box&&box.classList.add('hide');
+      if(found&&q('#fieldAddress'))q('#fieldAddress').value=found.address||'';
+    }
+    q('#fieldLocation').onchange=function(){
+      const val=this.value; const item=list.find(x=>x.name===val); const box=ensureNewBox();
+      if(val==='__new__'){
+        box&&box.classList.remove('hide');
+        if(q('#fieldLocationNew'))q('#fieldLocationNew').focus();
+        if(q('#fieldAddress'))q('#fieldAddress').value='';
+      }else{
+        box&&box.classList.add('hide');
+        if(q('#fieldAddress'))q('#fieldAddress').value=item?item.address:'';
+      }
+    };
+  }
+
+  function removeFieldRequired(){
+    qa('#fieldModal .field.required').forEach(x=>x.classList.remove('required'));
+    qa('#fieldModal .req-missing').forEach(x=>x.classList.remove('req-missing'));
+    qa('#fieldModal .required-hint').forEach(x=>x.remove());
+  }
+  try{window.v203ValidateFieldRequired=function(){removeFieldRequired();return true};}catch(_){ }
+  try{v203ValidateFieldRequired=function(){removeFieldRequired();return true};}catch(_){ }
+  try{v203MarkFieldRequired=function(){return true};}catch(_){ }
+  try{v203ShowFieldMissing=function(){return true};}catch(_){ }
+
+  if(typeof renderFieldOptions==='function'&&!renderFieldOptions.v221){
+    const base=renderFieldOptions;
+    renderFieldOptions=function(){const r=base.apply(this,arguments);setTimeout(bindFieldLocationSelect,0);removeFieldRequired();return r};
+    renderFieldOptions.v221=true;
+  }
+  if(typeof openFieldModal==='function'&&!openFieldModal.v221){
+    const base=openFieldModal;
+    openFieldModal=function(opts){const r=base.apply(this,arguments);setTimeout(function(){bindFieldLocationSelect();removeFieldRequired()},30);return r};
+    openFieldModal.v221=true;
+  }
+  if(typeof collectFieldEvent==='function'&&!collectFieldEvent.v221){
+    const base=collectFieldEvent;
+    collectFieldEvent=function(){
+      removeFieldRequired();
+      const data=base.apply(this,arguments)||{};
+      const sel=q('#fieldLocation');
+      if(sel&&sel.value==='__new__'){
+        data.locationName=(q('#fieldLocationNew')&&q('#fieldLocationNew').value||'').trim();
+        data.address=(q('#fieldAddressNew')&&q('#fieldAddressNew').value||q('#fieldAddress')&&q('#fieldAddress').value||'').trim();
+        if(data.locationName){
+          const line=data.locationName+(data.address?'｜'+data.address:'');
+          if(hasState()){
+            state.options=state.options||{}; state.options.fieldLocations=state.options.fieldLocations||[];
+            if(!state.options.fieldLocations.some(x=>parseLoc(x).name===data.locationName))state.options.fieldLocations.push(line);
+          }
+        }
+      }else if(sel){
+        const item=locs().find(x=>x.name===sel.value);
+        data.locationName=sel.value||'';
+        data.address=item?item.address:(q('#fieldAddress')&&q('#fieldAddress').value||'');
+      }
+      return data;
+    };
+    collectFieldEvent.v221=true;
+  }
+  if(typeof saveFieldEvent==='function'&&!saveFieldEvent.v221){
+    const base=saveFieldEvent;
+    saveFieldEvent=function(){removeFieldRequired();try{v203ValidateFieldRequired=function(){removeFieldRequired();return true}}catch(_){};return base.apply(this,arguments)};
+    saveFieldEvent.v221=true;
+  }
+
+  function eventById(id){if(!hasState())return null;return (state.events||[]).find(x=>x&&x.id===id)||(state.externalEvents||[]).find(x=>x&&x.id===id)||null}
+  function getEventKind(e,el){
+    if(!e&&el){const txt=el.textContent||''; if(el.classList.contains('field-event'))return 'field'; if(/已完成|已送件/.test(txt))return 'done'; if(/外務/.test(txt))return 'field'; if(/一般記事/.test(txt))return 'note'; if(/待辦|提醒事項/.test(txt))return 'todo'; if(/會議|請假|教育訓練|活動|上課|外訓|返鄉/.test(txt))return 'status'; if(/異況|逃跑|轉出|住變|返台|驗證/.test(txt))return 'incident'; return 'schedule'}
+    const status=String((e&&e.status)||(e&&e.fieldStatus)||''); if(status==='已完成'||status==='已送件')return 'done';
+    const type=dispType((e&&e.type)||(e&&e.purpose)||''); const joined=[type,e&&e.kind,e&&e.name,e&&e.note,e&&e.purpose,e&&e.locationName].join(' ');
+    if(e&&(e.externalSource||e.externalEventId||e.purpose||String(e.id||'').startsWith('field')||type==='外務'))return 'field';
+    if(e&&e.kind==='generalNote'||type==='一般記事')return 'note';
+    if(e&&e.kind==='todo'||/待辦事項|提醒事項|待辦|確認/.test(joined))return 'todo';
+    if(e&&e.kind==='translatorStatus'||/會議|請假|教育訓練|活動|上課|外訓|返鄉/.test(joined))return 'status';
+    if(/異況|逃跑|轉出|住變|返台|驗證/.test(joined))return 'incident';
+    return 'schedule';
+  }
+  function applyColors(){
+    qa('.event[data-id],.mobile-event-card[data-id],.field-event[data-id]').forEach(function(el){
+      ['field','note','schedule','todo','status','incident','done'].forEach(k=>{el.classList.remove('v221-kind-'+k);el.classList.remove('event-kind-'+k)});
+      const e=eventById(el.dataset.id); el.classList.add('v221-kind-'+getEventKind(e,el));
+    });
+  }
+  window.v221ApplyColors=applyColors;
+
+  function markDone(id){
+    const e=(state.events||[]).find(x=>x&&x.id===id); if(!e)return;
+    e.status='已完成'; e.updatedBy=(currentUser&&currentUser.id)||e.updatedBy||'system'; e.updatedAt=new Date().toISOString();
+    if(e.externalEventId){const f=(state.externalEvents||[]).find(x=>x&&x.id===e.externalEventId); if(f){f.status='已完成';f.updatedBy=e.updatedBy;f.updatedAt=e.updatedAt}}
+    saveV(); if(q('#eventModal'))q('#eventModal').classList.add('hide'); renderV(); try{toast('已完成')}catch(_){ }
+  }
+  function patchDoneButton(){
+    const id=q('#eventId')&&q('#eventId').value; const actions=q('#eventModal .modal-actions'); if(!actions||!id)return;
+    let btn=q('#v221DoneBtn'); if(btn)btn.remove(); const e=(state.events||[]).find(x=>x&&x.id===id); if(!e||e.status==='已完成'||e.status==='取消')return;
+    btn=document.createElement('button'); btn.id='v221DoneBtn'; btn.type='button'; btn.textContent='已完成'; btn.onclick=function(){markDone(id)};
+    actions.insertBefore(btn,actions.firstChild);
+  }
+  function openViewEvent(id){
+    if(!id)return;
+    try{
+      const oldCanEdit=(typeof canEdit==='function')?canEdit:null;
+      if(oldCanEdit)canEdit=function(){return true};
+      openEventModal({eventId:id});
+      if(oldCanEdit)canEdit=oldCanEdit;
+      if(q('#eventModalTitle'))q('#eventModalTitle').textContent='查看行程';
+      setTimeout(function(){patchDoneButton();},60);
+    }catch(err){try{toast('無法開啟行程，請重新整理後再試')}catch(_){}}
+  }
+  window.v221OpenViewEvent=openViewEvent;
+  if(typeof openEventModal==='function'&&!openEventModal.v221Done){
+    const base=openEventModal;
+    openEventModal=function(){const r=base.apply(this,arguments);setTimeout(patchDoneButton,60);return r};
+    openEventModal.v221Done=true;
+  }
+
+  function personName(id){try{return (getPerson(id)||{}).name||''}catch(_){return ''}}
+  function executorText(e,pid){try{return executorNames(e)||''}catch(_){ }
+    const ids=(e.assigneeIds&&e.assigneeIds.length?e.assigneeIds:e.participants)||[];
+    return ids.map(personName).filter(Boolean).join('、')||personName(pid)||'';
+  }
+  function timeText(t){try{return ampm(t)}catch(_){return t||''}}
+  function renderPersonalDetailsV221(){
+    const tbody=q('#personalDetailRows'); if(!tbody||typeof personalDetailRowsFiltered!=='function')return false;
+    try{renderPersonalDetailOptions()}catch(_){ }
+    try{renderPersonalDesktopAlerts()}catch(_){ }
+    try{renderAssignedTracking()}catch(_){ }
+    const rows=personalDetailRowsFiltered()||[];
+    const table=tbody.closest('table');
+    if(table&&table.tHead&&table.tHead.rows[0])table.tHead.rows[0].innerHTML='<th style="width:104px">日期</th><th>行程明細</th><th class="v221-action-cell">操作</th>';
+    const stats=q('#personalDetailStats');
+    if(stats){const undone=rows.filter(r=>(r.event||{}).status!=='已完成').length;stats.innerHTML='<div class="stat"><div class="muted">個人行程筆數</div><b>'+rows.length+'</b></div><div class="stat"><div class="muted">未完成</div><b>'+undone+'</b></div><div class="stat"><div class="muted">已完成</div><b>'+(rows.length-undone)+'</b></div>'}
+    tbody.innerHTML=rows.map(function(r){
+      const e=r.event||{};
+      const note=e.note||'';
+      const line1=[timeText(e.startTime),dispType(e.type),e.locationName||''].filter(Boolean).join(' / ');
+      const meta='<div class="v221-detail-meta"><span>公務車：'+escV(e.vehicleNo||'')+'</span><span>狀態：'+escV(e.status||'')+'</span><span>指派人員：'+escV(executorText(e,r.personId))+'</span></div>';
+      const detail='<div class="v221-detail-main"><div class="v221-detail-line1">'+escV(line1)+'</div><div class="v221-detail-name">辦理內容：'+escV(e.name||'')+'</div><div>內容說明：</div><div class="v221-note-3">'+escV(note)+'</div>'+meta+'</div>';
+      return '<tr><td>'+escV(r.date||e.startDate||'')+'</td><td>'+detail+'</td><td class="v221-action-cell"><button type="button" class="small primary" data-v221-view="'+attrV(e.id||'')+'">查看</button></td></tr>';
+    }).join('')||'<tr><td colspan="3" class="muted">沒有個人行程表</td></tr>';
+    qa('[data-v221-view]',tbody).forEach(btn=>btn.onclick=function(ev){ev.preventDefault();ev.stopPropagation();openViewEvent(btn.dataset.v221View)});
+    return true;
+  }
+  window.v221RenderPersonalDetails=renderPersonalDetailsV221;
+  if(typeof renderPersonalDetails==='function')renderPersonalDetails=function(){return renderPersonalDetailsV221()};
+
+  function removeCopyAndRename(){
+    qa('button').forEach(function(b){
+      const txt=(b.textContent||'').trim();
+      if(txt==='複製內容')b.remove();
+      if(txt==='詳細/修改')b.textContent='查看';
+    });
+  }
+  document.addEventListener('click',function(e){
+    const btn=e.target&&e.target.closest&&e.target.closest('[data-v221-view]');
+    if(btn){e.preventDefault();e.stopPropagation();openViewEvent(btn.dataset.v221View)}
+  },true);
+
+  function afterV221(){
+    ensureFieldOptions(); removeFieldRequired(); bindFieldLocationSelect(); applyColors(); removeCopyAndRename(); patchDoneButton();
+    if(q('#personalDetailsPage')&&!q('#personalDetailsPage').classList.contains('hide'))renderPersonalDetailsV221();
+    if(q('#settingsPage')&&!q('#settingsPage').classList.contains('hide')&&q('#optFieldLocations'))q('#optFieldLocations').value=(state.options&&state.options.fieldLocations||FIELD_LOCATIONS_V221).join('\n');
+  }
+  if(typeof renderAll==='function'&&!renderAll.v221){
+    const base=renderAll;
+    renderAll=function(){const r=base.apply(this,arguments);[60,180,450,900].forEach(ms=>setTimeout(afterV221,ms));return r};
+    renderAll.v221=true;
+  }
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(afterV221,500)});
+  document.addEventListener('change',function(e){if(e.target&&e.target.id==='fieldLocation')setTimeout(bindFieldLocationSelect,0)},true);
+  document.addEventListener('click',function(e){if(e.target&&e.target.closest&&e.target.closest('[data-page],#refreshPersonalDetails,#applyPersonalDetailSort,#clearPersonalDetails,#saveFieldBtn,#fieldAddBtn'))setTimeout(afterV221,150)},true);
+  setTimeout(afterV221,800); setInterval(afterV221,1600);
+})();
+</script>
+
 </body></html>
