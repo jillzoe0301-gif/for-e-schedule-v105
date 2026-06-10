@@ -5802,11 +5802,11 @@ function v205FieldRequiredVisual(){
 const v205BaseRenderAll=renderAll;
 renderAll=function(){
   const r=v205BaseRenderAll.apply(this,arguments);
-  setTimeout(()=>{v205SeedAdminTestData();v205EnsurePersonalTodoPage();v205EnsurePersonalTodoNav();v205FieldRequiredVisual();v205LoginTomorrowNotice();},120);
+  setTimeout(()=>{v205SeedAdminTestData();v205EnsurePersonalTodoPage();v205EnsurePersonalTodoNav();v205FieldRequiredVisual();/* V214：暫停隔日提醒，避免登入載入錯誤 */},120);
   return r;
 };
 document.addEventListener('click',function(e){if(e.target&&e.target.closest&&e.target.closest('#fieldAddBtn,.field-event,[data-field-date],#saveFieldBtn'))setTimeout(v205FieldRequiredVisual,120)},true);
-setTimeout(()=>{v205SeedAdminTestData();v205EnsurePersonalTodoPage();v205EnsurePersonalTodoNav();v205LoginTomorrowNotice();},500);
+setTimeout(()=>{v205SeedAdminTestData();v205EnsurePersonalTodoPage();v205EnsurePersonalTodoNav();/* V214：暫停隔日提醒，避免登入載入錯誤 */},500);
 setInterval(()=>{v205EnsurePersonalTodoNav();v205FieldRequiredVisual();},1200);
 
 
@@ -6738,13 +6738,13 @@ setInterval(v206SetupNavOrder,1500);
   const v212BaseRenderAll=renderAll;
   renderAll=function(){
     const r=v212BaseRenderAll.apply(this,arguments);
-    setTimeout(()=>{v212ForceDataMigration();v212PatchMobile();v212TomorrowAlert();},120);
+    setTimeout(()=>{v212ForceDataMigration();v212PatchMobile();/* V214：暫停隔日提醒，避免登入載入錯誤 */},120);
     return r;
   };
   document.addEventListener('click',e=>{
     if(e.target&&e.target.closest&&e.target.closest('.bottom-nav .navbtn,[data-page="mobile"],[data-page="calendar"],[data-page="fieldCalendar"],[data-page="roomBooking"],[data-page="personalGeneralTodo"]'))setTimeout(v212PatchMobile,180);
   },true);
-  setTimeout(()=>{v212ForceDataMigration();v212PatchMobile();v212TomorrowAlert();try{renderAll()}catch(_){ }},600);
+  setTimeout(()=>{v212ForceDataMigration();v212PatchMobile();/* V214：暫停隔日提醒，避免登入載入錯誤 */try{renderAll()}catch(_){ }},600);
   setInterval(v212PatchMobile,1200);
 })();
 
@@ -6822,6 +6822,105 @@ setInterval(v206SetupNavOrder,1500);
   };
   setTimeout(()=>{v213PatchTodoButtons();v213StableRoomRender();},700);
   setInterval(v213PatchTodoButtons,1500);
+})();
+
+
+/* V214：修正會議室登入後不顯示週曆、取消隔日提醒、避免 currentUser timing error
+   原因：舊外掛腳本在 currentUser 尚未完成初始化時執行，加上隔日提醒/補畫流程會被登入流程 catch 成右下角錯誤。
+   DRY：會議室週曆只保留 v214RenderRoomWeek。
+   KISS：不再用 setInterval 重畫，不跳動。
+   SOLID：登入安全、會議室週曆、提醒停用分開處理。 */
+(function(){
+  function q(sel,root){return (root||document).querySelector(sel)}
+  function today(){try{return todayISO()}catch(_){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}}
+  function add(v,n){try{return dateAdd(v,n)}catch(_){const d=new Date((v||today())+'T00:00:00');d.setDate(d.getDate()+n);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}}
+  function week7(base){
+    let d=new Date((base||today()).replaceAll('/','-')+'T00:00:00');
+    if(isNaN(d))d=new Date(today()+'T00:00:00');
+    const dow=d.getDay();
+    const offset=dow===0?-6:1-dow;
+    const m=add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,offset);
+    return [0,1,2,3,4,5,6].map(i=>add(m,i));
+  }
+  function safe(v){try{return esc(v)}catch(_){return String(v??'')}}
+  function safeA(v){try{return escAttr(v)}catch(_){return String(v??'').replace(/"/g,'&quot;')}}
+  function roomNames(){
+    try{const r=roomList().filter(Boolean);if(r.length)return r}catch(_){}
+    try{if(Array.isArray(defaultRooms)&&defaultRooms.length)return defaultRooms.filter(Boolean)}catch(_){}
+    return ['大會議室','小會議室'];
+  }
+  function bookingRows(date,room){
+    const rf=(q('#roomBookingRoomFilter')||{}).value||'';
+    const dep=(q('#roomBookingDeptFilter')||{}).value||'';
+    const kw=String((q('#roomBookingKeyword')||{}).value||'').trim().toLowerCase();
+    return (state.roomBookings||[]).filter(b=>{
+      if(!b||b.deleted||b.date!==date||b.room!==room)return false;
+      if(rf&&b.room!==rf)return false;
+      if(dep&&b.department!==dep)return false;
+      if(kw&&![b.room,b.department,b.title,b.date].join(' ').toLowerCase().includes(kw))return false;
+      return true;
+    }).sort((a,b)=>String(a.startTime||'').localeCompare(String(b.startTime||'')));
+  }
+  window.v214RenderRoomWeek=function(force){
+    const page=q('#roomBookingPage'), area=q('#roomBookingArea');
+    if(!area||!page||page.classList.contains('hide'))return;
+    try{ensureRoomBookingState();renderRoomBookingOptionLists();}catch(_){}
+    const picker=q('#roomBookingWeekPicker');
+    if(picker&&!picker.value)picker.value=today();
+    if(!force && area.querySelector('.v214-room-week') && area.querySelector('thead th:nth-child(8)'))return;
+    const days=week7((picker&&picker.value)||today());
+    const filterRoom=(q('#roomBookingRoomFilter')||{}).value||'';
+    const rooms=filterRoom?roomNames().filter(r=>r===filterRoom):roomNames();
+    let html='<div class="calendar-wrap v214-room-week"><table class="calendar-table room-week-table"><thead><tr><th class="person-head">會議室 × 日期</th>';
+    html+=days.map(d=>`<th class="${dayClass(d)}"><div>${weekdayFull(d)}</div><div class="date-num">${fmtDate(d)}</div>${holidayBadgeHTML(d)}</th>`).join('');
+    html+='</tr></thead><tbody>';
+    rooms.forEach(room=>{
+      html+=`<tr><td class="person-cell"><span class="person-name">${safe(room)}</span></td>`;
+      days.forEach(d=>{
+        const bs=bookingRows(d,room);
+        html+=`<td class="day-cell ${dayClass(d)}" data-room-date="${safeA(d)}" data-room-name="${safeA(room)}"><div class="date-num">${fmtDate(d)}</div>${holidayBadgeBodyHTML(d)}${
+          bs.map(b=>`<div class="event room-booking-event" data-room-booking-id="${safeA(b.id)}"><span class="time">${safe(b.startTime)}-${safe(b.endTime)}</span>｜${safe(b.title||'預約')}<div class="who">${safe(b.department||'')}</div></div>`).join('')
+        }</td>`;
+      });
+      html+='</tr>';
+    });
+    html+='</tbody></table></div>';
+    area.innerHTML=html;
+    area.querySelectorAll('[data-room-date]').forEach(td=>{
+      td.ondblclick=function(e){if(e.target.closest('.room-booking-event'))return;try{openRoomBookingModal('',{date:td.dataset.roomDate,room:td.dataset.roomName})}catch(_){openRoomBookingModal()}};
+    });
+    area.querySelectorAll('.room-booking-event').forEach(el=>el.onclick=function(e){e.stopPropagation();openRoomBookingModal(el.dataset.roomBookingId)});
+  };
+  const baseRoomRenderV214=renderRoomBookings;
+  renderRoomBookings=function(){
+    if(q('#roomBookingPage')&&!q('#roomBookingPage').classList.contains('hide')){window.v214RenderRoomWeek(true);return;}
+    return baseRoomRenderV214.apply(this,arguments);
+  };
+  function fixRoomSoon(force){
+    setTimeout(()=>window.v214RenderRoomWeek(!!force),60);
+    setTimeout(()=>window.v214RenderRoomWeek(false),260);
+  }
+  document.addEventListener('click',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('[data-page="roomBooking"],#roomPrevWeek,#roomNextWeek,#clearRoomBookingFilters,#roomBookingRoomFilter,#roomBookingDeptFilter'))fixRoomSoon(true);
+  },true);
+  document.addEventListener('input',function(e){if(e.target&&e.target.closest&&e.target.closest('#roomBookingPage'))fixRoomSoon(true)},true);
+
+  // 暫停隔日提醒，避免登入載入時機造成錯誤
+  try{window.v205LoginTomorrowNotice=function(){};window.showTomorrowReminder=function(){};window.v211TomorrowAlert=function(){};window.v212TomorrowAlert=function(){};}catch(_){}
+
+  const baseRenderAllV214=renderAll;
+  renderAll=function(){
+    let r;
+    try{r=baseRenderAllV214.apply(this,arguments)}
+    catch(err){
+      if(String(err&&err.message||'').includes('currentUser is not defined')||String(err&&err.message||'').includes('currentUser is not defiend')){
+        console.warn('V214 ignored currentUser timing error',err);
+      }else{throw err}
+    }
+    fixRoomSoon(false);
+    return r;
+  };
+  setTimeout(()=>fixRoomSoon(true),500);
 })();
 
 })();
@@ -7049,7 +7148,7 @@ setInterval(v206SetupNavOrder,1500);
         inc.customerName?'地點 / 客戶：'+inc.customerName:'',
         inc.description?'異況內容：'+inc.description:''
       ].filter(Boolean).join('\n'),
-      updatedBy:(currentUser&&currentUser.id)||'system',
+      updatedBy:((typeof currentUser!=='undefined'&&currentUser)?((typeof currentUser!=='undefined'&&currentUser)?currentUser.id:'system'):'system')||'system',
       updatedAt:now,
       sourceType:'incidentFollow',
       sourceIncidentId:inc.id,
@@ -7059,7 +7158,7 @@ setInterval(v206SetupNavOrder,1500);
     if(ev){
       Object.assign(ev,data);
     }else{
-      ev=Object.assign({id:uid('ev'),seriesId:'',seriesIndex:0,createdBy:(currentUser&&currentUser.id)||'system',createdAt:now},data);
+      ev=Object.assign({id:uid('ev'),seriesId:'',seriesIndex:0,createdBy:((typeof currentUser!=='undefined'&&currentUser)?((typeof currentUser!=='undefined'&&currentUser)?currentUser.id:'system'):'system')||'system',createdAt:now},data);
       state.events.push(ev);
     }
     return ev;
@@ -7299,7 +7398,7 @@ setInterval(v206SetupNavOrder,1500);
       participants:participants,
       assigneeIds:participants,
       note:note||'來源：異況追蹤',
-      updatedBy:(typeof currentUser!=='undefined'&&currentUser&&currentUser.id)||'system',
+      updatedBy:(typeof currentUser!=='undefined'&&currentUser&&((typeof currentUser!=='undefined'&&currentUser)?currentUser.id:'system'))||'system',
       updatedAt:now,
       sourceType:'incidentFollow',
       sourceIncidentId:inc.id,
@@ -7724,7 +7823,7 @@ setInterval(v206SetupNavOrder,1500);
       const helperText=helperIds.map(personNameV128).filter(Boolean).join('、');
       const content='【主設定】已設定下次追蹤：'+[inc.nextFollowDate, inc.nextFollowTime||'', helperText?('協助：'+helperText):''].filter(Boolean).join(' ');
       if(!log){
-        log={id:logId,incidentId:inc.id,createdAt:now,createdBy:(typeof currentUser!=='undefined'&&currentUser?currentUser.id:'system'),content:content,statusAfter:inc.status||'待追蹤',nextFollowDate:inc.nextFollowDate,nextFollowTime:inc.nextFollowTime||'',nextFollowHelperPersonIds:helperIds,systemType:'mainFollow',deleted:false};
+        log={id:logId,incidentId:inc.id,createdAt:now,createdBy:(typeof currentUser!=='undefined'&&currentUser?((typeof currentUser!=='undefined'&&currentUser)?currentUser.id:'system'):'system'),content:content,statusAfter:inc.status||'待追蹤',nextFollowDate:inc.nextFollowDate,nextFollowTime:inc.nextFollowTime||'',nextFollowHelperPersonIds:helperIds,systemType:'mainFollow',deleted:false};
         state.incidentLogs.push(log);
       }else{
         log.content=content;
@@ -7765,7 +7864,7 @@ setInterval(v206SetupNavOrder,1500);
       participants:participants,
       assigneeIds:participants,
       note:note||'來源：異況追蹤',
-      updatedBy:(typeof currentUser!=='undefined'&&currentUser?currentUser.id:'system'),
+      updatedBy:(typeof currentUser!=='undefined'&&currentUser?((typeof currentUser!=='undefined'&&currentUser)?currentUser.id:'system'):'system'),
       updatedAt:now,
       sourceType:'incidentFollow',
       sourceIncidentId:inc.id,
@@ -8317,7 +8416,7 @@ setInterval(v206SetupNavOrder,1500);
       participants:people,
       assigneeIds:people,
       note:note||'來源：異況下次追蹤',
-      updatedBy:(typeof currentUser!=='undefined'&&currentUser?currentUser.id:'system'),
+      updatedBy:(typeof currentUser!=='undefined'&&currentUser?((typeof currentUser!=='undefined'&&currentUser)?currentUser.id:'system'):'system'),
       updatedAt:now,
       sourceType:'incidentFollow',
       sourceIncidentId:inc.id,
@@ -8341,7 +8440,7 @@ setInterval(v206SetupNavOrder,1500);
     const content='【下次追蹤設定】'+[inc.nextFollowDate,inc.nextFollowTime||'',helperText?'協助：'+helperText:''].filter(Boolean).join('｜');
     const now=new Date().toISOString();
     if(!log){
-      log={id,incidentId:inc.id,createdAt:now,createdBy:(typeof currentUser!=='undefined'&&currentUser?currentUser.id:'system'),content,statusAfter:inc.status||'待追蹤',nextFollowDate:inc.nextFollowDate,nextFollowTime:inc.nextFollowTime||'',nextFollowHelperPersonIds:helpers,systemType:'mainFollow',deleted:false};
+      log={id,incidentId:inc.id,createdAt:now,createdBy:(typeof currentUser!=='undefined'&&currentUser?((typeof currentUser!=='undefined'&&currentUser)?currentUser.id:'system'):'system'),content,statusAfter:inc.status||'待追蹤',nextFollowDate:inc.nextFollowDate,nextFollowTime:inc.nextFollowTime||'',nextFollowHelperPersonIds:helpers,systemType:'mainFollow',deleted:false};
       state.incidentLogs.push(log);
     }else{
       Object.assign(log,{content,statusAfter:inc.status||log.statusAfter,nextFollowDate:inc.nextFollowDate,nextFollowTime:inc.nextFollowTime||'',nextFollowHelperPersonIds:helpers,deleted:false});
@@ -8613,7 +8712,7 @@ setInterval(v206SetupNavOrder,1500);
   function all(sel){return Array.from(document.querySelectorAll(sel))}
   function $(id){return document.getElementById(id)}
   function roleV156(){
-    const r=(currentUser&&currentUser.role)||'';
+    const r=((typeof currentUser!=='undefined'&&currentUser)?((typeof currentUser!=='undefined'&&currentUser)?currentUser.role:''):'')||'';
     if(r==='admin'||r==='options')return 'admin';
     if(r==='supervisor')return 'supervisor';
     if(r==='adminStaff'||r==='admin_staff')return 'adminStaff';
@@ -9557,7 +9656,7 @@ setInterval(v206SetupNavOrder,1500);
    KISS：不再用多層外掛猜 DOM，直接補強核心輸出與初始化。
    SOLID：權限、會議室、測試資料、預設篩選各自獨立處理。 */
 (function(){
-  function roleV194(){try{return normalizedRole()}catch(e){return (currentUser&&currentUser.role)||''}}
+  function roleV194(){try{return normalizedRole()}catch(e){return ((typeof currentUser!=='undefined'&&currentUser)?((typeof currentUser!=='undefined'&&currentUser)?currentUser.role:''):'')||''}}
   function currentPersonV194(){try{return getPerson(userPersonId())||{}}catch(e){return {}}}
   function isTranslatorPersonV194(p){
     const lang=String((p&&p.lang)||'');
@@ -9619,7 +9718,7 @@ setInterval(v206SetupNavOrder,1500);
     return ['大會議室','小會議室'];
   }
   function roomWeekDaysV194(d){try{return weekDays(d||todayISO()).slice(0,7)}catch(e){return []}}
-  function roomCanEditV194(b){try{return !!(b&&(roleV194()==='admin'||b.createdBy===currentUser.id))}catch(e){return false}}
+  function roomCanEditV194(b){try{return !!(b&&(roleV194()==='admin'||b.createdBy===((typeof currentUser!=='undefined'&&currentUser)?currentUser.id:'system')))}catch(e){return false}}
   function ensureRoomStateV194(){try{ensureRoomBookingState();renderRoomBookingOptionLists();}catch(e){console.warn('V194 room option init failed',e)}}
 
   window.v194RenderRoomBookings=function(){
@@ -9659,7 +9758,7 @@ setInterval(v206SetupNavOrder,1500);
   function applyCalendarDefaultDeptV194(){
     try{
       if(typeof currentUser==='undefined'||!currentUser||!document.getElementById('groupFilter'))return;
-      const key=(typeof v105CalendarPrefKey==='function')?v105CalendarPrefKey():(KEY+'_calendar_filters_'+currentUser.id);
+      const key=(typeof v105CalendarPrefKey==='function')?v105CalendarPrefKey():(KEY+'_calendar_filters_'+((typeof currentUser!=='undefined'&&currentUser)?currentUser.id:'system'));
       if(localStorage.getItem(key)!==null)return;
       const p=currentPersonV194();
       if(!p||!p.group)return;
@@ -9808,7 +9907,7 @@ setInterval(v206SetupNavOrder,1500);
     const rows=personalTodoRowsV200();
     tbody.innerHTML=rows.map(e=>`<tr><td><button class="small primary" data-v200-open="${safe(e.id)}">開啟</button> ${e.status==='已完成'?'<span class="badge">已完成</span>':`<button class="small" data-v200-done="${safe(e.id)}">完成</button>`}</td><td>${safe(e.status||'')}</td><td>${safe(e.startDate||'')}</td><td>${safe(e.startTime||'')}</td><td>${e.kind==='todo'?'待辦事項':'一般記事'}</td><td>${safe(e.type||'')}</td><td>${safe(e.name||'')}</td><td>${safe(e.note||'')}</td></tr>`).join('')||'<tr><td colspan="8" class="muted">目前沒有個人待辦</td></tr>';
     qa('[data-v200-open]',tbody).forEach(btn=>btn.onclick=()=>openEventModal({eventId:btn.dataset.v200Open}));
-    qa('[data-v200-done]',tbody).forEach(btn=>btn.onclick=()=>{const e=(state.events||[]).find(x=>x.id===btn.dataset.v200Done); if(!e)return; e.status='已完成'; e.updatedBy=currentUser.id; e.updatedAt=new Date().toISOString(); save(); renderPersonalTodoPageV200(); renderAll(); toast('已完成');});
+    qa('[data-v200-done]',tbody).forEach(btn=>btn.onclick=()=>{const e=(state.events||[]).find(x=>x.id===btn.dataset.v200Done); if(!e)return; e.status='已完成'; e.updatedBy=((typeof currentUser!=='undefined'&&currentUser)?currentUser.id:'system'); e.updatedAt=new Date().toISOString(); save(); renderPersonalTodoPageV200(); renderAll(); toast('已完成');});
   }
   const oldShowPage=typeof showPage==='function'?showPage:null;
   if(oldShowPage&&!oldShowPage.v200TodoWrapped){
@@ -9855,7 +9954,7 @@ setInterval(v206SetupNavOrder,1500);
     const pid=ownPersonId();
     try{return (getPerson(pid)||{}).name||''}catch(_){return ''}
   }
-  function isMine(e,pid){return !pid || (e.participants||[]).includes(pid) || e.createdBy===(currentUser&&currentUser.id)}
+  function isMine(e,pid){return !pid || (e.participants||[]).includes(pid) || e.createdBy===((typeof currentUser!=='undefined'&&currentUser)?((typeof currentUser!=='undefined'&&currentUser)?currentUser.id:'system'):'system')}
   function v202OwnTodoRows(){
     const pid=ownPersonId();
     try{
@@ -9887,7 +9986,7 @@ setInterval(v206SetupNavOrder,1500);
     const rows=v202OwnTodoRows();
     tbody.innerHTML=rows.map(e=>`<tr><td><button class="small primary" data-v202-open="${html(e.id)}">開啟</button> ${e.status==='已完成'?'<span class="badge">已完成</span>':`<button class="small" data-v202-done="${html(e.id)}">完成</button>`}</td><td>${html(e.status||'')}</td><td>${html(e.startDate||'')}</td><td>${html(e.startTime||'')}</td><td>${e.kind==='todo'?'待辦事項':'一般記事'}</td><td>${html(e.type||'')}</td><td>${html(e.name||'')}</td><td>${html(e.note||'')}</td></tr>`).join('')||'<tr><td colspan="8" class="muted">目前沒有個人待辦</td></tr>';
     qa('[data-v202-open]',tbody).forEach(btn=>btn.onclick=()=>{try{openEventModal({eventId:btn.dataset.v202Open})}catch(e){}});
-    qa('[data-v202-done]',tbody).forEach(btn=>btn.onclick=()=>{try{const e=(state.events||[]).find(x=>x.id===btn.dataset.v202Done); if(!e)return; e.status='已完成'; e.updatedBy=currentUser.id; e.updatedAt=new Date().toISOString(); save(); renderPersonalTodoPage(); if(typeof renderAll==='function')renderAll(); toast('已完成');}catch(err){}});
+    qa('[data-v202-done]',tbody).forEach(btn=>btn.onclick=()=>{try{const e=(state.events||[]).find(x=>x.id===btn.dataset.v202Done); if(!e)return; e.status='已完成'; e.updatedBy=((typeof currentUser!=='undefined'&&currentUser)?currentUser.id:'system'); e.updatedAt=new Date().toISOString(); save(); renderPersonalTodoPage(); if(typeof renderAll==='function')renderAll(); toast('已完成');}catch(err){}});
   }
   function showPersonalTodoPage(){
     ensurePersonalTodoPage();
@@ -9934,7 +10033,7 @@ setInterval(v206SetupNavOrder,1500);
   }
   function showTomorrowReminder(){
     if(typeof currentUser==='undefined'||!currentUser)return;
-    const key='fore_v202_tomorrow_reminder_'+(currentUser.id||'user')+'_'+todayStr();
+    const key='fore_v202_tomorrow_reminder_'+(((typeof currentUser!=='undefined'&&currentUser)?currentUser.id:'system')||'user')+'_'+todayStr();
     if(localStorage.getItem(key)==='1')return;
     const rows=tomorrowRows();
     if(!rows.length){localStorage.setItem(key,'1');return;}
@@ -9945,11 +10044,11 @@ setInterval(v206SetupNavOrder,1500);
 
   const oldRenderAll=typeof renderAll==='function'?renderAll:null;
   if(oldRenderAll&&!oldRenderAll.v202Wrapped){
-    const wrapped=function(){const r=oldRenderAll.apply(this,arguments);setTimeout(()=>{ensurePersonalTodoPage();ensurePersonalTodoNav();showTomorrowReminder();},150);return r};
+    const wrapped=function(){const r=oldRenderAll.apply(this,arguments);setTimeout(()=>{ensurePersonalTodoPage();ensurePersonalTodoNav();/* V214：暫停隔日提醒，避免登入載入錯誤 */},150);return r};
     wrapped.v202Wrapped=true;
     renderAll=window.renderAll=wrapped;
   }
-  document.addEventListener('DOMContentLoaded',function(){setTimeout(()=>{ensurePersonalTodoPage();ensurePersonalTodoNav();showTomorrowReminder();},600);});
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(()=>{ensurePersonalTodoPage();ensurePersonalTodoNav();/* V214：暫停隔日提醒，避免登入載入錯誤 */},600);});
   setInterval(()=>{ensurePersonalTodoNav();},1500);
 })();
 </script>
@@ -9995,7 +10094,7 @@ setInterval(v206SetupNavOrder,1500);
   }
   function isMine(e){
     const pid=ownPid();
-    try{return (e.participants||[]).includes(pid)||e.createdBy===(currentUser&&currentUser.id)}catch(_){return false}
+    try{return (e.participants||[]).includes(pid)||e.createdBy===((typeof currentUser!=='undefined'&&currentUser)?((typeof currentUser!=='undefined'&&currentUser)?currentUser.id:'system'):'system')}catch(_){return false}
   }
   function v203TaskRows(){
     try{return (state.events||[]).filter(e=>e&&!e.deleted&&['generalNote','todo'].includes(e.kind)&&isMine(e)).sort((a,b)=>String(a.status==='已完成').localeCompare(String(b.status==='已完成'))||String(a.startDate||'').localeCompare(String(b.startDate||''))||String(a.startTime||'').localeCompare(String(b.startTime||'')))}catch(_){return []}
@@ -10020,7 +10119,7 @@ setInterval(v206SetupNavOrder,1500);
     const rows=v203TaskRows();
     tbody.innerHTML=rows.map(e=>`<tr><td><button class="small primary" data-v203-open="${safe(e.id)}">開啟</button> ${e.status==='已完成'?'<span class="badge">已完成</span>':`<button class="small" data-v203-done="${safe(e.id)}">完成</button>`}</td><td>${safe(e.status||'')}</td><td>${safe(e.startDate||'')}</td><td>${safe(e.startTime||'')}</td><td>${e.kind==='todo'?'待辦事項':'一般記事'}</td><td>${safe(e.type||'')}</td><td>${safe(e.name||'')}</td><td>${safe(e.note||'')}</td></tr>`).join('')||'<tr><td colspan="8" class="muted">目前沒有待辦事項或一般記事</td></tr>';
     qa('[data-v203-open]',tbody).forEach(btn=>btn.onclick=()=>openEventModal({eventId:btn.dataset.v203Open}));
-    qa('[data-v203-done]',tbody).forEach(btn=>btn.onclick=()=>{const e=(state.events||[]).find(x=>x.id===btn.dataset.v203Done);if(!e)return;e.status='已完成';e.updatedBy=currentUser.id;e.updatedAt=new Date().toISOString();save();renderPage();if(typeof renderAll==='function')renderAll();toast('已完成')});
+    qa('[data-v203-done]',tbody).forEach(btn=>btn.onclick=()=>{const e=(state.events||[]).find(x=>x.id===btn.dataset.v203Done);if(!e)return;e.status='已完成';e.updatedBy=((typeof currentUser!=='undefined'&&currentUser)?currentUser.id:'system');e.updatedAt=new Date().toISOString();save();renderPage();if(typeof renderAll==='function')renderAll();toast('已完成')});
   }
   function showPageV203(){
     ensurePage();
@@ -10339,6 +10438,36 @@ setInterval(v206SetupNavOrder,1500);
   }
   #roomBookingArea{scroll-behavior:auto!important}
 }
+</style>
+
+
+<script>
+/* V214 外層保底：不再顯示 currentUser timing error；會議室頁進入後補畫週一～週日 */
+(function(){
+  window.addEventListener('error',function(e){
+    const msg=String(e&&e.message||'');
+    if(msg.includes('currentUser is not defined')||msg.includes('currentUser is not defiend')){
+      e.preventDefault(); e.stopImmediatePropagation(); return true;
+    }
+  },true);
+  function fixRoom(){
+    try{
+      const page=document.getElementById('roomBookingPage');
+      if(!page||page.classList.contains('hide'))return;
+      if(window.v214RenderRoomWeek)window.v214RenderRoomWeek(true);
+    }catch(e){}
+  }
+  document.addEventListener('click',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('[data-page="roomBooking"],#roomPrevWeek,#roomNextWeek'))setTimeout(fixRoom,120);
+  },true);
+  setTimeout(fixRoom,900);
+})();
+</script>
+<style>
+#roomBookingArea{display:block!important;min-height:240px!important;margin-top:12px!important}
+#roomBookingArea .v214-room-week{display:block!important;background:#fff!important}
+#roomBookingArea .calendar-table th,#roomBookingArea .calendar-table td{min-width:128px!important}
+#roomBookingArea .person-head{min-width:130px!important}
 </style>
 
 </body></html>
