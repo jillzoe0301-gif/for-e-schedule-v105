@@ -7121,6 +7121,112 @@ setInterval(v206SetupNavOrder,1500);
   setTimeout(()=>{v215PatchNavTitle();v215EnsureOptionState();},500);
 })();
 
+
+/* V216：行政系的選項管理只能調整外務項目
+   原因：V215 把行政系開放進「選項管理」，但 saveOptions 仍會讀取整頁欄位，容易讓行政系改到行程類型、待辦類型、會議室等其他選項。
+   DRY：用 v216IsAdminStaff 與 v216SaveFieldOptionsOnly 統一控管。
+   KISS：行政系進入選項管理時，只顯示「外務行程選項」。
+   SOLID：管理員維持完整選項管理；行政系只覆寫外務地點/地址與外務目的。 */
+(function(){
+  function q(sel,root){return (root||document).querySelector(sel)}
+  function qa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
+  function list(v){try{return linesToArray(v)}catch(_){return String(v||'').split(/\n|,/).map(x=>x.trim()).filter(Boolean)}}
+  function v216IsAdminStaff(){try{return normalizedRole()==='adminStaff'}catch(_){return false}}
+  function v216IsAdmin(){try{return isAdmin()}catch(_){return false}}
+  function v216CanSeeOptions(){return v216IsAdmin()||v216IsAdminStaff()}
+
+  const baseCanManageOptionsV216=canManageOptions;
+  canManageOptions=function(){return v216CanSeeOptions()};
+  const baseCanSeePageV216=canSeePage;
+  canSeePage=function(page){
+    if(page==='settings')return v216CanSeeOptions();
+    return baseCanSeePageV216(page);
+  };
+
+  function v216SaveFieldOptionsOnly(){
+    try{ensureExternalState()}catch(_){}
+    const loc=list(q('#optFieldLocations')?q('#optFieldLocations').value:'');
+    const pur=list(q('#optFieldPurposes')?q('#optFieldPurposes').value:'');
+    state.options.fieldLocations=loc.length?loc:[...defaultFieldLocations];
+    state.options.fieldPurposes=pur.length?pur:[...defaultFieldPurposes];
+    try{addLog('修改','系統設定','外務行程選項','外務地點與地址 / 外務目的','',`地點:${state.options.fieldLocations.length}項｜目的:${state.options.fieldPurposes.length}項`)}catch(_){}
+    save();
+    try{renderAll()}catch(_){}
+    toast('已儲存外務行程選項');
+  }
+
+  function v216RestrictAdminStaffOptions(){
+    const page=q('#settingsPage');
+    if(!page)return;
+    // 管理員：完整頁面恢復
+    if(!v216IsAdminStaff()){
+      qa('.v216-adminstaff-note',page).forEach(x=>x.remove());
+      qa('.v215-option-panel,.v215-connect-panel,.v215-settings-hero',page).forEach(p=>p.classList.remove('v216-adminstaff-hide'));
+      return;
+    }
+
+    // 行政系：只保留外務行程選項與頁首說明
+    qa('.v215-option-panel,.v215-connect-panel',page).forEach(panel=>{
+      const title=(panel.querySelector('h2')||{}).textContent||'';
+      const isField=title.includes('外務行程選項');
+      panel.classList.toggle('v216-adminstaff-hide',!isField);
+    });
+
+    const hero=q('.v215-settings-hero',page)||page.firstElementChild;
+    if(hero&&!q('.v216-adminstaff-note',page)){
+      const note=document.createElement('div');
+      note.className='v216-adminstaff-note muted';
+      note.textContent='行政系僅可維護外務行程選項：外務地點與地址、外務目的。其他選項由管理員調整。';
+      hero.appendChild(note);
+    }
+
+    // 只開放外務兩個欄位，其餘欄位鎖住
+    qa('textarea,input,select,button',page).forEach(el=>{
+      const id=el.id||'';
+      if(['optFieldLocations','optFieldPurposes','saveOptions'].includes(id)){
+        el.disabled=false;
+      }else if(id==='resetOptions'){
+        // 行政系不提供還原全部預設，避免動到其他選項
+        el.disabled=true;
+        el.classList.add('hide');
+      }else{
+        el.disabled=true;
+      }
+    });
+
+    const saveBtn=q('#saveOptions',page);
+    if(saveBtn){
+      saveBtn.textContent='儲存外務行程選項';
+      saveBtn.onclick=v216SaveFieldOptionsOnly;
+    }
+  }
+
+  const baseRenderSettingsV216=renderSettings;
+  renderSettings=function(){
+    baseRenderSettingsV216.apply(this,arguments);
+    setTimeout(v216RestrictAdminStaffOptions,0);
+  };
+
+  const baseSaveOptionsV216=saveOptions;
+  saveOptions=function(){
+    if(v216IsAdminStaff())return v216SaveFieldOptionsOnly();
+    return baseSaveOptionsV216.apply(this,arguments);
+  };
+
+  const baseRenderAllV216=renderAll;
+  renderAll=function(){
+    const r=baseRenderAllV216.apply(this,arguments);
+    if(currentPage==='settings')setTimeout(v216RestrictAdminStaffOptions,0);
+    return r;
+  };
+
+  document.addEventListener('click',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('[data-page="settings"]'))setTimeout(v216RestrictAdminStaffOptions,160);
+  },true);
+
+  setTimeout(v216RestrictAdminStaffOptions,600);
+})();
+
 })();
 
 </script>
@@ -10684,6 +10790,21 @@ setInterval(v206SetupNavOrder,1500);
 @media(max-width:760px){
   #settingsPage .v215-grid{grid-template-columns:1fr!important}
   #settingsPage .v215-wide{grid-column:auto!important}
+}
+</style>
+
+
+<style>
+/* V216：行政系選項管理只顯示外務行程選項 */
+#settingsPage .v216-adminstaff-hide{display:none!important}
+#settingsPage .v216-adminstaff-note{
+  margin-top:8px!important;
+  padding:10px 12px!important;
+  border:1px solid #bfdbfe!important;
+  background:#eff6ff!important;
+  border-radius:12px!important;
+  color:#1e40af!important;
+  font-weight:800!important;
 }
 </style>
 
