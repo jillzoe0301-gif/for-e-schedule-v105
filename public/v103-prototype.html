@@ -4924,7 +4924,6 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
     if(!Array.isArray(state.events))state.events=[];
     const today=todayISO();
     const demos=[
-{key:'week',date:dateAdd(today,-8),time:'10:30',type:'銀行',locationName:'【測試】第一銀行',name:'【1週提醒測試】開戶陪同服務紀錄單未繳',note:'此為紀錄單繳交頁面測試資料：滿 1 週未繳，應顯示粉紅色提醒。',submitted:false},
 ];
     let changed=false;
     demos.forEach(d=>{
@@ -11031,6 +11030,9 @@ setInterval(v206SetupNavOrder,1500);
   window.v218CleanTestData=()=>cleanTestData(true);
 })();
 </script>
+
+
+
 
 
 <script id="v219-remove-test-schedules-relax-required">
