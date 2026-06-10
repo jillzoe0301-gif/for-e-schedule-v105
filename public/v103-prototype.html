@@ -1241,7 +1241,7 @@ function resetThemeSettings(){state.theme=clone(defaultTheme); applyTheme(); add
 function seed(){const d=todayISO(); state.events.push({id:'ev_demo1',kind:'schedule',status:'未完成',startDate:d,endDate:d,startTime:'上午',endTime:'',type:'醫療(看診、回診、住院、急診、開刀)',name:'陪同看診',locationName:'桃園醫院',address:'',vehicleNo:'',meetingRoom:'不指定',participants:['p_admin','p01'],note:'測試行程',createdBy:'u_admin',createdAt:new Date().toISOString(),updatedBy:'u_admin',updatedAt:new Date().toISOString(),deleted:false}); state.logs.unshift({id:uid('log'),time:new Date().toISOString(),userId:'u_admin',action:'新增',eventId:'ev_demo1',eventName:'陪同看診',field:'',before:'',after:'系統預設測試資料'})}
 function getUser(id){return state.users.find(u=>u.id===id)||{name:'未知'}} function getPerson(id){return state.people.find(p=>p.id===id)||{name:'未知',group:'',lang:''}}
 function userPersonId(){return (currentUser?currentUser.personId:null)} function normalizedRole(){
-  if(!currentUser)return '';
+  if(typeof currentUser==='undefined'||!currentUser)return '';
   if(currentUser.role==='admin'||currentUser.role==='options')return 'admin';
   if(currentUser.role==='supervisor')return 'supervisor'; if(currentUser.role==='admin_staff'||currentUser.role==='adminStaff')return 'adminStaff';
   return 'staff';
@@ -1822,7 +1822,7 @@ window.toggleUserActive=function(id){
 window.deleteUser=function(id){
   if(!isAdmin())return toast('只有管理員可以刪除帳號');
   const u=state.users.find(x=>x.id===id); if(!u)return;
-  if(currentUser&&u.id===currentUser.id)return toast('不可刪除目前登入的帳號');
+  if(typeof currentUser!=='undefined'&&currentUser&&u.id===currentUser.id)return toast('不可刪除目前登入的帳號');
   if(!confirm('確定刪除此帳號？刪除後前台帳號清單不顯示，但 Audit Log 仍會保留。'))return;
   u.deleted=true; u.active=false; u.deletedAt=new Date().toISOString(); u.deletedBy=currentUser.id;
   addLog('刪除','系統帳號',u.name,'帳號資料','',`刪除帳號 ${u.email}`);
@@ -2328,7 +2328,7 @@ updateServiceRecordUI=function(){
 // V93：新增外務明細頁與權限調整
 function isAdminStaff(){return normalizedRole()==='adminStaff'}
 normalizedRole=function(){
-  if(!currentUser)return '';
+  if(typeof currentUser==='undefined'||!currentUser)return '';
   if(currentUser.role==='admin'||currentUser.role==='options')return 'admin';
   if(currentUser.role==='supervisor')return 'supervisor';
   if(currentUser.role==='adminStaff')return 'adminStaff';
@@ -2521,7 +2521,7 @@ function personalDetailRowsFiltered(){
   return rows;
 }
 function assignedTrackingRowsFiltered(){
-  if(!currentUser)return [];
+  if(typeof currentUser==='undefined'||!currentUser)return [];
   const s=$('personalDetailStart')?$('personalDetailStart').value||'':'';
   const e=$('personalDetailEnd')?$('personalDetailEnd').value||'':'';
   const typ=$('personalDetailType')?$('personalDetailType').value||'':'';
@@ -2649,7 +2649,7 @@ renderUsers=function(){
     return oldCanSeePage ? oldCanSeePage(page) : false;
   };
   window.v105ApplyNav=function(){
-    if(!currentUser)return;
+    if(typeof currentUser==='undefined'||!currentUser)return;
     const allowed=window.v105AllowedPages();
     document.querySelectorAll('.bottom-nav .navbtn').forEach(btn=>{
       const page=btn.dataset.page;
@@ -2749,7 +2749,7 @@ function incidentPeople(){return (state.people||[]).filter(p=>p.deleted!==true&&
 function personName(pid){const p=getPerson(pid);return p&&p.name?p.name:''}
 function userDisplayName(uidv){const u=(state.users||[]).find(x=>x.id===uidv);return u?(u.name||u.email||uidv):''}
 function currentPersonIdSafe(){try{return userPersonId&&userPersonId()||currentUser&&currentUser.personId||''}catch(e){return currentUser&&currentUser.personId||''}}
-function canManageIncident(inc){if(!currentUser)return false; if(isAdmin()||isSupervisor())return true; const pid=currentPersonIdSafe(); return !!(inc&&(inc.ownerPersonId===pid||(inc.helperPersonIds||[]).includes(pid)||inc.createdBy===currentUser.id))}
+function canManageIncident(inc){if(typeof currentUser==='undefined'||!currentUser)return false; if(isAdmin()||isSupervisor())return true; const pid=currentPersonIdSafe(); return !!(inc&&(inc.ownerPersonId===pid||(inc.helperPersonIds||[]).includes(pid)||inc.createdBy===currentUser.id))}
 function incidentDueState(inc){if(!inc||inc.deleted||incidentStatusGroup(inc.status)==='done'||incidentStatusGroup(inc.status)==='cancel')return ''; if(!inc.nextFollowDate)return ''; const t=todayISO(); if(inc.nextFollowDate<t)return 'overdue'; if(inc.nextFollowDate===t)return 'due'; return ''}
 function incidentLogsOf(id){return (state.incidentLogs||[]).filter(l=>!l.deleted&&l.incidentId===id).sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)))}
 function lastIncidentLog(id){const logs=incidentLogsOf(id); return logs[logs.length-1]||null}
@@ -2876,7 +2876,7 @@ window.openIncidentModal=openIncidentModal; window.quickIncidentLog=quickInciden
   const incidentSampleId='inc_demo_oil_burn';
   const oldNormalizedRole=normalizedRole;
   normalizedRole=function(){
-    if(!currentUser)return '';
+    if(typeof currentUser==='undefined'||!currentUser)return '';
     if(currentUser.role==='admin'||currentUser.role==='options')return 'admin';
     if(currentUser.role==='supervisor')return 'supervisor';
     if(currentUser.role==='adminStaff'||currentUser.role==='admin_staff')return 'adminStaff';
@@ -3100,7 +3100,7 @@ window.openIncidentModal=openIncidentModal; window.quickIncidentLog=quickInciden
 (function(){
   function v105RoomCurrentPerson(){try{return getPerson(userPersonId())||{}}catch(e){return {}}}
   function v105IsTranslatorPerson(p){const lang=String((p&&p.lang)||''); if(!lang)return false; if(/主管|管理員|行政|海外|宿管|外務/.test(lang))return false; return /泰國|印尼|越南|菲律賓/.test(lang);}
-  window.canUseRoomBooking=function(){if(!currentUser)return false; if(isAdmin())return true; return !v105IsTranslatorPerson(v105RoomCurrentPerson());};
+  window.canUseRoomBooking=function(){if(typeof currentUser==='undefined'||!currentUser)return false; if(isAdmin())return true; return !v105IsTranslatorPerson(v105RoomCurrentPerson());};
   const _roomCanSeePage=canSeePage;
   canSeePage=function(page){if(page==='roomBooking')return canUseRoomBooking(); return _roomCanSeePage(page)};
   function v105RoomWeekDays(d){return weekDays(d||todayISO()).slice(0,7)}
@@ -3200,7 +3200,7 @@ try{
   roleNames.general='一般人員';
 }catch(e){}
 function v105NormalizedRoleFinal(){
-  if(!currentUser)return '';
+  if(typeof currentUser==='undefined'||!currentUser)return '';
   const r=currentUser.role;
   if(r==='admin'||r==='options')return 'admin';
   if(r==='supervisor')return 'supervisor';
@@ -3284,7 +3284,7 @@ function v105SaveCalendarPrefs(){
   }catch(e){}
 }
 function v105ApplyDefaultCalendarPrefs(){
-  if(!currentUser || !$('personFilter')) return;
+  if(typeof currentUser==='undefined'||!currentUser || !$('personFilter')) return;
   const key = v105CalendarPrefKey();
   const hasSaved = localStorage.getItem(key) !== null;
   if(hasSaved) return;
@@ -5675,7 +5675,7 @@ function v204ShowTaskNotePage(){
   v204RenderTaskNotePage();
 }
 function v204EnsureTaskNoteNav(){
-  if(!currentUser)return;
+  if(typeof currentUser==='undefined'||!currentUser)return;
   const side=document.querySelector('.side');
   if(side&&!side.querySelector('[data-page="personalGeneralTodo"]')){
     const btn=document.createElement('button');
@@ -5749,7 +5749,7 @@ function v205ShowPersonalTodo(){
   v205RenderPersonalTodo();
 }
 function v205EnsurePersonalTodoNav(){
-  if(!currentUser)return;
+  if(typeof currentUser==='undefined'||!currentUser)return;
   const side=document.querySelector('.side');
   if(side&&!side.querySelector('[data-page="personalGeneralTodo"]')){
     const btn=document.createElement('button');
@@ -5785,7 +5785,7 @@ function v205TomorrowRows(){
   return (state.events||[]).filter(e=>e&&!e.deleted&&e.status!=='已完成'&&e.status!=='取消'&&String(e.startDate||'')<=t&&String(e.endDate||e.startDate||'')>=t&&v205IsOwnEvent(e)).sort((a,b)=>String(a.startTime||'').localeCompare(String(b.startTime||'')));
 }
 function v205LoginTomorrowNotice(){
-  if(!currentUser)return;
+  if(typeof currentUser==='undefined'||!currentUser)return;
   const key='fore_v205_login_notice_'+(currentUser.id||'user')+'_'+todayISO();
   if(localStorage.getItem(key)==='1')return;
   const rows=v205TomorrowRows();
@@ -6494,7 +6494,7 @@ setInterval(v206SetupNavOrder,1500);
     return r;
   };
   setTimeout(()=>{v210FixAccounts();v210SeedExternalTests();v210SeedMingAllTypes();v210FixRoom();},600);
-  setInterval(v210FixRoom,1400);
+  /* V213：停用會議室週期補畫，避免手機畫面一直跳 */
 })();
 
 
@@ -6596,7 +6596,7 @@ setInterval(v206SetupNavOrder,1500);
     return (state.events||[]).filter(e=>e&&!e.deleted&&e.status!=='已完成'&&e.status!=='取消'&&(!pid||(e.participants||[]).includes(pid)||e.createdBy===(currentUser&&currentUser.id))&&String(e.startDate||'')<=t&&String(e.endDate||e.startDate||'')>=t).sort((a,b)=>String(a.startTime||'').localeCompare(String(b.startTime||'')));
   }
   function v211TomorrowAlert(){
-    if(!currentUser)return; const key='fore_v211_tomorrow_alert_'+(currentUser.id||'user')+'_'+today(); if(localStorage.getItem(key)==='1')return;
+    if(typeof currentUser==='undefined'||!currentUser)return; const key='fore_v211_tomorrow_alert_'+(currentUser.id||'user')+'_'+today(); if(localStorage.getItem(key)==='1')return;
     const rows=v211TomorrowItems(); if(!rows.length){localStorage.setItem(key,'1');return} localStorage.setItem(key,'1');
     const schedule=rows.filter(e=>!['todo','generalNote'].includes(e.kind)), todoRows=rows.filter(e=>['todo','generalNote'].includes(e.kind));
     const lines=[]; if(schedule.length)lines.push('【隔日行程】',...schedule.slice(0,8).map(e=>'• '+(e.startTime||'')+' '+(e.type||'')+' '+(e.name||'')));
@@ -6722,7 +6722,7 @@ setInterval(v206SetupNavOrder,1500);
     }
   }
   function v212TomorrowAlert(){
-    if(!currentUser)return;
+    if(typeof currentUser==='undefined'||!currentUser)return;
     const key='fore_v212_tomorrow_alert_'+(currentUser.id||'user')+'_'+iso();
     if(localStorage.getItem(key)==='1')return;
     let pid='';try{pid=userPersonId()||''}catch(_){}
@@ -6746,6 +6746,82 @@ setInterval(v206SetupNavOrder,1500);
   },true);
   setTimeout(()=>{v212ForceDataMigration();v212PatchMobile();v212TomorrowAlert();try{renderAll()}catch(_){ }},600);
   setInterval(v212PatchMobile,1200);
+})();
+
+
+/* V213：修正 V212 後問題
+   原因：
+   1. 手機會議室畫面一直跳：V210/V212 使用 setInterval 反覆補畫會議室，造成手機捲動位置被重設。
+   2. currentUser is not defined：舊外掛腳本在登入前直接讀 currentUser，ReferenceError 讓登入成功後跳錯誤。
+   3. 個人一般待辦手機「開啟」按鈕過大：前版把 personalGeneralTodoPage 內所有 primary 按鈕都放大，連清單內「開啟」也被套用。
+   DRY：會議室只在開頁/切換/篩選時補畫。
+   KISS：用 CSS 精準縮小表格操作按鈕。
+   SOLID：登入安全、會議室穩定、待辦樣式各自獨立。 */
+(function(){
+  function q(sel,root){return (root||document).querySelector(sel)}
+  function qa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
+  function v213PatchTodoButtons(){
+    const page=q('#personalGeneralTodoPage'); if(!page)return;
+    // 移除重新整理
+    qa('button',page).forEach(b=>{if((b.textContent||'').includes('重新整理'))b.remove()});
+    // 只放大「新增待辦」，不要放大表格裡的「開啟 / 完成」
+    qa('button',page).forEach(b=>{
+      const txt=(b.textContent||'').trim();
+      if(txt.includes('新增待辦')){
+        b.classList.add('v213-big-add-todo','primary');
+        b.classList.remove('small');
+      }
+      if(txt==='開啟'||txt==='完成'){
+        b.classList.add('v213-compact-action');
+        b.classList.remove('v211-big-add-todo','v212-big-add-todo');
+        b.style.removeProperty('font-size');
+        b.style.removeProperty('padding');
+        b.style.removeProperty('width');
+        b.style.removeProperty('border-radius');
+      }
+    });
+  }
+  function v213StableRoomRender(){
+    const page=q('#roomBookingPage'), area=q('#roomBookingArea');
+    if(!page||page.classList.contains('hide')||!area)return;
+    const picker=q('#roomBookingWeekPicker');
+    if(picker&&!picker.value){
+      try{picker.value=todayISO()}catch(_){
+        const d=new Date(); picker.value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      }
+    }
+    // 只有空白或不是七日表格時才補畫，避免每秒重畫造成跳動
+    const hasSevenDays=!!area.querySelector('thead th:nth-child(8)');
+    const isBlank=!area.textContent.trim()||area.children.length===0;
+    if(isBlank||!hasSevenDays){
+      try{
+        if(typeof window.v210RenderRoomWeek==='function')window.v210RenderRoomWeek();
+        else if(typeof window.v209RenderRoomBookingWeek==='function')window.v209RenderRoomBookingWeek();
+        else if(typeof window.v194RenderRoomBookings==='function')window.v194RenderRoomBookings();
+        else if(typeof renderRoomBookings==='function')renderRoomBookings();
+      }catch(e){console.warn('V213 room render fallback',e)}
+    }
+  }
+  document.addEventListener('click',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('[data-page="roomBooking"],#roomPrevWeek,#roomNextWeek,#clearRoomBookingFilters,#roomBookingRoomFilter,#roomBookingDeptFilter')){
+      setTimeout(v213StableRoomRender,120);
+    }
+    if(e.target&&e.target.closest&&e.target.closest('[data-page="personalGeneralTodo"]')){
+      setTimeout(v213PatchTodoButtons,120);
+    }
+  },true);
+  document.addEventListener('input',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('#roomBookingPage'))setTimeout(v213StableRoomRender,120);
+  },true);
+
+  const v213BaseRenderAll=renderAll;
+  renderAll=function(){
+    const r=v213BaseRenderAll.apply(this,arguments);
+    setTimeout(()=>{v213PatchTodoButtons();v213StableRoomRender();},160);
+    return r;
+  };
+  setTimeout(()=>{v213PatchTodoButtons();v213StableRoomRender();},700);
+  setInterval(v213PatchTodoButtons,1500);
 })();
 
 })();
@@ -9490,7 +9566,7 @@ setInterval(v206SetupNavOrder,1500);
     return /泰國|印尼|越南|菲律賓/.test(lang);
   }
   function canUseRoomBookingV194(){
-    if(!currentUser)return false;
+    if(typeof currentUser==='undefined'||!currentUser)return false;
     if(roleV194()==='admin')return true;
     return !isTranslatorPersonV194(currentPersonV194());
   }
@@ -9582,7 +9658,7 @@ setInterval(v206SetupNavOrder,1500);
 
   function applyCalendarDefaultDeptV194(){
     try{
-      if(!currentUser||!document.getElementById('groupFilter'))return;
+      if(typeof currentUser==='undefined'||!currentUser||!document.getElementById('groupFilter'))return;
       const key=(typeof v105CalendarPrefKey==='function')?v105CalendarPrefKey():(KEY+'_calendar_filters_'+currentUser.id);
       if(localStorage.getItem(key)!==null)return;
       const p=currentPersonV194();
@@ -9772,7 +9848,7 @@ setInterval(v206SetupNavOrder,1500);
   function addDays(d,n){try{return dateAdd(d,n)}catch(_){const x=new Date(d+'T00:00:00');x.setDate(x.getDate()+n);return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`}}
   function ownPersonId(){
     try{const id=userPersonId(); if(id)return id;}catch(_){}
-    try{if(currentUser&&currentUser.personId)return currentUser.personId;}catch(_){}
+    try{if(typeof currentUser!=='undefined'&&currentUser&&currentUser.personId)return currentUser.personId;}catch(_){}
     return '';
   }
   function ownName(){
@@ -9821,7 +9897,7 @@ setInterval(v206SetupNavOrder,1500);
     renderPersonalTodoPage();
   }
   function ensurePersonalTodoNav(){
-    if(!currentUser)return;
+    if(typeof currentUser==='undefined'||!currentUser)return;
     const side=q('.side');
     if(side&&!side.querySelector('[data-page="personalTodo"]')){
       const btn=document.createElement('button');
@@ -9857,7 +9933,7 @@ setInterval(v206SetupNavOrder,1500);
     }catch(_){return []}
   }
   function showTomorrowReminder(){
-    if(!currentUser)return;
+    if(typeof currentUser==='undefined'||!currentUser)return;
     const key='fore_v202_tomorrow_reminder_'+(currentUser.id||'user')+'_'+todayStr();
     if(localStorage.getItem(key)==='1')return;
     const rows=tomorrowRows();
@@ -9954,7 +10030,7 @@ setInterval(v206SetupNavOrder,1500);
     renderPage();
   }
   function ensureNav(){
-    if(!currentUser)return;
+    if(typeof currentUser==='undefined'||!currentUser)return;
     const side=q('.side');
     if(side&&!side.querySelector('[data-page="taskNoteTracker"]')){
       const btn=document.createElement('button');
@@ -10220,6 +10296,49 @@ setInterval(v206SetupNavOrder,1500);
   #personalGeneralTodoPage .v212-big-add-todo{font-size:18px!important;padding:14px 22px!important;border-radius:16px!important;width:100%!important}
 }
 #personalGeneralTodoPage .v212-big-add-todo{font-size:18px!important;padding:14px 22px!important;border-radius:16px!important}
+</style>
+
+
+<script>
+/* V213 外層保底：避免舊外掛 currentUser undefined 造成登入錯誤提示 */
+(function(){
+  window.addEventListener('error',function(e){
+    const msg=String(e&&e.message||'');
+    if(msg.includes('currentUser is not defined')||msg.includes('currentUser is not defiend')){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      console.warn('V213 ignored legacy currentUser timing error');
+      return true;
+    }
+  },true);
+})();
+</script>
+<style>
+/* V213：手機個人一般待辦只縮小清單操作按鈕，不影響新增待辦 */
+@media(max-width:760px){
+  #personalGeneralTodoPage .detail-table-wrap button,
+  #personalGeneralTodoPage table button,
+  #personalGeneralTodoPage .v213-compact-action{
+    width:auto!important;
+    min-width:52px!important;
+    max-width:72px!important;
+    font-size:12px!important;
+    padding:5px 8px!important;
+    border-radius:9px!important;
+    line-height:1.25!important;
+    white-space:nowrap!important;
+  }
+  #personalGeneralTodoPage .v213-big-add-todo,
+  #personalGeneralTodoPage .section-title .primary,
+  #personalGeneralTodoPage .toolbar > .primary{
+    width:100%!important;
+    max-width:none!important;
+    font-size:18px!important;
+    padding:14px 22px!important;
+    border-radius:16px!important;
+  }
+  #roomBookingArea{scroll-behavior:auto!important}
+}
 </style>
 
 </body></html>
