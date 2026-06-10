@@ -5914,6 +5914,8 @@ function v206SaveOrder(container){
   localStorage.setItem(v206NavKey(container),JSON.stringify(arr));
 }
 function v206EnableNavDrag(container){
+  if(container&&container.classList&&container.classList.contains('bottom-nav'))return; // V212：手機底部取消手動移位
+
   if(!container||container.dataset.v206Drag==='1')return;
   container.dataset.v206Drag='1';
   container.querySelectorAll('.navbtn[data-page]').forEach(btn=>{btn.draggable=true;btn.title=(btn.title?btn.title+'｜':'')+'可拖曳調整位置';});
@@ -6040,6 +6042,8 @@ setInterval(v206SetupNavOrder,1500);
     localStorage.setItem(v208NavKey(container),JSON.stringify([...container.querySelectorAll('.navbtn[data-page]')].map(b=>b.dataset.page)));
   }
   function v208SetupPointerReorder(container){
+    if(container&&container.classList&&container.classList.contains('bottom-nav'))return; // V212：手機底部取消手動移位
+
     if(!container||container.dataset.v208Pointer==='1')return;
     container.dataset.v208Pointer='1';
     v208ApplyNavOrder(container);
@@ -6608,6 +6612,140 @@ setInterval(v206SetupNavOrder,1500);
   document.addEventListener('click',e=>{if(e.target&&e.target.closest&&e.target.closest('.bottom-nav .navbtn,[data-page="mobile"],[data-page="calendar"],[data-page="fieldCalendar"],[data-page="roomBooking"],[data-page="personalGeneralTodo"]'))setTimeout(()=>{v211DisableBottomReorder();v211PatchTodoPage();v211ScrollToday()},220)},true);
   setTimeout(()=>{v211FixAccounts();v211TrimAdminTests();v211SeedOtherUsers();v211DisableBottomReorder();v211PatchTodoPage();v211ScrollToday();v211TomorrowAlert()},700);
   setInterval(()=>{v211DisableBottomReorder();v211PatchTodoPage()},1500);
+})();
+
+
+/* V212：強制修正 V211 未生效項目
+   原因：舊版 V206/V208 的手機底部拖曳與測試資料仍在 localStorage / state 中，V211 只做外層攔截，沒有從源頭停用與清理。
+   DRY：資料清理集中 v212ForceDataMigration；手機修正集中 v212MobileFixes。
+   KISS：只強制執行需求，不新增設定。
+   SOLID：資料、版面、提醒各自獨立。 */
+(function(){
+  function q(sel,root){return (root||document).querySelector(sel)}
+  function qa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
+  function iso(){try{return todayISO()}catch(_){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}}
+  function add(v,n){try{return dateAdd(v,n)}catch(_){const d=new Date((v||iso())+'T00:00:00');d.setDate(d.getDate()+n);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}}
+  function isAdminRole(u){return ['admin','options'].includes(String((u&&u.role)||''))}
+  function getP(name){return (state.people||[]).find(p=>p&&p.name===name)}
+  function ensureP(name,group,lang){
+    let p=getP(name);
+    if(!p){p={id:uid('p'),name,group,lang,active:true,deleted:false,sort:(state.people||[]).length+1};state.people.push(p)}
+    p.group=group;p.lang=lang;p.active=true;p.deleted=false;return p;
+  }
+  function ensureU(name,email,role,pid){
+    let u=(state.users||[]).find(x=>x&&x.email===email)||(state.users||[]).find(x=>x&&x.name===name);
+    if(!u){u={id:uid('u'),name,email,password:'1234',role,personId:pid,active:true,deleted:false,lineId:''};state.users.push(u)}
+    u.name=name;u.email=email;u.role=role;u.personId=pid;u.active=true;u.deleted=false;return u;
+  }
+  function v212ForceDataMigration(){
+    let changed=false;
+    const liu=ensureP('劉詩涵','行政系','行政');
+    const huang=ensureP('黃明書','營運處','管理');
+    const su=ensureP('蘇若儀','營運處','管理');
+    const deng=getP('鄧玉荀'); if(deng&&(deng.group!=='二部'||deng.lang!=='宿管')){deng.group='二部';deng.lang='宿管';changed=true}
+    const li=getP('李秀玲'); if(li&&(li.group!=='二部'||li.lang!=='主管')){li.group='二部';li.lang='主管';changed=true}
+
+    // 黃明書帳號指定 .com.tw
+    (state.users||[]).forEach(u=>{
+      if(!u)return;
+      if(u.email==='mint@forwardhrm.com'){u.email='mint@forwardhrm.com.tw';changed=true}
+      if(u.name==='劉詩涵'&&(String(u.email||'').includes('test.local')||u.email==='adminstaff@test.local')){if(!u.deleted||u.active!==false){u.deleted=true;u.active=false;changed=true}}
+      if(u.role==='adminStaff'&&!u.deleted&&u.personId!==liu.id){u.personId=liu.id;changed=true}
+    });
+    const hu=ensureU('黃明書','mint@forwardhrm.com.tw','admin',huang.id);
+    const suU=ensureU('蘇若儀','jillzoe0301@gmail.com','admin',su.id);
+
+    const adminPids=new Set((state.users||[]).filter(u=>u&&!u.deleted&&isAdminRole(u)).map(u=>u.personId).filter(Boolean));
+    // 清掉舊版大量測試資料，不清使用者手動資料
+    ;(state.events||[]).forEach(e=>{
+      if(!e||e.deleted)return;
+      const marker=String(e.v206Marker||e.v208Marker||e.v210Marker||'');
+      const isAdmin=(e.participants||[]).some(id=>adminPids.has(id));
+      if(isAdmin&&marker.startsWith('v')&&!String(e.v212Keep||'')){e.deleted=true;e.updatedAt=new Date().toISOString();changed=true}
+    });
+    ;(state.externalEvents||[]).forEach(e=>{
+      if(!e||e.deleted)return;
+      const marker=String(e.v206Marker||e.v210Marker||'');
+      if(adminPids.has(e.personId)&&marker.startsWith('v')){e.deleted=true;e.updatedAt=new Date().toISOString();changed=true}
+    });
+    ;(state.incidents||[]).forEach(e=>{
+      if(!e||e.deleted)return;
+      const marker=String(e.v206Marker||e.v208Marker||'');
+      if(adminPids.has(e.ownerPersonId)&&marker.startsWith('v')){e.deleted=true;changed=true}
+    });
+
+    // admin 只留三個精簡測試
+    [['v212_admin_schedule','schedule','提醒事項','黃明書基本測試行程'],['v212_admin_todo','todo','確認','黃明書基本測試待辦'],['v212_admin_note','generalNote','一般記事','黃明書基本測試一般事項']].forEach((b,i)=>{
+      if(!(state.events||[]).some(e=>e&&e.v212Marker===b[0])){
+        state.events.push({id:uid('ev'),v212Marker:b[0],v212Keep:true,seriesId:'',seriesIndex:0,kind:b[1],status:'未完成',startDate:add(iso(),1+i),endDate:add(iso(),1+i),startTime:'上午',endTime:'',type:b[2],name:b[3],additionalType:'',additionalNote:'',locationName:b[1]==='schedule'?'測試地點':'',address:'',vehicleNo:'',meetingRoom:'不指定',participants:[huang.id],assigneeIds:[huang.id],note:'V212 管理員精簡測試',serviceRecordSubmitted:false,serviceRecordDate:'',followupDate:'',followupTime:'',followupPersonId:'',followupRegNo:'',createdBy:hu.id,createdAt:new Date().toISOString(),updatedBy:hu.id,updatedAt:new Date().toISOString(),deleted:false});
+        changed=true;
+      }
+    });
+
+    // 其他帳號測試：一般/待辦/醫療SR下次看診/外務下次領件/些許異況
+    ensureExternalState&&ensureExternalState(); state.incidents=state.incidents||[]; state.incidentLogs=state.incidentLogs||[];
+    (state.users||[]).filter(u=>u&&!u.deleted&&u.active!==false&&!isAdminRole(u)&&u.personId).forEach((u,i)=>{
+      const p=(state.people||[]).find(p=>p&&p.id===u.personId); if(!p)return;
+      const base='v212_'+u.id;
+      function evExists(m){return (state.events||[]).some(e=>e&&e.v212Marker===m)}
+      function fieldExists(m){return (state.externalEvents||[]).some(e=>e&&e.v212Marker===m)}
+      function incExists(m){return (state.incidents||[]).some(e=>e&&e.v212Marker===m)}
+      if(!evExists(base+'_schedule')){state.events.push({id:uid('ev'),v212Marker:base+'_schedule',seriesId:'',seriesIndex:0,kind:'schedule',status:'未完成',startDate:add('2026-06-11',i),endDate:add('2026-06-11',i),startTime:'上午',endTime:'',type:'提醒事項',name:'V212 測試一般行程',additionalType:'',additionalNote:'',locationName:'測試地點',address:'',vehicleNo:'',meetingRoom:'不指定',participants:[p.id],assigneeIds:[p.id],note:'一般行程測試',serviceRecordSubmitted:false,serviceRecordDate:'',followupDate:'',followupTime:'',followupPersonId:'',followupRegNo:'',createdBy:u.id,createdAt:new Date().toISOString(),updatedBy:u.id,updatedAt:new Date().toISOString(),deleted:false});changed=true}
+      if(!evExists(base+'_medical')){const d=add('2026-06-12',i);state.events.push({id:uid('ev'),v212Marker:base+'_medical',seriesId:'',seriesIndex:0,kind:'schedule',status:'已完成',startDate:d,endDate:d,startTime:'下午',endTime:'',type:'醫療(看診、回診、住院、急診、開刀)',name:'V212 測試醫療服務紀錄單',additionalType:'',additionalNote:'',locationName:'測試醫院',address:'',vehicleNo:'',meetingRoom:'不指定',participants:[p.id],assigneeIds:[p.id],note:'含服務紀錄單與下次看診',serviceRecordSubmitted:true,serviceRecordDate:d,followupDate:add(d,7),followupTime:'上午',followupPersonId:p.id,followupRegNo:'V212',createdBy:u.id,createdAt:new Date().toISOString(),updatedBy:u.id,updatedAt:new Date().toISOString(),deleted:false});changed=true}
+      if(!fieldExists(base+'_field')){const d=add('2026-06-13',i);const fe={id:uid('field'),v212Marker:base+'_field',repeatGroupId:'',personId:p.id,date:d,time:i%2?'下午':'上午',status:'未完成',failureReason:'',locationName:'V212外務測試地點',address:'',purpose:'送件',note:'外務測試，含下次領件',cash:'',stamp:'',document:'測試文件',mustSend:true,cannotChange:false,pickupDate:add(d,3),pickupPersonId:p.id,createdBy:u.id,createdAt:new Date().toISOString(),updatedBy:u.id,updatedAt:new Date().toISOString(),deleted:false};state.externalEvents.push(fe);try{syncMainEventFromField(fe,'新增');upsertPickupFieldEvent(fe)}catch(_){ } changed=true}
+      [['todo','確認','V212 測試待辦事項'],['generalNote','一般記事','V212 測試一般事項']].forEach((x,j)=>{const m=base+'_'+x[0];if(evExists(m))return;state.events.push({id:uid('ev'),v212Marker:m,seriesId:'',seriesIndex:0,kind:x[0],status:'未完成',startDate:add(iso(),1+j),endDate:add(iso(),1+j),startTime:'上午',endTime:'',type:x[1],name:x[2],additionalType:'',additionalNote:'',locationName:'',address:'',vehicleNo:'',meetingRoom:'不指定',participants:[p.id],assigneeIds:[p.id],note:'隔日待辦提醒測試',serviceRecordSubmitted:false,serviceRecordDate:'',followupDate:'',followupTime:'',followupPersonId:'',followupRegNo:'',createdBy:u.id,createdAt:new Date().toISOString(),updatedBy:u.id,updatedAt:new Date().toISOString(),deleted:false});changed=true});
+      if(i%2===0&&!incExists(base+'_incident')){const incId=uid('inc');state.incidents.push({id:incId,v212Marker:base+'_incident',occurrenceDate:'2026-06-11',occurrenceTime:'上午',urgency:'普通',incidentType:'V212測試異況',customerName:'測試客戶',location:'測試地點',workerName:'測試工人',workerId:'V212-'+i,title:'V212 異況處理測試',description:'含下次追蹤日期與異況處理紀錄',ownerPersonId:p.id,helperPersonIds:[p.id],status:'追蹤中',nextFollowDate:add('2026-06-11',2),nextFollowTime:'下午',createdBy:u.id,createdAt:new Date().toISOString(),updatedBy:u.id,updatedAt:new Date().toISOString(),deleted:false});state.incidentLogs.push({id:uid('ilog'),incidentId:incId,date:'2026-06-11',time:'上午',content:'已完成初步異況處理，安排下次追蹤。',nextFollowDate:add('2026-06-11',2),nextFollowTime:'下午',helperPersonIds:[p.id],createdBy:u.id,createdAt:new Date().toISOString()});changed=true}
+    });
+    if(changed)save();
+  }
+
+  function v212PatchMobile(){
+    // 手機底部取消移動：移除舊排序並禁止原生 drag
+    localStorage.removeItem(KEY+'_bottom_nav_order_v208');localStorage.removeItem('fore_v206_bottom_nav_order');
+    const nav=q('.bottom-nav');
+    if(nav){nav.querySelectorAll('.navbtn[data-page]').forEach(b=>{b.draggable=false;b.style.touchAction='manipulation';b.classList.remove('v208-nav-dragging','v206-dragging')});}
+    // 個人一般待辦：移除重新整理、放大新增待辦
+    const page=q('#personalGeneralTodoPage');
+    if(page){
+      qa('button',page).forEach(b=>{if((b.textContent||'').includes('重新整理'))b.remove()});
+      qa('button',page).forEach(b=>{if((b.textContent||'').includes('新增待辦')){b.classList.add('v212-big-add-todo','primary');b.style.fontSize='18px';b.style.padding='14px 22px';b.style.borderRadius='16px'}});
+    }
+    // 手機行事曆捲到今天
+    if(window.innerWidth<=760){
+      const t=iso();
+      setTimeout(()=>{
+        const visible=[...document.querySelectorAll('.page:not(.hide)')][0]||document;
+        const cell=visible.querySelector(`[data-date="${t}"],[data-field-date="${t}"],[data-room-date="${t}"]`);
+        if(cell)cell.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+        if(q('#mobileDate')&&!q('#mobileDate').value)q('#mobileDate').value=t;
+      },150);
+    }
+  }
+  function v212TomorrowAlert(){
+    if(!currentUser)return;
+    const key='fore_v212_tomorrow_alert_'+(currentUser.id||'user')+'_'+iso();
+    if(localStorage.getItem(key)==='1')return;
+    let pid='';try{pid=userPersonId()||''}catch(_){}
+    const t=add(iso(),1);
+    const rows=(state.events||[]).filter(e=>e&&!e.deleted&&e.status!=='已完成'&&e.status!=='取消'&&(!pid||(e.participants||[]).includes(pid)||e.createdBy===(currentUser&&currentUser.id))&&String(e.startDate||'')<=t&&String(e.endDate||e.startDate||'')>=t);
+    if(!rows.length){localStorage.setItem(key,'1');return}
+    localStorage.setItem(key,'1');
+    const a=rows.filter(e=>!['todo','generalNote'].includes(e.kind)), b=rows.filter(e=>['todo','generalNote'].includes(e.kind));
+    const lines=[]; if(a.length)lines.push('【隔日行程】',...a.slice(0,8).map(e=>'• '+(e.startTime||'')+' '+(e.type||'')+' '+(e.name||'')));
+    if(b.length)lines.push('【隔日待辦/記事】',...b.slice(0,8).map(e=>'• '+(e.type||'')+' '+(e.name||'')));
+    setTimeout(()=>alert(lines.join('\n')),500);
+  }
+  const v212BaseRenderAll=renderAll;
+  renderAll=function(){
+    const r=v212BaseRenderAll.apply(this,arguments);
+    setTimeout(()=>{v212ForceDataMigration();v212PatchMobile();v212TomorrowAlert();},120);
+    return r;
+  };
+  document.addEventListener('click',e=>{
+    if(e.target&&e.target.closest&&e.target.closest('.bottom-nav .navbtn,[data-page="mobile"],[data-page="calendar"],[data-page="fieldCalendar"],[data-page="roomBooking"],[data-page="personalGeneralTodo"]'))setTimeout(v212PatchMobile,180);
+  },true);
+  setTimeout(()=>{v212ForceDataMigration();v212PatchMobile();v212TomorrowAlert();try{renderAll()}catch(_){ }},600);
+  setInterval(v212PatchMobile,1200);
 })();
 
 })();
@@ -10054,6 +10192,34 @@ setInterval(v206SetupNavOrder,1500);
   #personalGeneralTodoPage .v211-big-add-todo,#personalGeneralTodoPage button.primary{font-size:18px!important;padding:14px 22px!important;border-radius:16px!important;width:100%!important}
 }
 #personalGeneralTodoPage .v211-big-add-todo{font-size:18px!important;padding:14px 22px!important;border-radius:16px!important}
+</style>
+
+
+<script>
+/* V212 外層保底：手機底部不可拖曳，避免舊瀏覽器保留拖曳狀態 */
+(function(){
+  function patch(){
+    const nav=document.querySelector('.bottom-nav');
+    if(nav){
+      nav.querySelectorAll('.navbtn[data-page]').forEach(b=>{b.draggable=false;b.style.touchAction='manipulation';});
+    }
+  }
+  document.addEventListener('dragstart',e=>{if(e.target&&e.target.closest&&e.target.closest('.bottom-nav')){e.preventDefault();e.stopImmediatePropagation();}},true);
+  document.addEventListener('DOMContentLoaded',patch);
+  setInterval(patch,1200);
+})();
+</script>
+<style>
+@media(max-width:760px){
+  html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!important}
+  .app,.main,.page{width:100%!important;max-width:100vw!important;overflow-x:hidden!important}
+  .panel{max-width:calc(100vw - 16px)!important;margin-left:8px!important;margin-right:8px!important}
+  .calendar-wrap,.detail-table-wrap{max-width:100%!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch!important}
+  .bottom-nav,.bottom-nav .navbtn{touch-action:manipulation!important;user-select:none!important;-webkit-user-drag:none!important}
+  #personalGeneralTodoPage button.primary,
+  #personalGeneralTodoPage .v212-big-add-todo{font-size:18px!important;padding:14px 22px!important;border-radius:16px!important;width:100%!important}
+}
+#personalGeneralTodoPage .v212-big-add-todo{font-size:18px!important;padding:14px 22px!important;border-radius:16px!important}
 </style>
 
 </body></html>
