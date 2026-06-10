@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V184</title>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V218</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -4637,7 +4637,66 @@ v106BindServiceRecordsUI=function(){
   };
 })();
 
-try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bindUI();bindExternalUI();/* V75：為避免看不到登入頁，取消自動登入；請每次由登入頁進入。 */ safeRemoveSession(); $('loginView')&&$('loginView').classList.remove('hide'); $('appView')&&$('appView').classList.add('hide');}catch(err){console.error(err); document.body.innerHTML='<div style="padding:24px;font-family:Arial"><h2>系統載入錯誤</h2><p>'+esc(err.message)+'</p><button onclick="localStorage.clear();location.reload()">清除暫存並重新載入</button></div>'}
+
+
+/* V218：登入鍵無反應修復（DRY/KISS/SOLID：集中登入流程、保底事件綁定、載入錯誤不覆蓋登入頁） */
+function v218ManualShowAppFallback(){
+  try{
+    if($('loginView'))$('loginView').classList.add('hide');
+    if($('appView'))$('appView').classList.remove('hide');
+    if($('currentUserLabel')&&currentUser){$('currentUserLabel').innerHTML=esc(currentUser.name||currentUser.email||'')+' <span class="badge">'+esc((roleNames&&roleNames[currentUser.role])||currentUser.role||'')+'</span>';}
+    currentPage=(window.innerWidth<=760)?'mobile':'personalDetails';
+    document.querySelectorAll('.page').forEach(p=>p.classList.add('hide'));
+    const page=$(currentPage+'Page')||$('mobilePage')||$('calendarPage');
+    if(page)page.classList.remove('hide');
+    document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page===currentPage));
+    try{applyPermissionsUI&&applyPermissionsUI();}catch(_){ }
+    setTimeout(function(){try{renderAll&&renderAll();}catch(err){console.error('V218 render fallback error',err);}},80);
+  }catch(err){console.error('V218 manual show app failed',err);}
+}
+function v218FindLoginUser(email,pw,force){
+  if(!state||!Array.isArray(state.users)||!state.users.length){try{load(false);}catch(_){state=defaultState();}}
+  if(!Array.isArray(state.users))state.users=[];
+  state.users.forEach(function(u){if(u){if(u.active===undefined)u.active=true;if(u.deleted===undefined)u.deleted=false;}});
+  const mail=String(email||'').trim().toLowerCase();
+  const pass=String(pw||'');
+  let u=null;
+  if(force){u=state.users.find(x=>x&&x.deleted!==true&&String(x.email||'').toLowerCase()==='admin@demo.com');}
+  if(!u){u=state.users.find(function(x){return x&&x.deleted!==true&&String(x.email||'').toLowerCase()===mail&&String(x.password||'')===pass;});}
+  return u||null;
+}
+function v218Login(email,pw,force){
+  try{
+    const u=v218FindLoginUser(email,pw,force);
+    if(!u){if($('loginMsg'))$('loginMsg').textContent='帳號或密碼錯誤，請重新確認後再試。';return false;}
+    if(u.active===false){if($('loginMsg'))$('loginMsg').textContent='此帳號已停用，請洽管理員啟用。';return false;}
+    currentUser=u;
+    safeSetSession(u.id);
+    if($('loginMsg'))$('loginMsg').textContent='登入成功，載入中...';
+    try{showApp();}catch(err){console.error('V218 showApp failed, fallback used',err);v218ManualShowAppFallback();}
+    return true;
+  }catch(err){
+    console.error('V218 login failed',err);
+    if($('loginMsg'))$('loginMsg').textContent='登入失敗：'+(err&&err.message?err.message:err);
+    return false;
+  }
+}
+doLoginCore=v218Login;
+window.forceMobileLogin=function(){v218Login('admin@demo.com','123456',true)};
+function bindLoginV218(){
+  const btn=$('doLogin'), email=$('loginEmail'), pw=$('loginPassword'), q=$('quickLogin'), m=$('mobileForceLogin');
+  if(!btn)return;
+  const run=function(ev){if(ev){ev.preventDefault();ev.stopPropagation();}v218Login(email&&email.value,pw&&pw.value,false);return false;};
+  btn.onclick=run;
+  btn.addEventListener('click',run,true);
+  btn.addEventListener('touchend',run,{capture:true,passive:false});
+  if(pw)pw.addEventListener('keydown',function(e){if(e.key==='Enter')run(e);},true);
+  if(email)email.addEventListener('keydown',function(e){if(e.key==='Enter')run(e);},true);
+  if(q)q.onclick=function(e){if(e)e.preventDefault(); if(email)email.value='admin@demo.com'; if(pw)pw.value='123456'; return v218Login('admin@demo.com','123456',true);};
+  if(m)m.onclick=function(e){if(e)e.preventDefault(); return v218Login('admin@demo.com','123456',true);};
+}
+
+try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bindLoginV218();bindUI();bindExternalUI();/* V75：為避免看不到登入頁，取消自動登入；請每次由登入頁進入。 */ safeRemoveSession(); $('loginView')&&$('loginView').classList.remove('hide'); $('appView')&&$('appView').classList.add('hide');}catch(err){console.error('V218 init error',err); try{initLogin();bindLoginV218();}catch(e){console.error('V218 login binding fallback failed',e)} if($('loginMsg'))$('loginMsg').textContent='系統載入時有部分功能發生錯誤，但仍可登入。錯誤：'+(err&&err.message?err.message:err); $('loginView')&&$('loginView').classList.remove('hide'); $('appView')&&$('appView').classList.add('hide');}
 
 
 /* V163：DRY/KISS/SOLID 匯出管理器
@@ -11081,7 +11140,7 @@ setInterval(v206SetupNavOrder,1500);
 
 
 <style>
-/* V217 mobile fine tuning */
+/* V218 login repair + V217 mobile fine tuning */
 @media(max-width:760px){
   .v217-mobile-card-actions{display:grid!important;grid-template-columns:1fr auto!important;align-items:center!important}
   .v217-mobile-card-actions .v217-mobile-open{min-width:76px!important}
