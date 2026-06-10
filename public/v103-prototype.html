@@ -11566,4 +11566,322 @@ setInterval(v206SetupNavOrder,1500);
 })();
 </script>
 
+
+<script>
+/* V222：DRY/KISS/SOLID 最終修正
+   DRY：同一套分類函式同時套用個人頁、總覽、外務、手機卡片。
+   KISS：外務地點不再塞「新增」進下拉，改固定顯示新增外務地點欄位，減少手機 select 閃退。
+   SOLID：外務儲存、提醒查看已完成、個人明細、登入提醒各自獨立覆蓋，不互相牽動。 */
+(function(){
+  if(window.__FOR_E_V222__)return; window.__FOR_E_V222__=true;
+  const FIELD_LOCATIONS_V222=[
+    '內湖_印辦｜台北市內湖區瑞光路550號2樓',
+    '內湖_菲辦｜台北市內湖區洲子街55-57號2樓',
+    '台北_越辦(領件只能下午)｜臺北市中山區松江路101號2樓',
+    '台北_越南換護照｜臺北市中山區松江路65號2，3樓',
+    '台北_泰辦｜台北市大安區信義路三段151號 10 樓',
+    '台北_勞動部｜臺北市中正區中華路1段39號10樓',
+    '桃園移民署｜桃園市桃園區縣府路106號1樓',
+    '中壢就業中心｜桃園市中壢區新興路182號',
+    '桃園就業中心｜桃園市桃園區縣府路59號',
+    '中和就業中心｜新北市中和區景安路118號',
+    '板橋就業中心｜新北市板橋區漢生東路163號',
+    '三重就業中心(不同仲介要不同天)｜新北市三重區重新路四段12號',
+    '新竹就業中心｜新竹市光華東街56號',
+    '竹北就業中心｜新竹縣竹北市光明九路7-3號',
+    '宜蘭羅東就業中心｜宜蘭縣羅東鎮東榮路二段91號',
+    '苗栗就業中心｜苗栗市中山路558號',
+    '新北移民署｜新北市中和區民安街135號',
+    '竹北移民署｜新竹縣竹北市三民路133號1樓',
+    '基隆移民署｜基隆市中正區義一路18號11樓A棟',
+    '新竹移民署｜新竹市北區中華路三段12號1樓'
+  ];
+  const $=id=>document.getElementById(id);
+  const qa=(s,r=document)=>Array.from(r.querySelectorAll(s));
+  function esc2(v){try{return esc(v)}catch(_){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}}
+  function attr2(v){return esc2(v).replace(/"/g,'&quot;')}
+  function parseLoc2(line){const p=String(line||'').split('｜');return {name:(p[0]||'').trim(),address:p.slice(1).join('｜').trim()}}
+  function locList2(){
+    const base=FIELD_LOCATIONS_V222.map(parseLoc2);
+    let custom=[];
+    try{custom=(state.options&&Array.isArray(state.options.fieldLocations)?state.options.fieldLocations:[]).map(parseLoc2).filter(x=>x.name&&!base.some(b=>b.name===x.name)&&x.name!=='新增'&&x.name!=='__new__')}catch(_){}
+    return base.concat(custom);
+  }
+  function normalizeFieldOptions2(){
+    try{
+      state.options=state.options||{};
+      const custom=(Array.isArray(state.options.fieldLocations)?state.options.fieldLocations:[]).filter(x=>x&&!/^新增$|__new__/.test(String(x).trim())&&!FIELD_LOCATIONS_V222.includes(x));
+      state.options.fieldLocations=FIELD_LOCATIONS_V222.concat(custom);
+      if($('optFieldLocations'))$('optFieldLocations').value=state.options.fieldLocations.join('\n');
+    }catch(_){}
+  }
+
+  function clearFieldRequired2(){
+    qa('#fieldModal .required').forEach(x=>x.classList.remove('required'));
+    qa('#fieldModal .req-missing').forEach(x=>x.classList.remove('req-missing'));
+    qa('#fieldModal .required-hint').forEach(x=>x.remove());
+  }
+  window.v203ValidateFieldRequired=function(){clearFieldRequired2();return true};
+  try{v203ValidateFieldRequired=function(){clearFieldRequired2();return true}}catch(_){}
+  try{v203MarkFieldRequired=function(){return true}}catch(_){}
+  try{v203ShowFieldMissing=function(){return true}}catch(_){}
+
+  function ensureFieldNewBox2(){
+    const sel=$('fieldLocation'); if(!sel)return null;
+    let wrap=$('fieldLocationNewBox');
+    if(!wrap){
+      wrap=document.createElement('div'); wrap.id='fieldLocationNewBox';
+      wrap.innerHTML='<div class="muted" style="margin-top:8px"><b>新增外務地點</b>（下拉沒有的地點才填寫）</div><div class="row"><div><label>新增外務地點</label><input id="fieldLocationNew" placeholder="可空白；需新增時再填"></div><div><label>新增外務地址</label><input id="fieldAddressNew" placeholder="可空白；需新增時再填"></div></div>';
+      const row=sel.closest('.row')||sel.closest('.field')||sel.parentElement; row&&row.insertAdjacentElement('afterend',wrap);
+    }else{
+      wrap.classList.remove('hide'); wrap.style.display='block';
+      const title=wrap.querySelector('.muted b'); if(title)title.textContent='新增外務地點';
+    }
+    return wrap;
+  }
+  function renderFieldLocationSelect2(keep){
+    normalizeFieldOptions2();
+    let sel=$('fieldLocation'); if(!sel)return;
+    if(sel.tagName!=='SELECT'){
+      const old=sel.value||''; const n=document.createElement('select'); n.id='fieldLocation'; n.className=sel.className||''; sel.replaceWith(n); sel=n; if(!keep)keep=old;
+    }
+    const list=locList2();
+    const current=(keep!==undefined?keep:(sel.value==='__new__'?'':sel.value))||'';
+    sel.innerHTML='<option value="">（空白）</option>'+list.map(x=>'<option value="'+attr2(x.name)+'">'+esc2(x.name)+'｜'+esc2(x.address)+'</option>').join('');
+    sel.value=list.some(x=>x.name===current)?current:'';
+    const found=list.find(x=>x.name===sel.value);
+    if(found&&$('fieldAddress'))$('fieldAddress').value=found.address||'';
+    ensureFieldNewBox2();
+    sel.onchange=function(){
+      const item=locList2().find(x=>x.name===this.value);
+      if($('fieldAddress'))$('fieldAddress').value=item?item.address:'';
+    };
+    clearFieldRequired2();
+  }
+
+  function collectFieldEvent2(){
+    const newLoc=($('fieldLocationNew')&&$('fieldLocationNew').value||'').trim();
+    const newAddr=($('fieldAddressNew')&&$('fieldAddressNew').value||'').trim();
+    const sel=$('fieldLocation');
+    const item=locList2().find(x=>x.name===(sel&&sel.value));
+    const locName=newLoc || (sel&&sel.value) || '';
+    const addr=newLoc ? newAddr : (item?item.address:(($('fieldAddress')&&$('fieldAddress').value)||''));
+    if(newLoc){
+      try{state.options=state.options||{}; state.options.fieldLocations=state.options.fieldLocations||[]; const line=newLoc+(newAddr?'｜'+newAddr:''); if(!state.options.fieldLocations.some(x=>parseLoc2(x).name===newLoc))state.options.fieldLocations.push(line)}catch(_){}
+    }
+    return {
+      personId:($('fieldPerson')&&$('fieldPerson').value)||'',
+      date:($('fieldDate')&&$('fieldDate').value)||todayISO(),
+      time:($('fieldTime')&&$('fieldTime').value)||'',
+      status:($('fieldStatus')&&$('fieldStatus').value)||'未完成',
+      failureReason:($('fieldFailureReason')&&$('fieldFailureReason').value.trim())||'',
+      locationName:locName,
+      address:addr,
+      purpose:($('fieldPurpose')&&$('fieldPurpose').value)||'',
+      note:($('fieldNote')&&$('fieldNote').value)||'',
+      cash:($('fieldCash')&&$('fieldCash').value)||'',
+      stamp:($('fieldStamp')&&$('fieldStamp').value)||'',
+      document:($('fieldDocument')&&$('fieldDocument').value)||'',
+      mustSend:!!($('fieldMustSend')&&$('fieldMustSend').checked),
+      cannotChange:!!($('fieldCannotChange')&&$('fieldCannotChange').checked),
+      pickupDate:($('fieldPickupDate')&&$('fieldPickupDate').value)||'',
+      pickupPersonId:($('fieldPickupPerson')&&$('fieldPickupPerson').value)||'',
+      updatedBy:(currentUser&&currentUser.id)||'system',updatedAt:new Date().toISOString()
+    };
+  }
+  window.collectFieldEvent=collectFieldEvent2;
+  try{collectFieldEvent=collectFieldEvent2}catch(_){}
+
+  function saveFieldEvent2(){
+    try{ensureExternalState()}catch(_){}
+    clearFieldRequired2();
+    const id=$('editFieldId')&&$('editFieldId').value;
+    const data=collectFieldEvent2();
+    if(data.status==='送件失敗'&&!data.failureReason)return toast('請填寫送件失敗原因');
+    if(id){
+      const idx=(state.externalEvents||[]).findIndex(x=>x.id===id);
+      if(idx>=0){
+        const old=clone(state.externalEvents[idx]); const mainOld=clone((state.events||[]).find(x=>x.externalEventId===id)||null);
+        state.externalEvents[idx]={...state.externalEvents[idx],...data};
+        try{addLog('修改','外務行程',state.externalEvents[idx].purpose,'外務行程','修改前',JSON.stringify(old))}catch(_){}
+        try{syncMainEventFromField(state.externalEvents[idx],'修改',mainOld)}catch(_){}
+        try{upsertPickupFieldEvent(state.externalEvents[idx])}catch(_){}
+      }
+    }else{
+      const group=uid('fg'); let firstMain=null; let dates=[]; try{dates=fieldRepeatDates()}catch(_){dates=[data.date||todayISO()]}
+      dates.forEach(function(d){
+        const ev={id:uid('field'),repeatGroupId:group,createdBy:(currentUser&&currentUser.id)||'system',createdAt:new Date().toISOString(),deleted:false,...data,date:d};
+        state.externalEvents=state.externalEvents||[]; state.externalEvents.push(ev);
+        try{addLog('新增','外務行程',ev.purpose,'外務行程','',`${ev.date} ${(getPerson(ev.personId)||{}).name||''} ${ev.locationName||''}`)}catch(_){}
+        let main=null; try{main=syncMainEventFromField(ev,'新增')}catch(_){}
+        if(!firstMain){firstMain=main; try{upsertPickupFieldEvent(ev)}catch(_){}}
+      });
+      try{if(firstMain)state.lastLineText=lineMessage('新增',firstMain)+(dates.length>1?'\n重複行程：共 '+dates.length+' 筆，已同步加入行程總覽。':'')}catch(_){}
+    }
+    try{save()}catch(_){}
+    if($('fieldModal'))$('fieldModal').classList.add('hide');
+    try{renderAll()}catch(_){}
+    try{toast('外務行程已儲存，並已同步至行程總覽')}catch(_){}
+  }
+  window.saveFieldEvent=saveFieldEvent2;
+  try{saveFieldEvent=saveFieldEvent2}catch(_){}
+  function bindFieldSave2(){if($('saveFieldBtn'))$('saveFieldBtn').onclick=saveFieldEvent2}
+
+  function evById2(id){try{return (state.events||[]).find(x=>x&&x.id===id)||(state.externalEvents||[]).find(x=>x&&x.id===id)||null}catch(_){return null}}
+  function textKind2(el){const t=(el&&el.textContent)||''; if(/已完成|已送件/.test(t))return 'done'; if(/外務|送件|領件/.test(t)||el.classList.contains('field-event'))return 'field'; if(/一般記事/.test(t))return 'note'; if(/個人待辦/.test(t))return 'personalTodo'; if(/待辦|提醒事項|確認/.test(t))return 'todo'; if(/會議|請假|教育訓練|活動|上課|外訓|返鄉/.test(t))return 'status'; if(/異況|逃跑|轉出|住變|返台|驗證/.test(t))return 'incident'; return 'schedule'}
+  function kind2(e,el){
+    if(!e)return textKind2(el);
+    const st=String(e.status||e.fieldStatus||''); if(st==='已完成'||st==='已送件')return 'done';
+    const joined=[e.kind,e.type,e.additionalType,e.name,e.note,e.purpose,e.locationName].join(' ');
+    if(e.externalSource||e.externalEventId||e.purpose||String(e.id||'').startsWith('field')||/外務|送件|領件/.test(joined))return 'field';
+    if(e.kind==='generalNote'||/一般記事/.test(joined))return 'note';
+    if(e.kind==='personalGeneralTodo'||/個人待辦/.test(joined))return 'personalTodo';
+    if(e.kind==='todo'||/待辦事項|提醒事項|待辦|確認/.test(joined))return 'todo';
+    if(e.kind==='translatorStatus'||/會議|請假|教育訓練|活動|上課|外訓|返鄉/.test(joined))return 'status';
+    if(/異況|逃跑|轉出|住變|返台|驗證/.test(joined))return 'incident';
+    return 'schedule';
+  }
+  function applyKindColors2(){
+    qa('.event,.mobile-event-card,.field-event,.room-booking-item,.mobile-alert-card').forEach(function(el){
+      ['field','note','schedule','todo','personalTodo','status','incident','done'].forEach(k=>{el.classList.remove('v221-kind-'+k,'v222-kind-'+k,'event-kind-'+k)});
+      const id=el.dataset&&el.dataset.id; const e=id?evById2(id):null; el.classList.add('v222-kind-'+kind2(e,el));
+    });
+  }
+
+  function markDone2(id){
+    if(!id)return;
+    const e=(state.events||[]).find(x=>x&&x.id===id);
+    const f=(state.externalEvents||[]).find(x=>x&&x.id===id);
+    const target=e||f; if(!target)return;
+    target.status='已完成'; target.updatedBy=(currentUser&&currentUser.id)||target.updatedBy||'system'; target.updatedAt=new Date().toISOString();
+    if(e&&e.externalEventId){const fe=(state.externalEvents||[]).find(x=>x&&x.id===e.externalEventId); if(fe){fe.status='已完成';fe.updatedBy=e.updatedBy;fe.updatedAt=e.updatedAt}}
+    if(f){const main=(state.events||[]).find(x=>x&&x.externalEventId===f.id); if(main){main.status='已完成';main.updatedBy=f.updatedBy;main.updatedAt=f.updatedAt}}
+    try{save()}catch(_){}; qa('.modal').forEach(m=>m.classList.add('hide')); try{renderAll()}catch(_){}; try{toast('已完成')}catch(_){}
+  }
+  window.v222MarkDone=markDone2;
+  function visibleEventId2(){
+    const ids=['eventId','editEventId','editId']; for(const id of ids){const el=$(id); if(el&&el.value)return el.value}
+    const m=document.querySelector('.modal:not(.hide) [data-id]'); if(m&&m.dataset.id)return m.dataset.id;
+    return '';
+  }
+  function patchDoneBtn2(id){
+    const modal=document.querySelector('#eventModal:not(.hide), .modal:not(.hide)'); if(!modal)return;
+    const actions=modal.querySelector('.modal-actions')||modal.querySelector('.mobile-alert-actions')||modal.querySelector('.toolbar')||modal.querySelector('.modal-card');
+    if(!actions)return;
+    const eid=id||visibleEventId2(); if(!eid)return;
+    const e=evById2(eid); if(!e||e.status==='已完成'||e.status==='取消')return;
+    let btn=modal.querySelector('#v222DoneBtn'); if(btn)btn.remove();
+    btn=document.createElement('button'); btn.id='v222DoneBtn'; btn.type='button'; btn.className='primary'; btn.textContent='已完成'; btn.onclick=function(ev){ev.preventDefault();ev.stopPropagation();markDone2(eid)};
+    actions.appendChild(btn);
+  }
+
+  function openView2(id){
+    if(!id)return;
+    try{ if(typeof openEventModal==='function')openEventModal({eventId:id}); else if(typeof v221OpenViewEvent==='function')v221OpenViewEvent(id); }catch(err){try{v221OpenViewEvent(id)}catch(_){}}
+    setTimeout(function(){
+      if($('eventModalTitle'))$('eventModalTitle').textContent='查看行程';
+      patchDoneBtn2(id);
+    },120);
+  }
+  window.v222OpenViewEvent=openView2;
+  try{v221OpenViewEvent=openView2}catch(_){}
+
+  function personName2(id){try{return (getPerson(id)||{}).name||''}catch(_){return ''}}
+  function executorText2(e,pid){try{return executorNames(e)||''}catch(_){} const ids=(e.assigneeIds&&e.assigneeIds.length?e.assigneeIds:e.participants)||[]; return ids.map(personName2).filter(Boolean).join('、')||personName2(pid)||''}
+  function time2(t){try{return ampm(t)}catch(_){return t||''}}
+  function type2(t){try{return displayEventType(t||'')}catch(_){return t||''}}
+  function renderPersonalDetails2(){
+    const tbody=$('personalDetailRows'); if(!tbody||typeof personalDetailRowsFiltered!=='function')return false;
+    try{renderPersonalDetailOptions()}catch(_){}; try{renderPersonalDesktopAlerts()}catch(_){}; try{renderAssignedTracking()}catch(_){};
+    const rows=personalDetailRowsFiltered()||[]; const table=tbody.closest('table');
+    if(table&&table.tHead&&table.tHead.rows[0])table.tHead.rows[0].innerHTML='<th style="width:108px">開始時間</th><th>行程明細</th><th style="width:92px;text-align:right">操作</th>';
+    tbody.innerHTML=rows.map(function(r){
+      const e=r.event||{};
+      const note=String(e.note||'').split(/\n/).slice(0,3).join('\n');
+      const line1=[time2(e.startTime),type2(e.type),e.locationName||''].filter(Boolean).join(' / ');
+      const meta='<div class="v222-detail-meta"><span>公務車：'+esc2(e.vehicleNo||'')+'</span><span>狀態：'+esc2(e.status||'')+'</span><span>指派人員：'+esc2(executorText2(e,r.personId))+'</span></div>';
+      return '<tr><td>'+esc2(e.startDate||r.date||'')+'<br>'+esc2(time2(e.startTime)||'')+'</td><td><div class="v222-detail-line1">'+esc2(line1)+'</div><div class="v222-detail-name">辦理內容：'+esc2(e.name||'')+'</div><div class="v222-note-label">內容說明：</div><div class="v222-note-3">'+esc2(note)+'</div>'+meta+'</td><td class="v222-action-cell"><button type="button" class="small primary" data-v222-view="'+attr2(e.id||'')+'">查看</button></td></tr>';
+    }).join('')||'<tr><td colspan="3" class="muted">沒有個人行程表</td></tr>';
+    qa('[data-v222-view]',tbody).forEach(btn=>btn.onclick=function(ev){ev.preventDefault();ev.stopPropagation();openView2(btn.dataset.v222View)});
+    return true;
+  }
+  window.v222RenderPersonalDetails=renderPersonalDetails2;
+  try{renderPersonalDetails=renderPersonalDetails2}catch(_){}
+
+  function patchMobileCards2(){
+    qa('.mobile-event-card').forEach(function(card){
+      const id=card.dataset&&card.dataset.id; const e=id?evById2(id):null;
+      qa('button',card).forEach(function(b){const t=(b.textContent||'').trim(); if(t==='複製內容')b.remove(); if(t==='詳細/修改')b.textContent='查看'});
+      if(e&&!card.querySelector('.v222-card-note')){
+        const note=String(e.note||'').split(/\n/).slice(0,3).join('\n');
+        const meta=card.querySelector('.mobile-meta')||card.querySelector('.mobile-event-title')||card.firstElementChild;
+        const div=document.createElement('div'); div.className='v222-card-note'; div.textContent='內容說明：'+(note||'');
+        if(meta)meta.insertAdjacentElement('afterend',div); else card.appendChild(div);
+      }
+      const btn=Array.from(card.querySelectorAll('button')).find(b=>/查看|詳細/.test(b.textContent||''));
+      if(btn){btn.textContent='查看'; btn.classList.add('primary'); btn.onclick=function(ev){ev.preventDefault();ev.stopPropagation();openView2(id)}}
+    });
+  }
+  document.addEventListener('click',function(e){
+    const b=e.target&&e.target.closest&&e.target.closest('[data-v222-view],[data-v221-view]');
+    if(b){e.preventDefault();e.stopPropagation();openView2(b.dataset.v222View||b.dataset.v221View)}
+  },true);
+
+  function todayNoticeRows2(){
+    const d=todayISO(); const pid=currentUser&&currentUser.personId;
+    return (state.events||[]).filter(function(e){
+      if(!e||e.deleted||e.status==='取消'||e.status==='已完成')return false;
+      const inDay=String(e.startDate||'')<=d&&String(e.endDate||e.startDate||'')>=d; if(!inDay)return false;
+      const ids=[].concat(e.participants||[],e.assigneeIds||[]); return !pid||ids.includes(pid)||e.createdBy===(currentUser&&currentUser.id)||['admin','supervisor'].includes(currentUser&&currentUser.role);
+    }).sort((a,b)=>String(a.startTime||'').localeCompare(String(b.startTime||'')));
+  }
+  function loginNotice2(){
+    if(!currentUser||window.__v222_login_notice_showing__)return; window.__v222_login_notice_showing__=true;
+    const rows=todayNoticeRows2();
+    const title='今天行程及待辦通知';
+    const body=rows.length? rows.slice(0,10).map(e=>'• '+(e.startTime||'')+'｜'+(type2(e.type)||e.kind||'')+'｜'+(e.name||'')).join('\n')+(rows.length>10?'\n...另有 '+(rows.length-10)+' 筆':''):'今天沒有未完成行程或待辦。';
+    setTimeout(function(){alert(title+'\n\n'+body); window.__v222_login_notice_showing__=false;},650);
+  }
+  if(typeof showApp==='function'&&!showApp.v222){
+    const baseShowApp=showApp; showApp=function(){const r=baseShowApp.apply(this,arguments); setTimeout(loginNotice2,900); return r}; showApp.v222=true;
+  }
+
+  if(typeof renderFieldOptions==='function'&&!renderFieldOptions.v222){const base=renderFieldOptions; renderFieldOptions=function(){const keep=$('fieldLocation')&&$('fieldLocation').value; const r=base.apply(this,arguments); setTimeout(()=>renderFieldLocationSelect2(keep),0); return r}; renderFieldOptions.v222=true;}
+  if(typeof openFieldModal==='function'&&!openFieldModal.v222){const base=openFieldModal; openFieldModal=function(opts){const r=base.apply(this,arguments); setTimeout(function(){const id=$('editFieldId')&&$('editFieldId').value; let keep=''; if(id){const e=(state.externalEvents||[]).find(x=>x&&x.id===id); keep=e?e.locationName||'':''} renderFieldLocationSelect2(keep); bindFieldSave2(); clearFieldRequired2();},80); return r}; openFieldModal.v222=true;}
+  if(typeof openEventModal==='function'&&!openEventModal.v222){const base=openEventModal; openEventModal=function(){const r=base.apply(this,arguments); setTimeout(()=>patchDoneBtn2(),120); return r}; openEventModal.v222=true;}
+
+  function after222(){
+    normalizeFieldOptions2(); clearFieldRequired2(); renderFieldLocationSelect2(); bindFieldSave2(); applyKindColors2(); patchMobileCards2(); patchDoneBtn2();
+    qa('button').forEach(function(b){const t=(b.textContent||'').trim(); if(t==='複製內容')b.remove(); if(t==='詳細/修改')b.textContent='查看'});
+    if($('personalDetailsPage')&&!$('personalDetailsPage').classList.contains('hide'))renderPersonalDetails2();
+  }
+  if(typeof renderAll==='function'&&!renderAll.v222){const base=renderAll; renderAll=function(){const r=base.apply(this,arguments); [80,240,650].forEach(ms=>setTimeout(after222,ms)); return r}; renderAll.v222=true;}
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(after222,500)});
+  document.addEventListener('click',function(e){if(e.target&&e.target.closest&&e.target.closest('[data-page],#fieldAddBtn,#saveFieldBtn,.mobile-alert-card button,.mobile-event-card button,#refreshPersonalDetails,#applyPersonalDetailSort'))setTimeout(after222,180)},true);
+  document.addEventListener('change',function(e){if(e.target&&e.target.id==='fieldLocation')setTimeout(after222,30)},true);
+  setTimeout(after222,700); setInterval(after222,900);
+})();
+</script>
+<style>
+/* V222 colors: 行程總覽、外務、個人、手機卡片共用 */
+.event.v222-kind-field,.field-event.v222-kind-field,.mobile-event-card.v222-kind-field{background:#ffedd5!important;border-color:#fdba74!important;border-left-color:#f97316!important;color:#0f172a!important}
+.event.v222-kind-note,.mobile-event-card.v222-kind-note{background:#fff!important;border-color:#d8dde8!important;border-left-color:#94a3b8!important;color:#0f172a!important}
+.event.v222-kind-schedule,.mobile-event-card.v222-kind-schedule{background:#fce7f3!important;border-color:#f9a8d4!important;border-left-color:#ec4899!important;color:#0f172a!important}
+.event.v222-kind-todo,.mobile-event-card.v222-kind-todo{background:#fef9c3!important;border-color:#fde68a!important;border-left-color:#f59e0b!important;color:#0f172a!important}
+.event.v222-kind-personalTodo,.mobile-event-card.v222-kind-personalTodo{background:#dbeafe!important;border-color:#93c5fd!important;border-left-color:#3b82f6!important;color:#0f172a!important}
+.event.v222-kind-status,.mobile-event-card.v222-kind-status{background:#f3e8ff!important;border-color:#d8b4fe!important;border-left-color:#9333ea!important;color:#0f172a!important}
+.event.v222-kind-incident,.mobile-alert-card.v222-kind-incident,.mobile-event-card.v222-kind-incident{background:#fef08a!important;border-color:#facc15!important;border-left-color:#eab308!important;color:#0f172a!important}
+.event.v222-kind-done,.field-event.v222-kind-done,.mobile-event-card.v222-kind-done,.mobile-alert-card.v222-kind-done{background:#e5e7eb!important;border-color:#cbd5e1!important;border-left-color:#64748b!important;color:#334155!important;opacity:1!important}
+#fieldLocation option[value="__new__"]{display:none!important}
+#fieldLocationNewBox{display:block!important;margin:8px 0 10px!important;padding:10px!important;border:1px dashed #fdba74!important;border-radius:12px!important;background:#fff7ed!important}
+#fieldLocationNewBox.hide{display:block!important}
+#fieldLocationNewBox .row{margin-top:6px!important}
+#fieldModal .required label:first-child:after{content:''!important}
+#fieldModal .required-hint{display:none!important}
+#fieldModal .req-missing{border-color:var(--line)!important;box-shadow:none!important;background:#fff!important}
+.v222-action-cell{text-align:right!important;white-space:nowrap!important;vertical-align:middle!important}
+.v222-detail-line1{font-weight:900;margin-bottom:4px}.v222-detail-name{font-weight:900;margin-bottom:4px}.v222-note-label{font-size:12px;color:#64748b;font-weight:900}.v222-note-3,.v222-card-note{white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;line-height:1.45;color:#475569;margin-top:3px}.v222-detail-meta{display:flex;gap:22px;flex-wrap:wrap;margin-top:6px;color:#475569;font-size:13px}.mobile-event-card .toolbar,.mobile-event-card .mobile-alert-actions{justify-content:flex-end!important}.mobile-event-card button{margin-left:auto!important;display:block!important;max-width:160px!important}.mobile-event-card .v222-card-note{font-size:13px;margin:6px 0 8px}
+@media(max-width:760px){.room-room-head{width:92px!important;min-width:92px!important;max-width:92px!important}.room-room-cell{width:92px!important;min-width:92px!important;max-width:92px!important;padding:5px!important;font-size:11px!important}.room-day-cell{width:136px!important;min-width:136px!important}.room-week-table{min-width:780px!important}}
+</style>
+
 </body></html>
