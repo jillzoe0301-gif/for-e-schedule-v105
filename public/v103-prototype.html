@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V184</title>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V218</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -10810,9 +10810,9 @@ setInterval(v206SetupNavOrder,1500);
 
 
 
-<!-- V217：三原則修正｜刪除測試行程、取消行程顏色、行程表單新增已完成按鈕 -->
-<style>
-/* V217 KISS：行程卡片統一中性色，不再依行程/狀態套用不同顏色 */
+<!-- V218：真正清除測試行程＋取消行程顏色＋行程表單已完成按鈕 -->
+<style id="v218-no-event-colors-style">
+/* V218 取消所有行程卡片顏色：保留人員/假日顏色，只統一行程本身 */
 .event,
 .event.done,
 .event.cancel,
@@ -10837,129 +10837,201 @@ setInterval(v206SetupNavOrder,1500);
 .mobile-event-card.status-home,
 .mobile-event-card.status-meeting,
 .mobile-event-card.status-training,
-.mobile-alert-card,
-.mobile-alert-card.urgent,
-.mobile-alert-card.overdue,
 .room-booking-item,
+.room-booking-item.readonly,
 .room-booking-card,
-.incident-mobile-card,
-.incident-mobile-card.overdue{
+.room-conflict{
   background:#fff!important;
-  border-color:var(--line)!important;
+  border-color:#d8dde8!important;
   border-left-color:#94a3b8!important;
-  color:var(--text)!important;
+  color:#1f2937!important;
   box-shadow:none!important;
   opacity:1!important;
 }
-#themePage [id^="themeEvent"],
-#themePage [data-swatch^="themeEvent"],
-#themePage [data-code^="themeEvent"]{
-  display:none!important;
-}
-.v217-done-btn{background:#16a34a!important;border-color:#16a34a!important;color:#fff!important;}
+.event *,.field-event *,.mobile-event-card *,.room-booking-item *{color:inherit!important}
+.service-record,.field-flag.must,.field-failure-reason{color:#1f2937!important}
+#themePage [id*="themeEvent"],#themePage [data-swatch*="themeEvent"],#themePage [data-code*="themeEvent"]{opacity:.45!important;pointer-events:none!important}
+#v218DoneEventBtn{background:#16a34a!important;border-color:#16a34a!important;color:#fff!important}
 </style>
-<script>
-/* V217 DRY/SOLID：集中處理測試資料清除與完成狀態，不改動各頁零散邏輯 */
+<script id="v218-real-fix">
+/*
+  V218 三原則修正
+  DRY：所有測試資料用同一個 isTestRecord() 判斷清理。
+  KISS：不拆主程式，只在最後加保底補丁，避免覆蓋失敗或破壞原功能。
+  SOLID：清測試資料、取消顏色、完成按鈕三段獨立處理。
+*/
 (function(){
-  const PATCH='V217';
-  const MARKER_RE=/^v20[6-9]|^v21[0-7]|v20[6-9]|v21[0-7]|demo_recordsubmit/i;
-  const TEXT_RE=/測試|TEST|Sample|Demo|V20[6-9]|V21[0-7]/i;
-  function hasText(v){return TEXT_RE.test(String(v||''));}
-  function hasMarker(o){
-    if(!o||typeof o!=='object')return false;
-    return Object.keys(o).some(k=>/^(v20[6-9]|v21[0-7]).*Marker$|recordSubmitDemo|demo/i.test(k)&&o[k]);
+  'use strict';
+  const V='V218';
+  let cleaning=false, rendering=false;
+
+  function hasText(obj, words){
+    const s=JSON.stringify(obj||'');
+    return words.some(w=>s.indexOf(w)>=0);
   }
-  function isTestRecord(o){
-    if(!o)return false;
-    if(hasMarker(o))return true;
-    const marker=String(o.v206Marker||o.v208Marker||o.v210Marker||o.v211Marker||o.v212Marker||o.v213Marker||o.v214Marker||o.v215Marker||o.v216Marker||o.v217Marker||'');
-    if(MARKER_RE.test(marker))return true;
-    return [o.name,o.title,o.note,o.description,o.locationName,o.customerName,o.location,o.document,o.workerName,o.workerId,o.department,o.incidentType].some(hasText);
+  function isTestRecord(x){
+    if(!x || typeof x!=='object') return false;
+    if(x.id==='ev_demo1') return true;
+    if(x.v203Marker||x.v204Marker||x.v205Marker||x.v206Marker||x.v208Marker||x.v210Marker||x.v211Marker||x.v212Marker) return true;
+    if(x.v211Marker||x.v212Marker) return true;
+    const demoCreator=['u_admin','u_staff','u_general','u_adminstaff'].includes(String(x.createdBy||''));
+    const testWords=['測試行程','測試資料','測試待辦','測試一般','測試醫療','測試醫院','測試地點','測試客戶','測試工人','催繳測試','1週提醒測試','已繳交測試','V203','V204','V205','V206','V208','V210','V211','V212','6/11 測試','黃明書基本測試','外務測試'];
+    if(hasText(x,testWords)) return true;
+    if(demoCreator && hasText(x,['陪同看診','桃園醫院','Demo','測試'])) return true;
+    return false;
   }
-  function purgeTestSchedules(reason){
+  function cleanArray(name){
+    if(!window.state || !Array.isArray(state[name])) return 0;
+    const before=state[name].length;
+    state[name]=state[name].filter(item=>!isTestRecord(item));
+    return before-state[name].length;
+  }
+  function cleanTestData(renderAfter){
+    if(cleaning || !window.state) return 0;
+    cleaning=true;
+    let removed=0;
     try{
-      if(typeof state==='undefined'||!state)return 0;
-      let removed=0;
-      ['events','externalEvents','roomBookings','incidents','incidentLogs'].forEach(key=>{
-        if(!Array.isArray(state[key]))return;
-        const before=state[key].length;
-        if(key==='incidentLogs'){
-          state[key]=state[key].filter(x=>!isTestRecord(x)&&!hasText(x&&x.content));
-        }else{
-          state[key]=state[key].filter(x=>!isTestRecord(x));
+      removed+=cleanArray('events');
+      removed+=cleanArray('externalEvents');
+      removed+=cleanArray('incidents');
+      // 追蹤紀錄若內容是測試，或來源異況已不存在，也一併清掉
+      if(Array.isArray(state.incidentLogs)){
+        const incIds=new Set((state.incidents||[]).map(i=>i.id));
+        const before=state.incidentLogs.length;
+        state.incidentLogs=state.incidentLogs.filter(l=>!isTestRecord(l) && (!l.incidentId || incIds.has(l.incidentId)));
+        removed+=before-state.incidentLogs.length;
+      }
+      // 報表快照若是測試資料產生，可保留使用者資料；這裡不動。
+      if(removed>0){
+        try{ if(typeof save==='function') save(); }catch(_){ }
+        console.info('[V218] removed test records:',removed);
+      }
+    }catch(e){console.warn('[V218] clean failed',e)}
+    finally{cleaning=false;}
+    if(removed>0 && renderAfter && !rendering){
+      rendering=true;
+      setTimeout(()=>{try{ if(typeof renderAll==='function') renderAll(); }catch(_){ } rendering=false;},80);
+    }
+    return removed;
+  }
+
+  function applyNoEventTheme(){
+    try{
+      if(window.state){
+        state.theme=state.theme||{};
+        state.theme.eventPending='#ffffff';
+        state.theme.eventDone='#ffffff';
+        if(typeof document!=='undefined'){
+          document.documentElement.style.setProperty('--theme-event-pending','#ffffff');
+          document.documentElement.style.setProperty('--theme-event-done','#ffffff');
         }
-        removed+=before-state[key].length;
-      });
-      if(removed>0&&typeof save==='function'){
-        try{save();}catch(_){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(__){}}
-        try{console.info(PATCH+' removed test schedules:',removed,reason||'');}catch(_){ }
-      }
-      return removed;
-    }catch(e){try{console.warn(PATCH+' purge failed',e);}catch(_){ } return 0;}
-  }
-  function removeSeededAgain(){purgeTestSchedules('post-render');}
-  function installPurgeGuards(){
-    try{
-      if(typeof window.__v217PurgeInstalled!=='undefined')return;
-      window.__v217PurgeInstalled=true;
-      const seedNames=['v206SeedAllAccountTests','v208SeedAllAccountTests','v210SeedExternalTests','v210SeedMingAllTypes','v211SeedAllAccountTests','v212SeedAllAccountTests'];
-      seedNames.forEach(name=>{try{if(typeof window[name]==='function')window[name]=function(){return false;};}catch(_){}});
-      if(typeof renderAll==='function'){
-        const baseRenderAll=renderAll;
-        renderAll=function(){purgeTestSchedules('before-render'); const r=baseRenderAll.apply(this,arguments); setTimeout(removeSeededAgain,0); return r;};
-      }
-      if(typeof load==='function'){
-        const baseLoad=load;
-        load=function(){const r=baseLoad.apply(this,arguments); purgeTestSchedules('after-load'); return r;};
-      }
-    }catch(e){try{console.warn(PATCH+' guard install failed',e);}catch(_){ }}
-  }
-  function canMarkDone(ev){
-    try{
-      if(typeof requiresServiceRecord==='function'&&requiresServiceRecord(ev)&&(!ev.serviceRecordSubmitted||!ev.serviceRecordDate)){
-        return '此行程需先勾選服務紀錄單並填寫繳交日期後，才能設為已完成';
       }
     }catch(_){ }
-    return '';
   }
-  function installDoneButton(){
+
+  function canCompleteEvent(e){
+    try{
+      if(!e || !window.currentUser) return false;
+      if(typeof isAdmin==='function' && isAdmin()) return true;
+      const pid=(typeof userPersonId==='function')?userPersonId():(currentUser.personId||'');
+      return e.createdBy===currentUser.id || (e.participants||[]).includes(pid) || (e.assigneeIds||[]).includes(pid);
+    }catch(_){return true;}
+  }
+  function completeEventFromModal(){
+    const statusEl=document.getElementById('eventStatus');
+    if(statusEl) statusEl.value='已完成';
+    const idEl=document.getElementById('eventId');
+    const id=idEl&&idEl.value;
+    if(!id){
+      try{ if(typeof toast==='function') toast('已切換為已完成，請按儲存新增行程'); }catch(_){ }
+      return;
+    }
+    try{
+      const e=(state.events||[]).find(x=>x&&x.id===id);
+      if(!e) return;
+      if(!canCompleteEvent(e)){ if(typeof toast==='function') toast('目前帳號無法將此行程設為已完成'); return; }
+      if(typeof requiresServiceRecord==='function' && requiresServiceRecord(e) && (!e.serviceRecordSubmitted || !e.serviceRecordDate)){
+        if(typeof toast==='function') toast('此行程需先勾選服務紀錄單並填寫繳交日期，才能已完成');
+        return;
+      }
+      e.status='已完成';
+      e.updatedBy=(window.currentUser&&currentUser.id)||e.updatedBy||'';
+      e.updatedAt=new Date().toISOString();
+      if(typeof save==='function') save();
+      if(typeof closeEventModal==='function') closeEventModal(); else document.getElementById('eventModal')?.classList.add('hide');
+      if(typeof renderAll==='function') renderAll();
+      if(typeof toast==='function') toast('已完成');
+    }catch(err){console.warn('[V218] complete failed',err);}
+  }
+  function ensureDoneButton(){
     const modal=document.getElementById('eventModal');
-    if(!modal)return;
+    if(!modal) return;
     const actions=modal.querySelector('.modal-actions');
-    if(!actions||document.getElementById('markEventDoneBtn'))return;
-    const btn=document.createElement('button');
-    btn.id='markEventDoneBtn';
-    btn.type='button';
-    btn.className='v217-done-btn';
-    btn.textContent='已完成';
-    btn.onclick=function(){
-      try{
-        const status=document.getElementById('eventStatus');
-        const idEl=document.getElementById('eventId');
-        const id=idEl?idEl.value:'';
-        if(!id){
-          if(status)status.value='已完成';
-          if(typeof toast==='function')toast('已切換為已完成，請按「儲存」');
-          return;
-        }
-        const ev=(state.events||[]).find(x=>x&&x.id===id);
-        if(!ev){if(typeof toast==='function')toast('找不到此行程');return;}
-        const block=canMarkDone(ev);
-        if(block){if(typeof toast==='function')toast(block);return;}
-        ev.status='已完成';
-        ev.updatedBy=(typeof currentUser!=='undefined'&&currentUser&&currentUser.id)||ev.updatedBy||'';
-        ev.updatedAt=new Date().toISOString();
-        if(typeof save==='function')save();
-        if(typeof closeEventModal==='function')closeEventModal(); else modal.classList.add('hide');
-        if(typeof renderAll==='function')renderAll();
-        if(typeof toast==='function')toast('已完成');
-      }catch(e){console.warn(PATCH+' mark done failed',e); if(typeof toast==='function')toast('已完成按鈕發生錯誤，請改用狀態下拉選單');}
-    };
-    const saveBtn=document.getElementById('saveEventBtn');
-    actions.insertBefore(btn,saveBtn||actions.lastChild);
+    if(!actions) return;
+    let btn=document.getElementById('v218DoneEventBtn');
+    if(!btn){
+      btn=document.createElement('button');
+      btn.id='v218DoneEventBtn';
+      btn.type='button';
+      btn.className='primary';
+      btn.textContent='已完成';
+      btn.onclick=completeEventFromModal;
+      const saveBtn=document.getElementById('saveEventBtn');
+      if(saveBtn && saveBtn.parentElement===actions) actions.insertBefore(btn, saveBtn);
+      else actions.insertBefore(btn, actions.firstChild);
+    }
+    btn.classList.remove('hide');
+    btn.disabled=false;
   }
-  function boot(){installPurgeGuards(); purgeTestSchedules('boot'); installDoneButton(); setTimeout(function(){purgeTestSchedules('late'); installDoneButton();},300); setTimeout(function(){purgeTestSchedules('late2'); installDoneButton();},1200);}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot); else boot();
+
+  function patchOpenEventModal(){
+    if(window.__v218OpenEventPatched) return;
+    if(typeof window.openEventModal==='function'){
+      const old=window.openEventModal;
+      window.openEventModal=function(){
+        const r=old.apply(this,arguments);
+        setTimeout(ensureDoneButton,30);
+        setTimeout(ensureDoneButton,180);
+        return r;
+      };
+      window.__v218OpenEventPatched=true;
+    }
+  }
+  function patchRenderAll(){
+    if(window.__v218RenderPatched) return;
+    if(typeof window.renderAll==='function'){
+      const old=window.renderAll;
+      window.renderAll=function(){
+        cleanTestData(false);
+        applyNoEventTheme();
+        const r=old.apply(this,arguments);
+        setTimeout(()=>{cleanTestData(true);applyNoEventTheme();ensureDoneButton();},80);
+        return r;
+      };
+      window.__v218RenderPatched=true;
+    }
+  }
+
+  function boot(){
+    patchOpenEventModal();
+    patchRenderAll();
+    cleanTestData(true);
+    applyNoEventTheme();
+    ensureDoneButton();
+  }
+  boot();
+  document.addEventListener('DOMContentLoaded',boot);
+  document.addEventListener('click',function(e){
+    if(e.target && e.target.closest && e.target.closest('[data-event-id],.event,[data-page],#addEventBtn,#mobileAddEvent')){
+      setTimeout(()=>{cleanTestData(true);ensureDoneButton();},120);
+    }
+  },true);
+  setTimeout(boot,300);
+  setTimeout(boot,900);
+  // 舊版 seed 有多個 setTimeout/ renderAll wrapper，短時間內持續清理，避免又被補回。
+  let n=0;
+  const timer=setInterval(()=>{boot(); if(++n>=10)clearInterval(timer);},800);
+  window.v218CleanTestData=()=>cleanTestData(true);
 })();
 </script>
 
