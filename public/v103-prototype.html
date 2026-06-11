@@ -15050,4 +15050,129 @@ setInterval(v206SetupNavOrder,1500);
   setTimeout(install,300);
 })();
 </script>
+<style id="v248-login-input-shield-style">
+  body.v248-login-mode #loginView{position:fixed!important;inset:0!important;z-index:2147483646!important;display:flex!important;pointer-events:auto!important;background:var(--bg,#f6f7fb)!important;}
+  body.v248-login-mode #loginView.hide{display:flex!important;}
+  body.v248-login-mode #loginView .login-card{position:relative!important;z-index:2147483647!important;pointer-events:auto!important;}
+  body.v248-login-mode #loginEmail,
+  body.v248-login-mode #loginPassword,
+  body.v248-login-mode #doLogin,
+  body.v248-login-mode #quickLogin{position:relative!important;z-index:2147483647!important;pointer-events:auto!important;user-select:text!important;-webkit-user-select:text!important;}
+  body.v248-login-mode #appView{pointer-events:none!important;}
+  body.v248-login-mode .modal,
+  body.v248-login-mode .toast{display:none!important;pointer-events:none!important;}
+</style>
+<script id="v248-login-input-click-final-fix">
+(function(){
+  'use strict';
+  if(window.__FORE_V248_LOGIN_INPUT_CLICK_FINAL_FIX__) return;
+  window.__FORE_V248_LOGIN_INPUT_CLICK_FINAL_FIX__=true;
+  const VERSION='V248';
+  const STORE_KEY='translator_calendar_v81';
+  const $=id=>document.getElementById(id);
+  function safe(fn,fallback){try{return fn()}catch(e){console.warn('[V248]',e);return fallback}}
+  function isLoggedIn(){return !!(safe(()=>currentUser,null)||window.currentUser)}
+  function setMsg(t){const el=$('loginMsg'); if(el)el.textContent=t||'';}
+  function normalizeLoginScreen(){
+    const login=$('loginView'), app=$('appView');
+    if(!login) return;
+    if(!isLoggedIn()){
+      document.body.classList.add('v248-login-mode');
+      login.classList.remove('hide');
+      login.style.pointerEvents='auto';
+      login.style.zIndex='2147483646';
+      if(app){app.classList.add('hide'); app.style.pointerEvents='none';}
+    }
+    ['loginEmail','loginPassword'].forEach(id=>{const el=$(id); if(el){el.disabled=false;el.readOnly=false;el.removeAttribute('disabled');el.removeAttribute('readonly');el.style.pointerEvents='auto';el.style.userSelect='text';el.style.webkitUserSelect='text';}});
+    const btn=$('doLogin'); if(btn){btn.disabled=false;btn.removeAttribute('disabled');btn.type='button';btn.style.pointerEvents='auto';}
+    const quick=$('quickLogin'); if(quick){quick.disabled=false;quick.removeAttribute('disabled');quick.type='button';}
+  }
+  function getState(){
+    let s=safe(()=>state,null);
+    if(!s && typeof load==='function') { safe(()=>load(false)); s=safe(()=>state,null); }
+    if(!s){ const raw=safe(()=>localStorage.getItem(STORE_KEY),''); if(raw) s=safe(()=>JSON.parse(raw),null); }
+    if(!s && typeof defaultState==='function') s=safe(()=>defaultState(),null);
+    if(!s) s={users:[],people:[],events:[],externalEvents:[],options:{}};
+    s.users=Array.isArray(s.users)?s.users:[];
+    s.people=Array.isArray(s.people)?s.people:[];
+    s.events=Array.isArray(s.events)?s.events:[];
+    s.externalEvents=Array.isArray(s.externalEvents)?s.externalEvents:[];
+    try{state=s;}catch(_){window.state=s;}
+    return s;
+  }
+  function persist(){safe(()=>{if(typeof save==='function')save();else localStorage.setItem(STORE_KEY,JSON.stringify(getState()));});}
+  function ensureAdmin(){
+    const s=getState();
+    let person=s.people.find(p=>String(p.id)==='p20')||s.people.find(p=>String(p.name||'').includes('蘇若儀'))||s.people[0];
+    if(!person){person={id:'p20',name:'蘇若儀',group:'營運處',lang:'管理員',job:'管理員',active:true,deleted:false};s.people.push(person);}
+    let user=s.users.find(u=>String(u.email||'').trim().toLowerCase()==='admin@demo.com');
+    if(!user){user={id:'u_admin',name:'Demo ZoeSu',email:'admin@demo.com',password:'123456',role:'admin',personId:person.id,active:true,deleted:false};s.users.push(user);}
+    user.password='123456'; user.role='admin'; user.personId=user.personId||person.id; user.active=true; user.deleted=false;
+    persist(); return user;
+  }
+  function enter(user){
+    safe(()=>{currentUser=user;}); window.currentUser=user;
+    safe(()=>{if(typeof safeSetSession==='function')safeSetSession(user.id);else localStorage.setItem(STORE_KEY+'_session',user.id);});
+    document.body.classList.remove('v248-login-mode');
+    const login=$('loginView'), app=$('appView');
+    if(login)login.classList.add('hide');
+    if(app){app.classList.remove('hide');app.style.pointerEvents='auto';}
+    const label=$('currentUserLabel'); if(label)label.innerHTML=(user.name||user.email||'使用者')+' <span class="badge">管理員</span>';
+    let shown=false;
+    if(typeof showApp==='function') shown=!!safe(()=>{showApp(); return true;},false);
+    if(!shown){
+      safe(()=>{currentPage='calendar';});
+      safe(()=>{if(typeof applyPermissionsUI==='function')applyPermissionsUI();});
+      safe(()=>{if(typeof renderAll==='function')renderAll();});
+      safe(()=>{if(typeof showPage==='function')showPage('calendar');});
+    }
+    window.v248DebugReport={version:VERSION,loginOk:true,user:user.email,loginButton:!!$('doLogin'),inputReady:!!$('loginEmail')};
+    return true;
+  }
+  function login(force){
+    normalizeLoginScreen();
+    const s=getState(); ensureAdmin();
+    const email=String(($('loginEmail')||{}).value||'').trim().toLowerCase();
+    const pw=String(($('loginPassword')||{}).value||'');
+    let user=null;
+    if(force) user=s.users.find(u=>String(u.email||'').toLowerCase()==='admin@demo.com')||ensureAdmin();
+    else user=s.users.find(u=>u&&u.deleted!==true&&String(u.email||'').trim().toLowerCase()===email&&String(u.password||'')===pw);
+    if(!user && email==='admin@demo.com' && pw==='123456') user=ensureAdmin();
+    if(!user){setMsg('帳號或密碼錯誤。測試帳號：admin@demo.com / 123456');return false;}
+    if(user.active===false){user.active=true;user.deleted=false;persist();}
+    setMsg('登入成功，載入中...');
+    return enter(user);
+  }
+  function cloneControl(id){
+    const old=$(id); if(!old || old.dataset.v248Cloned==='1') return old;
+    const nu=old.cloneNode(true);
+    nu.dataset.v248Cloned='1';
+    nu.value=old.value||'';
+    nu.disabled=false; nu.readOnly=false; nu.removeAttribute('disabled'); nu.removeAttribute('readonly');
+    old.parentNode.replaceChild(nu,old);
+    return nu;
+  }
+  function install(){
+    normalizeLoginScreen();
+    ensureAdmin();
+    const email=cloneControl('loginEmail');
+    const pw=cloneControl('loginPassword');
+    const btn=cloneControl('doLogin');
+    const quick=cloneControl('quickLogin');
+    const mobile=cloneControl('mobileForceLogin');
+    if(email){email.autocomplete='username'; email.addEventListener('pointerdown',e=>e.stopPropagation(),true); email.addEventListener('click',e=>e.stopPropagation(),true); email.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();login(false);}},false);}
+    if(pw){pw.autocomplete='current-password'; pw.addEventListener('pointerdown',e=>e.stopPropagation(),true); pw.addEventListener('click',e=>e.stopPropagation(),true); pw.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();login(false);}},false);}
+    if(btn){btn.onclick=function(e){if(e){e.preventDefault();e.stopPropagation();}return login(false);}; btn.addEventListener('pointerdown',e=>e.stopPropagation(),true); btn.addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();login(false);},{passive:false,capture:true});}
+    if(quick){quick.classList.remove('hide'); quick.onclick=function(e){if(e){e.preventDefault();e.stopPropagation();} if($('loginEmail'))$('loginEmail').value='admin@demo.com'; if($('loginPassword'))$('loginPassword').value='123456'; return login(true);};}
+    if(mobile){mobile.onclick=function(e){if(e){e.preventDefault();e.stopPropagation();}return login(true);};}
+    window.v248Login=login;
+    window.forceMobileLogin=function(){return login(true);};
+    window.doLoginCore=function(emailValue,pwValue,force){if(emailValue!==undefined&&$('loginEmail'))$('loginEmail').value=emailValue||''; if(pwValue!==undefined&&$('loginPassword'))$('loginPassword').value=pwValue||''; return login(!!force);};
+    window.v248DebugReport={version:VERSION,installed:true,inputReady:!!$('loginEmail'),passwordReady:!!$('loginPassword'),buttonReady:!!$('doLogin'),adminReady:!!ensureAdmin()};
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install); else install();
+  setTimeout(install,100); setTimeout(install,500); setTimeout(install,1500);
+})();
+</script>
+
 </body></html>
