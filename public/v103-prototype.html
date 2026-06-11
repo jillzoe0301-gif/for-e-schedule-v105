@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V222</title>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V223</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -1290,7 +1290,7 @@ function escAttr(s){return esc(s)}
 function safeSetSession(id){try{localStorage.setItem(KEY+'_session',id)}catch(e){window.__sessionUser=id}}
 function safeGetSession(){try{return localStorage.getItem(KEY+'_session')||window.__sessionUser||''}catch(e){return window.__sessionUser||''}}
 function safeRemoveSession(){try{localStorage.removeItem(KEY+'_session')}catch(e){} window.__sessionUser=''}
-function doLoginCore(email,pw,force){try{if(!state||!state.users||!state.users.length)load(true); var u=force?state.users.find(x=>x.email.toLowerCase()==='admin@demo.com'&&x.deleted!==true):state.users.find(function(x){return x.deleted!==true&&x.email.toLowerCase()===String(email||'').trim().toLowerCase()&&x.password===String(pw||'')}); if(!u){if($('loginMsg'))$('loginMsg').textContent='帳號或密碼錯誤，請重新確認後再試。'; return false} if(u.active===false){if($('loginMsg'))$('loginMsg').textContent='此帳號已停用，請洽管理員啟用'; return false} currentUser=u; safeSetSession(u.id); if($('loginMsg'))$('loginMsg').textContent='登入成功，載入中...'; showApp(); return true}catch(err){console.error(err); if($('loginMsg'))$('loginMsg').textContent='登入失敗：'+err.message; alert('登入失敗：'+err.message); return false}}
+function doLoginCore(email,pw,force){try{if(!state||!state.users||!state.users.length)load(true); var u=force?state.users.find(x=>x.email.toLowerCase()==='admin@demo.com'&&x.deleted!==true):state.users.find(function(x){return x.deleted!==true&&x.email.toLowerCase()===String(email||'').trim().toLowerCase()&&x.password===String(pw||'')}); if(!u){if($('loginMsg'))$('loginMsg').textContent='帳號或密碼錯誤，請重新確認後再試。'; return false} if(u.active===false){if($('loginMsg'))$('loginMsg').textContent='此帳號已停用，請洽管理員啟用'; return false} currentUser=u; safeSetSession(u.id); if($('loginMsg'))$('loginMsg').textContent='登入成功，載入中...'; showApp(); setTimeout(function(){try{v223ShowTodayTodoReminder()}catch(e){console.warn('V223 today reminder failed',e)}},650); return true}catch(err){console.error(err); if($('loginMsg'))$('loginMsg').textContent='登入失敗：'+err.message; alert('登入失敗：'+err.message); return false}}
 window.forceMobileLogin=function(){doLoginCore('admin@demo.com','123456',true)};
 function initLogin(){
   $('loginTab').onclick=function(){ $('loginForm').classList.remove('hide'); $('registerForm').classList.add('hide'); $('loginTab').classList.add('primary'); $('registerTab').classList.remove('primary')};
@@ -1603,7 +1603,6 @@ function renderMobilePersonalAlerts(pid){
   const targetPid=pid||mobileTargetPerson();
   const types=alertEventTypeList().map(displayEventType);
   const today=todayISO();
-  const limit=dateAdd(today,30);
   const rows=(state.events||[]).filter(e=>{
     if(!e||e.deleted||e.status==='取消'||e.status==='已完成')return false;
     if(!targetPid||!executorPersonIds(e).includes(targetPid))return false;
@@ -1612,9 +1611,7 @@ function renderMobilePersonalAlerts(pid){
     if(!e.startDate)return false;
     const s=String(e.startDate||'');
     const ed=String(e.endDate||e.startDate||'');
-    // 未完成提醒：過期未完成要一直顯示；未來 30 天內也顯示
-    if(ed<today)return true;
-    return s<=today;
+    return ed<today || s<=today;
   }).sort((a,b)=>{
     const ao=String(a.endDate||a.startDate||'')<today?0:1;
     const bo=String(b.endDate||b.startDate||'')<today?0:1;
@@ -1623,9 +1620,8 @@ function renderMobilePersonalAlerts(pid){
   if(!rows.length){box.innerHTML='<div class="mobile-alert-empty">目前沒有待確認或待通知提醒</div>';return;}
   box.innerHTML=rows.map(e=>{
     const overdue=String(e.endDate||e.startDate||'')<today;
-    return `<div class="mobile-alert-card urgent ${overdue?'overdue':''} v192-mobile-alert-card" data-id="${escAttr(e.id)}"><div class="v192-alert-content"><div class="v192-alert-head"><div class="mobile-alert-title">⚠ ${esc(displayEventType(e.type))}</div>${overdue?'<div class="mobile-alert-overdue">超過時間了!!!</div>':''}</div><div class="mobile-alert-main">${esc(e.name||'')}</div><div class="mobile-alert-meta">日期：${esc(e.startDate||'')} ${esc(ampm(e.startTime)||'')}｜狀態：${esc(e.status||'')}</div><div class="mobile-alert-meta">地點 / 客戶：${esc(e.locationName||'')}</div></div><div class="mobile-alert-actions v192-alert-actions"><button type="button" class="mobile-alert-done" data-id="${escAttr(e.id)}">已完成</button><button type="button" class="mobile-alert-open" data-id="${escAttr(e.id)}">查看</button></div></div>`;
+    return `<div class="mobile-alert-card urgent ${overdue?'overdue':''} v192-mobile-alert-card" data-id="${escAttr(e.id)}"><div class="v192-alert-content"><div class="v192-alert-head"><div class="mobile-alert-title">⚠ ${esc(displayEventType(e.type))}</div>${overdue?'<div class="mobile-alert-overdue">超過時間了!!!</div>':''}</div><div class="mobile-alert-main">${esc(e.name||'')}</div><div class="mobile-alert-meta">日期：${esc(e.startDate||'')} ${esc(ampm(e.startTime))}｜狀態：${esc(e.status||'')}</div><div class="mobile-alert-meta">地點 / 客戶：${esc(e.locationName||'')}</div></div><div class="mobile-alert-actions v192-alert-actions"><button type="button" class="mobile-alert-open primary" data-id="${escAttr(e.id)}">查看</button></div></div>`;
   }).join('');
-  box.querySelectorAll('.mobile-alert-done').forEach(btn=>btn.onclick=()=>completeMobileAlert(btn.dataset.id));
   box.querySelectorAll('.mobile-alert-open').forEach(btn=>btn.onclick=()=>openEventModal({eventId:btn.dataset.id}));
 }
 function completeMobileAlert(id){
@@ -1684,7 +1680,7 @@ function renderPersonalDesktopAlerts(){
   box.querySelectorAll('.mobile-alert-done').forEach(btn=>btn.onclick=()=>completeAlertReminder(btn.dataset.id));
   box.querySelectorAll('.mobile-alert-open').forEach(btn=>btn.onclick=()=>openEventModal({eventId:btn.dataset.id}));
 }
-function renderMobile(){if(!$('mobileDate'))return; if(!$('mobileDate').value)$('mobileDate').value=todayISO(); const own=userPersonId(); let currentPid=mobileTargetPerson(); let available=state.people.filter(p=>p.active!==false&&p.deleted!==true&&p.lang!=='管理'); if(!mobileCanChoosePerson()&&own)available=available.filter(p=>p.id===own); $('mobilePerson').innerHTML=available.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join(''); if(!available.some(p=>p.id===currentPid))currentPid=(available[0]&&available[0].id)||own||''; $('mobilePerson').value=currentPid||''; $('mobilePerson').disabled=!mobileCanChoosePerson(); $('mobilePerson').classList.toggle('staff-locked',!mobileCanChoosePerson()); const person=getPerson(currentPid); $('mobileHello').textContent='APP 個人行程'; $('mobileUserInfo').textContent=`${person.name||''}｜${person.group||''}｜${person.lang||''}`; renderMobilePersonalAlerts(currentPid); const base=$('mobileDate').value||todayISO(); const mode=$('mobileList').dataset.mode||'day'; let dates=[]; if(mode==='week'){const dt=new Date(base+'T00:00:00'); const offset=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-offset); for(let i=0;i<7;i++)dates.push(localISO(new Date(dt.getFullYear(),dt.getMonth(),dt.getDate()+i)));} else dates=[base]; let all=[]; dates.forEach(d=>eventsOnDateForPerson(d,currentPid).forEach(e=>all.push({...e,_displayDate:d}))); const counts={行程:all.length,未完成:all.filter(e=>e.status==='未完成').length,已完成:all.filter(e=>e.status==='已完成').length}; $('mobileStats').innerHTML=Object.entries(counts).map(([k,v])=>`<div class="stat"><div class="muted">${k}</div><b>${v}</b></div>`).join(''); if(!all.length){$('mobileList').innerHTML=`<div class="panel"><b>${mode==='week'?'本週':'當日'}無行程</b><div class="muted">可點「新增行程」建立。</div></div>`;return} let html=''; let last=''; for(const e of all.sort((a,b)=>(a._displayDate+a.startTime).localeCompare(b._displayDate+b.startTime))){if(e._displayDate!==last){last=e._displayDate;html+=`<div class="panel" style="margin-bottom:8px"><b>${weekdayFull(last)} ${fmtDate(last)}</b></div>`} const cls=[e.status==='已完成'?'done':'',alertEventTypeList().map(displayEventType).includes(displayEventType(e.type))?'alert':'',translatorStatusClass(e)].join(' '); html+=`<div class="mobile-event-card ${cls}" data-id="${e.id}"><div class="mobile-event-title">${ampm(e.startTime)}｜${esc(displayEventType(e.type))}｜${esc(e.name)}</div><div class="mobile-meta">地點 / 客戶：${esc(e.locationName||'')}<br>公務車：${esc(e.vehicleNo||'')}<br>狀態：${esc(e.status)}｜最後修改：${esc(getUser(e.updatedBy||e.createdBy).name)}</div><div class="toolbar" style="margin-top:8px"><button onclick="openEventModal({eventId:'${e.id}'});">${reminderItemReadOnly(e)?'查看':'詳細/修改'}</button><button onclick="navigator.clipboard?.writeText(\`${esc(detailText(e)).replace(/`/g,'\\`')}\`);">複製內容</button></div></div>`} $('mobileList').innerHTML=html; document.querySelectorAll('.mobile-event-card').forEach(el=>el.ondblclick=()=>openEventModal({eventId:el.dataset.id}))}
+function renderMobile(){if(!$('mobileDate'))return; if(!$('mobileDate').value)$('mobileDate').value=todayISO(); const own=userPersonId(); let currentPid=mobileTargetPerson(); let available=state.people.filter(p=>p.active!==false&&p.deleted!==true&&p.lang!=='管理'); if(!mobileCanChoosePerson()&&own)available=available.filter(p=>p.id===own); $('mobilePerson').innerHTML=available.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join(''); if(!available.some(p=>p.id===currentPid))currentPid=(available[0]&&available[0].id)||own||''; $('mobilePerson').value=currentPid||''; $('mobilePerson').disabled=!mobileCanChoosePerson(); $('mobilePerson').classList.toggle('staff-locked',!mobileCanChoosePerson()); const person=getPerson(currentPid); $('mobileHello').textContent='APP 個人行程'; $('mobileUserInfo').textContent=`${person.name||''}｜${person.group||''}｜${person.lang||''}`; renderMobilePersonalAlerts(currentPid); const base=$('mobileDate').value||todayISO(); const mode=$('mobileList').dataset.mode||'day'; let dates=[]; if(mode==='week'){const dt=new Date(base+'T00:00:00'); const offset=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-offset); for(let i=0;i<7;i++)dates.push(localISO(new Date(dt.getFullYear(),dt.getMonth(),dt.getDate()+i)));} else dates=[base]; let all=[]; dates.forEach(d=>eventsOnDateForPerson(d,currentPid).forEach(e=>all.push({...e,_displayDate:d}))); const counts={行程:all.length,未完成:all.filter(e=>e.status==='未完成').length,已完成:all.filter(e=>e.status==='已完成').length}; $('mobileStats').innerHTML=Object.entries(counts).map(([k,v])=>`<div class="stat"><div class="muted">${k}</div><b>${v}</b></div>`).join(''); if(!all.length){$('mobileList').innerHTML=`<div class="panel"><b>${mode==='week'?'本週':'當日'}無行程</b><div class="muted">可點「新增行程」建立。</div></div>`;return} let html=''; let last=''; for(const e of all.sort((a,b)=>(a._displayDate+a.startTime).localeCompare(b._displayDate+b.startTime))){if(e._displayDate!==last){last=e._displayDate;html+=`<div class="panel" style="margin-bottom:8px"><b>${weekdayFull(last)} ${fmtDate(last)}</b></div>`} const cls=[e.status==='已完成'?'done':'',alertEventTypeList().map(displayEventType).includes(displayEventType(e.type))?'alert':'',translatorStatusClass(e)].join(' '); html+=`<div class="mobile-event-card ${cls}" data-id="${escAttr(e.id)}"><div class="mobile-event-title">${ampm(e.startTime)}｜${esc(displayEventType(e.type))}｜${esc(e.name)}</div><div class="mobile-meta">地點 / 客戶：${esc(e.locationName||'')}<br>公務車：${esc(e.vehicleNo||'')}<br>狀態：${esc(e.status)}｜最後修改：${esc(getUser(e.updatedBy||e.createdBy).name)}</div><div class="toolbar" style="margin-top:8px;justify-content:flex-end"><button type="button" class="primary" data-open-mobile-event="${escAttr(e.id)}">查看</button></div></div>`} $('mobileList').innerHTML=html; document.querySelectorAll('[data-open-mobile-event]').forEach(btn=>btn.onclick=(ev)=>{ev.preventDefault();ev.stopPropagation();openEventModal({eventId:btn.dataset.openMobileEvent});}); document.querySelectorAll('.mobile-event-card').forEach(el=>el.ondblclick=()=>openEventModal({eventId:el.dataset.id}))}
 
 function timeSortValue(t){const raw=String(t||''); if(raw==='上午')return '09:00'; if(raw==='下午')return '13:00'; return raw.padStart(5,'0')}
 function renderToday(){const t=todayISO(); const evs=state.events.filter(e=>!e.deleted&&t>=e.startDate&&t<=e.endDate&&eventMatches(e)).sort((a,b)=>String(executorNames(a)||'').localeCompare(String(executorNames(b)||''),'zh-Hant',{numeric:true})||String(timeSortValue(a.startTime)).localeCompare(String(timeSortValue(b.startTime)))||String(displayEventType(a.type)||'').localeCompare(String(displayEventType(b.type)||''),'zh-Hant',{numeric:true})); const counts={全部:evs.length,未完成:evs.filter(e=>e.status==='未完成').length,已完成:evs.filter(e=>e.status==='已完成').length,取消:evs.filter(e=>e.status==='取消').length}; $('todayStats').innerHTML=Object.entries(counts).map(([k,v])=>`<div class="stat"><div class="muted">${k}</div><b>${v}</b></div>`).join(''); $('todayRows').innerHTML=evs.map(e=>`<tr><td class="today-executor-td">${todayExecutorCell(e)}</td><td class="today-time-td">${ampm(e.startTime)}</td><td>${esc(displayEventType(e.type))}</td><td>${esc(e.locationName)}</td><td>${esc(e.name)}</td><td>${e.status}</td><td>${esc(e.vehicleNo||'')}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">今日無行程</td></tr>'; renderMobileAlerts();}
@@ -2492,7 +2488,7 @@ function personalDetailRowsFiltered(){
   const kw=($('personalDetailKeyword').value||'').trim().toLowerCase();
   const allowed=new Set(personalDetailPeople().map(p=>p.id));
   const rows=[];
-  (state.events||[]).filter(ev=>!ev.deleted).forEach(ev=>{
+  (state.events||[]).filter(ev=>!ev.deleted && !isAssignedToOthersOnly(ev)).forEach(ev=>{
     const ps=executorPersonIds(ev).filter(x=>allowed.has(x));
     for(const personId of ps){
       if(pid&&personId!==pid)continue;
@@ -2520,6 +2516,7 @@ function personalDetailRowsFiltered(){
   rows.sort((a,b)=>{const cmp=String(val(a)).localeCompare(String(val(b)),'zh-Hant',{numeric:true}); return cmp!==0?cmp*dir:(a.date+a.event.startTime+getPerson(a.personId).name).localeCompare(b.date+b.event.startTime+getPerson(b.personId).name);});
   return rows;
 }
+
 function assignedTrackingRowsFiltered(){
   if(typeof currentUser==='undefined'||!currentUser)return [];
   const s=$('personalDetailStart')?$('personalDetailStart').value||'':'';
@@ -11662,6 +11659,37 @@ setInterval(v206SetupNavOrder,1500);
 #v222TodayTodoModal .v222-reminder-list{display:grid;gap:8px;max-height:52vh;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:8px;background:#f8fafc}
 #v222TodayTodoModal .v222-reminder-row{background:#fff;border:1px solid var(--line);border-left:5px solid var(--brand);border-radius:12px;padding:10px;line-height:1.45}
 @media(max-width:760px){#mobilePage #mobilePersonalAlertRows .v192-mobile-alert-card{grid-template-columns:minmax(0,1fr) 64px!important}#mobilePage #mobilePersonalAlertRows .v192-alert-actions{justify-content:flex-end!important}#mobilePage #mobilePersonalAlertRows .mobile-alert-open{width:100%!important;padding:8px 6px!important}.mobile-event-card .toolbar{justify-content:flex-end!important}.mobile-event-card .toolbar button.primary{min-width:70px!important}}
+</style>
+
+
+<script id="v223-real-today-reminder-core">
+(function(){
+  function safe(v){try{return esc(v)}catch(e){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}}
+  function today(){try{return todayISO()}catch(e){return new Date().toISOString().slice(0,10);}}
+  function active(ev){return ev&&!ev.deleted&&ev.status!=='取消'&&ev.status!=='已完成';}
+  function covers(ev,d){const s=String(ev&&ev.startDate||''), e=String(ev&&(ev.endDate||ev.startDate)||''); return !!s&&s<=d&&e>=d;}
+  function myPid(){try{return userPersonId()||''}catch(e){return ''}}
+  function execIds(ev){try{return executorPersonIds(ev)||[]}catch(e){return (ev&&ev.participants)||[]}}
+  function mine(ev){const p=myPid(); return p?execIds(ev).includes(p):(currentUser&&ev.createdBy===currentUser.id);}
+  function clearReminderFlags(){try{Object.keys(localStorage).forEach(k=>{if(/tomorrow|today.*remind|remind.*today|login.*remind|fore_v202|fore_v211|fore_v212|已提醒|已讀/i.test(k))localStorage.removeItem(k)});Object.keys(sessionStorage).forEach(k=>{if(/tomorrow|today.*remind|remind.*today|login.*remind|fore_v202|fore_v211|fore_v212|已提醒|已讀/i.test(k))sessionStorage.removeItem(k)});}catch(e){}}
+  window.v223TodayTodoRows=function(){const d=today();return (state.events||[]).filter(ev=>active(ev)&&covers(ev,d)&&mine(ev)).sort((a,b)=>String(a.startTime||'').localeCompare(String(b.startTime||''),'zh-Hant',{numeric:true}))};
+  window.v223CloseTodayTodoReminder=function(){const m=document.getElementById('v223TodayTodoModal'); if(m)m.remove();};
+  window.v223ShowTodayTodoReminder=function(){
+    if(typeof currentUser==='undefined'||!currentUser)return;
+    clearReminderFlags(); window.v223CloseTodayTodoReminder();
+    const rows=window.v223TodayTodoRows();
+    const items=rows.length?rows.map(ev=>`<div class="v223-reminder-row"><div><b>${safe(ampm(ev.startTime))}｜${safe(displayEventType(ev.type))}</b></div><div>${safe(ev.name||'')}</div><div class="muted">日期：${safe(ev.startDate||'')}｜地點 / 客戶：${safe(ev.locationName||'')}</div><div style="text-align:right;margin-top:6px"><button type="button" class="small" data-v223-open="${safe(ev.id)}">查看</button></div></div>`).join(''):'<div class="muted">目前沒有今日待辦事項。</div>';
+    const m=document.createElement('div');m.id='v223TodayTodoModal';m.className='modal';m.innerHTML=`<div class="modal-card" style="max-width:620px"><div class="modal-head"><h2>今日待辦提醒</h2><button type="button" class="ghost" data-v223-close>×</button></div><p style="font-weight:900;margin:10px 0">以下是您今天的待辦事項：</p><div class="v223-reminder-list">${items}</div><div class="modal-actions"><button type="button" class="primary" data-v223-close>我知道了</button></div></div>`;document.body.appendChild(m);
+    m.querySelectorAll('[data-v223-close]').forEach(b=>b.onclick=window.v223CloseTodayTodoReminder);
+    m.querySelectorAll('[data-v223-open]').forEach(b=>b.onclick=function(){const id=b.getAttribute('data-v223-open');window.v223CloseTodayTodoReminder();openEventModal({eventId:id});});
+  };
+  document.addEventListener('DOMContentLoaded',clearReminderFlags);
+})();
+</script>
+<style id="v223-real-fix-styles">
+#v223TodayTodoModal .v223-reminder-list{display:grid;gap:8px;max-height:52vh;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:8px;background:#f8fafc}
+#v223TodayTodoModal .v223-reminder-row{background:#fff;border:1px solid var(--line);border-left:5px solid var(--brand);border-radius:12px;padding:10px;line-height:1.45}
+@media(max-width:760px){#mobilePersonalAlertRows .mobile-alert-actions{justify-content:flex-end!important}.mobile-event-card .toolbar{justify-content:flex-end!important}.mobile-event-card .toolbar button.primary{min-width:70px!important}}
 </style>
 
 </body></html>
