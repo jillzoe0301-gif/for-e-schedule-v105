@@ -13303,11 +13303,11 @@ setInterval(v206SetupNavOrder,1500);
   function ensureOneTimeLocation(){if($('v234OneTimeBox'))return; const addr=$('fieldAddress'); if(!addr)return; const div=document.createElement('div'); div.id='v234OneTimeBox'; div.className='field'; div.innerHTML='<label class="checkline"><input id="v234OneTimeCheck" type="checkbox"> 新增地點（本次使用，不寫入選項）</label><div id="v234OneTimeInputs" class="hide"><div class="row"><div><label>地點名稱</label><input id="v234OneTimeName" placeholder="空白也可儲存"></div><div><label>地址</label><input id="v234OneTimeAddress" placeholder="空白也可儲存"></div></div><div class="muted">本次使用，不會寫入外務地點選項。</div></div>'; (addr.closest('.field')||addr).insertAdjacentElement('afterend',div); const cb=$('v234OneTimeCheck'); cb.onchange=()=>{const box=$('v234OneTimeInputs'); if(box)box.classList.toggle('hide',!cb.checked); if(cb.checked){if($('v234OneTimeName'))$('v234OneTimeName').value=''; if($('v234OneTimeAddress'))$('v234OneTimeAddress').value='';}};}
   function makePurposeInput(){const old=$('fieldPurpose'); if(!old||old.tagName==='INPUT')return; const input=document.createElement('input'); input.id='fieldPurpose'; input.value=old.value||''; input.placeholder='行程名稱'; old.replaceWith(input);}
   function label(id,text){const el=$(id), f=el&&el.closest('.field'), lab=f&&f.querySelector('label'); if(lab)lab.textContent=text;}
-  function normalizeFieldForm(){makePurposeInput(); ensureRemark(); ensureOneTimeLocation(); removeRequired(); label('fieldPurpose','行程名稱'); label('fieldDate','日期'); label('fieldTime','時間'); label('fieldLocation','地點名稱'); label('fieldAddress','地址'); label('fieldNote','內容說明'); label('fieldPerson','負責人員'); label('fieldPickupDate','下次領件/送審日期'); ['fieldStatus','fieldFailureReason','fieldRepeat','fieldCash','fieldStamp','fieldDocument','fieldMustSend','fieldCannotChange'].forEach(id=>{const el=$(id),f=el&&el.closest('.field'); if(f)f.style.display='none';}); const dbg=$('v234FieldSaveDebugBox'); const card=$('fieldModal')&&$('fieldModal').querySelector('.modal-card'); if(card&&!dbg){const d=document.createElement('div'); d.id='v234FieldSaveDebugBox'; d.className='v234-save-debug'; d.textContent='V234 儲存狀態：此版本為 localStorage 儲存，不會送出 Network API；點儲存後會寫入 externalEvents 並同步 events。'; const btn=$('saveFieldBtn'); (btn&&btn.parentElement?btn.parentElement:card).insertAdjacentElement('beforebegin',d);} }
+  function normalizeFieldForm(){makePurposeInput(); ensureRemark(); ensureOneTimeLocation(); removeRequired(); label('fieldPurpose','行程名稱'); label('fieldDate','日期'); label('fieldTime','時間'); label('fieldLocation','地點名稱'); label('fieldAddress','地址'); label('fieldNote','內容說明'); label('fieldPerson','負責人員'); label('fieldPickupDate','下次領件/送審日期'); ['fieldStatus','fieldFailureReason','fieldRepeat','fieldCash','fieldStamp','fieldDocument','fieldMustSend','fieldCannotChange'].forEach(id=>{const el=$(id),f=el&&el.closest('.field'); if(f)f.style.display='none';}); const dbg=$('v234FieldSaveDebugBox'); const card=$('fieldModal')&&$('fieldModal').querySelector('.modal-card'); if(card&&!dbg){const d=document.createElement('div'); d.id='v234FieldSaveDebugBox'; d.className='v234-save-debug'; d.textContent=''; d.style.display='none'; const btn=$('saveFieldBtn'); (btn&&btn.parentElement?btn.parentElement:card).insertAdjacentElement('beforebegin',d);} }
   function readField(){const one=!!($('v234OneTimeCheck')&&$('v234OneTimeCheck').checked)||!!($('v233UseOneTimeLocation')&&$('v233UseOneTimeLocation').checked); const oneName=($('v234OneTimeName')&&$('v234OneTimeName').value)||($('v233OneTimeLocationName')&&$('v233OneTimeLocationName').value)||''; const oneAddr=($('v234OneTimeAddress')&&$('v234OneTimeAddress').value)||($('v233OneTimeLocationAddress')&&$('v233OneTimeLocationAddress').value)||''; return {personId:($('fieldPerson')&&$('fieldPerson').value)||currentPid()||'',date:($('fieldDate')&&$('fieldDate').value)||($('fieldWeekPicker')&&$('fieldWeekPicker').value)||today(),time:($('fieldTime')&&$('fieldTime').value)||'',status:($('fieldStatus')&&$('fieldStatus').value)||'未完成',locationName:one?oneName:(($('fieldLocation')&&$('fieldLocation').value)||''),address:one?oneAddr:(($('fieldAddress')&&$('fieldAddress').value)||''),oneTimeLocation:one,purpose:($('fieldPurpose')&&$('fieldPurpose').value)||'',note:($('fieldNote')&&$('fieldNote').value)||'',remark:(($('v234FieldRemark')&&$('v234FieldRemark').value)||($('v233FieldRemark')&&$('v233FieldRemark').value)||''),pickupDate:($('fieldPickupDate')&&$('fieldPickupDate').value)||'',pickupPersonId:(($('fieldPickupPerson')&&$('fieldPickupPerson').value)||''),failureReason:'',cash:'',stamp:'',document:'',mustSend:false,cannotChange:false,type:FIELD_TYPE,updatedBy:currentUid(),updatedAt:now(),deleted:false};}
   function repeatDatesFor(d){try{const arr=typeof fieldRepeatDates==='function'?fieldRepeatDates():[]; return arr&&arr.length?arr:[d||today()];}catch(e){return [d||today()]}}
   function syncOverview(fe){const s=ensureState(); if(!s||!fe)return null; const name=(fe.purpose||'外務行程')+(fe.locationName?'｜'+fe.locationName:''); const note=[fe.note||'',fe.remark?('備註：'+fe.remark):'',fe.pickupDate?('下次領件/送審日期：'+fe.pickupDate):''].filter(Boolean).join('\n'); const data={kind:'schedule',type:FIELD_TYPE,status:(fe.status==='已完成'||fe.status==='已送件')?'已完成':'未完成',fieldStatus:fe.status||'未完成',name,startDate:fe.date||today(),endDate:fe.date||today(),startTime:fe.time||'不指定',endTime:'',participants:[fe.personId].filter(Boolean),assigneeIds:[fe.personId].filter(Boolean),locationName:fe.locationName||'',address:fe.address||'',note,vehicleNo:'',meetingRoom:'不指定',externalSource:true,externalEventId:fe.id,deleted:false,updatedBy:currentUid(),updatedAt:now()}; let ev=s.events.find(x=>x.externalEventId===fe.id); if(ev){Object.assign(ev,data); return ev;} ev=Object.assign({id:uid2('ev'),createdBy:currentUid(),createdAt:now(),seriesId:'',seriesIndex:0},data); s.events.push(ev); return ev;}
-  function writeDebug(payload,result,err){const report={step1_network:'沒有發出：本 HTML 版目前沒有 fetch/XHR 後端 API，save() 寫入 localStorage',step2_url:'不適用；實際端點為 localStorage/state.externalEvents',step2_payload_type:payload&&payload.type,step2_status:err?'front-end-error':'local-save-ok',step2_response_body:err?String(err.message||err):'saved to externalEvents and synced to events',step3_validation:'已移除 required/req-missing，不阻擋空白欄位',step4_backend:'本檔沒有後端 API/資料庫連線；資料庫等同 localStorage KEY',savedExternalId:result&&result.externalId,savedOverviewId:result&&result.overviewId,at:now()}; window.v234DebugReport.fieldSave=report; window.v234FieldSaveDebug.push(report); console.info('[V234 Field Save Debug]',report); const box=$('v234FieldSaveDebugBox'); if(box)box.textContent='V234 儲存結果：'+JSON.stringify(report,null,2);}
+  function writeDebug(payload,result,err){const report={step1_network:'沒有發出：本 HTML 版目前沒有 fetch/XHR 後端 API，save() 寫入 localStorage',step2_url:'不適用；實際端點為 localStorage/state.externalEvents',step2_payload_type:payload&&payload.type,step2_status:err?'front-end-error':'local-save-ok',step2_response_body:err?String(err.message||err):'saved to externalEvents and synced to events',step3_validation:'已移除 required/req-missing，不阻擋空白欄位',step4_backend:'本檔沒有後端 API/資料庫連線；資料庫等同 localStorage KEY',savedExternalId:result&&result.externalId,savedOverviewId:result&&result.overviewId,at:now()}; window.v234DebugReport.fieldSave=report; window.v234FieldSaveDebug.push(report); console.info('[V234 Field Save Debug]',report); const box=$('v234FieldSaveDebugBox'); if(box){box.textContent=''; box.style.display='none';}}
   function saveFieldV234(ev){if(ev){ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();} if(fieldPointerSaving)return false; fieldPointerSaving=true; const btn=$('saveFieldBtn'); if(btn){btn.disabled=true; btn.textContent='儲存中...';} let data=null; try{const s=ensureState(); if(!s)throw new Error('系統資料尚未初始化'); normalizeFieldForm(); data=readField(); const saved=[]; const editId=($('editFieldId')&&$('editFieldId').value)||''; if(editId){let fe=s.externalEvents.find(x=>x.id===editId); if(fe)Object.assign(fe,data,{id:editId,deleted:false}); else {fe=Object.assign({id:editId,repeatGroupId:'',createdBy:currentUid(),createdAt:now()},data); s.externalEvents.push(fe);} syncOverview(fe); saved.push(fe);}else{const group=uid2('fg'); repeatDatesFor(data.date).forEach(d=>{const fe=Object.assign({id:uid2('field'),repeatGroupId:group,createdBy:currentUid(),createdAt:now()},data,{date:d,deleted:false}); s.externalEvents.push(fe); syncOverview(fe); saved.push(fe);});} saveNow(); const first=saved[0]; const overview=(s.events||[]).find(e=>e.externalEventId===first.id); if(!first||!overview)throw new Error('寫入後驗證失敗：找不到 externalEvents 或 events 同步資料'); if($('fieldModal'))$('fieldModal').classList.add('hide'); showFieldPage(first.date); renderNow(); writeDebug(data,{externalId:first.id,overviewId:overview.id},null); toast('外務行程已儲存成功，並同步到外務行程與行程總覽'); return false;}catch(err){console.error('[V234] 外務儲存失敗',err); writeDebug(data,null,err); alert('外務儲存失敗：'+(err&&err.message?err.message:err)); return false;}finally{setTimeout(()=>{fieldPointerSaving=false; if(btn){btn.disabled=false; btn.textContent='儲存';}},850);}}
   window.v234SaveFieldEvent=saveFieldV234; window.saveFieldEvent=saveFieldV234;
   function hardDeleteTests(){const s=ensureState(); if(!s)return {deleted:false,reason:'no-state'}; const text=o=>{try{return JSON.stringify(o||{})}catch(e){return String(o||'')}}; const ids=new Set(), eventIds=new Set(), fieldIds=new Set(); (s.incidents||[]).forEach(i=>{if(BAD_RE.test(text(i)))ids.add(i.id)}); (s.incidentLogs||[]).forEach(l=>{if(BAD_RE.test(text(l))&&l.incidentId)ids.add(l.incidentId)}); (s.events||[]).forEach(e=>{const t=text(e); if(BAD_RE.test(t)){eventIds.add(e.id); if(e.sourceIncidentId)ids.add(e.sourceIncidentId); if(e.incidentId)ids.add(e.incidentId); if(e.externalEventId)fieldIds.add(e.externalEventId);}}); (s.externalEvents||[]).forEach(f=>{if(BAD_RE.test(text(f)))fieldIds.add(f.id)}); const before={incidents:s.incidents.length,incidentLogs:s.incidentLogs.length,events:s.events.length,externalEvents:s.externalEvents.length}; s.incidentLogs=s.incidentLogs.filter(l=>!ids.has(l.incidentId)&&!BAD_RE.test(text(l))); s.events=s.events.filter(e=>!eventIds.has(e.id)&&!ids.has(e.sourceIncidentId)&&!ids.has(e.incidentId)&&!fieldIds.has(e.externalEventId)&&!BAD_RE.test(text(e))); s.externalEvents=s.externalEvents.filter(f=>!fieldIds.has(f.id)&&!BAD_RE.test(text(f))); s.incidents=s.incidents.filter(i=>!ids.has(i.id)&&!BAD_RE.test(text(i))); const after={incidents:s.incidents.length,incidentLogs:s.incidentLogs.length,events:s.events.length,externalEvents:s.externalEvents.length}; const removed={incidents:before.incidents-after.incidents,incidentLogs:before.incidentLogs-after.incidentLogs,events:before.events-after.events,externalEvents:before.externalEvents-after.externalEvents}; const changed=Object.values(removed).some(n=>n>0); if(changed)saveNow(); const report={select_found_incident_ids:[...ids],select_found_event_ids:[...eventIds],select_found_external_ids:[...fieldIds],delete_order:'incidentLogs -> events -> externalEvents -> incidents',soft_delete:'已採硬刪除：直接從陣列移除，不保留 deleted=true',removed,confirmed_not_exists:changed?'已刪除並重新儲存':'未找到符合測試關鍵字的殘留資料',at:now()}; window.v234DebugReport.incidentDelete=report; console.info('[V234 Incident Hard Delete]',report); return report;}
@@ -14832,4 +14832,136 @@ setInterval(v206SetupNavOrder,1500);
 })();
 </script>
 
+
+<style>
+/* V243 Modal：不超出畫面、內容可捲動、按鈕固定底部 */
+#fieldModal.modal{align-items:center!important;justify-content:center!important;padding:12px!important;overflow:hidden!important;}
+#fieldModal .v243-field-modal-card,#fieldModal .v242-field-modal-card{width:min(780px,calc(100vw - 24px))!important;max-width:calc(100vw - 24px)!important;max-height:90vh!important;overflow-y:auto!important;overflow-x:hidden!important;display:block!important;border-radius:18px!important;overscroll-behavior:contain!important;}
+#fieldModal .v242-field-modal-card .modal-head,#fieldModal .v243-field-modal-card .modal-head{position:sticky!important;top:0!important;z-index:4!important;background:#fff!important;padding-bottom:8px!important;border-bottom:1px solid var(--line)!important;}
+#fieldModal .v242-field-modal-card .modal-actions,#fieldModal .v243-field-modal-card .modal-actions{position:sticky!important;bottom:0!important;z-index:5!important;background:#fff!important;padding:12px 0 4px!important;border-top:1px solid var(--line)!important;box-shadow:0 -8px 18px rgba(15,23,42,.08)!important;}
+#v234FieldSaveDebugBox,.v234-save-debug{display:none!important;}
+/* V243 外務週曆：水平捲動、今日醒目 */
+#v242CalendarArea .v243-calendar-scroll,#v242CalendarArea .calendar-wrap{overflow-x:auto!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;max-width:100%!important;}
+#v242CalendarArea .calendar-table{min-width:1120px!important;}
+#v242CalendarArea .v243-today-head{background:#fde68a!important;box-shadow:inset 0 -4px 0 #f59e0b!important;font-weight:900!important;}
+#v242CalendarArea .v243-today-head .date-num{font-weight:900!important;color:#92400e!important;}
+#v242CalendarArea .v243-today-col{background:#fffbeb!important;box-shadow:inset 0 0 0 2px #f59e0b!important;}
+#v242CalendarArea .v243-today-col .date-num{font-weight:900!important;color:#92400e!important;}
+@media(max-width:760px){#fieldModal.modal{align-items:flex-end!important;padding:0!important;}#fieldModal .v243-field-modal-card,#fieldModal .v242-field-modal-card{width:100vw!important;max-width:100vw!important;max-height:90vh!important;border-radius:18px 18px 0 0!important;padding:14px!important;}#v242CalendarArea .calendar-table{min-width:980px!important;}}
+
+</style>
+<script>
+/* ===== V243：外務Modal捲動、週曆今日標示、目的地點下拉、移除V234提示 ===== */
+(function(){
+  const VERSION='V243';
+  const STORE_KEY='translator_calendar_v81';
+  const $=(id)=>document.getElementById(id);
+  const qa=(sel,root=document)=>Array.from(root.querySelectorAll(sel));
+  const esc=(s)=>String(s??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m]||m));
+  const attr=(s)=>esc(s).replace(/'/g,'&#39;');
+  const pad=(n)=>String(n).padStart(2,'0');
+  function todayISO(){const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;}
+  function getState(){
+    try{ if(typeof state!=='undefined'&&state) return state; }catch(_){ }
+    try{const raw=localStorage.getItem(STORE_KEY); return raw?JSON.parse(raw):null;}catch(_){return null;}
+  }
+  function normalizeLocation(x){
+    if(!x)return null;
+    if(typeof x==='object'){
+      const name=String(x.name||x.locationName||x.title||'').trim();
+      const address=String(x.address||x.addr||'').trim();
+      return name?{name,address}:null;
+    }
+    const raw=String(x||'').trim(); if(!raw)return null;
+    const parts=raw.split(/\s*[｜|,，－-]\s*/);
+    return {name:(parts[0]||'').trim(),address:(parts.slice(1).join(' - ')||'').trim()};
+  }
+  function locationList(){
+    const out=[];
+    try{ if(typeof fieldLocationList==='function') (fieldLocationList()||[]).forEach(x=>{const n=normalizeLocation(x); if(n)out.push(n);}); }catch(_){ }
+    const s=getState()||{}, opt=s.options||{};
+    const candidates=[opt.fieldLocations,opt.externalLocations,opt.fieldLocationOptions,opt.locationOptions,opt.fieldPlaces];
+    candidates.forEach(src=>{
+      if(!src)return;
+      const arr=Array.isArray(src)?src:String(src).split(/\n/);
+      arr.forEach(x=>{const n=normalizeLocation(x); if(n)out.push(n);});
+    });
+    const seen=new Set();
+    return out.filter(x=>{const k=x.name+'|'+x.address; if(seen.has(k))return false; seen.add(k); return true;});
+  }
+  function repairPurposeSelect(){
+    const sel=$('v242Purpose'); if(!sel)return;
+    const selected=sel.value;
+    const opts=['<option value=""></option>'].concat(locationList().map((x,i)=>`<option value="${attr(String(i))}" data-name="${attr(x.name)}" data-address="${attr(x.address)}">${esc(x.name)}${x.address?' － '+esc(x.address):''}</option>`));
+    sel.innerHTML=opts.join('');
+    if([...sel.options].some(o=>o.value===selected)) sel.value=selected;
+    if(!sel.dataset.v243Purpose){
+      sel.dataset.v243Purpose='1';
+      sel.addEventListener('change',()=>{
+        if($('v242OneTime')?.checked) return;
+        const opt=sel.selectedOptions&&sel.selectedOptions[0]; if(!opt)return;
+        const name=opt.dataset.name||'', address=opt.dataset.address||'';
+        if(name&&$('v242LocationName')) $('v242LocationName').value=name;
+        if($('v242Address')) $('v242Address').value=address;
+      });
+    }
+    const one=$('v242OneTime');
+    if(one&&!one.dataset.v243OneTime){
+      one.dataset.v243OneTime='1';
+      one.addEventListener('change',()=>{ if(one.checked && sel) sel.value=''; });
+    }
+  }
+  function removeTestBanners(){
+    qa('#v234FieldSaveDebugBox,.v234-save-debug').forEach(el=>el.remove());
+    const bad=/V234\s*儲存狀態|此版本為\s*localStorage\s*儲存|不會送出\s*Network\s*API|git\s+push|FILE=|MSG=|npm\s+run\s+build|git\s+add|git\s+commit/;
+    const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+    const nodes=[]; let n; while(n=walker.nextNode()){ if(bad.test(n.nodeValue||'')) nodes.push(n); }
+    nodes.forEach(t=>{ const p=t.parentNode; if(!p)return; if((t.nodeValue||'').trim().length<220) p.removeChild(t); else t.nodeValue=t.nodeValue.replace(bad,''); });
+  }
+  function fixModalLayout(){
+    const modal=$('fieldModal'); if(!modal)return;
+    const card=modal.querySelector('.modal-card'); if(card){card.classList.add('v243-field-modal-card');}
+    repairPurposeSelect();
+    removeTestBanners();
+  }
+  function highlightToday(){
+    const area=$('v242CalendarArea'); if(!area)return;
+    const t=todayISO();
+    qa('.v243-today-col,.v243-today-head',area).forEach(el=>el.classList.remove('v243-today-col','v243-today-head'));
+    qa('[data-v242-date]',area).forEach(td=>{ if(td.dataset.v242Date===t) td.classList.add('v243-today-col'); });
+    const first=area.querySelector(`[data-v242-date="${t}"]`);
+    if(first){ const idx=[...first.parentNode.children].indexOf(first); const th=area.querySelector(`thead th:nth-child(${idx+1})`); if(th)th.classList.add('v243-today-head'); }
+    const wrap=area.querySelector('.calendar-wrap'); if(wrap)wrap.classList.add('v243-calendar-scroll');
+  }
+  function afterRender(){ setTimeout(()=>{highlightToday(); repairPurposeSelect(); removeTestBanners();},30); }
+  function wrapRender(){
+    if(window.__v243RenderWrapped)return; window.__v243RenderWrapped=true;
+    const old=window.renderFieldCalendar;
+    if(typeof old==='function'){
+      window.renderFieldCalendar=function(){ const r=old.apply(this,arguments); afterRender(); return r; };
+    }
+    const mod=window.v242FieldModule;
+    if(mod&&typeof mod.render==='function'){
+      const old2=mod.render;
+      mod.render=function(){ const r=old2.apply(this,arguments); afterRender(); return r; };
+    }
+  }
+  function install(){
+    wrapRender(); fixModalLayout(); afterRender();
+    document.addEventListener('click',function(e){
+      const t=e.target;
+      if(t&&t.closest&&t.closest('#v242Add,#fieldAddBtn,#v240FieldAddBtn,#v241FieldAddBtn,[data-page="fieldCalendar"],#v242Prev,#v242Next,#v242Clear')) afterRender();
+      if(t&&t.closest&&t.closest('#v242Save,#saveFieldBtn,#v240FieldSaveBtn,#v241SaveBtn')) setTimeout(()=>{afterRender();},120);
+    },true);
+    document.addEventListener('change',function(e){
+      const id=e.target&&e.target.id;
+      if(['v242Week','v242PersonFilter','v242GroupFilter','v242StartFilter','v242EndFilter','v242StatusFilter','v242Purpose','v242OneTime'].includes(id)) afterRender();
+    },true);
+    try{ new MutationObserver(()=>{fixModalLayout(); highlightToday(); removeTestBanners();}).observe(document.body,{childList:true,subtree:true}); }catch(_){ }
+    window.v243DebugReport={version:VERSION,modal:'max-height 90vh + overflow-y auto；按鈕 sticky bottom',calendar:'週一至週日；今日欄位已標示；外層 overflow-x auto',purpose:'目的與地點共用外務地點資料來源；選取後帶入地點名稱與地址',storage:'已移除 V234 測試提示。此 public HTML 仍無法單獨建立後端資料庫 API；需搭配 /api/field-events 後端端點才會有真正 Network 寫入。'};
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(install,800)); else setTimeout(install,800);
+})();
+
+</script>
 </body></html>
