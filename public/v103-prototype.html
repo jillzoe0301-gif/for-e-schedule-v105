@@ -815,7 +815,8 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 .holiday-head-tags{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:2px!important;margin-top:4px!important;line-height:1.25!important}
 .holiday-head-tags span{display:block!important;background:transparent!important;border:0!important;border-radius:0!important;padding:0!important;margin:0!important;font-size:11px!important;font-weight:700!important;white-space:normal!important}
 .holiday-head-tags .th{color:#f97316!important}.holiday-head-tags .ph{color:#16a34a!important}.holiday-head-tags .id{color:#ec4899!important}.holiday-head-tags .vn{color:#7c3aed!important}
-.calendar-table td.holiday-tw,.calendar-table .day-cell.holiday-tw,.personal-month-table td.holiday-tw,.room-week-table td.holiday-tw,.field-clean-calendar td.holiday-tw{background:#e0f2fe!important}
+.calendar-table td.holiday-tw,.calendar-table .day-cell.holiday-tw,.personal-month-table td.holiday-tw,.room-week-table td.holiday-tw,.field-clean-calendar td.holiday-tw,.field-clean-table td.holiday-tw,.v251-field-table td.holiday-tw{background:#e0f2fe!important}
+.v252-tw-holiday-head .tw,.v251-field-table th .holiday-tags .tw,.field-clean-table th .holiday-tags .tw,.calendar-table th .holiday-tags .tw,.room-week-table th .holiday-tags .tw{font-size:12px!important;font-weight:900!important;padding:2px 6px!important}
 @media(max-width:760px){.holiday-tags .tw{font-size:12px!important}.holiday-head-tags span{font-size:10.5px!important}}
 </style>
 <style>
@@ -1097,6 +1098,9 @@ function renderCountryHolidayHeaderTags(dateStr){
   const flagMap={'泰':'🇹🇭','菲':'🇵🇭','印':'🇮🇩','越':'🇻🇳'};
   return '<div class="holiday-head-tags">'+rows.map(h=>`<span class="${countryClass(h.c)}">${flagMap[h.c]||''} ${esc(h.n||'')}</span>`).join('')+'</div>';
 }
+window.renderHolidayTags = renderHolidayTags;
+window.renderCountryHolidayHeaderTags = renderCountryHolidayHeaderTags;
+window.isTwHoliday = isTwHoliday;
 function holidayClasses(d){return (hasCountryHoliday(d,'台')||isWeekendDate(d))?'holiday-tw':''}
 function dayClass(d){const wk=isWeekendDate(d)?'weekend':''; return `${wk} ${holidayClasses(d)} ${d===todayISO()?'today':''}`}
 
@@ -14438,8 +14442,8 @@ setInterval(v206SetupNavOrder,1500);
     var people=peopleSource(); var psel=readMulti('personFilter'); if(psel.length)people=people.filter(function(p){return psel.indexOf(p.id)>=0});
     var gsel=readMulti('groupFilter'); if(gsel.length)people=people.filter(function(p){return gsel.indexOf(p.group)>=0});
     var jsel=readMulti('jobFilter'); if(jsel.length)people=people.filter(function(p){return jsel.indexOf(p.lang)>=0});
-    var html='<div class="overview-clean-wrap"><table class="calendar-table"><thead><tr><th class="person-head">人員</th>'+days.map(function(d){return '<th class="'+(d===today()?'field-clean-today':'')+'">'+weekday(d)+' '+shortDate(d)+renderCountryHolidayHeaderTags(d)+'</th>'}).join('')+'</tr></thead><tbody>';
-    people.forEach(function(p){html+='<tr><td class="person-cell"><span class="person-name">'+esc(p.name)+'</span><div class="muted">'+esc([p.group,p.lang].filter(Boolean).join('｜'))+'</div></td>';days.forEach(function(d){var rows=overviewEventsFor(d,p.id);html+='<td class="day-cell '+(d===today()?'field-clean-today ':'')+(isTwHoliday(d)?'holiday-tw ':'')+'"><div class="date-num">'+shortDate(d)+'</div>'+rows.map(overviewCard).join('')+'</td>'});html+='</tr>'});
+    var html='<div class="overview-clean-wrap"><table class="calendar-table"><thead><tr><th class="person-head">人員</th>'+days.map(function(d){return '<th class="'+(d===today()?'field-clean-today':'')+'"><div>'+weekday(d)+' '+shortDate(d)+'</div>'+renderHolidayTags(d)+renderCountryHolidayHeaderTags(d)+'</th>'}).join('')+'</tr></thead><tbody>';
+    people.forEach(function(p){html+='<tr><td class="person-cell"><span class="person-name">'+esc(p.name)+'</span><div class="muted">'+esc([p.group,p.lang].filter(Boolean).join('｜'))+'</div></td>';days.forEach(function(d){var rows=overviewEventsFor(d,p.id);html+='<td class="day-cell '+(d===today()?'field-clean-today ':'')+(isTwHoliday(d)?'holiday-tw ':'')+'"><div class="date-num">'+shortDate(d)+'</div>'+renderHolidayTags(d)+rows.map(overviewCard).join('')+'</td>'});html+='</tr>'});
     html+='</tbody></table></div>'; area.innerHTML=html;
   }
 
@@ -14562,7 +14566,7 @@ window.v249HolidayTagsReport={
   'use strict';
   var STORE_KEY='translator_calendar_v81';
   var FIELD_TYPE='外務行程';
-  var OVERVIEW_TYPE='外務';
+  var OVERVIEW_TYPE='外務行程';
   var FIELD_COLOR={background:'#fff7ed',border:'#f97316'};
   var currentWeek='';
   var active=false;
@@ -14608,10 +14612,47 @@ window.v249HolidayTagsReport={
   function deleteModal(e){if(e){e.preventDefault();e.stopPropagation()}var id=$('v251Id').value;if(!id)return;var fe=allFields().find(function(x){return x.id===id});if(fe){fe.deleted=true;syncExternalEvent(fe)}closeModal()}
   function fieldsFor(d,pid){return allFields().filter(function(fe){return fe.date===d&&fieldPersonIds(fe).indexOf(String(pid))>=0})}
   function card(fe){var supply=[fe.stampChecked||fe.stamp?'印章':'',fe.cashChecked||fe.cash?'現金':'',fe.documentChecked||fe.document?'證件':''].filter(Boolean).join('、');return '<div class="v251-field-event" data-v251-field-id="'+attr(fe.id)+'"><div class="v251-field-event-title">'+esc(fe.time?fe.time+'｜':'')+esc(fe.purpose||FIELD_TYPE)+'</div><div class="v251-field-meta">'+esc(fe.locationName||'')+'</div><div class="v251-field-meta">'+esc(fe.status||'未完成')+(supply?'｜'+esc(supply):'')+'</div></div>'}
-  function renderFieldCalendar(){ensureToolbar();syncAll();var area=$('fieldCalendarArea');if(!area)return;currentWeek=weekStartMonday(($('v251FieldWeek')&&$('v251FieldWeek').value)||currentWeek||today());if($('v251FieldWeek'))$('v251FieldWeek').value=currentWeek;var days=weekDaysMonday(currentWeek);var html='<div class="v251-field-wrap"><table class="v251-field-table"><thead><tr><th class="v251-field-person-head">外務人員</th>'+days.map(function(d){return '<th class="'+(d===today()?'v251-today':'')+'"><div class="v251-date-title">'+weekday(d)+' '+shortDate(d)+'</div>'+(typeof window.renderCountryHolidayHeaderTags==='function'?window.renderCountryHolidayHeaderTags(d):'')+'</th>'}).join('')+'</tr></thead><tbody>';peopleSource().forEach(function(p){html+='<tr><td class="v251-field-person-cell"><span class="person-name">'+esc(p.name)+'</span><div class="muted">'+esc([p.group,p.lang].filter(Boolean).join('｜'))+'</div></td>';days.forEach(function(d){var tw=(typeof window.isTwHoliday==='function'&&window.isTwHoliday(d))||(typeof isTwHoliday==='function'&&isTwHoliday(d));html+='<td class="v251-field-day '+(d===today()?'v251-today ':'')+(tw?'holiday-tw ':'')+'" data-v251-field-cell="1" data-date="'+attr(d)+'" data-person="'+attr(p.id)+'">'+(typeof window.renderHolidayTags==='function'?window.renderHolidayTags(d):(typeof renderHolidayTags==='function'?renderHolidayTags(d):''))+fieldsFor(d,p.id).map(card).join('')+'</td>'});html+='</tr>'});html+='</tbody></table></div>';area.innerHTML=html;area.dataset.v251='1';area.querySelectorAll('[data-v251-field-cell]').forEach(function(td){td.addEventListener('dblclick',function(e){if(e.target.closest('[data-v251-field-id]'))return;e.preventDefault();e.stopPropagation();openFieldModal({date:td.dataset.date,personId:td.dataset.person})})});area.querySelectorAll('[data-v251-field-id]').forEach(function(el){el.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();openFieldModal({id:el.dataset.v251FieldId})})})}
-  function renderAllTargets(){renderFieldCalendar();try{if(window.renderCalendar&&window.renderCalendar!==renderFieldCalendar)window.renderCalendar()}catch(e){}try{if(window.renderFieldDetails)window.renderFieldDetails()}catch(e){}try{if(window.renderPersonalDetails)window.renderPersonalDetails()}catch(e){}}
+  function renderFieldCalendar(){
+    ensureToolbar();
+    syncAll();
+    var area=$('fieldCalendarArea');
+    if(!area)return;
+    currentWeek=weekStartMonday(($('v251FieldWeek')&&$('v251FieldWeek').value)||currentWeek||today());
+    if($('v251FieldWeek'))$('v251FieldWeek').value=currentWeek;
+    var days=weekDaysMonday(currentWeek);
+    var twTags=function(d){return typeof window.renderHolidayTags==='function'?window.renderHolidayTags(d):''};
+    var countryTags=function(d){return typeof window.renderCountryHolidayHeaderTags==='function'?window.renderCountryHolidayHeaderTags(d):''};
+    var isTw=function(d){return typeof window.isTwHoliday==='function'&&window.isTwHoliday(d)};
+    var html='<div class="v251-field-wrap"><table class="v251-field-table"><thead><tr><th class="v251-field-person-head">外務人員</th>'+days.map(function(d){
+      return '<th class="'+(d===today()?'v251-today':'')+'"><div class="v251-date-title">'+weekday(d)+' '+shortDate(d)+'</div><div class="v252-tw-holiday-head">'+twTags(d)+'</div>'+countryTags(d)+'</th>';
+    }).join('')+'</tr></thead><tbody>';
+    peopleSource().forEach(function(p){
+      html+='<tr><td class="v251-field-person-cell"><span class="person-name">'+esc(p.name)+'</span><div class="muted">'+esc([p.group,p.lang].filter(Boolean).join('｜'))+'</div></td>';
+      days.forEach(function(d){
+        var tw=isTw(d);
+        html+='<td class="v251-field-day '+(d===today()?'v251-today ':'')+(tw?'holiday-tw ':'')+'" '+(tw?'style="background:#e0f2fe" ':'')+'data-v251-field-cell="1" data-date="'+attr(d)+'" data-person="'+attr(p.id)+'">'+twTags(d)+fieldsFor(d,p.id).map(card).join('')+'</td>';
+      });
+      html+='</tr>';
+    });
+    html+='</tbody></table></div>';
+    area.innerHTML=html;
+    area.dataset.v251='1';
+    area.querySelectorAll('[data-v251-field-cell]').forEach(function(td){td.addEventListener('dblclick',function(e){if(e.target.closest('[data-v251-field-id]'))return;e.preventDefault();e.stopPropagation();openFieldModal({date:td.dataset.date,personId:td.dataset.person})})});
+    area.querySelectorAll('[data-v251-field-id]').forEach(function(el){el.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();openFieldModal({id:el.dataset.v251FieldId})})});
+  }
+  function renderAllTargets(){
+    renderFieldCalendar();
+    try{if(window.renderCalendar&&window.renderCalendar!==renderFieldCalendar)window.renderCalendar()}catch(e){console.warn('[V252] 行程總覽重繪失敗',e)}
+    try{if(window.renderFieldDetails&&window.renderFieldDetails!==renderFieldCalendar)window.renderFieldDetails()}catch(e){console.warn('[V252] 外務明細重繪失敗',e)}
+    try{if(window.renderPersonalDetails)window.renderPersonalDetails()}catch(e){console.warn('[V252] 個人行程重繪失敗',e)}
+    setTimeout(function(){
+      try{if(window.renderCalendar&&window.renderCalendar!==renderFieldCalendar)window.renderCalendar()}catch(e){}
+      try{if(window.renderFieldDetails&&window.renderFieldDetails!==renderFieldCalendar)window.renderFieldDetails()}catch(e){}
+      try{if(window.renderPersonalDetails)window.renderPersonalDetails()}catch(e){}
+    },0);
+  }
   function boot(force){ensureToolbar();ensureModal();if(force||($('fieldCalendarPage')&&!$('fieldCalendarPage').classList.contains('hide')))renderFieldCalendar()}
-  window.openFieldModal=window.openFieldModalClean=openFieldModal;window.renderFieldCalendar=window.renderFieldCalendarClean=renderFieldCalendar;window.shiftFieldWeekV251=shiftWeek;window.v251FieldReport={rootCause:'V250仍共用舊 #fieldAddBtn/#fieldPrevWeek/#fieldNextWeek/#fieldWeekPicker 事件鏈，舊補丁較早註冊的事件會攔截或覆蓋新版邏輯。V251改為重建外務工具列與獨立 v251 modal，避開舊事件鏈。',dblclick:'td[data-v251-field-cell] 直接綁定 dblclick，帶入 data-person 與 data-date',weekButtons:'v251FieldPrev/v251FieldNext 直接更新 currentWeek 並 renderFieldCalendar()',time:'時段/小時/分鐘三下拉，分鐘 5 分鐘，不指定儲存空值'};
+  window.openFieldModal=window.openFieldModalClean=openFieldModal;window.renderFieldCalendar=window.renderFieldCalendarClean=renderFieldCalendar;window.shiftFieldWeekV251=shiftWeek;window.v252FieldHolidaySyncReport={holidayHeader:'外務 th 已呼叫 renderHolidayTags + renderCountryHolidayHeaderTags',holidayTd:'外務 td 已呼叫 renderHolidayTags 並套用 #e0f2fe',syncType:'externalEvents.type 與 events.type 均為 外務行程',rootCause:'V250仍共用舊 #fieldAddBtn/#fieldPrevWeek/#fieldNextWeek/#fieldWeekPicker 事件鏈，舊補丁較早註冊的事件會攔截或覆蓋新版邏輯。V251改為重建外務工具列與獨立 v251 modal，避開舊事件鏈。',dblclick:'td[data-v251-field-cell] 直接綁定 dblclick，帶入 data-person 與 data-date',weekButtons:'v251FieldPrev/v251FieldNext 直接更新 currentWeek 並 renderFieldCalendar()',time:'時段/小時/分鐘三下拉，分鐘 5 分鐘，不指定儲存空值'};
   document.addEventListener('click',function(e){var btn=e.target&&e.target.closest&&e.target.closest('.navbtn[data-page="fieldCalendar"],button[data-page="fieldCalendar"]');if(btn){setTimeout(function(){boot(true)},60);setTimeout(function(){boot(true)},300);setTimeout(function(){boot(true)},800)}},true);
   document.addEventListener('DOMContentLoaded',function(){setTimeout(function(){boot(false)},600);setTimeout(function(){boot(false)},1200)});
   setTimeout(function(){boot(false)},900);
