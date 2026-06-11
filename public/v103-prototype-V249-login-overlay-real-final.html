@@ -15175,4 +15175,113 @@ setInterval(v206SetupNavOrder,1500);
 })();
 </script>
 
+<style id="v249-login-overlay-style">
+  #v249LoginOverlay{position:fixed!important;inset:0!important;z-index:2147483647!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:20px!important;background:#f6f7fb!important;font-family:"Microsoft JhengHei",Arial,sans-serif!important;color:#1f2937!important;pointer-events:auto!important;}
+  #v249LoginOverlay.hide{display:none!important;}
+  #v249LoginCard{width:min(520px,calc(100vw - 40px))!important;background:#fff!important;border:1px solid #d8dde8!important;border-radius:22px!important;box-shadow:0 18px 45px rgba(15,23,42,.14)!important;padding:28px!important;pointer-events:auto!important;}
+  #v249LoginCard h1{font-size:32px!important;margin:0 0 28px!important;font-weight:900!important;color:#0f172a!important;}
+  #v249LoginCard label{display:block!important;font-size:16px!important;margin:14px 0 6px!important;color:#0f172a!important;}
+  #v249LoginCard input{display:block!important;width:100%!important;border:1px solid #d8dde8!important;border-radius:12px!important;padding:12px 14px!important;background:#fff!important;color:#111827!important;font-size:16px!important;line-height:1.35!important;pointer-events:auto!important;user-select:text!important;-webkit-user-select:text!important;}
+  #v249LoginCard input:focus{outline:3px solid rgba(37,99,235,.18)!important;border-color:#2563eb!important;}
+  #v249LoginBtn{margin-top:16px!important;background:#2563eb!important;border:1px solid #2563eb!important;color:#fff!important;border-radius:12px!important;padding:12px 18px!important;font-weight:900!important;font-size:16px!important;cursor:pointer!important;pointer-events:auto!important;}
+  #v249LoginQuick{margin-left:8px!important;margin-top:16px!important;background:#fff!important;border:1px solid #d8dde8!important;color:#1f2937!important;border-radius:12px!important;padding:12px 18px!important;font-weight:900!important;font-size:16px!important;cursor:pointer!important;pointer-events:auto!important;}
+  #v249LoginMsg{margin-top:10px!important;color:#dc2626!important;font-size:13px!important;min-height:18px!important;}
+  body.v249-login-active #loginView{display:none!important;}
+  body.v249-login-active #appView{pointer-events:none!important;}
+  body.v249-login-active .modal,body.v249-login-active .toast{display:none!important;pointer-events:none!important;}
+</style>
+<script id="v249-login-overlay-final-fix">
+(function(){
+  'use strict';
+  if(window.__FORE_V249_LOGIN_OVERLAY_FINAL_FIX__) return;
+  window.__FORE_V249_LOGIN_OVERLAY_FINAL_FIX__=true;
+  const VERSION='V249';
+  const STORE_KEY='translator_calendar_v81';
+  const $=id=>document.getElementById(id);
+  function safe(fn,fallback){try{return fn()}catch(e){console.warn('[V249]',e);return fallback}}
+  function readState(){
+    let s=safe(()=>state,null);
+    if(!s && typeof load==='function'){ safe(()=>load(false)); s=safe(()=>state,null); }
+    if(!s){ const raw=safe(()=>localStorage.getItem(STORE_KEY),''); if(raw) s=safe(()=>JSON.parse(raw),null); }
+    if(!s && typeof defaultState==='function') s=safe(()=>defaultState(),null);
+    if(!s) s={users:[],people:[],events:[],externalEvents:[],options:{}};
+    s.users=Array.isArray(s.users)?s.users:[];
+    s.people=Array.isArray(s.people)?s.people:[];
+    s.events=Array.isArray(s.events)?s.events:[];
+    s.externalEvents=Array.isArray(s.externalEvents)?s.externalEvents:[];
+    try{state=s;}catch(_){window.state=s;}
+    return s;
+  }
+  function saveState(){safe(()=>{if(typeof save==='function')save();else localStorage.setItem(STORE_KEY,JSON.stringify(readState()));});}
+  function ensureAdmin(){
+    const s=readState();
+    let person=s.people.find(p=>String(p.id)==='p20')||s.people.find(p=>String(p.name||'').includes('蘇若儀'))||s.people[0];
+    if(!person){person={id:'p20',name:'蘇若儀',group:'營運處',lang:'管理員',job:'管理員',active:true,deleted:false};s.people.push(person);}
+    let user=s.users.find(u=>String(u.email||'').trim().toLowerCase()==='admin@demo.com');
+    if(!user){user={id:'u_admin',name:'Demo ZoeSu',email:'admin@demo.com',password:'123456',role:'admin',personId:person.id,active:true,deleted:false};s.users.push(user);}
+    user.password='123456'; user.role='admin'; user.personId=user.personId||person.id; user.active=true; user.deleted=false;
+    saveState(); return user;
+  }
+  function isLoggedIn(){return !!safe(()=>currentUser,null)||!!window.currentUser;}
+  function setMessage(text){const el=$('v249LoginMsg'); if(el) el.textContent=text||'';}
+  function enter(user){
+    safe(()=>{currentUser=user;}); window.currentUser=user;
+    safe(()=>{if(typeof safeSetSession==='function')safeSetSession(user.id); else localStorage.setItem(STORE_KEY+'_session',user.id);});
+    document.body.classList.remove('v249-login-active','v248-login-mode');
+    const overlay=$('v249LoginOverlay'); if(overlay) overlay.classList.add('hide');
+    const login=$('loginView'); if(login) login.classList.add('hide');
+    const app=$('appView'); if(app){app.classList.remove('hide'); app.style.pointerEvents='auto';}
+    const label=$('currentUserLabel'); if(label) label.innerHTML=(user.name||user.email||'使用者')+' <span class="badge">管理員</span>';
+    let ok=false;
+    if(typeof showApp==='function') ok=!!safe(()=>{showApp();return true;},false);
+    if(!ok){
+      safe(()=>{currentPage='calendar';});
+      safe(()=>{if(typeof applyPermissionsUI==='function')applyPermissionsUI();});
+      safe(()=>{if(typeof renderAll==='function')renderAll();});
+      safe(()=>{if(typeof showPage==='function')showPage('calendar');});
+    }
+    window.v249DebugReport={version:VERSION,loginOk:true,user:user.email,appVisible:!!(app&&!app.classList.contains('hide'))};
+    return true;
+  }
+  function doLogin(force){
+    const s=readState(); ensureAdmin();
+    const email=String(($('v249Email')||{}).value||'').trim().toLowerCase();
+    const pw=String(($('v249Password')||{}).value||'');
+    let user=null;
+    if(force) user=s.users.find(u=>String(u.email||'').trim().toLowerCase()==='admin@demo.com')||ensureAdmin();
+    else user=s.users.find(u=>u&&u.deleted!==true&&String(u.email||'').trim().toLowerCase()===email&&String(u.password||'')===pw);
+    if(!user && email==='admin@demo.com' && pw==='123456') user=ensureAdmin();
+    if(!user){setMessage('帳號或密碼錯誤。測試帳號：admin@demo.com / 123456');return false;}
+    if(user.active===false){user.active=true;user.deleted=false;saveState();}
+    setMessage('登入成功，載入中...');
+    return enter(user);
+  }
+  function buildOverlay(){
+    if(isLoggedIn()) return;
+    let overlay=$('v249LoginOverlay');
+    if(!overlay){
+      overlay=document.createElement('div');
+      overlay.id='v249LoginOverlay';
+      overlay.innerHTML='<div id="v249LoginCard"><h1>FOR-e 共享排程系統</h1><label for="v249Email">Email</label><input id="v249Email" type="email" autocomplete="username" placeholder="name@company.com"><label for="v249Password">密碼</label><input id="v249Password" type="password" autocomplete="current-password"><button id="v249LoginBtn" type="button">登入</button><button id="v249LoginQuick" type="button">快速登入</button><div id="v249LoginMsg"></div></div>';
+      document.body.appendChild(overlay);
+    }
+    document.body.classList.add('v249-login-active');
+    overlay.classList.remove('hide');
+    const email=$('v249Email'), pw=$('v249Password'), btn=$('v249LoginBtn'), quick=$('v249LoginQuick');
+    [email,pw,btn,quick].forEach(el=>{if(el){el.disabled=false;el.removeAttribute('disabled');el.style.pointerEvents='auto';}});
+    if(email&&!email.dataset.v249Bound){email.dataset.v249Bound='1';email.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();doLogin(false);}},false);}
+    if(pw&&!pw.dataset.v249Bound){pw.dataset.v249Bound='1';pw.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();doLogin(false);}},false);}
+    if(btn&&!btn.dataset.v249Bound){btn.dataset.v249Bound='1';btn.addEventListener('click',e=>{e.preventDefault();doLogin(false);},false);}
+    if(quick&&!quick.dataset.v249Bound){quick.dataset.v249Bound='1';quick.addEventListener('click',e=>{e.preventDefault(); if(email)email.value='admin@demo.com'; if(pw)pw.value='123456'; doLogin(true);},false);}
+    setTimeout(()=>{try{(email||pw||btn).focus();}catch(_){ }},80);
+    window.v249DebugReport={version:VERSION,installed:true,overlay:true,emailReady:!!email,passwordReady:!!pw,buttonReady:!!btn,adminReady:!!ensureAdmin()};
+  }
+  window.v249Login=doLogin;
+  window.forceMobileLogin=function(){return doLogin(true);};
+  window.doLoginCore=function(email,pw,force){buildOverlay(); if(email!==undefined&&$('v249Email'))$('v249Email').value=email||''; if(pw!==undefined&&$('v249Password'))$('v249Password').value=pw||''; return doLogin(!!force);};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(buildOverlay,50)); else setTimeout(buildOverlay,50);
+  setTimeout(buildOverlay,400); setTimeout(buildOverlay,1200);
+})();
+</script>
+
 </body></html>
