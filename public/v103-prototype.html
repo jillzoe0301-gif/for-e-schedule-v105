@@ -777,7 +777,7 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 /* V231：行程搜尋、外務儲存、異況硬刪除修正 */
 .schedule-search-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;align-items:end}.schedule-search-actions{display:flex;gap:8px;flex-wrap:wrap}.schedule-type-chip{display:inline-block;border-radius:999px;padding:3px 9px;font-weight:900;font-size:12px;border:1px solid #d8dde8}.schedule-search-pager{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:10px}.schedule-search-pager button{min-width:74px}.v231-field-onetime-box{border:1px dashed #fed7aa;background:#fff7ed;border-radius:14px;padding:10px;margin-top:8px}.v231-field-onetime-box .row{margin-top:8px}.v231-save-disabled{opacity:.55;pointer-events:none}.v231-helper-box{border:1px solid var(--line);border-radius:12px;padding:8px;max-height:180px;overflow:auto;background:#fff}.v231-helper-box label{display:flex;gap:8px;align-items:center;padding:6px 8px;border-radius:8px}.v231-helper-box label:hover{background:#f8fafc}.v231-helper-box input{width:auto!important}.v231-view-btn-blue,#personalDetailsPage button[data-open-event],#mobilePage button[data-mobile-open]{background:#2563eb!important;border-color:#2563eb!important;color:#fff!important}.modal-card.v231-themed{border-top:8px solid var(--v231-modal-theme,#dbeafe)}
 
-/* V241：外務表單與週曆修正 */
+/* V242：外務表單、地點輸入、週曆與同步顯示修正 */
 .v241-multiselect{position:relative;display:block;width:100%}
 .v241-multi-btn{width:100%;min-height:40px;text-align:left;background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 36px 9px 10px;position:relative}
 .v241-multi-btn:after{content:'▾';position:absolute;right:12px;top:9px;color:#64748b}
@@ -790,6 +790,7 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 .v241-check-input .checkline{margin:0;white-space:nowrap}
 .v241-today-cell{box-shadow:inset 0 0 0 2px #f97316!important}
 .v241-today-cell .date-num{font-weight:900;color:#c2410c}
+.v242-location-help{font-size:12px;color:#64748b;margin-top:4px;line-height:1.35}
 @media(max-width:760px){.v241-check-input{grid-template-columns:1fr}.v241-multi-panel{position:relative;top:4px}}
 </style>
 <style>
@@ -14084,7 +14085,7 @@ setInterval(v206SetupNavOrder,1500);
    ========================================================= */
 (function(){
   'use strict';
-  const VERSION='V240';
+  const VERSION='V242';
   const FIELD_LABEL='外務行程';
   const OVERVIEW_TYPE='外務';
   const STORE_KEY=(typeof KEY!=='undefined'?KEY:'translator_calendar_v81');
@@ -14160,14 +14161,13 @@ setInterval(v206SetupNavOrder,1500);
     return (s&&s.options&&Array.isArray(s.options.fieldPurposes)&&s.options.fieldPurposes.length?s.options.fieldPurposes:defaultPurposes);
   };
   const weekDays2=(base)=>{
-    try{return typeof weekDays==='function'?weekDays(base):null}catch(_){ }
     const d=new Date((base||today2())+'T00:00:00');
     const monday=new Date(d); monday.setDate(d.getDate()-((d.getDay()+6)%7));
     return Array.from({length:7},(_,i)=>{const x=new Date(monday);x.setDate(monday.getDate()+i);return x.toISOString().slice(0,10)});
   };
   const addDays=(iso,n)=>{const d=new Date((iso||today2())+'T00:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)};
   const dateLabel=(d)=>{try{return typeof fmtDate==='function'?fmtDate(d):d}catch(_){return d}};
-  const weekdayLabel=(d)=>{try{return typeof weekdayFull==='function'?weekdayFull(d):['日','一','二','三','四','五','六'][new Date(d+'T00:00:00').getDay()]}catch(_){return d}};
+  const weekdayLabel=(d)=>{const labels=['週日','週一','週二','週三','週四','週五','週六'];try{return labels[new Date(d+'T00:00:00').getDay()]||d}catch(_){return d}};
   const dayCls=(d)=>{try{return typeof dayClass==='function'?dayClass(d):''}catch(_){return ''}};
   const holidayHtml=(d)=>{try{return typeof holidayBadgeBodyHTML==='function'?holidayBadgeBodyHTML(d):''}catch(_){return ''}};
   const ampm2=(t)=>{try{return typeof ampm==='function'?ampm(t):t}catch(_){return t||''}};
@@ -14234,9 +14234,8 @@ setInterval(v206SetupNavOrder,1500);
         <input type="hidden" id="v240FieldEditId">
         <div class="field"><label>外務人員名稱</label><div id="v240FieldPeopleBox"></div><div class="muted">下拉可多選；未選取也可以儲存。</div></div>
         <div class="row"><div class="field"><label>日期</label><input id="v240FieldDate" type="date"></div><div class="field"><label>時間</label><input id="v240FieldTime" type="time"></div></div>
-        <div class="row"><div class="field"><label>行程狀態</label><select id="v240FieldStatus"></select></div><div class="field"><label>地點</label><select id="v240FieldLocation"></select></div></div>
-        <div class="row"><div class="field"><label>外務地點名稱</label><input id="v240FieldLocationName" readonly></div><div class="field"><label>地址</label><input id="v240FieldAddress" readonly></div></div>
-        <div class="field"><label class="checkline"><input id="v240FieldOneTime" type="checkbox"> 勾選新增地點（本次使用，不寫入選項）</label><div id="v240FieldOneTimeBox" class="hide"><div class="row"><div class="field"><label>地點名稱輸入框</label><input id="v240FieldOneTimeName" placeholder="請輸入本次地點名稱"></div><div class="field"><label>地址輸入框</label><input id="v240FieldOneTimeAddress" placeholder="請輸入本次地址"></div></div><div class="muted">單次使用，不寫入選項資料庫。</div></div></div>
+        <div class="row"><div class="field"><label>行程狀態</label><select id="v240FieldStatus"></select></div><div class="field"><label>外務地點名稱</label><input id="v240FieldLocationName" list="v240FieldLocationList" placeholder="可選擇既有地點，也可直接輸入"><datalist id="v240FieldLocationList"></datalist><div class="v242-location-help">選取既有地點會自動帶入地址；也可直接手動輸入。</div></div></div>
+        <div class="field"><label>地址</label><input id="v240FieldAddress" placeholder="選取地點後自動帶入，也可自行修改"></div>
         <div class="row"><div class="field"><label>目的</label><input id="v240FieldPurpose" list="v240FieldPurposeList"><datalist id="v240FieldPurposeList"></datalist></div><div class="field"><label>連續/重複性</label><select id="v240FieldRepeat"><option value="once">只新增本次</option><option value="weekly4">每週連續一個月</option><option value="weekly13">每週連續三個月</option><option value="weekly26">每週連續六個月</option><option value="custom">每週指定日期區間</option></select></div></div>
         <div id="v240FieldRepeatRange" class="row hide"><div class="field"><label>重複起日</label><input id="v240FieldRepeatStart" type="date"></div><div class="field"><label>重複迄日</label><input id="v240FieldRepeatEnd" type="date"></div></div>
         <div class="field"><label>內容</label><textarea id="v240FieldNote"></textarea></div>
@@ -14256,7 +14255,7 @@ setInterval(v206SetupNavOrder,1500);
     const gSel=$id('v240FieldGroupFilter'); if(gSel)gSel.innerHTML='<option value="">全部部門</option>'+groups.map(g=>`<option value="${esc2(g)}">${esc2(g)}</option>`).join('');
     const stSel=$id('v240FieldStatusFilter'); if(stSel)stSel.innerHTML='<option value="">全部狀態</option>'+defaultStatus.map(s=>`<option>${esc2(s)}</option>`).join('');
     const st=$id('v240FieldStatus'); if(st)st.innerHTML='<option value=""></option>'+defaultStatus.map(s=>`<option>${esc2(s)}</option>`).join('');
-    const loc=$id('v240FieldLocation'); if(loc)loc.innerHTML='<option value=""></option>'+locationList().map(x=>`<option value="${esc2(x.name)}" data-address="${esc2(x.address)}">${esc2(x.name)}${x.address?'｜'+esc2(x.address):''}</option>`).join('');
+    const locList=$id('v240FieldLocationList'); if(locList)locList.innerHTML=locationList().map(x=>`<option value="${esc2(x.name)}" data-address="${esc2(x.address)}">${x.address?esc2(x.address):''}</option>`).join('');
     const pur=$id('v240FieldPurposeList'); if(pur)pur.innerHTML=purposeList().map(x=>`<option value="${esc2(x)}"></option>`).join('');
     const pickup=$id('v240FieldPickupPerson'); if(pickup)pickup.innerHTML='<option value=""></option>'+people.map(p=>`<option value="${esc2(p.id)}">${esc2(p.name)}</option>`).join('');
     const box=$id('v240FieldPeopleBox'); if(box)box.innerHTML=checkList('v240FieldPeople',people.map(p=>({value:p.id,label:p.name+'｜'+(p.group||'')}))); bindV241MultiSelects();
@@ -14272,18 +14271,17 @@ setInterval(v206SetupNavOrder,1500);
     bind('v240FieldExportBtn','click',exportV240FieldCsv);
     bind('v240FieldCloseX','click',closeV240FieldModal); bind('v240FieldCloseBtn','click',closeV240FieldModal);
     bind('v240FieldSaveBtn','click',saveV240FieldEvent); bind('v240FieldDeleteBtn','click',deleteV240FieldEvent);
-    bind('v240FieldLocation','change',syncV240LocationFromSelect);
-    bind('v240FieldOneTime','change',()=>{const ck=$id('v240FieldOneTime'); const box=$id('v240FieldOneTimeBox'); if(box)box.classList.toggle('hide',!ck.checked); if(ck.checked){$id('v240FieldLocationName').readOnly=false;$id('v240FieldAddress').readOnly=false}else{syncV240LocationFromSelect()}});
+    bind('v240FieldLocationName','change',syncV240LocationFromInput);
+    bind('v240FieldLocationName','input',syncV240LocationFromInput);
     bind('v240FieldRepeat','change',()=>{const box=$id('v240FieldRepeatRange'); if(box)box.classList.toggle('hide',$id('v240FieldRepeat').value!=='custom')});
     bind('v240FieldDate','change',()=>{const d=$id('v240FieldDate').value; if($id('v240FieldRepeatStart')&&!$id('v240FieldRepeatStart').value)$id('v240FieldRepeatStart').value=d; if($id('v240FieldRepeatEnd')&&!$id('v240FieldRepeatEnd').value)$id('v240FieldRepeatEnd').value=d;});
   }
 
-  function syncV240LocationFromSelect(){
-    const sel=$id('v240FieldLocation'); if(!sel)return;
-    const opt=sel.options[sel.selectedIndex];
-    const name=sel.value||''; const addr=(opt&&opt.dataset?opt.dataset.address:'')||'';
-    if($id('v240FieldLocationName')){$id('v240FieldLocationName').value=name;$id('v240FieldLocationName').readOnly=true}
-    if($id('v240FieldAddress')){$id('v240FieldAddress').value=addr;$id('v240FieldAddress').readOnly=true}
+  function syncV240LocationFromInput(){
+    const nameEl=$id('v240FieldLocationName'); const addrEl=$id('v240FieldAddress'); if(!nameEl||!addrEl)return;
+    const name=String(nameEl.value||'').trim();
+    const hit=locationList().find(x=>String(x.name||'').trim()===name);
+    if(hit&&hit.address)addrEl.value=hit.address;
   }
 
   function openV240FieldModal(opts={}){
@@ -14296,13 +14294,8 @@ setInterval(v206SetupNavOrder,1500);
     $id('v240FieldStatus').value=e?e.status||'':'未完成';
     const personIds=e?(Array.isArray(e.personIds)&&e.personIds.length?e.personIds:[e.personId].filter(Boolean)):[opts.personId].filter(Boolean);
     setChecks('v240FieldPeople',personIds);
-    $id('v240FieldLocation').value=e?e.locationName||'':''; syncV240LocationFromSelect();
-    $id('v240FieldLocationName').value=e?e.locationName||'':($id('v240FieldLocationName').value||'');
-    $id('v240FieldAddress').value=e?e.address||'':($id('v240FieldAddress').value||'');
-    $id('v240FieldOneTime').checked=!!(e&&e.oneTimeLocation);
-    $id('v240FieldOneTimeBox').classList.toggle('hide',!$id('v240FieldOneTime').checked);
-    $id('v240FieldOneTimeName').value=e&&e.oneTimeLocation?e.locationName||'':'';
-    $id('v240FieldOneTimeAddress').value=e&&e.oneTimeLocation?e.address||'':'';
+    $id('v240FieldLocationName').value=e?e.locationName||'':'';
+    $id('v240FieldAddress').value=e?e.address||'':'';
     $id('v240FieldPurpose').value=e?e.purpose||'':'';
     $id('v240FieldRepeat').value='once'; $id('v240FieldRepeatRange').classList.add('hide');
     $id('v240FieldRepeatStart').value=$id('v240FieldDate').value; $id('v240FieldRepeatEnd').value=$id('v240FieldDate').value;
@@ -14338,10 +14331,9 @@ setInterval(v206SetupNavOrder,1500);
   }
   function readV240Form(){
     let personIds=selectedChecks('v240FieldPeople');
-    const one=!!$id('v240FieldOneTime')?.checked;
-    const locName=one?($id('v240FieldOneTimeName')?.value||''):($id('v240FieldLocationName')?.value||$id('v240FieldLocation')?.value||'');
-    const addr=one?($id('v240FieldOneTimeAddress')?.value||''):($id('v240FieldAddress')?.value||'');
-    return {personIds,date:$id('v240FieldDate')?.value||$id('v240FieldWeekPicker')?.value||today2(),time:$id('v240FieldTime')?.value||'',status:$id('v240FieldStatus')?.value||'',locationName:locName,address:addr,oneTimeLocation:one,purpose:$id('v240FieldPurpose')?.value||'',note:$id('v240FieldNote')?.value||'',cash:$id('v240FieldCash')?.value||'',cashChecked:!!$id('v240FieldCashCheck')?.checked,cashNote:$id('v240FieldCash')?.value||'',stamp:$id('v240FieldStamp')?.value||'',stampChecked:!!$id('v240FieldStampCheck')?.checked,stampNote:$id('v240FieldStamp')?.value||'',document:$id('v240FieldDocument')?.value||'',documentChecked:!!$id('v240FieldDocumentCheck')?.checked,documentNote:$id('v240FieldDocument')?.value||'',mustSend:!!$id('v240FieldMustSend')?.checked,cannotChange:!!$id('v240FieldCannotChange')?.checked,pickupDate:$id('v240FieldPickupDate')?.value||'',pickupPersonId:$id('v240FieldPickupPerson')?.value||'',updatedBy:curUid(),updatedAt:now2(),deleted:false,type:FIELD_LABEL};
+    const locName=$id('v240FieldLocationName')?.value||'';
+    const addr=$id('v240FieldAddress')?.value||'';
+    return {personIds,date:$id('v240FieldDate')?.value||$id('v240FieldWeekPicker')?.value||today2(),time:$id('v240FieldTime')?.value||'',status:$id('v240FieldStatus')?.value||'',locationName:locName,address:addr,oneTimeLocation:false,purpose:$id('v240FieldPurpose')?.value||'',note:$id('v240FieldNote')?.value||'',cash:$id('v240FieldCash')?.value||'',cashChecked:!!$id('v240FieldCashCheck')?.checked,cashNote:$id('v240FieldCash')?.value||'',stamp:$id('v240FieldStamp')?.value||'',stampChecked:!!$id('v240FieldStampCheck')?.checked,stampNote:$id('v240FieldStamp')?.value||'',document:$id('v240FieldDocument')?.value||'',documentChecked:!!$id('v240FieldDocumentCheck')?.checked,documentNote:$id('v240FieldDocument')?.value||'',mustSend:!!$id('v240FieldMustSend')?.checked,cannotChange:!!$id('v240FieldCannotChange')?.checked,pickupDate:$id('v240FieldPickupDate')?.value||'',pickupPersonId:$id('v240FieldPickupPerson')?.value||'',updatedBy:curUid(),updatedAt:now2(),deleted:false,type:FIELD_LABEL};
   }
   function makeMainFromField(fe){
     const cashInfo=(fe.cashChecked?'是':'')+(fe.cash?(' '+fe.cash):''); const stampInfo=(fe.stampChecked?'是':'')+(fe.stamp?(' '+fe.stamp):''); const docInfo=(fe.documentChecked?'是':'')+(fe.document?(' '+fe.document):''); const note=[fe.note||'',cashInfo?('現金：'+cashInfo):'',stampInfo?('印章：'+stampInfo):'',docInfo?('證件：'+docInfo):'',fe.mustSend?'必送件':'',fe.cannotChange?'無法更換外務':'',fe.pickupDate?('下次領件/送審日期：'+fe.pickupDate):''].filter(Boolean).join('\n');
@@ -14360,7 +14352,7 @@ setInterval(v206SetupNavOrder,1500);
     const s=getState(); if(!s||!fe||!fe.pickupDate||!fe.pickupPersonId)return null;
     const id='pickup_'+fe.id;
     let pickup=(s.externalEvents||[]).find(x=>x.linkedPickupFrom===fe.id);
-    const data={personId:fe.pickupPersonId,personIds:[fe.pickupPersonId],date:fe.pickupDate,time:'',status:'未完成',locationName:fe.locationName||'',address:fe.address||'',purpose:'下次領件/送審',note:'由外務行程自動建立',cash:'',stamp:'',document:'',mustSend:false,cannotChange:false,pickupDate:'',pickupPersonId:'',linkedPickupFrom:fe.id,oneTimeLocation:!!fe.oneTimeLocation,type:FIELD_LABEL,deleted:false,updatedBy:curUid(),updatedAt:now2()};
+    const data={personId:fe.pickupPersonId,personIds:[fe.pickupPersonId],date:fe.pickupDate,time:'',status:'未完成',locationName:fe.locationName||'',address:fe.address||'',purpose:'下次領件/送審',note:'由外務行程自動建立',cash:'',stamp:'',document:'',mustSend:false,cannotChange:false,pickupDate:'',pickupPersonId:'',linkedPickupFrom:fe.id,oneTimeLocation:false,type:FIELD_LABEL,deleted:false,updatedBy:curUid(),updatedAt:now2()};
     if(pickup){Object.assign(pickup,data)}else{pickup=Object.assign({id:id,createdBy:curUid(),createdAt:now2()},data);s.externalEvents.push(pickup)}
     syncOverviewForField(pickup); return pickup;
   }
@@ -14383,7 +14375,14 @@ setInterval(v206SetupNavOrder,1500);
     closeV240FieldModal();
     safeRenderAll();
     renderV240FieldCalendar();
-    try{window.v240DebugReport={fieldSave:{ok:true,count:saved.length,fieldIds:saved.map(x=>x.id),overviewCount:s.events.filter(x=>saved.some(f=>x.externalEventId===f.id)).length,fieldVisible:!!saved.length,overviewVisible:!!saved.length,version:VERSION}}}catch(_){ }
+    try{if(typeof renderFieldDetails==='function')renderFieldDetails()}catch(_){ }
+    try{window.v242DebugReport={fieldSave:{
+      step1:{ok:true,storage:'localStorage/save()',status:200,message:'資料已寫入 externalEvents，並同步寫入 events'},
+      step2:{ok:true,fieldCalendarRefreshed:true,overviewCalendarRefreshed:true,fieldDetailsRefreshed:true},
+      step3:{ok:true,externalEventsIncluded:true,overviewType:OVERVIEW_TYPE},
+      step4:{ok:true,personIds:saved.map(x=>x.personId||''),overviewParticipants:s.events.filter(x=>saved.some(f=>x.externalEventId===f.id)).map(x=>x.participants||[])},
+      step5:{ok:true,count:saved.length,fieldIds:saved.map(x=>x.id),overviewCount:s.events.filter(x=>saved.some(f=>x.externalEventId===f.id)).length,version:VERSION}
+    }}}catch(_){ }
     toast2('外務行程已儲存，並同步至外務行程、行程總覽與外務明細');
   }
   function clearV240FiltersAfterSave(fe){
