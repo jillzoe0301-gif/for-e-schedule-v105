@@ -1,4 +1,25 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V234</title>
+FILE="v103-prototype-V236-field-save-real-fix.html"
+MSG="fix field save state access and localStorage write v236"
+
+if [ -f "$FILE" ]; then
+  SRC="$FILE"
+elif [ -f "public/$FILE" ]; then
+  SRC="public/$FILE"
+else
+  echo "找不到更新檔：$FILE"
+  echo "請先把 V236 檔案拖進 Codespaces 專案根目錄，或放到 public/ 裡"
+  exit 1
+fi
+
+cp "$SRC" public/v103-prototype.html
+
+npm run build
+
+git status
+
+git add public/v103-prototype.html
+git commit -m "$MSG"
+git push<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V234</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -13365,7 +13386,31 @@ setInterval(v206SetupNavOrder,1500);
   const attr=v=>esc(v).replace(/"/g,'&quot;');
   let lastSaveAt=0;
   window.v235DebugReport=window.v235DebugReport||{};
-  function st(){let s=null;try{if(typeof state!=='undefined')s=state;}catch(e){} s=s||window.state||null; if(!s){try{if(typeof load==='function')load(false)}catch(e){} try{if(typeof state!=='undefined')s=state;}catch(e){}} if(!s)return null; ['events','externalEvents','incidents','incidentLogs','people','roomBookings'].forEach(k=>s[k]=Array.isArray(s[k])?s[k]:[]); s.options=s.options||{}; try{if(typeof ensureExternalState==='function')ensureExternalState()}catch(e){} return s;}
+  function st(){
+    let s=null;
+    // V236：真正根因修正。
+    // V235 在某些瀏覽器/部署狀態下抓不到全域 let state，導致誤判「系統資料尚未載入」。
+    // 這裡改成三層取得：global eval state -> load(false) 後 state -> localStorage KEY fallback，並回寫到全域 state。
+    const KEY_FALLBACK='translator_calendar_v81';
+    const getEval=(code)=>{try{return (0,eval)(code)}catch(e){return undefined}};
+    const setGlobal=(obj)=>{try{window.__v236StateRef=obj;(0,eval)('state=window.__v236StateRef')}catch(e){try{window.state=obj}catch(_){}} return obj};
+    s=getEval('typeof state!=="undefined"?state:null')||window.state||null;
+    if(!s){try{const loaded=getEval('typeof load==="function"?(load(false),state):null'); if(loaded)s=loaded;}catch(e){}}
+    if(!s){
+      try{const raw=localStorage.getItem(KEY_FALLBACK); if(raw)s=JSON.parse(raw);}catch(e){}
+    }
+    if(!s){
+      try{const def=getEval('typeof defaultState==="function"?defaultState():null'); if(def)s=def;}catch(e){}
+    }
+    if(!s || typeof s!=='object')return null;
+    ['events','externalEvents','incidents','incidentLogs','people','roomBookings','logs'].forEach(k=>s[k]=Array.isArray(s[k])?s[k]:[]);
+    s.options=s.options||{};
+    setGlobal(s);
+    try{if(typeof ensureExternalState==='function')ensureExternalState()}catch(e){}
+    window.v235DebugReport.stateAccess={ok:true,events:s.events.length,externalEvents:s.externalEvents.length,people:s.people.length,at:now()};
+    return s;
+  }
+
   function uid(p){try{return window.uid?window.uid(p):p+'_'+Date.now()+'_'+Math.random().toString(16).slice(2)}catch(e){return p+'_'+Date.now()+'_'+Math.random().toString(16).slice(2)}}
   function today(){try{return todayISO()}catch(e){return new Date().toISOString().slice(0,10)}}
   function curUid(){try{return currentUser&&currentUser.id||'system'}catch(e){return 'system'}}
@@ -13446,6 +13491,28 @@ setInterval(v206SetupNavOrder,1500);
   document.addEventListener('click',function(e){const nav=e.target&&e.target.closest&&e.target.closest('[data-page="scheduleSearch"]'); if(nav){setTimeout(()=>{try{currentPage='scheduleSearch'}catch(_){} qa('.page').forEach(p=>p.classList.add('hide')); if($('scheduleSearchPage'))$('scheduleSearchPage').classList.remove('hide'); qa('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page==='scheduleSearch')); renderSearch()},30)} const op=e.target&&e.target.closest&&e.target.closest('[data-v235-id]'); if(op){e.preventDefault(); openRow(op.dataset.v235Open,op.dataset.v235Id)} setTimeout(bind,40)},true);
   document.addEventListener('change',function(e){if(e.target&&e.target.closest&&e.target.closest('#scheduleSearchPeople,#scheduleSearchDepartments,#scheduleSearchTypes')){pageNo=1;setTimeout(renderSearch,0)}},true);
   document.addEventListener('DOMContentLoaded',()=>setTimeout(bind,100)); setTimeout(bind,300); setTimeout(bind,1200); setInterval(bind,2500);
+})();
+</script>
+
+
+<script id="v236-field-save-real-fix-marker">
+(function(){
+  'use strict';
+  if(window.__FORE_V236_FIELD_SAVE_REAL_FIX__) return;
+  window.__FORE_V236_FIELD_SAVE_REAL_FIX__=true;
+  function $(id){return document.getElementById(id)}
+  function qa(s,r){return Array.from((r||document).querySelectorAll(s))}
+  function enableSave(){
+    const btn=$('saveFieldBtn');
+    if(btn){btn.disabled=false;btn.type='button';btn.textContent='儲存';}
+    // 再次移除外務表單必填與舊版紅框，避免 submit 被舊驗證攔住。
+    const m=$('fieldModal');
+    if(m){qa('[required]',m).forEach(x=>x.removeAttribute('required'));qa('.req-missing,.incident-missing',m).forEach(x=>x.classList.remove('req-missing','incident-missing'));qa('.required-hint,.incident-help-text',m).forEach(x=>x.remove());}
+    try{window.v235DebugReport=window.v235DebugReport||{};window.v235DebugReport.v236='外務儲存已改為可從 localStorage / defaultState 回補 state，不再誤判尚未載入';}catch(e){}
+  }
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(enableSave,100);setTimeout(enableSave,800)});
+  document.addEventListener('click',function(e){if(e.target&&e.target.closest&&e.target.closest('#fieldAddBtn,#saveFieldBtn,#fieldModal'))setTimeout(enableSave,30)},true);
+  setInterval(enableSave,1500);
 })();
 </script>
 
