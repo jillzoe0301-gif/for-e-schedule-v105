@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V230</title>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V231</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -773,6 +773,9 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 #recordSubmitPage .v176-summary-alert.week{background:#ffe4ef!important;border:2px solid #f9a8d4!important;color:#9d174d!important;box-shadow:0 6px 18px rgba(249,168,212,.25)!important;font-size:16px!important;line-height:1.45!important}
 #recordSubmitPage .v182-action-btn{white-space:nowrap;background:#2563eb!important;border-color:#2563eb!important;color:#fff!important;font-weight:900!important}
 @media(max-width:760px){#recordSubmitPage .v176-summary-alert.danger{font-size:15px!important;padding:10px 12px!important}#recordSubmitPage .v176-summary-alert.week{font-size:14px!important;padding:10px 12px!important}#recordSubmitPage .v182-action-btn{width:100%;height:38px;font-size:14px}}
+
+/* V231：行程搜尋、外務儲存、異況硬刪除修正 */
+.schedule-search-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;align-items:end}.schedule-search-actions{display:flex;gap:8px;flex-wrap:wrap}.schedule-type-chip{display:inline-block;border-radius:999px;padding:3px 9px;font-weight:900;font-size:12px;border:1px solid #d8dde8}.schedule-search-pager{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:10px}.schedule-search-pager button{min-width:74px}.v231-field-onetime-box{border:1px dashed #fed7aa;background:#fff7ed;border-radius:14px;padding:10px;margin-top:8px}.v231-field-onetime-box .row{margin-top:8px}.v231-save-disabled{opacity:.55;pointer-events:none}.v231-helper-box{border:1px solid var(--line);border-radius:12px;padding:8px;max-height:180px;overflow:auto;background:#fff}.v231-helper-box label{display:flex;gap:8px;align-items:center;padding:6px 8px;border-radius:8px}.v231-helper-box label:hover{background:#f8fafc}.v231-helper-box input{width:auto!important}.v231-view-btn-blue,#personalDetailsPage button[data-open-event],#mobilePage button[data-mobile-open]{background:#2563eb!important;border-color:#2563eb!important;color:#fff!important}.modal-card.v231-themed{border-top:8px solid var(--v231-modal-theme,#dbeafe)}
 </style>
 <style>
 /* V176：翻譯「紀錄單繳交」獨立分頁 */
@@ -850,8 +853,8 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 </style>
 </head><body>
 <div id="loginView" class="login-wrap"><div class="login-card"><h1>FOR-e 共享排程系統</h1><div class="toolbar hide"><button type="button" id="loginTab" class="primary">登入</button><button type="button" id="registerTab">註冊</button><button type="button" id="resetBtn" class="ghost">重置測試資料</button></div><div id="loginForm"><div class="field"><label>Email</label><input id="loginEmail" value="" placeholder="name@company.com"></div><div class="field"><label>密碼</label><input id="loginPassword" type="password" value=""></div><button id="doLogin" class="primary" type="button">登入</button><button id="quickLogin" type="button" class="hide">快速登入測試帳號</button><button id="mobileForceLogin" type="button" class="hide">手機測試一鍵進入</button><div id="loginMsg" class="muted" style="margin-top:8px"></div></div><div id="registerForm" class="hide"><div class="row"><div class="field"><label>姓名</label><input id="regName"></div><div class="field"><label>角色</label><select id="regRole"><option value="general">一般人員</option><option value="staff">翻譯</option><option value="supervisor">主管</option><option value="adminStaff">行政系</option></select></div></div><div class="field"><label>Email</label><input id="regEmail"></div><div class="field"><label>密碼</label><input id="regPassword" type="password"></div><button type="button" id="doRegister" class="primary">註冊</button></div></div></div>
-<div id="appView" class="hide"><div class="topbar"><div class="brand">FOR-e 共享排程系統</div><div class="toolbar"><span id="currentUserLabel"></span><button id="logoutBtn">登出</button></div></div><div class="layout"><aside class="side"><button class="navbtn active" data-page="calendar"><span class="mono-ico ico-calendar"></span>行程總覽</button><button class="navbtn" data-page="fieldCalendar"><span class="mono-ico ico-car"></span>外務行程</button><button class="navbtn" data-page="roomBooking"><span class="mono-ico ico-room"></span>會議室預約</button><button class="navbtn" data-page="fieldDetails"><span class="mono-ico ico-list"></span>外務明細</button><button class="navbtn" data-page="personalDetails"><span class="mono-ico ico-star"></span>個人行程表</button><button class="navbtn" data-page="today"><span class="mono-ico ico-sun"></span>今日總覽</button><button class="navbtn" data-page="incidents"><span class="mono-ico ico-warning"></span>異況追蹤</button><button class="navbtn app-only" data-page="mobile"><span class="mono-ico ico-star"></span>APP個人行程</button><button class="navbtn" data-page="reports"><span class="mono-ico ico-chart"></span>統計報表</button><button class="navbtn" data-page="serviceRecords"><span class="mono-ico ico-clipboard"></span>服務紀錄單</button><button class="navbtn" data-page="audit"><span class="mono-ico ico-doc"></span>Audit Log</button><button class="navbtn" data-page="line"><span class="mono-ico ico-chat"></span>LINE通知</button><button class="navbtn" data-page="theme"><span class="mono-ico ico-palette"></span>顏色設定</button><button class="navbtn" data-page="settings"><span class="mono-ico ico-link"></span>Airtable/Webhook</button><button class="navbtn" data-page="users"><span class="mono-ico ico-user"></span>人員/帳號</button><hr></aside><main class="main">
-<div class="bottom-nav"><button class="navbtn active" data-page="calendar"><span class="mono-ico ico-calendar"></span>總覽</button><button class="navbtn" data-page="fieldCalendar"><span class="mono-ico ico-car"></span>外務</button><button class="navbtn" data-page="roomBooking"><span class="mono-ico ico-room"></span>會議室</button><button class="navbtn" data-page="mobile"><span class="mono-ico ico-star"></span>個人</button><button class="navbtn" data-page="today"><span class="mono-ico ico-sun"></span>今日</button><button class="navbtn" data-page="incidents"><span class="mono-ico ico-warning"></span>異況</button><button class="navbtn" data-page="reports"><span class="mono-ico ico-chart"></span>統計</button><button class="navbtn" data-page="line"><span class="mono-ico ico-chat"></span>通知</button></div>
+<div id="appView" class="hide"><div class="topbar"><div class="brand">FOR-e 共享排程系統</div><div class="toolbar"><span id="currentUserLabel"></span><button id="logoutBtn">登出</button></div></div><div class="layout"><aside class="side"><button class="navbtn active" data-page="calendar"><span class="mono-ico ico-calendar"></span>行程總覽</button><button class="navbtn" data-page="fieldCalendar"><span class="mono-ico ico-car"></span>外務行程</button><button class="navbtn" data-page="roomBooking"><span class="mono-ico ico-room"></span>會議室預約</button><button class="navbtn" data-page="fieldDetails"><span class="mono-ico ico-list"></span>外務明細</button><button class="navbtn" data-page="personalDetails"><span class="mono-ico ico-star"></span>個人行程表</button><button class="navbtn" data-page="today"><span class="mono-ico ico-sun"></span>今日總覽</button><button class="navbtn" data-page="incidents"><span class="mono-ico ico-warning"></span>異況追蹤</button><button class="navbtn" data-page="scheduleSearch"><span class="mono-ico ico-list"></span>行程搜尋</button><button class="navbtn app-only" data-page="mobile"><span class="mono-ico ico-star"></span>APP個人行程</button><button class="navbtn" data-page="reports"><span class="mono-ico ico-chart"></span>統計報表</button><button class="navbtn" data-page="serviceRecords"><span class="mono-ico ico-clipboard"></span>服務紀錄單</button><button class="navbtn" data-page="audit"><span class="mono-ico ico-doc"></span>Audit Log</button><button class="navbtn" data-page="line"><span class="mono-ico ico-chat"></span>LINE通知</button><button class="navbtn" data-page="theme"><span class="mono-ico ico-palette"></span>顏色設定</button><button class="navbtn" data-page="settings"><span class="mono-ico ico-link"></span>Airtable/Webhook</button><button class="navbtn" data-page="users"><span class="mono-ico ico-user"></span>人員/帳號</button><hr></aside><main class="main">
+<div class="bottom-nav"><button class="navbtn active" data-page="calendar"><span class="mono-ico ico-calendar"></span>總覽</button><button class="navbtn" data-page="fieldCalendar"><span class="mono-ico ico-car"></span>外務</button><button class="navbtn" data-page="roomBooking"><span class="mono-ico ico-room"></span>會議室</button><button class="navbtn" data-page="mobile"><span class="mono-ico ico-star"></span>個人</button><button class="navbtn" data-page="today"><span class="mono-ico ico-sun"></span>今日</button><button class="navbtn" data-page="incidents"><span class="mono-ico ico-warning"></span>異況</button><button class="navbtn" data-page="scheduleSearch"><span class="mono-ico ico-list"></span>搜尋</button><button class="navbtn" data-page="reports"><span class="mono-ico ico-chart"></span>統計</button><button class="navbtn" data-page="line"><span class="mono-ico ico-chat"></span>通知</button></div>
 <section id="calendarPage" class="page"><div class="panel"><div class="section-title"><h2>行程總覽</h2></div><div class="form-top-toolbar v116-week-row"><button id="prevWeek">上一週</button><input id="weekPicker" type="date" class="mini"><button id="nextWeek">下一週</button><button id="addEventBtn" class="primary" style="white-space:nowrap;">新增行程</button></div><div class="calendar-operation-hint">操作提示：雙擊空白格新增，點行程可修改。</div><details class="mobile-filter-collapse v116-static-filter"><summary><span>篩選 / 日期</span><small>點此展開</small></summary><div class="toolbar"><select id="viewMode" class="mini"><option value="all">全部人員本週行程</option><option value="personal">BY 個人本週檢視</option><option value="personalDay">BY 個人當天檢視</option><option value="personalMonth">BY 個人按月檢視</option></select><div id="groupFilter" class="multi-select mini" data-label="全部部門/群組"></div><div id="jobFilter" class="multi-select mini" data-label="全部職務"></div><div id="personFilter" class="multi-select mini" data-label="全部人員名稱"></div><div id="typeFilter" class="multi-select mini" data-label="全部行程類型"></div><select id="statusFilter" class="mini"><option value="">全部狀態</option><option>未完成</option><option>已完成</option><option>取消</option></select><input id="keywordFilter" class="mini" placeholder="地點 / 客戶/關鍵字"><button id="clearFilter">清除</button><button id="exportCsvBtn" class="export-control export-control">匯出 CSV</button></div></details><div id="legend" style="margin-top:8px"></div></div><div id="calendarArea"></div></section>
 
 <section id="roomBookingPage" class="page hide"><div class="panel"><div class="section-title"><h2>會議室預約</h2></div><div class="form-top-toolbar v116-week-row"><button id="roomPrevWeek">上一週</button><input id="roomBookingWeekPicker" type="date" class="mini"><button id="roomNextWeek">下一週</button><button id="addRoomBookingBtn" class="primary" style="white-space:nowrap;">新增預約</button></div><div class="calendar-operation-hint">操作提示：雙擊空白格新增，點預約可修改。</div><details class="mobile-filter-collapse v116-static-filter"><summary><span>會議室篩選</span><small>點此展開</small></summary><div class="toolbar"><select id="roomBookingRoomFilter" class="mini"><option value="">全部會議室</option></select><select id="roomBookingDeptFilter" class="mini"><option value="">全部部門</option></select><input id="roomBookingKeyword" class="mini" placeholder="會議名稱/部門/會議室"><button id="clearRoomBookingFilters">清除</button></div></details></div><div id="roomBookingArea"></div></section>
@@ -863,6 +866,8 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 <section id="todayPage" class="page hide"><div class="panel"><div class="section-title"><h2>今日行程總覽</h2><button id="refreshToday">重新整理</button></div><div id="todayStats" class="statgrid"></div></div><div id="mobileAlertPanel" class="panel"><div class="section-title"><h2>提醒通知</h2></div><div id="mobileAlertRows"></div></div><div class="panel"><div class="detail-table-wrap today-detail-wrap"><table class="table today-table"><thead><tr><th class="today-executor-th">執行者</th><th class="today-time-th">時間</th><th>類型</th><th>地點 / 客戶</th><th>辦理內容</th><th>狀態</th><th>公務車</th></tr></thead><tbody id="todayRows"></tbody></table></div></div></section>
 
 <section id="incidentsPage" class="page hide"><div class="panel"><div class="section-title"><h2>異況紀錄追蹤</h2><div class="toolbar"><button id="addIncidentBtn" class="primary">新增異況</button><button id="exportIncidentsBtn" style="display:none!important">匯出異況 CSV</button><div class="v141-box" data-label="異況紀錄" data-mode="month" style="display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin-left:auto;"><select class="mini v141-sel" title="匯出方式" style="width:auto;min-width:60px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option><option value="range">區間</option></select><input class="mini v141-year" type="number" min="2024" max="2035" style="display:none;width:72px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="年度"><input class="mini v141-month" type="month" style="display:inline-flex;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="月份"><input class="mini v141-day" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="日期"><input class="mini v141-start" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="起日"><input class="mini v141-end" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="迄日"><button class="primary v141-btn" type="button" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;">匯出CSV</button></div></div></div><div class="incident-toolbar"><label class="muted">發生起日</label><input id="incidentStart" type="date" class="mini"><label class="muted">發生迄日</label><input id="incidentEnd" type="date" class="mini"><select id="incidentTypeFilter" class="mini"><option value="">全部異況類型</option></select><select id="incidentStatusFilter" class="mini"><option value="">全部狀態</option></select><select id="incidentOwnerFilter" class="mini"><option value="">全部負責人</option></select><select id="incidentClosedFilter" class="mini"><option value="open">未結案</option><option value="all">全部</option><option value="closed">已結案</option><option value="overdue">逾期未追蹤</option></select><input id="incidentKeyword" class="mini" placeholder="工人/客戶/地點/關鍵字"><button id="clearIncidentFilters">清除</button></div><div class="muted" style="margin-top:8px">異況是案件本體，可往下新增追蹤紀錄；若最後變成逃跑、轉出、住變、返台、驗證或提醒事項，可直接建立到執行者行事曆。</div></div><div class="panel"><div id="incidentStats" class="incident-kpi"></div></div><div class="panel"><div class="incident-table-wrap"><table class="table incident-table"><thead><tr><th>發生日期</th><th>緊急程度</th><th>異況類型</th><th>地點 / 客戶</th><th>工人</th><th>異況標題</th><th>負責人</th><th>狀態</th><th>下次追蹤日</th><th>最後追蹤</th><th>操作</th></tr></thead><tbody id="incidentRows"></tbody></table></div></div></section>
+
+<section id="scheduleSearchPage" class="page hide"><div class="panel"><div class="section-title"><h2>行程搜尋</h2><div class="schedule-search-actions"><button id="scheduleSearchBtn" class="primary">搜尋</button><button id="scheduleSearchClearBtn">清除條件</button></div></div><div class="schedule-search-grid"><div class="field"><label>關鍵字</label><input id="scheduleSearchKeyword" placeholder="行程名稱、內容說明、地點"></div><div class="field"><label>選擇人員</label><div id="scheduleSearchPeople" class="multi-select mini" data-label="全部人員"></div></div><div class="field"><label>選擇部門</label><div id="scheduleSearchDepartments" class="multi-select mini" data-label="全部部門"></div></div><div class="field"><label>起始日期</label><input id="scheduleSearchStart" type="date"></div><div class="field"><label>結束日期</label><input id="scheduleSearchEnd" type="date"></div><div class="field"><label>行程類型</label><div id="scheduleSearchTypes" class="multi-select mini" data-label="全部類型"></div></div></div></div><div class="panel"><div class="section-title"><h2>搜尋結果</h2><span id="scheduleSearchCount" class="muted"></span></div><div class="detail-table-wrap"><table class="table"><thead><tr><th>行程類型</th><th>行程名稱</th><th>日期／時間</th><th>負責人員</th><th>部門</th><th>狀態</th><th>操作</th></tr></thead><tbody id="scheduleSearchRows"></tbody></table></div><div class="schedule-search-pager"><button id="scheduleSearchPrev">上一頁</button><span id="scheduleSearchPageInfo" class="muted"></span><button id="scheduleSearchNext">下一頁</button></div></div></section>
 <section id="reportsPage" class="page hide"><div class="panel"><div class="section-title"><h2>統計報表</h2><div class="toolbar"><button id="calcReportBtn" class="primary">產生統計</button><button id="saveReportBtn">記錄本次統計</button><button id="exportReportBtn" style="display:none!important">匯出統計 CSV</button><div class="v141-box" data-label="統計報表" data-mode="month" style="display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin-left:auto;"><select class="mini v141-sel" title="匯出方式" style="width:auto;min-width:60px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option><option value="range">區間</option></select><input class="mini v141-year" type="number" min="2024" max="2035" style="display:none;width:72px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="年度"><input class="mini v141-month" type="month" style="display:inline-flex;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="月份"><input class="mini v141-day" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="日期"><input class="mini v141-start" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="起日"><input class="mini v141-end" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="迄日"><button class="primary v141-btn" type="button" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;">匯出CSV</button></div></div></div><div class="toolbar"><label class="muted">統計年月</label><input id="reportMonth" type="month" class="mini"><label class="muted">統計年度</label><input id="reportYear" type="number" class="mini" min="2024" max="2035" step="1"><select id="reportGroup" class="mini"></select><select id="reportPerson" class="mini"></select></div><div class="muted" style="margin-top:8px">統計方式：依行事曆實際顯示計算；同一行程若跨多日，會依每日各計 1 次；同一行程若顯示在新增者與執行者兩人行事曆，兩人各計 1 次。已刪除行程不列入，取消行程會列入狀態統計。</div></div><div class="panel"><h2>月統計總覽</h2><div id="reportMonthStats" class="statgrid"></div><div class="chart-grid"><div><h3>月分類圓餅圖</h3><canvas id="monthPieChart" width="360" height="260"></canvas></div><div><h3>年度每月曲線圖</h3><canvas id="yearLineChart" width="520" height="260"></canvas></div></div></div><div class="panel"><div class="section-title"><h2>每人每月行程總數與分類總數</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportMonthHead"></thead><tbody id="reportMonthRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>一部翻譯 / 二部翻譯 月數據與總計</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportMonthDeptHead"></thead><tbody id="reportMonthDeptRows"></tbody></table></div></div><div class="panel"><h2>年度統計總覽</h2><div id="reportYearStats" class="statgrid"></div><div class="chart-grid"><div><h3>年度分類圓餅圖</h3><canvas id="yearPieChart" width="360" height="260"></canvas></div></div></div><div class="panel"><div class="section-title"><h2>每人年度行程總數與分類總數</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportYearHead"></thead><tbody id="reportYearRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>一部翻譯 / 二部翻譯 年數據與總計</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportYearDeptHead"></thead><tbody id="reportYearDeptRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>外務行程數據｜目的、地點、趟數</h2><span class="muted">依照外務行程資料計算，可依上方月份與年度切換。</span></div><div id="fieldReportStats" class="statgrid"></div><div class="chart-grid"><div><h3>當月目的圓餅圖</h3><canvas id="fieldMonthPurposePie" width="620" height="320"></canvas></div><div><h3>當月地點圓餅圖</h3><canvas id="fieldMonthLocationPie" width="620" height="320"></canvas></div><div><h3>年度目的圓餅圖</h3><canvas id="fieldYearPurposePie" width="620" height="320"></canvas></div><div><h3>年度地點圓餅圖</h3><canvas id="fieldYearLocationPie" width="620" height="320"></canvas></div><div class="wide-chart"><h3>年度每月外務趟數曲線圖</h3><canvas id="fieldYearMonthlyLine" width="1100" height="440"></canvas></div></div><h3>送件狀況紀錄｜當月</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>狀態</th><th>趟數</th></tr></thead><tbody id="fieldMonthStatusRows"></tbody></table></div><h3>送件狀況紀錄｜年度</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>狀態</th><th>趟數</th></tr></thead><tbody id="fieldYearStatusRows"></tbody></table></div><h3>當月各人員外務趟數明細</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>部門</th><th>人員</th><th>趟數</th></tr></thead><tbody id="fieldMonthReportRows"></tbody></table></div><h3>年度各人員外務趟數明細</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>部門</th><th>人員</th><th>趟數</th></tr></thead><tbody id="fieldYearReportRows"></tbody></table></div><h3>當月各地點外務趟數</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>地點</th><th>趟數</th></tr></thead><tbody id="fieldMonthLocationRows"></tbody></table></div><h3>年度各地點外務趟數</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>地點</th><th>趟數</th></tr></thead><tbody id="fieldYearLocationRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>已記錄的統計快照</h2><span class="muted">點「記錄本次統計」後會保留當下統計結果。</span></div><table class="table"><thead><tr><th>記錄時間</th><th>記錄人</th><th>統計月份</th><th>年度</th><th>月總數</th><th>年總數</th></tr></thead><tbody id="reportSnapshotRows"></tbody></table></div></section>
 
 <section id="auditPage" class="page hide"><div class="panel"><div class="section-title"><h2>操作紀錄 Audit Log</h2><button id="exportLogBtn" class="export-control export-control">匯出紀錄 CSV</button></div><table class="table"><thead><tr><th>時間</th><th>操作人</th><th>動作</th><th>行程</th><th>欄位</th><th>修改前</th><th>修改後</th></tr></thead><tbody id="auditRows"></tbody></table></div></section>
@@ -7696,6 +7701,369 @@ setInterval(v206SetupNavOrder,1500);
 
 })();
 
+
+
+/* ===== V231：真正修正外務儲存、行程搜尋、異況刪除、登入今日提醒 ===== */
+(function(){
+  const V231_BAD_INCIDENT_RE=/臺灣脈思油槽|台灣脈思油槽|臺灣脈思|台灣脈思|脈思油槽|油槽紀錄|測試異況|異況測試|測試追蹤|demo|mock|sample/i;
+  const v231ColorTheme={
+    '行程':'#fce7f3','外務':'#ffedd5','外務行程':'#ffedd5','一般記事':'#ffffff','個人待辦':'#fef9c3','異況':'#fde047','請假':'#ede9fe','會議':'#dbeafe','教育訓練':'#dcfce7','活動':'#dcfce7','已完成':'#e5e7eb'
+  };
+  window.FORE_EVENT_COLOR_THEME=Object.assign({},window.FORE_EVENT_COLOR_THEME||{},v231ColorTheme);
+  function v231EventColor(item){
+    if(item&&item.color)return item.color;
+    if(item&&item.customColor)return item.customColor;
+    if(item&&item.status==='已完成')return v231ColorTheme['已完成'];
+    const t=String(item&&item.type||item&&item.kind||'');
+    if(/外務/.test(t)||item&&item.externalSource)return v231ColorTheme['外務行程'];
+    if(/異況/.test(t)||item&&item.sourceType&&String(item.sourceType).includes('incident'))return v231ColorTheme['異況'];
+    if(/請假/.test(t))return v231ColorTheme['請假'];
+    if(/會議/.test(t))return v231ColorTheme['會議'];
+    if(/教育訓練|活動|上線/.test(t))return v231ColorTheme['教育訓練'];
+    if(/待辦|提醒/.test(t)||item&&item.kind==='todo')return v231ColorTheme['個人待辦'];
+    if(/一般記事/.test(t))return v231ColorTheme['一般記事'];
+    return v231ColorTheme['行程'];
+  }
+  window.v231EventColor=v231EventColor;
+  function v231ApplyModalTheme(modalId,item){
+    const modal=$(modalId); if(!modal)return;
+    const card=modal.querySelector('.modal-card'); if(!card)return;
+    const color=v231EventColor(item||{});
+    card.classList.add('v231-themed');
+    card.style.setProperty('--v231-modal-theme',color);
+  }
+  function v231BadText(x){try{return JSON.stringify(x||{})}catch(e){return String(x||'')}}
+  function v231IsBadIncident(x){return V231_BAD_INCIDENT_RE.test(v231BadText(x))}
+  function v231CleanIncidentTests(){
+    if(!state)return 0;
+    const badIds={}; let removed=0;
+    (state.incidents||[]).forEach(inc=>{if(v231IsBadIncident(inc))badIds[inc.id]=true});
+    (state.incidentLogs||[]).forEach(log=>{if(v231IsBadIncident(log))badIds[log.incidentId]=true});
+    ['incidentLogs','incidents','events','logs'].forEach(key=>{
+      if(!Array.isArray(state[key]))return;
+      const before=state[key].length;
+      state[key]=state[key].filter(x=>{
+        if(v231IsBadIncident(x))return false;
+        if(x.incidentId&&badIds[x.incidentId])return false;
+        if(x.sourceIncidentId&&badIds[x.sourceIncidentId])return false;
+        return true;
+      });
+      removed+=before-state[key].length;
+    });
+    if(removed){save();}
+    return removed;
+  }
+  window.v231CleanIncidentTests=v231CleanIncidentTests;
+  function v231RemoveOldFieldLocationButtons(){
+    document.querySelectorAll('#v227AddFieldLocationBtn,#v228AddFieldLocationBtn,[data-v227-field-location-add],.v227-field-location-add,.v228-field-location-add').forEach(el=>el.remove());
+    const loc=$('fieldLocation');
+    if(loc){
+      const f=loc.closest('.field');
+      if(f)f.querySelectorAll('button').forEach(btn=>{if(/^\s*新增\s*$/.test(btn.textContent||''))btn.remove()});
+    }
+  }
+  function v231EnsureOneTimeLocationUI(){
+    v231RemoveOldFieldLocationButtons();
+    let box=$('v231FieldOneTimeBox');
+    if(!box){
+      const addressField=$('fieldAddress')&&$('fieldAddress').closest('.field');
+      const row=addressField&&addressField.closest('.row');
+      box=document.createElement('div');
+      box.id='v231FieldOneTimeBox';
+      box.className='v231-field-onetime-box field';
+      box.innerHTML='<label class="checkline"><input id="v231UseOneTimeLocation" type="checkbox"> 新增地點（本次使用）</label><div id="v231OneTimeLocationInputs" class="hide"><div class="row"><div><label>地點名稱</label><input id="v231OneTimeLocationName" placeholder="請輸入本次外務地點"></div><div><label>地址</label><input id="v231OneTimeLocationAddress" placeholder="請輸入本次地址"></div></div><div class="muted">此地點只套用本次外務行程，不會加入選項清單。</div></div>';
+      if(row)row.insertAdjacentElement('afterend',box);
+      else ($('fieldLocation')&&$('fieldLocation').closest('.field')||$('fieldModal .modal-card')).insertAdjacentElement('afterend',box);
+    }
+    const use=$('v231UseOneTimeLocation'), inputs=$('v231OneTimeLocationInputs');
+    if(use&&!use.__v231Bound){
+      use.__v231Bound=true;
+      use.addEventListener('change',()=>{
+        if(inputs)inputs.classList.toggle('hide',!use.checked);
+        if(use.checked){
+          if($('v231OneTimeLocationName')&&!$('v231OneTimeLocationName').value)$('v231OneTimeLocationName').value=$('fieldLocation')&&$('fieldLocation').value||'';
+          if($('v231OneTimeLocationAddress')&&!$('v231OneTimeLocationAddress').value)$('v231OneTimeLocationAddress').value=$('fieldAddress')&&$('fieldAddress').value||'';
+          setTimeout(()=>{$('v231OneTimeLocationName')&&$('v231OneTimeLocationName').focus()},20);
+        }
+      });
+    }
+    if(inputs)inputs.classList.toggle('hide',!(use&&use.checked));
+  }
+  const v231OldCollectFieldEvent=typeof collectFieldEvent==='function'?collectFieldEvent:null;
+  collectFieldEvent=function(baseId){
+    const d=v231OldCollectFieldEvent?v231OldCollectFieldEvent(baseId):{};
+    const use=$('v231UseOneTimeLocation');
+    if(use&&use.checked){
+      d.locationName=($('v231OneTimeLocationName')&&$('v231OneTimeLocationName').value||'').trim();
+      d.address=($('v231OneTimeLocationAddress')&&$('v231OneTimeLocationAddress').value||'').trim();
+      d.oneTimeLocation=true;
+    }
+    if(!d.date)d.date=($('fieldDate')&&$('fieldDate').value)||todayISO();
+    if(!d.personId)d.personId=($('fieldPerson')&&$('fieldPerson').value)||externalPeople()[0]?.id||userPersonId()||'';
+    if(!d.purpose)d.purpose=($('fieldPurpose')&&$('fieldPurpose').value)||'送件';
+    d.updatedBy=currentUser&&currentUser.id||'system';
+    d.updatedAt=new Date().toISOString();
+    return d;
+  };
+  function v231GoFieldPage(date){
+    currentPage='fieldCalendar';
+    document.querySelectorAll('.page').forEach(p=>p.classList.add('hide'));
+    if($('fieldCalendarPage'))$('fieldCalendarPage').classList.remove('hide');
+    document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page==='fieldCalendar'));
+    if(date&&$('fieldWeekPicker'))$('fieldWeekPicker').value=date;
+  }
+  saveFieldEvent=function(e){
+    if(e&&e.preventDefault)e.preventDefault();
+    if(!state){load(false)}
+    ensureExternalState();
+    const btn=$('saveFieldBtn');
+    if(btn){btn.disabled=true;btn.classList.add('v231-save-disabled');}
+    try{
+      const id=$('editFieldId')&&$('editFieldId').value||'';
+      const data=collectFieldEvent();
+      const dates=fieldRepeatDates&&fieldRepeatDates().length?fieldRepeatDates():[data.date||todayISO()];
+      let saved=[];
+      if(id){
+        let idx=state.externalEvents.findIndex(x=>x.id===id);
+        if(idx<0){state.externalEvents.push({id,createdBy:currentUser&&currentUser.id||'system',createdAt:new Date().toISOString(),deleted:false}); idx=state.externalEvents.length-1;}
+        const old=clone(state.externalEvents[idx]);
+        const mainOld=clone((state.events||[]).find(x=>x.externalEventId===id)||null);
+        state.externalEvents[idx]=Object.assign({},state.externalEvents[idx],data,{deleted:false});
+        addLog('修改','外務行程',state.externalEvents[idx].purpose||'外務','外務行程','修改前',JSON.stringify(old));
+        syncMainEventFromField(state.externalEvents[idx],'修改',mainOld);
+        upsertPickupFieldEvent(state.externalEvents[idx]);
+        saved.push(state.externalEvents[idx]);
+      }else{
+        const group=uid('fg'); let firstMain=null;
+        dates.forEach((d,i)=>{
+          const fe=Object.assign({id:uid('field'),repeatGroupId:group,createdBy:currentUser&&currentUser.id||'system',createdAt:new Date().toISOString(),deleted:false},data,{date:d});
+          state.externalEvents.push(fe); saved.push(fe);
+          addLog('新增','外務行程',fe.purpose||'外務','外務行程','',`${fe.date} ${getPerson(fe.personId).name||''} ${fe.locationName||''}`);
+          const main=syncMainEventFromField(fe,'新增');
+          if(!firstMain){firstMain=main; upsertPickupFieldEvent(fe);}
+        });
+        if(firstMain)state.lastLineText=lineMessage('新增',firstMain)+(dates.length>1?`\n重複外務：共 ${dates.length} 筆，已同步加入行程總覽。`:'');
+      }
+      const ok=saved.every(fe=>state.externalEvents.some(x=>x.id===fe.id&&!x.deleted))&&saved.every(fe=>state.events.some(x=>x.externalEventId===fe.id&&!x.deleted));
+      if(!ok)throw new Error('外務資料已建立但同步驗證失敗');
+      save();
+      if($('fieldModal'))$('fieldModal').classList.add('hide');
+      v231GoFieldPage(saved[0]&&saved[0].date);
+      renderAll(); renderFieldCalendar();
+      toast('外務行程已儲存，並已同步至行程總覽');
+      return false;
+    }catch(err){
+      console.error('[V231] saveFieldEvent failed',err);
+      toast('外務儲存失敗：'+(err.message||err));
+      return false;
+    }finally{
+      if(btn){btn.disabled=false;btn.classList.remove('v231-save-disabled');}
+    }
+  };
+  const v231OldOpenFieldModal=typeof openFieldModal==='function'?openFieldModal:null;
+  openFieldModal=function(opts={}){
+    const r=v231OldOpenFieldModal?v231OldOpenFieldModal(opts):undefined;
+    setTimeout(()=>{
+      v231EnsureOneTimeLocationUI();
+      const e=opts&&opts.id?(state.externalEvents||[]).find(x=>x.id===opts.id):null;
+      if($('v231UseOneTimeLocation'))$('v231UseOneTimeLocation').checked=!!(e&&e.oneTimeLocation);
+      if($('v231OneTimeLocationName'))$('v231OneTimeLocationName').value=e&&e.oneTimeLocation?e.locationName||'':'';
+      if($('v231OneTimeLocationAddress'))$('v231OneTimeLocationAddress').value=e&&e.oneTimeLocation?e.address||'':'';
+      const inputs=$('v231OneTimeLocationInputs'); if(inputs)inputs.classList.toggle('hide',!($('v231UseOneTimeLocation')&&$('v231UseOneTimeLocation').checked));
+      if($('saveFieldBtn'))$('saveFieldBtn').onclick=saveFieldEvent;
+      v231ApplyModalTheme('fieldModal',{type:'外務行程'});
+    },30);
+    return r;
+  };
+  function v231PeopleList(){
+    return (state.people||[]).filter(p=>p&&p.deleted!==true&&p.active!==false&&p.lang!=='管理');
+  }
+  function v231RenderHelperMulti(containerId,selectedIds=[]){
+    const box=$(containerId); if(!box)return;
+    const selected=new Set(selectedIds||[]);
+    const list=v231PeopleList();
+    box.classList.add('v231-helper-box');
+    box.innerHTML=list.map(p=>`<label><input type="checkbox" value="${escAttr(p.id)}" ${selected.has(p.id)?'checked':''}> <span>${esc(p.name)}</span><small class="muted">${esc(p.group||p.department||'')}</small></label>`).join('')||'<div class="muted">尚無可選人員，請先到人員管理確認啟用人員。</div>';
+  }
+  function v231SelectedHelperIds(id){return [...document.querySelectorAll('#'+id+' input[type=checkbox]:checked')].map(x=>x.value).filter(Boolean)}
+  function v231EnsureIncidentHelperBoxes(){
+    const mainAnchor=$('incidentNextFollow')||$('incidentNextFollowTime');
+    if(mainAnchor&&!$('v231IncidentNextHelpers')){
+      const wrap=document.createElement('div'); wrap.className='field'; wrap.innerHTML='<label>下次追蹤協助人員</label><div id="v231IncidentNextHelpers"></div>';
+      (mainAnchor.closest('.field')||mainAnchor).insertAdjacentElement('afterend',wrap);
+    }
+    const logAnchor=$('incidentLogNextFollow')||$('incidentLogNextFollowTime');
+    if(logAnchor&&!$('v231IncidentLogNextHelpers')){
+      const wrap=document.createElement('div'); wrap.className='field'; wrap.innerHTML='<label>新增追蹤紀錄｜下次追蹤協助人員</label><div id="v231IncidentLogNextHelpers"></div>';
+      (logAnchor.closest('.field')||logAnchor).insertAdjacentElement('afterend',wrap);
+    }
+  }
+  function v231RenderIncidentHelpers(){
+    v231EnsureIncidentHelperBoxes();
+    const id=$('incidentId')&&$('incidentId').value||'';
+    const inc=(state.incidents||[]).find(x=>x.id===id)||{};
+    const ids=inc.nextFollowHelperPersonIds&&inc.nextFollowHelperPersonIds.length?inc.nextFollowHelperPersonIds:(inc.helperPersonIds||[]);
+    v231RenderHelperMulti('v231IncidentNextHelpers',ids);
+    v231RenderHelperMulti('v231IncidentLogNextHelpers',ids);
+  }
+  const v231OldSaveIncident=typeof saveIncident==='function'?saveIncident:null;
+  saveIncident=function(){
+    const r=v231OldSaveIncident?v231OldSaveIncident.apply(this,arguments):undefined;
+    const id=$('incidentId')&&$('incidentId').value||'';
+    const inc=(state.incidents||[]).find(x=>x.id===id);
+    if(inc){
+      const ids=v231SelectedHelperIds('v231IncidentNextHelpers');
+      inc.nextFollowHelperPersonIds=ids; inc.helperPersonIds=ids; inc.updatedBy=currentUser&&currentUser.id||'system'; inc.updatedAt=new Date().toISOString();
+      save();
+    }
+    renderIncidents();
+    return r;
+  };
+  const v231OldAddIncidentLog=typeof addIncidentLog==='function'?addIncidentLog:null;
+  addIncidentLog=function(){
+    const id=$('incidentId')&&$('incidentId').value||'';
+    const before=(state.incidentLogs||[]).length;
+    const r=v231OldAddIncidentLog?v231OldAddIncidentLog.apply(this,arguments):undefined;
+    const checked=v231SelectedHelperIds('v231IncidentLogNextHelpers');
+    const logs=(state.incidentLogs||[]).filter(l=>l.incidentId===id&&!l.deleted);
+    const log=logs[logs.length-1];
+    if(log&&(state.incidentLogs||[]).length>=before){log.nextFollowHelperPersonIds=checked;}
+    const inc=(state.incidents||[]).find(x=>x.id===id);
+    if(inc){inc.nextFollowHelperPersonIds=checked;inc.helperPersonIds=checked;}
+    save(); v231RenderIncidentHelpers(); renderIncidents();
+    return r;
+  };
+  deleteIncident=function(){
+    const id=$('incidentId')&&$('incidentId').value; if(!id)return;
+    if(!isAdmin())return toast('只有管理員可以刪除異況');
+    if(!confirm('確認刪除此異況紀錄？相關追蹤紀錄與同步行程會一併刪除。'))return;
+    state.incidentLogs=(state.incidentLogs||[]).filter(l=>l.incidentId!==id);
+    state.events=(state.events||[]).filter(e=>e.sourceIncidentId!==id&&e.sourceType!=='incidentFollow');
+    state.incidents=(state.incidents||[]).filter(x=>x.id!==id);
+    save(); $('incidentModal').classList.add('hide'); renderIncidents(); renderAll(); toast('已刪除異況與關聯資料');
+  };
+  const v231OldOpenIncidentModal=typeof openIncidentModal==='function'?openIncidentModal:null;
+  openIncidentModal=function(){
+    const r=v231OldOpenIncidentModal?v231OldOpenIncidentModal.apply(this,arguments):undefined;
+    setTimeout(()=>{v231CleanIncidentTests(); v231RenderIncidentHelpers(); v231ApplyModalTheme('incidentModal',{type:'異況'});},80);
+    return r;
+  };
+  function v231SearchAllRows(){
+    const rows=[];
+    (state.events||[]).filter(e=>!e.deleted).forEach(e=>{
+      const ps=(typeof executorPersonIds==='function'?executorPersonIds(e):(e.participants||[])).filter(Boolean);
+      const date=e.startDate||'';
+      rows.push({kind:'main',id:e.id,type:displayEventType(e.type||e.kind||'行程'),name:e.name||'',date,time:e.startTime||'',people:ps,status:e.status||'',location:e.locationName||'',note:e.note||'',raw:e});
+    });
+    (state.externalEvents||[]).filter(e=>!e.deleted).forEach(e=>{
+      rows.push({kind:'field',id:e.id,type:'外務行程',name:(e.purpose||'外務')+(e.locationName?'｜'+e.locationName:''),date:e.date||'',time:e.time||'',people:[e.personId].filter(Boolean),status:e.status||'',location:e.locationName||'',note:e.note||'',raw:e});
+    });
+    (state.roomBookings||[]).filter(r=>!r.deleted).forEach(r=>{
+      rows.push({kind:'room',id:r.id,type:'會議',name:r.title||'會議室預約',date:r.date||'',time:[r.startTime,r.endTime].filter(Boolean).join('-'),people:[],department:r.department||'',status:'預約',location:r.room||'',note:'',raw:r});
+    });
+    (state.incidents||[]).filter(i=>!i.deleted).forEach(i=>{
+      rows.push({kind:'incident',id:i.id,type:'異況',name:i.title||i.workerName||i.incidentType||'異況',date:i.occurrenceDate||'',time:i.occurrenceTime||'',people:[i.ownerPersonId,...(i.helperPersonIds||[])].filter(Boolean),status:i.status||'',location:i.customerName||i.location||'',note:i.description||'',raw:i});
+    });
+    return rows;
+  }
+  let v231SearchPage=1; const v231PageSize=12;
+  function v231InitSearchOptions(){
+    if(!$('scheduleSearchPeople'))return;
+    setMultiOptions('scheduleSearchPeople',v231PeopleList().map(p=>({value:p.id,label:p.name})),getMultiValues('scheduleSearchPeople'));
+    const depts=[...new Set(v231PeopleList().map(p=>p.department||p.group).filter(Boolean).concat((state.options&&state.options.departments)||[]))];
+    setMultiOptions('scheduleSearchDepartments',depts.map(d=>({value:d,label:d})),getMultiValues('scheduleSearchDepartments'));
+    const types=['行程','外務行程','一般記事','個人待辦','異況','請假','會議','教育訓練','活動'];
+    setMultiOptions('scheduleSearchTypes',types.map(t=>({value:t,label:t})),getMultiValues('scheduleSearchTypes'));
+  }
+  function v231SearchRows(){
+    const kw=($('scheduleSearchKeyword')&&$('scheduleSearchKeyword').value||'').trim().toLowerCase();
+    const people=getMultiValues('scheduleSearchPeople');
+    const depts=getMultiValues('scheduleSearchDepartments');
+    const types=getMultiValues('scheduleSearchTypes');
+    const s=$('scheduleSearchStart')&&$('scheduleSearchStart').value||'';
+    const e=$('scheduleSearchEnd')&&$('scheduleSearchEnd').value||'';
+    return v231SearchAllRows().filter(r=>{
+      if(s&&r.date<s)return false; if(e&&r.date>e)return false;
+      if(types.length&&!types.some(t=>r.type.includes(t)||t.includes(r.type)))return false;
+      if(people.length&&!r.people.some(p=>people.includes(p)))return false;
+      const rowDepts=[r.department].concat(r.people.map(pid=>{const p=getPerson(pid);return p.department||p.group||''})).filter(Boolean);
+      if(depts.length&&!rowDepts.some(d=>depts.includes(d)))return false;
+      const blob=[r.type,r.name,r.location,r.note,r.status,r.date,r.time,r.people.map(pid=>getPerson(pid).name).join(' ')].join(' ').toLowerCase();
+      if(kw&&!blob.includes(kw))return false;
+      return true;
+    }).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.time||'').localeCompare(String(a.time||'')));
+  }
+  function v231OpenSearchRow(kind,id){
+    if(kind==='field')return openFieldModal({id});
+    if(kind==='room')return openRoomBookingModal(id);
+    if(kind==='incident')return openIncidentModal(id);
+    return openEventModal({eventId:id});
+  }
+  window.v231OpenSearchRow=v231OpenSearchRow;
+  function v231RenderSearch(){
+    if(!$('scheduleSearchRows'))return;
+    v231InitSearchOptions();
+    const rows=v231SearchRows();
+    const total=Math.max(1,Math.ceil(rows.length/v231PageSize));
+    if(v231SearchPage>total)v231SearchPage=total;
+    const pageRows=rows.slice((v231SearchPage-1)*v231PageSize,v231SearchPage*v231PageSize);
+    $('scheduleSearchCount').textContent='共 '+rows.length+' 筆';
+    $('scheduleSearchRows').innerHTML=pageRows.map(r=>{
+      const people=r.people.map(pid=>getPerson(pid).name).filter(Boolean).join('、');
+      const dept=r.department||r.people.map(pid=>{const p=getPerson(pid);return p.department||p.group||''}).filter(Boolean).join('、');
+      const color=v231EventColor({type:r.type,status:r.status,color:r.raw&&r.raw.color,customColor:r.raw&&r.raw.customColor,externalSource:r.kind==='field'});
+      return `<tr><td><span class="schedule-type-chip" style="background:${color}">${esc(r.type)}</span></td><td>${esc(r.name)}</td><td>${esc(r.date)} ${esc(r.time)}</td><td>${esc(people||'-')}</td><td>${esc(dept||'-')}</td><td>${esc(r.status||'')}</td><td><button type="button" class="small v231-view-btn-blue" onclick="v231OpenSearchRow('${escAttr(r.kind)}','${escAttr(r.id)}')">查看</button></td></tr>`;
+    }).join('')||'<tr><td colspan="7" class="muted">沒有符合條件的行程</td></tr>';
+    $('scheduleSearchPageInfo').textContent=`第 ${v231SearchPage} / ${total} 頁`;
+    $('scheduleSearchPrev').disabled=v231SearchPage<=1; $('scheduleSearchNext').disabled=v231SearchPage>=total;
+  }
+  window.renderScheduleSearch=v231RenderSearch;
+  const v231OldCanSeePage=canSeePage;
+  canSeePage=function(page){if(page==='scheduleSearch')return !!currentUser; return v231OldCanSeePage(page)};
+  const v231OldRenderAll=renderAll;
+  renderAll=function(){
+    const r=v231OldRenderAll.apply(this,arguments);
+    if(currentPage==='scheduleSearch')v231RenderSearch();
+    document.querySelectorAll('#personalDetailsPage button,#mobilePage button').forEach(b=>{if((b.textContent||'').trim()==='查看')b.classList.add('v231-view-btn-blue')});
+    return r;
+  };
+  const v231OldShowApp=showApp;
+  showApp=function(){
+    const r=v231OldShowApp.apply(this,arguments);
+    setTimeout(()=>{v231CleanIncidentTests(); v231RenderSearch(); v231ShowLoginTodayModal();},700);
+    return r;
+  };
+  function v231TodayRows(){
+    const t=todayISO(); const pid=userPersonId();
+    return (state.events||[]).filter(e=>!e.deleted&&e.status!=='取消'&&String(e.startDate||'')<=t&&t<=String(e.endDate||e.startDate||'')&&((isAdmin&&isAdmin())||!pid||(executorPersonIds(e)||[]).includes(pid)));
+  }
+  function v231IsTodo(e){return /待辦|提醒|通知/.test(displayEventType(e.type||''))||e.kind==='todo'}
+  function v231LoginRow(e){return `<div class="v230-login-row"><b>${esc([e.startTime,displayEventType(e.type||'')].filter(Boolean).join('｜'))}</b><div>${esc(e.name||'未命名')}</div><div class="muted">${esc(e.locationName||'')}</div></div>`}
+  function v231ShowLoginTodayModal(){
+    try{Object.keys(localStorage).forEach(k=>{if(/today.*remind|remind.*today|今日.*提醒|tomorrow|loginReminder/i.test(k))localStorage.removeItem(k)});Object.keys(sessionStorage).forEach(k=>{if(/today.*remind|remind.*today|今日.*提醒|tomorrow|loginReminder/i.test(k))sessionStorage.removeItem(k)});}catch(e){}
+    const old=$('v231LoginTodayModal'); if(old)old.remove();
+    const rows=v231TodayRows(); const todos=rows.filter(v231IsTodo), schedules=rows.filter(e=>!v231IsTodo(e));
+    const modal=document.createElement('div'); modal.id='v231LoginTodayModal'; modal.className='modal';
+    modal.innerHTML=`<div class="modal-card" style="max-width:680px"><div class="modal-head"><h2>今日待辦提醒</h2><button class="ghost" type="button" data-close-v231-login>×</button></div><p style="font-weight:900;margin:10px 0">以下是您今天的待辦事項與行程：</p><h3>待辦事項</h3>${todos.length?todos.map(v231LoginRow).join(''):'<div class="muted">今天沒有待辦事項。</div>'}<h3>今日行程</h3>${schedules.length?schedules.map(v231LoginRow).join(''):'<div class="muted">今天沒有行程。</div>'}<div class="modal-actions"><button class="primary" type="button" data-close-v231-login>我知道了</button></div></div>`;
+    document.body.appendChild(modal); modal.querySelectorAll('[data-close-v231-login]').forEach(b=>b.onclick=()=>modal.remove());
+  }
+  window.v231ShowLoginTodayModal=v231ShowLoginTodayModal;
+  document.addEventListener('click',function(e){
+    const nav=e.target&&e.target.closest&&e.target.closest('[data-page="scheduleSearch"]');
+    if(nav){setTimeout(v231RenderSearch,80);}
+    const saveBtn=e.target&&e.target.closest&&e.target.closest('#saveFieldBtn');
+    if(saveBtn){return saveFieldEvent(e);}
+  },true);
+  setTimeout(()=>{
+    v231RemoveOldFieldLocationButtons(); v231EnsureOneTimeLocationUI(); v231CleanIncidentTests();
+    if($('saveFieldBtn'))$('saveFieldBtn').onclick=saveFieldEvent;
+    if($('scheduleSearchBtn'))$('scheduleSearchBtn').onclick=()=>{v231SearchPage=1;v231RenderSearch();};
+    if($('scheduleSearchClearBtn'))$('scheduleSearchClearBtn').onclick=()=>{['scheduleSearchKeyword','scheduleSearchStart','scheduleSearchEnd'].forEach(id=>{if($(id))$(id).value=''});['scheduleSearchPeople','scheduleSearchDepartments','scheduleSearchTypes'].forEach(clearMulti);v231SearchPage=1;v231RenderSearch();};
+    if($('scheduleSearchPrev'))$('scheduleSearchPrev').onclick=()=>{v231SearchPage=Math.max(1,v231SearchPage-1);v231RenderSearch();};
+    if($('scheduleSearchNext'))$('scheduleSearchNext').onclick=()=>{v231SearchPage++;v231RenderSearch();};
+    ['scheduleSearchKeyword','scheduleSearchStart','scheduleSearchEnd'].forEach(id=>{if($(id))$(id).addEventListener('input',()=>{v231SearchPage=1;v231RenderSearch();})});
+  },400);
+})();
 </script>
 <script>
 /* V122：直接修正異況時間選單；手機儲存後回異況主畫面 */
@@ -12661,12 +13029,12 @@ setInterval(v206SetupNavOrder,1500);
       return false;
     }
   }
-  window.saveFieldEvent=saveFieldEvent=saveFieldDirect;
+  window.v230BrokenSaveFieldDirect=saveFieldDirect; /* V231: do not override in-scope saveFieldEvent from later script */
 
   function bindField(){
     removeOldLocationButtons(); bindOneTimeLocation();
     var btn=$('saveFieldBtn');
-    if(btn){btn.onclick=saveFieldDirect;}
+    if(btn&&typeof saveFieldEvent==='function'){btn.onclick=saveFieldEvent;}
     var form=btn&&btn.closest&&btn.closest('form');
     if(form&&!form.__v230FieldBound){form.__v230FieldBound=true;form.addEventListener('submit',saveFieldDirect,true);}
   }
@@ -12686,9 +13054,7 @@ setInterval(v206SetupNavOrder,1500);
     };
     openFieldModal.__v230Wrapped=true;
   }
-  document.addEventListener('click',function(e){
-    if(e.target&&e.target.closest&&e.target.closest('#saveFieldBtn'))return saveFieldDirect(e);
-  },true);
+  /* V231 removed V230 capture click save handler */
 
   function testIncidentText(x){try{return JSON.stringify(x||{})}catch(e){return String(x||'')}}
   function isBadIncident(x){return /臺灣脈思油槽|台灣脈思油槽|臺灣脈思|台灣脈思|脈思油槽|油槽紀錄|測試異況|異況測試|測試追蹤|demo|mock|sample/i.test(testIncidentText(x))}
