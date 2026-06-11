@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V239</title>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V260</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -11810,8 +11810,8 @@ setInterval(v206SetupNavOrder,1500);
     if(x.v211Marker||x.v212Marker) return true;
     const demoCreator=['u_admin','u_staff','u_general','u_adminstaff'].includes(String(x.createdBy||''));
     const testWords=['測試行程','測試資料','測試待辦','測試一般','測試醫療','測試醫院','測試地點','測試客戶','測試工人','催繳測試','1週提醒測試','已繳交測試','V203','V204','V205','V206','V208','V210','V211','V212','6/11 測試','黃明書基本測試','外務測試'];
-    if(hasText(x,testWords)) return true;
-    if(demoCreator && hasText(x,['陪同看診','桃園醫院','Demo','測試'])) return true;
+    if(false && hasText(x,testWords)) return true; // V260：避免使用者新增含「測試」等字樣的正式行程被清掉
+    if(false && demoCreator && hasText(x,['陪同看診','桃園醫院','Demo','測試'])) return true; // V260
     return false;
   }
   function cleanArray(name){
@@ -12004,9 +12004,9 @@ setInterval(v206SetupNavOrder,1500);
     var words=[
       '測試行程','測試外務','測試會議','測試資料','測試待辦','測試一般','測試醫療','測試醫院','測試地點','測試客戶','測試工人','測試工廠','測試文件','測試提醒','測試驗證','測試一般事項','測試一般記事','外務測試','一般行程測試','含服務紀錄單與下次看診','6/11 測試','V203','V204','V205','V206','V208','V210','V211','V212','黃明書基本測試','黃明書測試','催繳測試','1週提醒測試','已繳交測試','sample schedule','sample event','mock schedule','mock event','test schedule','test event'
     ];
-    if(v220HasAny(s,words)) return true;
+    if(false && v220HasAny(s,words)) return true; // V260：測試字樣不得刪除正式新增資料
     // 只刪「資料內容」有 Demo + 行程測試特徵者；不刪帳號本身。
-    if(v220HasAny(s,['Demo']) && v220HasAny(s,['陪同看診','桃園醫院','提醒事項','醫療(看診','schedule'])) return true;
+    if(false && v220HasAny(s,['Demo']) && v220HasAny(s,['陪同看診','桃園醫院','提醒事項','醫療(看診','schedule'])) return true; // V260
     return false;
   }
 
@@ -12182,10 +12182,10 @@ setInterval(v206SetupNavOrder,1500);
       'V203','V204','V205','V206','V208','V210','V211','V212','V213','V214','V215','V216','V217','V218','V219','V220',
       'test schedule','test event','test data','demo schedule','demo event','demo data','mock schedule','mock event','sample schedule','sample event'
     ];
-    if(hasAny(s,words)) return true;
+    if(false && hasAny(s,words)) return true; // V260：測試字樣不得刪除正式新增資料
 
     // 預設 seed 產生的看診測試：名稱可能不是「測試」，但 note/log 有預設測試資料。
-    if(hasAny(s,['陪同看診','桃園醫院']) && hasAny(s,['u_admin','Demo','系統預設測試資料','schedule'])) return true;
+    if(false && hasAny(s,['陪同看診','桃園醫院']) && hasAny(s,['u_admin','Demo','系統預設測試資料','schedule'])) return true; // V260
 
     return false;
   }
@@ -14803,14 +14803,14 @@ window.v249HolidayTagsReport={
 </script>
 
 <script>
-/* V259：異況新增、行程同步、人員來源與個人行程根本修正
+/* V260：異況新增、行程同步、人員來源與個人行程根本修正
    DRY：人員清單一律由 forePeopleAll() 產生，行程人員欄位一律由 foreEventPersonIds() 判斷。
    KISS：不再分散覆蓋多版舊函式；最後載入的保底層只處理新增、同步、篩選、重繪。
    SOLID：異況、行程總覽、外務、個人行程各自保留畫面責任，資料同步集中在 foreRenderAfterDataChange()。 */
 (function(){
   'use strict';
-  if(window.__FORE_V259_DATA_DISPLAY_ROOT__) return;
-  window.__FORE_V259_DATA_DISPLAY_ROOT__=true;
+  if(window.__FORE_V260_DATA_DISPLAY_ROOT__) return;
+  window.__FORE_V260_DATA_DISPLAY_ROOT__=true;
   var STORE_KEY='translator_calendar_v81';
   var FIELD_TYPE='外務行程';
   var FIELD_OVERVIEW_TYPE='外務行程';
@@ -14821,8 +14821,10 @@ window.v249HolidayTagsReport={
   function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
   function now(){return new Date().toISOString()}
   function uid(prefix){try{return typeof window.uid==='function'?window.uid(prefix):prefix+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}catch(_){return prefix+'_'+Date.now().toString(36)}}
+  function getLexicalState(){try{return (0,eval)('typeof state!=="undefined"&&state?state:null')}catch(_){return null}}
+  function setLexicalState(s){try{window.__foreV260StateRef=s;(0,eval)('state=window.__foreV260StateRef')}catch(_){window.state=s}return s}
   function getState(){
-    var s=(window.state&&typeof window.state==='object')?window.state:null;
+    var s=getLexicalState()||((window.state&&typeof window.state==='object')?window.state:null);
     if(!s){try{s=JSON.parse(localStorage.getItem(STORE_KEY)||'{}')}catch(_){s={}}}
     s.people=Array.isArray(s.people)?s.people:[];
     s.events=Array.isArray(s.events)?s.events:[];
@@ -14830,9 +14832,9 @@ window.v249HolidayTagsReport={
     s.incidents=Array.isArray(s.incidents)?s.incidents:[];
     s.incidentLogs=Array.isArray(s.incidentLogs)?s.incidentLogs:[];
     s.options=s.options&&typeof s.options==='object'?s.options:{};
-    window.state=s;return s;
+    window.state=s;setLexicalState(s);return s;
   }
-  function saveState(){var s=getState();try{if(typeof window.save==='function')window.save();else localStorage.setItem(STORE_KEY,JSON.stringify(s))}catch(_){try{localStorage.setItem(STORE_KEY,JSON.stringify(s))}catch(e){console.error('[V259] save failed',e)}}window.state=s}
+  function saveState(){var s=getState();setLexicalState(s);try{localStorage.setItem(STORE_KEY,JSON.stringify(s))}catch(e){console.error('[V260] save failed',e)}window.state=s}
   function toastMsg(msg){try{if(typeof window.toast==='function')window.toast(msg);else alert(msg)}catch(_){}}
   function currentUid(){return (window.currentUser&&window.currentUser.id)||'system'}
   function currentPid(){try{return typeof window.userPersonId==='function'?window.userPersonId():''}catch(_){return ''}}
@@ -15000,4 +15002,21 @@ window.v249HolidayTagsReport={
 })();
 </script>
 
+
+<script id="v260-event-disappear-root-cause-fix">
+/*
+  V260 根因修正：新增行程消失
+  DRY：測試資料清理只允許看明確 marker/id，不再用辦理內容、地點、備註文字判斷。
+  KISS：保留既有清理 seed 的功能，但禁止刪除使用者新增且只是不小心含「測試 / Vxxx / Demo」字樣的正式資料。
+  SOLID：資料儲存改同步 lexical state、window.state、localStorage，避免後補 script 寫入不同 state 物件。
+*/
+(function(){
+  'use strict';
+  window.v260EventDisappearFixReport={
+    rootCause:'V218/V220/V221 的 cleanTestData 在 renderAll/click/interval 中用文字關鍵字判斷測試資料，使用者新增行程若含「測試、Vxxx、Demo、測試地點」等字樣會被立即從 state/localStorage 過濾掉，所以看起來新增後消失。',
+    fixed:'已改成只刪除明確 marker/id/testData/demoData/isTest 的 seed 資料，不再用行程名稱、地點、內容說明文字刪資料。',
+    storage:'V260 getState/saveState 已同步 lexical state、window.state、localStorage。'
+  };
+})();
+</script>
 </body></html>
