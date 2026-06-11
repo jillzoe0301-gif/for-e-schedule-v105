@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V228</title>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V229</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -889,7 +889,7 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 
 <div id="incidentModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="incidentModalTitle">新增異況</h2><button id="closeIncidentX" class="ghost">✕</button></div><input type="hidden" id="incidentId"><div class="row"><div class="field"><label>發生日期</label><input id="incidentDate" type="date"></div><div class="field"><label>發生時間</label><select id="incidentTime"><option value="">不指定</option><option value="上午">上午</option><option value="下午">下午</option><option value="晚上">晚上</option><option value="08:00">08:00</option><option value="08:30">08:30</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option></select></div></div><div class="row"><div class="field"><label>異況類型</label><select id="incidentType"></select></div><div class="field"><label>緊急程度</label><select id="incidentUrgency"><option>一般</option><option>需追蹤</option><option>緊急</option><option>重大異況</option></select></div></div><div class="row"><div class="field"><label>地點 / 客戶</label><input id="incidentCustomer" placeholder="例如：宏志祥 / 宿舍名稱"></div><div class="field"><label>發生地點</label><input id="incidentLocation" placeholder="工廠 / 宿舍 / 醫院 / 其他"></div></div><div class="row"><div class="field"><label>工人姓名</label><input id="incidentWorkerName"></div><div class="field"><label>證件號碼</label><input id="incidentWorkerId" placeholder="護照號 / 居留證號，可留空"></div></div><div class="row"><div class="field"><label>負責人</label><select id="incidentOwner"></select></div><div class="field"><label>目前狀態</label><select id="incidentStatus"><option>待處理</option><option>處理中</option><option>待追蹤</option><option>已建立行程</option><option>已結案</option><option>取消 / 誤登</option></select></div></div><div class="row"><div class="field"><label>下次追蹤日期</label><input id="incidentNextFollow" type="date"></div><div class="field"><label>下次追蹤時間</label><select id="incidentNextFollowTime"><option value="">不指定</option><option value="上午">上午</option><option value="下午">下午</option><option value="晚上">晚上</option><option value="08:00">08:00</option><option value="08:30">08:30</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option></select></div></div><div class="field"><label>協助人員</label><div id="incidentHelpers" class="checkbox-list"></div></div><div class="field"><label>異況標題</label><input id="incidentTitle" placeholder="例如：工人未到工廠 / 宿舍衝突 / 雇主客訴"></div><div class="field"><label>異況內容</label><textarea id="incidentDescription" placeholder="請記錄發生原因、目前狀況、已通知對象等"></textarea></div><div class="field"><label>結案說明</label><textarea id="incidentCloseNote" placeholder="結案時填寫處理結果"></textarea></div><div class="incident-event-actions"><div class="section-title"><h2 style="font-size:16px">從異況建立行程</h2><span class="muted">會建立到執行者行程總覽，並保留來源異況紀錄。</span></div><div class="row"><div class="field"><label>行程類型</label><select id="incidentEventType"></select></div><div class="field"><label>執行者</label><select id="incidentEventPerson"></select></div></div><div class="row"><div class="field"><label>日期</label><input id="incidentEventDate" type="date"></div><div class="field"><label>時間</label><select id="incidentEventTime"><option value="上午">上午</option><option value="下午">下午</option><option value="晚上">晚上</option><option value="08:00">08:00</option><option value="08:30">08:30</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option></select></div></div><div class="row"><div class="field"><label>辦理內容</label><input id="incidentEventName"></div><div class="field"><label>地點 / 客戶</label><input id="incidentEventLocation"></div></div><div class="field"><label>內容說明</label><textarea id="incidentEventNote"></textarea></div><button id="createIncidentEventBtn" class="primary" type="button">建立到執行者行事曆</button></div><div class="panel" style="box-shadow:none;margin-top:12px"><div class="section-title"><h2 style="font-size:16px">追蹤紀錄</h2><span class="muted">可往下新增，永久保存在異況案件中。</span></div><div id="incidentLogList" class="incident-log-list"></div><div class="field"><label>新增追蹤內容</label><textarea id="incidentLogContent" placeholder="例如：已聯繫工人未接，已通知雇主，明日再追蹤。"></textarea></div><div class="row"><div class="field"><label>本次追蹤後狀態</label><select id="incidentLogStatus"><option>待處理</option><option>處理中</option><option>待追蹤</option><option>已建立行程</option><option>已結案</option><option>取消 / 誤登</option></select></div><div class="field"><label>下次追蹤日期</label><input id="incidentLogNextFollow" type="date"></div><div class="field"><label>下次追蹤時間</label><select id="incidentLogNextFollowTime"><option value="">不指定</option><option value="上午">上午</option><option value="下午">下午</option><option value="晚上">晚上</option><option value="08:00">08:00</option><option value="08:30">08:30</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option></select></div></div><button id="addIncidentLogBtn" type="button">新增追蹤紀錄</button></div><div class="modal-actions"><button id="deleteIncidentBtn" class="danger hide">刪除</button><button id="closeIncidentBtn">取消</button><button id="saveIncidentBtn" class="primary">儲存異況</button></div></div></div>
 <div id="eventModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="eventModalTitle">新增行程</h2><button id="closeEventX" class="ghost">✕</button></div><input type="hidden" id="eventId"><div class="row"><div class="field"><label>類別</label><select id="eventKind"></select></div><div class="field"><label>行程狀態</label><select id="eventStatus"><option>未完成</option><option>已完成</option><option>取消</option></select></div></div><div class="row"><div class="field"><label>起日</label><input id="startDate" type="date"></div><div class="field"><label>迄日</label><input id="endDate" type="date"></div></div><div class="row"><div class="field"><label>開始時間</label><select id="startTime"></select></div><div class="field"><label>結束時間</label><select id="endTime"></select></div></div><div class="row"><div class="field"><label>地點 / 客戶</label><input id="locationName" placeholder="例如：宏志祥 / 桃園醫院"></div><div class="field"><label>地址</label><input id="address"></div></div><div class="field"><label>行程類型 / 翻譯狀態</label><select id="eventType"></select></div><div class="field"><label>辦理內容</label><input id="eventName" placeholder="例如：體檢陪同 / 協調會翻譯"></div><div class="row"><div class="field"><label>附加行程類型選項</label><select id="additionalType"></select></div><div class="field"><label>附加行程備註</label><input id="additionalNote" placeholder="補充說明" maxlength="60"></div></div><div class="field"><label>內容說明</label><textarea id="note" placeholder="請輸入內容說明 / 補充說明"></textarea></div><div id="serviceRecordBox" class="panel hide" style="box-shadow:none;margin:8px 0;background:#fff8f1"><div class="row"><div class="field"><label><input id="serviceRecordSubmitted" type="checkbox" style="width:auto"> 服務紀錄單已繳交</label><div class="muted">銀行、定期、送工(新入境、承接)、車禍處理、面談、醫療、上線/教育訓練需勾選並填繳交日期後才能選擇已完成。</div></div><div class="field"><label>服務紀錄單繳交日期</label><input id="serviceRecordDate" type="date"></div></div><div id="medicalFollowupBox" class="hide"><div class="row"><div class="field"><label>下次回診日期</label><input id="followupDate" type="date"></div><div class="field"><label>下次回診時間</label><select id="followupTime"></select></div></div><div class="row"><div class="field"><label>下次服務人員</label><select id="followupPerson"></select><div class="muted">選擇後會將下次回診行程加入該人員行事曆。</div></div><div class="field"><label>掛號號碼</label><input id="followupRegNo" placeholder="例如：123號 / 掛號序號"></div></div></div></div><div class="row"><div class="field"><label>公務車調整（選擇調整後的車號）</label><select id="vehicleNo"></select></div><div class="field"><label class="muted">提醒</label><div class="muted" style="padding:9px 0">請從下拉選單選擇調整後車號；會議室選項已取消。</div></div></div><div class="row"><div class="field"><label>新增、挪動給哪位人員/相關人員</label><div id="participantsBox" class="checkbox-list"></div></div><div class="field"><label>連續/重複</label><select id="repeatWeeks"><option value="1">只新增本次</option><option value="4">每週（連續一個月）</option><option value="13">每週（連續三個月）</option><option value="26">每週（連續六個月）</option><option value="custom">每週指定日期區間</option></select><div id="repeatCustomBox" class="hide" style="margin-top:10px"><div class="row"><div><label>每週起日</label><input id="repeatStartDate" type="date"></div><div><label>每週迄日</label><input id="repeatEndDate" type="date"></div></div><div class="muted">例：2026/06/01～2026/08/31，系統會每週建立一筆。</div></div></div></div><div class="row" id="v228EventColorRow"><div class="field"><label>行程顏色</label><input id="eventColorPicker" type="color" value="#fce7f3"><input id="eventCustomColor" type="hidden"><div class="muted">手動選擇後會優先於類型預設顏色。</div></div><div class="field"><label class="muted">顏色操作</label><div class="toolbar" style="padding-top:8px"><button type="button" id="clearEventColorBtn" class="small">使用預設顏色</button></div></div></div><div class="modal-actions"><button id="deleteEventBtn" class="danger hide">刪除/取消顯示</button><button id="closeEventBtn">取消</button><button id="saveEventBtn" class="primary">儲存</button></div></div></div>
-<div id="fieldModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="fieldModalTitle">新增外務行程</h2><button id="closeFieldX" class="ghost">✕</button></div><input type="hidden" id="editFieldId"><div class="row"><div class="field"><label>人員名稱</label><select id="fieldPerson"></select></div><div class="field"><label>日期</label><input id="fieldDate" type="date"></div></div><div class="row"><div class="field"><label>時間</label><select id="fieldTime"></select></div><div class="field"><label>行程狀態</label><select id="fieldStatus"><option selected>未完成</option><option>已完成</option><option>已送件</option><option>異常</option><option>要補件</option><option>送件失敗</option></select></div></div><div class="field" id="fieldFailureBox"><label>送件失敗原因</label><input id="fieldFailureReason" placeholder="若送件失敗，請填寫原因"></div><div class="row"><div class="field"><label>地點</label><input id="fieldLocation" list="fieldLocationDatalist" placeholder="可直接輸入或選擇地點"><datalist id="fieldLocationDatalist"></datalist></div><div class="field"><label>地址</label><input id="fieldAddress" placeholder="可直接輸入地址"></div></div><div class="field" id="v228FieldLocationInlineBox"><label>新增外務地點</label><div class="row"><div><input id="v228NewFieldLocationName" placeholder="地點名稱"></div><div><input id="v228NewFieldLocationAddress" placeholder="地址"></div></div><div class="toolbar" style="margin-top:8px;justify-content:flex-end"><button type="button" id="v228AddFieldLocationInline" class="small">加入地點</button></div><div id="v228FieldLocationInlineRows" class="muted" style="margin-top:6px;line-height:1.6"></div></div><div class="row"><div class="field"><label>目的</label><select id="fieldPurpose"></select></div><div class="field"><label>連續/重複性</label><select id="fieldRepeat"><option value="1">只新增本次</option><option value="4">每週（連續一個月）</option><option value="13">每週（連續三個月）</option><option value="26">每週（連續六個月）</option><option value="custom">每週指定日期區間</option></select><div id="fieldRepeatCustomBox" class="hide" style="margin-top:10px"><div class="row"><div><label>每週起日</label><input id="fieldRepeatStart" type="date"></div><div><label>每週迄日</label><input id="fieldRepeatEnd" type="date"></div></div></div></div></div><div class="field"><label>內容</label><textarea id="fieldNote"></textarea></div><div class="row"><div class="field"><label>現金</label><input id="fieldCash" placeholder="例：有 / 無 / 金額"></div><div class="field"><label>印章</label><input id="fieldStamp" placeholder="例：有 / 無 / 需帶"></div></div><div class="row"><div class="field"><label>證件</label><input id="fieldDocument" placeholder="例：ARC / 護照 / 公司大小章"></div><div class="field"><label>特殊提醒</label><label class="checkline"><input id="fieldMustSend" type="checkbox"> 必送件</label><label class="checkline"><input id="fieldCannotChange" type="checkbox"> 無法更換外務</label></div></div><div class="row"><div class="field"><label>下次領件/送審日期</label><input id="fieldPickupDate" type="date"></div><div class="field"><label>下次領件/送審外務人員</label><select id="fieldPickupPerson"></select><div class="muted">填寫後會自動在該日期與人員行程內新增「領件」。</div></div></div><div class="modal-actions"><button id="deleteFieldBtn" class="danger hide">刪除</button><button id="closeFieldBtn">取消</button><button id="saveFieldBtn" class="primary">儲存</button></div></div></div>
+<div id="fieldModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="fieldModalTitle">新增外務行程</h2><button id="closeFieldX" class="ghost">✕</button></div><input type="hidden" id="editFieldId"><div class="row"><div class="field"><label>人員名稱</label><select id="fieldPerson"></select></div><div class="field"><label>日期</label><input id="fieldDate" type="date"></div></div><div class="row"><div class="field"><label>時間</label><select id="fieldTime"></select></div><div class="field"><label>行程狀態</label><select id="fieldStatus"><option selected>未完成</option><option>已完成</option><option>已送件</option><option>異常</option><option>要補件</option><option>送件失敗</option></select></div></div><div class="field" id="fieldFailureBox"><label>送件失敗原因</label><input id="fieldFailureReason" placeholder="若送件失敗，請填寫原因"></div><div class="row"><div class="field"><label>地點</label><input id="fieldLocation" list="fieldLocationDatalist" placeholder="可直接輸入或選擇地點"><datalist id="fieldLocationDatalist"></datalist></div><div class="field"><label>地址</label><input id="fieldAddress" placeholder="可直接輸入地址"></div></div><div class="field" id="v229FieldLocationInlineBox"><label class="checkline"><input id="v229UseOneTimeFieldLocation" type="checkbox"> 新增地點（本次使用）</label><div id="v229OneTimeFieldLocationInputs" class="hide"><div class="row"><div><label>地點名稱</label><input id="v229OneTimeFieldLocationName" placeholder="請輸入本次外務地點"></div><div><label>地址</label><input id="v229OneTimeFieldLocationAddress" placeholder="請輸入本次地址"></div></div><div class="muted">此地點只套用本次外務行程，不會加入選項清單。</div></div></div><div class="row"><div class="field"><label>目的</label><select id="fieldPurpose"></select></div><div class="field"><label>連續/重複性</label><select id="fieldRepeat"><option value="1">只新增本次</option><option value="4">每週（連續一個月）</option><option value="13">每週（連續三個月）</option><option value="26">每週（連續六個月）</option><option value="custom">每週指定日期區間</option></select><div id="fieldRepeatCustomBox" class="hide" style="margin-top:10px"><div class="row"><div><label>每週起日</label><input id="fieldRepeatStart" type="date"></div><div><label>每週迄日</label><input id="fieldRepeatEnd" type="date"></div></div></div></div></div><div class="field"><label>內容</label><textarea id="fieldNote"></textarea></div><div class="row"><div class="field"><label>現金</label><input id="fieldCash" placeholder="例：有 / 無 / 金額"></div><div class="field"><label>印章</label><input id="fieldStamp" placeholder="例：有 / 無 / 需帶"></div></div><div class="row"><div class="field"><label>證件</label><input id="fieldDocument" placeholder="例：ARC / 護照 / 公司大小章"></div><div class="field"><label>特殊提醒</label><label class="checkline"><input id="fieldMustSend" type="checkbox"> 必送件</label><label class="checkline"><input id="fieldCannotChange" type="checkbox"> 無法更換外務</label></div></div><div class="row"><div class="field"><label>下次領件/送審日期</label><input id="fieldPickupDate" type="date"></div><div class="field"><label>下次領件/送審外務人員</label><select id="fieldPickupPerson"></select><div class="muted">填寫後會自動在該日期與人員行程內新增「領件」。</div></div></div><div class="modal-actions"><button id="deleteFieldBtn" class="danger hide">刪除</button><button id="closeFieldBtn">取消</button><button id="saveFieldBtn" class="primary">儲存</button></div></div></div>
 <div id="personModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="personModalTitle">新增人員名稱</h2><button id="closePersonX" class="ghost">✕</button></div><input type="hidden" id="editPersonId"><div class="row"><div class="field"><label>姓名</label><input id="newPersonName"></div><div class="field"><label>職務</label><select id="newPersonLang"><option>越南</option><option>印尼</option><option>泰國</option><option>菲律賓</option><option>其他</option></select></div></div><div class="row"><div class="field"><label>部門</label><select id="newPersonDept"></select></div><div class="field"><label>群組</label><input id="newPersonGroup" placeholder="一部翻譯 / 二部翻譯 / 營運處"></div></div><div class="row"><div class="field"><label>狀態</label><select id="newPersonActive"><option value="true">啟用</option><option value="false">停用</option></select></div><div class="field"></div></div><div class="field"><label>LINE ID</label><input id="newPersonLineId" placeholder="可填 LINE User ID / 群組 ID / 備註代碼"></div><div class="modal-actions"><button id="closePersonBtn">取消</button><button id="savePersonBtn" class="primary">儲存</button></div></div></div><div id="userModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="userModalTitle">修改帳號</h2><button id="closeUserX" class="ghost">✕</button></div><input type="hidden" id="editUserId"><div class="row"><div class="field"><label>姓名</label><input id="editUserName"></div><div class="field"><label>Email / 帳號</label><input id="editUserEmail"></div></div><div class="field"><label>LINE ID</label><input id="editUserLineId" placeholder="可填 LINE User ID / 群組 ID / 備註代碼"></div><div class="row"><div class="field"><label>密碼</label><input id="editUserPassword"></div><div class="field"><label>角色</label><select id="editUserRole"><option value="admin">系統管理員</option><option value="supervisor">主管</option><option value="adminStaff">行政系</option><option value="general">一般人員</option><option value="staff">翻譯</option></select></div></div><div class="row"><div class="field"><label>對應人員</label><select id="editUserPerson"></select></div><div class="field"><label>帳號狀態</label><select id="editUserActive"><option value="true">啟用</option><option value="false">停用</option></select><div class="muted">停用後不可登入；刪除後不顯示於帳號清單。</div></div></div><div class="modal-actions"><button id="closeUserBtn">取消</button><button id="saveUserBtn" class="primary">儲存帳號</button></div></div></div>
 
 <div id="roomBookingModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="roomBookingModalTitle">新增會議室預約</h2><button id="closeRoomBookingX" class="ghost">✕</button></div><input type="hidden" id="roomBookingId"><div class="row"><div class="field required"><label>日期</label><input id="roomBookingDate" type="date"></div><div class="field required"><label>會議室</label><select id="roomBookingRoom"></select></div></div><div class="row"><div class="field required"><label>開始時間</label><select id="roomBookingStartTime"></select></div><div class="field required"><label>結束時間</label><select id="roomBookingEndTime"></select></div></div><div class="row"><div class="field required"><label>部門</label><select id="roomBookingDept"></select></div><div class="field required"><label>會議名稱</label><input id="roomBookingTitle" placeholder="例如：二部週會 / 客戶會議"></div></div><div class="row" id="roomBookingRepeatRow"><div class="field"><label>連續 / 重複</label><select id="roomBookingRepeat"><option value="1">只新增本次</option><option value="4">每週（連續一個月）</option><option value="13">每週（連續三個月）</option><option value="26">每週（連續六個月）</option><option value="custom">每週指定日期區間</option></select></div><div class="field"><label class="muted">提醒</label><div class="muted" style="padding:9px 0">重複預約會依同一星期幾建立，若有衝突會停止儲存。</div></div></div><div id="roomBookingRepeatCustomBox" class="hide"><div class="row"><div class="field"><label>每週起日</label><input id="roomBookingRepeatStart" type="date"></div><div class="field"><label>每週迄日</label><input id="roomBookingRepeatEnd" type="date"></div></div></div><div class="modal-actions"><button id="deleteRoomBookingBtn" class="danger hide">刪除</button><button id="closeRoomBookingBtn">取消</button><button id="saveRoomBookingBtn" class="primary">儲存</button></div></div></div>
@@ -2187,7 +2187,7 @@ function renderFieldOptions(){
   }else if(datalist){
     datalist.innerHTML=locOptions.map(x=>`<option value="${escAttr(x.name)}">${esc(x.address||'')}</option>`).join('');
   }
-  if(typeof v228BindFieldLocationInline==='function')v228BindFieldLocationInline();
+  if(typeof v229BindOneTimeFieldLocation==='function')v229BindOneTimeFieldLocation();
 }
 function updateFieldFailureUI(){if(!$('fieldFailureBox'))return; const isFail=$('fieldStatus').value==='送件失敗'; $('fieldFailureBox').classList.toggle('hide',!isFail); if(!isFail&&$('fieldFailureReason'))$('fieldFailureReason').value='';}
 function syncMainEventFromField(fieldEvent, action, beforeMain){
@@ -12228,4 +12228,219 @@ setInterval(v206SetupNavOrder,1500);
 </script>
 
 <!-- V226 restored renderToday load fix -->
+
+<style id="v229-field-fixes-style">
+/* V229：外務儲存、單次地點、個人查看按鈕、異況協助人員、頁面主色統一修正 */
+#fieldModal #v227AddFieldLocationBtn,
+#fieldModal #v228AddFieldLocationInline,
+#fieldModal .v227-add-location,
+#fieldModal .v228-add-location{display:none!important}
+#v229FieldLocationInlineBox{border:1px dashed #fed7aa;background:#fff7ed;border-radius:12px;padding:10px;margin-top:8px}
+#v229FieldLocationInlineBox .checkline{font-weight:900;color:#9a3412}
+#v229OneTimeFieldLocationInputs{margin-top:8px}
+#mobileList [data-open-mobile-event],
+#mobileList .v225-card-actions button,
+.mobile-event-card [data-open-mobile-event]{background:#2563eb!important;border-color:#2563eb!important;color:#fff!important}
+.modal-card.v229-modal-themed{border-top:8px solid var(--v229-modal-accent,#2563eb)!important;box-shadow:0 10px 28px rgba(15,23,42,.14)!important}
+.modal-card.v229-modal-themed .modal-head{background:var(--v229-modal-soft,#eff6ff);border-radius:14px;padding:10px;margin:-4px 0 10px}
+.follow-helper-box.v229-helper-box{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;max-height:180px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:8px;background:#fff}
+.follow-helper-box.v229-helper-box label{display:flex;gap:6px;align-items:center;padding:6px 8px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;font-size:13px}
+.follow-helper-box.v229-helper-box input{width:auto!important}
+</style>
+<script id="v229-field-save-location-incident-helper-color-fix">
+(function(){
+  'use strict';
+  function byId(id){return document.getElementById(id)}
+  function qsa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
+  function safe(v){try{return typeof esc==='function'?esc(v):String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}catch(_){return String(v??'')}}
+  function unique(arr){return Array.from(new Set((arr||[]).filter(Boolean)))}
+  function activePeople(){try{return ((state&&state.people)||[]).filter(p=>p&&p.active!==false&&p.deleted!==true)}catch(_){return []}}
+  function typeName(e){try{return displayEventType(e&&e.type||'')}catch(_){return String(e&&e.type||'')}}
+  function colorTheme(){
+    window.FORE_EVENT_COLOR_THEME=Object.assign({schedule:'#fce7f3',field:'#ffedd5',generalNote:'#ffffff',todo:'#fef9c3',incident:'#fde047',leave:'#ede9fe',meeting:'#dbeafe',training:'#dcfce7',done:'#e5e7eb'},window.FORE_EVENT_COLOR_THEME||{});
+    return window.FORE_EVENT_COLOR_THEME;
+  }
+  function colorBucket(e){
+    const t=typeName(e), k=String(e&&e.kind||''), txt=[t,e&&e.name,e&&e.note].join(' ');
+    if(e&&String(e.status||'')==='已完成')return 'done';
+    if(e&&(e.externalSource||/外務/.test(t)))return 'field';
+    if(/異況|incident/i.test(txt))return 'incident';
+    if(k==='generalNote'||t==='一般記事')return 'generalNote';
+    if(k==='todo'||/待辦/.test(t))return 'todo';
+    if(/請假|返鄉/.test(t))return 'leave';
+    if(/會議/.test(t))return 'meeting';
+    if(/教育訓練|活動|上課|外訓/.test(t))return 'training';
+    return 'schedule';
+  }
+  window.v229EventColor=function(e){const manual=e&&(e.customColor||e.displayColor||e.color); if(manual)return manual; const th=colorTheme(); return th[colorBucket(e)]||th.schedule;};
+  window.v229EventBorder=function(e){return {schedule:'#f9a8d4',field:'#fb923c',generalNote:'#d1d5db',todo:'#eab308',incident:'#f59e0b',leave:'#8b5cf6',meeting:'#3b82f6',training:'#22c55e',done:'#94a3b8'}[colorBucket(e)]||'#64748b'};
+  window.v228EventColor=window.v229EventColor;
+  window.v228EventBorderColor=window.v229EventBorder;
+  window.v228EventStyle=function(e){return 'background:'+v229EventColor(e)+'!important;border-color:'+v229EventBorder(e)+'!important;border-left-color:'+v229EventBorder(e)+'!important;color:#0f172a!important'};
+
+  function removeOldLocationAddButtons(){
+    const modal=byId('fieldModal'); if(!modal)return;
+    qsa('#v227AddFieldLocationBtn,#v228AddFieldLocationInline,.v227-add-location,.v228-add-location',modal).forEach(el=>{const tb=el.closest('.toolbar'); (tb&&/新增|加入地點/.test(tb.textContent||''))?tb.remove():el.remove();});
+    qsa('button',modal).forEach(btn=>{
+      const txt=(btn.textContent||'').trim();
+      if((txt==='新增'||txt==='加入地點'||txt==='新增地點') && (btn.closest('#v228FieldLocationInlineBox')||btn.closest('#v229FieldLocationInlineBox')||btn.closest('.field'))){
+        const near=btn.closest('.toolbar'); (near||btn).remove();
+      }
+    });
+  }
+  window.v227InsertAddLocationButton=function(){removeOldLocationAddButtons(); if(typeof v229BindOneTimeFieldLocation==='function')v229BindOneTimeFieldLocation();};
+  window.v228BindFieldLocationInline=function(){removeOldLocationAddButtons(); if(typeof v229BindOneTimeFieldLocation==='function')v229BindOneTimeFieldLocation();};
+
+  window.v229BindOneTimeFieldLocation=function(){
+    removeOldLocationAddButtons();
+    const use=byId('v229UseOneTimeFieldLocation'), box=byId('v229OneTimeFieldLocationInputs');
+    if(use&&box&&!use.dataset.v229Bound){
+      use.dataset.v229Bound='1';
+      use.addEventListener('change',()=>{box.classList.toggle('hide',!use.checked); if(use.checked){const n=byId('v229OneTimeFieldLocationName'); setTimeout(()=>n&&n.focus(),30)}});
+    }
+    if(use&&box)box.classList.toggle('hide',!use.checked);
+  };
+  function getOneTimeLocation(){
+    const use=byId('v229UseOneTimeFieldLocation');
+    if(!use||!use.checked)return null;
+    return {name:(byId('v229OneTimeFieldLocationName')?.value||'').trim(),address:(byId('v229OneTimeFieldLocationAddress')?.value||'').trim()};
+  }
+  function resetOneTimeLocation(e){
+    const use=byId('v229UseOneTimeFieldLocation'), box=byId('v229OneTimeFieldLocationInputs'), n=byId('v229OneTimeFieldLocationName'), a=byId('v229OneTimeFieldLocationAddress');
+    if(!use)return;
+    use.checked=false; if(n)n.value=''; if(a)a.value=''; if(box)box.classList.add('hide');
+    if(e&&e.oneTimeLocation){use.checked=true; if(n)n.value=e.locationName||''; if(a)a.value=e.address||''; if(box)box.classList.remove('hide');}
+  }
+
+  function v229CollectFieldEvent(){
+    const one=getOneTimeLocation();
+    return {
+      personId:byId('fieldPerson')?.value||'', date:byId('fieldDate')?.value||'', time:byId('fieldTime')?.value||'', status:byId('fieldStatus')?.value||'未完成',
+      failureReason:(byId('fieldFailureReason')?.value||'').trim(),
+      locationName:one&&one.name?one.name:(byId('fieldLocation')?.value||''), address:one?(one.address||''):(byId('fieldAddress')?.value||''), oneTimeLocation:!!(one&&one.name),
+      purpose:byId('fieldPurpose')?.value||'送件', note:byId('fieldNote')?.value||'', cash:byId('fieldCash')?.value||'', stamp:byId('fieldStamp')?.value||'', document:byId('fieldDocument')?.value||'',
+      mustSend:!!byId('fieldMustSend')?.checked, cannotChange:!!byId('fieldCannotChange')?.checked,
+      pickupDate:byId('fieldPickupDate')?.value||'', pickupPersonId:byId('fieldPickupPerson')?.value||'',
+      updatedBy:(typeof currentUser!=='undefined'&&currentUser?currentUser.id:'system'), updatedAt:new Date().toISOString()
+    };
+  }
+  function v229FieldRepeatDates(){
+    if(typeof fieldRepeatDates==='function')return fieldRepeatDates();
+    return [byId('fieldDate')?.value||todayISO()];
+  }
+  function showFieldCalendarPage(){
+    try{
+      currentPage='fieldCalendar';
+      qsa('.page').forEach(p=>p.classList.add('hide'));
+      byId('fieldCalendarPage')?.classList.remove('hide');
+      qsa('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page==='fieldCalendar'));
+    }catch(_){}
+  }
+  window.saveFieldEvent=function(){
+    try{
+      if(typeof ensureExternalState==='function')ensureExternalState();
+      if(typeof v225RelaxRequiredUI==='function')v225RelaxRequiredUI(byId('fieldModal')||document);
+      const id=byId('editFieldId')?.value||'';
+      const data=v229CollectFieldEvent();
+      state.externalEvents=state.externalEvents||[];
+      if(id){
+        const idx=state.externalEvents.findIndex(x=>x.id===id);
+        if(idx>=0){
+          const old=typeof clone==='function'?clone(state.externalEvents[idx]):JSON.parse(JSON.stringify(state.externalEvents[idx]));
+          const mainOld=typeof clone==='function'?clone((state.events||[]).find(x=>x.externalEventId===id)||null):null;
+          state.externalEvents[idx]=Object.assign({},state.externalEvents[idx],data);
+          try{addLog('修改','外務行程',state.externalEvents[idx].purpose,'外務行程','修改前',JSON.stringify(old))}catch(_){}
+          if(typeof syncMainEventFromField==='function')syncMainEventFromField(state.externalEvents[idx],'修改',mainOld);
+          if(typeof upsertPickupFieldEvent==='function')upsertPickupFieldEvent(state.externalEvents[idx]);
+        }
+      }else{
+        const group=typeof uid==='function'?uid('fg'):('fg_'+Date.now());
+        const dates=v229FieldRepeatDates();
+        dates.forEach((d,i)=>{
+          const ev=Object.assign({id:typeof uid==='function'?uid('field'):('field_'+Date.now()+'_'+i),repeatGroupId:group,createdBy:(currentUser&&currentUser.id)||'system',createdAt:new Date().toISOString(),deleted:false},data,{date:d});
+          state.externalEvents.push(ev);
+          try{addLog('新增','外務行程',ev.purpose,'外務行程','',`${ev.date} ${getPerson(ev.personId).name} ${ev.locationName}`)}catch(_){}
+          if(typeof syncMainEventFromField==='function')syncMainEventFromField(ev,'新增');
+          if(i===0&&typeof upsertPickupFieldEvent==='function')upsertPickupFieldEvent(ev);
+        });
+      }
+      if(typeof save==='function')save();
+      byId('fieldModal')?.classList.add('hide');
+      byId('eventModal')?.classList.add('hide');
+      showFieldCalendarPage();
+      try{if(typeof renderFieldCalendar==='function')renderFieldCalendar(); else if(typeof renderAll==='function')renderAll();}catch(_){try{renderAll()}catch(__){}}
+      try{toast('外務行程已儲存')}catch(_){}
+      return false;
+    }catch(err){console.error('V229 save field failed',err); try{toast('外務儲存失敗：'+(err.message||err))}catch(_){}; return false;}
+  };
+  function rebindFieldButtons(){
+    removeOldLocationAddButtons(); v229BindOneTimeFieldLocation();
+    const saveBtn=byId('saveFieldBtn'); if(saveBtn)saveBtn.onclick=window.saveFieldEvent;
+    const addBtn=byId('fieldAddBtn'); if(addBtn)addBtn.onclick=function(e){e&&e.preventDefault(); if(typeof canEdit==='function'&&!canEdit())return toast('目前帳號無法新增外務行程'); showFieldCalendarPage(); openFieldModal({}); return false;};
+  }
+  const oldOpenField=typeof openFieldModal==='function'?openFieldModal:null;
+  if(oldOpenField){
+    window.openFieldModal=openFieldModal=function(opts){
+      showFieldCalendarPage();
+      const r=oldOpenField.call(this,opts||{});
+      byId('eventModal')?.classList.add('hide');
+      const id=byId('editFieldId')?.value||''; const ev=id?((state.externalEvents||[]).find(x=>x.id===id)):null;
+      resetOneTimeLocation(ev); removeOldLocationAddButtons(); v229BindOneTimeFieldLocation(); applyModalTheme('fieldModal',{type:'外務',externalSource:true,status:ev&&ev.status}); rebindFieldButtons();
+      return r;
+    };
+  }
+  document.addEventListener('click',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('#saveFieldBtn')){e.preventDefault(); e.stopImmediatePropagation(); window.saveFieldEvent(); return false;}
+    if(e.target&&e.target.closest&&e.target.closest('#fieldAddBtn')){setTimeout(rebindFieldButtons,30)}
+  },true);
+
+  function incidentText(x){try{return JSON.stringify(x)}catch(_){return String(x||'')}}
+  function isIncidentTest(x){return /臺灣脈思油槽|台灣脈思油槽|臺灣脈思|台灣脈思|測試異況|異況測試|測試追蹤|V206|V211|V212|demo|mock|sample/i.test(incidentText(x));}
+  window.v229CleanIncidentTests=function(){
+    try{
+      if(!state)return false; let changed=false;
+      if(Array.isArray(state.incidents)){const b=state.incidents.length; state.incidents=state.incidents.filter(x=>!isIncidentTest(x)); changed=changed||b!==state.incidents.length;}
+      const valid=new Set((state.incidents||[]).map(x=>x.id));
+      if(Array.isArray(state.incidentLogs)){const b=state.incidentLogs.length; state.incidentLogs=state.incidentLogs.filter(x=>!isIncidentTest(x)&&(!x.incidentId||valid.has(x.incidentId))); changed=changed||b!==state.incidentLogs.length;}
+      if(Array.isArray(state.events)){const b=state.events.length; state.events=state.events.filter(x=>!(isIncidentTest(x)&&/異況|追蹤|incident|脈思|油槽/i.test(incidentText(x)))); changed=changed||b!==state.events.length;}
+      if(changed&&typeof save==='function')save(); return changed;
+    }catch(e){console.warn('V229 clean incident failed',e); return false;}
+  };
+  function renderHelperBox(id,selected){
+    const box=byId(id); if(!box)return;
+    const checked=new Set(selected||[]); const list=activePeople();
+    box.classList.add('v229-helper-box','follow-helper-box');
+    box.innerHTML=list.map(p=>`<label><input type="checkbox" value="${safe(p.id)}" ${checked.has(p.id)?'checked':''}> <span>${safe(p.name)}</span><small class="muted">${safe(p.group||'')}</small></label>`).join('')||'<div class="muted">尚無可選人員，請先到人員/帳號確認人員資料。</div>';
+  }
+  window.v228RenderPersonCheckboxMulti=function(containerId,selectedIds){renderHelperBox(containerId,selectedIds)};
+  window.v229RenderIncidentHelpers=function(){
+    const incId=byId('incidentId')?.value||''; const inc=(state&&state.incidents||[]).find(x=>x.id===incId)||null;
+    const base=unique((inc&&inc.nextFollowHelperPersonIds&&inc.nextFollowHelperPersonIds.length)?inc.nextFollowHelperPersonIds:(inc&&inc.helperPersonIds)||[]);
+    const logBase=unique(base);
+    renderHelperBox('incidentNextFollowHelpers',base);
+    renderHelperBox('incidentLogNextFollowHelpers',logBase);
+  };
+  const oldOpenInc=typeof openIncidentModal==='function'?openIncidentModal:null;
+  if(oldOpenInc){window.openIncidentModal=openIncidentModal=function(){const r=oldOpenInc.apply(this,arguments); setTimeout(()=>{v229CleanIncidentTests(); v229RenderIncidentHelpers(); applyModalTheme('incidentModal',{type:'異況'});},180); setTimeout(v229RenderIncidentHelpers,450); return r;};}
+
+  function applyModalTheme(modalId,eventLike){
+    const modal=byId(modalId), card=modal&&modal.querySelector('.modal-card'); if(!card)return;
+    const color=v229EventColor(eventLike||{}), border=v229EventBorder(eventLike||{});
+    card.classList.add('v229-modal-themed'); card.style.setProperty('--v229-modal-accent',border); card.style.setProperty('--v229-modal-soft',color);
+    const picker=byId('eventColorPicker'); if(modalId==='eventModal'&&picker&&!picker.value)picker.value=color;
+  }
+  const oldOpenEvent=typeof openEventModal==='function'?openEventModal:null;
+  if(oldOpenEvent){window.openEventModal=openEventModal=function(opts){const r=oldOpenEvent.apply(this,arguments); setTimeout(()=>{const id=byId('eventId')?.value||''; const ev=(state.events||[]).find(x=>x.id===id)|| (typeof collectEvent==='function'?collectEvent():{}); applyModalTheme('eventModal',ev);},60); return r;};}
+  const oldOpenRoom=typeof openRoomBookingModal==='function'?openRoomBookingModal:null;
+  if(oldOpenRoom){window.openRoomBookingModal=openRoomBookingModal=function(){const r=oldOpenRoom.apply(this,arguments); setTimeout(()=>applyModalTheme('roomBookingModal',{type:'會議'}),60); return r;};}
+
+  const oldLoad=typeof load==='function'?load:null;
+  if(oldLoad){window.load=load=function(){const r=oldLoad.apply(this,arguments); try{v229CleanIncidentTests();}catch(_){} return r;};}
+  function init(){removeOldLocationAddButtons(); v229BindOneTimeFieldLocation(); rebindFieldButtons(); try{v229CleanIncidentTests();}catch(_){}; try{v229RenderIncidentHelpers();}catch(_){};}
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(init,250));
+  document.addEventListener('click',()=>setTimeout(init,80),true);
+  setTimeout(init,800);
+})();
+</script>
+
 </body></html>
