@@ -796,6 +796,18 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 /* V246 外務行程淡橘色標示 */
 .event.field-event,.personal-list .event.field-event,.personal-month-table .event.field-event{background:#fff7ed!important;border-color:#fed7aa!important;border-left-color:#f97316!important;}
 #personalDetailRows tr.field-detail-row{background:#fff7ed;}
+
+
+/* V248：共用假日標籤樣式，套用於行程總覽 / 外務行程 / 會議室 td */
+.holiday-tags{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:3px!important;margin:2px 0 6px!important;line-height:1.35!important}
+.holiday-tags span{display:inline-block!important;border-radius:6px!important;padding:2px 8px!important;margin:0!important;white-space:normal!important}
+.holiday-tags .tw{background:#dbeafe!important;color:#1e40af!important;font-size:13px!important;font-weight:900!important;border:0!important}
+.holiday-tags .th{background:transparent!important;color:#f97316!important;font-size:12px!important;font-weight:700!important;border:0!important}
+.holiday-tags .ph{background:transparent!important;color:#16a34a!important;font-size:12px!important;font-weight:700!important;border:0!important}
+.holiday-tags .id{background:transparent!important;color:#ec4899!important;font-size:12px!important;font-weight:700!important;border:0!important}
+.holiday-tags .vn{background:transparent!important;color:#7c3aed!important;font-size:12px!important;font-weight:700!important;border:0!important}
+@media(max-width:760px){.holiday-tags .tw{font-size:12px!important}.holiday-tags .th,.holiday-tags .ph,.holiday-tags .id,.holiday-tags .vn{font-size:11.5px!important}}
+
 </style>
 <style>
 /* V176：翻譯「紀錄單繳交」獨立分頁 */
@@ -1043,7 +1055,18 @@ function hasCountryHoliday(d,c){return holidaysOn(d).some(h=>h.c===c)}
 function isWeekendDate(d){return [0,6].includes(new Date(d+'T00:00:00').getDay())}
 function taiwanHolidayText(d){const hs=holidaysOn(d).filter(h=>h.c==='台'); if(hs.length)return hs.map(h=>h.n).join('、'); return isWeekendDate(d)?'休假日':''}
 function holidayBadgeHTML(d){const tw=taiwanHolidayText(d); const others=holidaysOn(d).filter(h=>h.c!=='台'); if(!tw&&!others.length)return ''; return '<div class="holiday-tags">'+(tw?`<span class="tw">台:${esc(tw)}</span>`:'')+(tw&&others.length?'<br>':'')+others.map(h=>`<span class="${countryClass(h.c)}">${esc(h.c)}:${esc(h.n)}</span>`).join('<br>')+'</div>'}
-function holidayBadgeBodyHTML(d){const tw=taiwanHolidayText(d); if(!tw)return ''; return '<div class="holiday-tags"><span class="tw">台:'+esc(tw)+'</span></div>'}
+function renderHolidayTags(d){const tw=taiwanHolidayText(d); if(!tw)return ''; return '<div class="holiday-tags"><span class="tw">台:'+esc(tw)+'</span></div>'}
+
+/* V248：三大週曆 td 共用假日標籤渲染函式 */
+function renderHolidayTags(dateStr){
+  const rows = holidaysOn(dateStr) || [];
+  if(!rows.length) return '';
+  const flagMap = {'台':'🇹🇼','泰':'🇹🇭','菲':'🇵🇭','印':'🇮🇩','越':'🇻🇳'};
+  const html = [];
+  rows.filter(h=>h && h.c==='台').forEach(h=>html.push(`<span class="tw">${flagMap[h.c]} ${esc(h.n||'')}</span>`));
+  rows.filter(h=>h && h.c!=='台').forEach(h=>html.push(`<span class="${countryClass(h.c)}">${flagMap[h.c]||''} ${esc(h.n||'')}</span>`));
+  return html.length ? `<div class="holiday-tags">${html.join('')}</div>` : '';
+}
 function holidayClasses(d){return (hasCountryHoliday(d,'台')||isWeekendDate(d))?'holiday-tw':''}
 function dayClass(d){const wk=isWeekendDate(d)?'weekend':''; return `${wk} ${holidayClasses(d)} ${d===todayISO()?'today':''}`}
 
@@ -1488,11 +1511,11 @@ function personNameStyle(p){const c=personJobColor(p); return c?`style="backgrou
 function personNameClass(p){return personJobColor(p)?'':personGroupClass(p.group)}
 function renderCalendar(){const days=weekDays($('weekPicker').value||todayISO()); let ps=visiblePeople(); const mode=$('viewMode').value; if(['personal','personalMonth','personalDay'].includes(mode)){const selected=getMultiValues('personFilter'); const pid=selected[0]||userPersonId()||(ps[0]?ps[0].id:''); ps=state.people.filter(p=>p.id===pid)} if(mode==='personalMonth')renderPersonalMonth(ps[0],$('weekPicker').value||todayISO()); else if(mode==='personalDay')renderPersonalDay(ps[0],$('weekPicker').value||todayISO()); else if(mode==='personal')renderPersonal(ps[0],days); else renderMatrix(ps,days)}
 function monthGridDays(base){const dt=new Date((base||todayISO())+'T00:00:00'); const y=dt.getFullYear(), m=dt.getMonth(); const first=new Date(y,m,1); const startOffset=(first.getDay()+6)%7; const start=new Date(y,m,1-startOffset); const last=new Date(y,m+1,0); const endOffset=(7-((last.getDay()+6)%7)-1)%7; const total=Math.round((new Date(y,m+1,0+endOffset)-start)/86400000)+1; const arr=[]; for(let i=0;i<total;i++)arr.push(localISO(new Date(start.getFullYear(),start.getMonth(),start.getDate()+i))); return {days:arr,year:y,month:m+1}}
-function renderPersonalMonth(p,base){if(!p){$('calendarArea').innerHTML='<div class="panel">請選擇人員</div>';return} const mg=monthGridDays(base); let html=`<div class="panel month-toolbar"><div><h2>${esc(p.name)}｜個人按月行程</h2><div class="muted">${esc(p.group)}｜${esc(p.lang)}｜${mg.year} 年 ${String(mg.month).padStart(2,'0')} 月</div></div><div class="muted">雙擊日期格可新增行程；用上方日期切換月份。</div></div><div class="personal-month-wrap"><table class="personal-month-table"><thead><tr>${['星期一','星期二','星期三','星期四','星期五','星期六','星期日'].map(w=>`<th>${w}</th>`).join('')}</tr></thead><tbody>`; for(let i=0;i<mg.days.length;i+=7){html+='<tr>'; for(const d of mg.days.slice(i,i+7)){const evs=eventsOnDateForPerson(d,p.id); const inMonth=(new Date(d+'T00:00:00').getMonth()+1)===mg.month; html+=`<td class="${dayClass(d)} ${inMonth?'':'outmonth'}" data-date="${d}" data-person="${p.id}"><div class="date-num">${fmtDate(d)}</div>${holidayBadgeBodyHTML(d)}${evs.length?evs.map(eventHTML).join(''):'<div class="muted">無行程</div>'}</td>`} html+='</tr>'} $('calendarArea').innerHTML=html+'</tbody></table></div>'; bindCalendarEvents(); if(currentPage==='calendar'&&window.innerWidth<=760)setTimeout(scrollCalendarToToday,60)}
-function renderMatrix(ps,days){let html='<div class="calendar-wrap"><table class="calendar-table"><thead><tr><th class="person-head">人員名稱 × 日期<div class="drag-hint">可拖曳人員列調整順序</div></th>'+days.map(d=>`<th class="${dayClass(d)}"><div>${weekdayFull(d)}</div><div class="date-num">${fmtDate(d)}</div>${holidayBadgeHTML(d)}</th>`).join('')+'</tr></thead><tbody>'; for(const p of ps){html+=`<tr draggable="${canManagePeople()}" data-person-id="${p.id}"><td class="person-cell"><div class="person-name ${personNameClass(p)}" ${personNameStyle(p)}><span class="drag-handle">☰</span>${esc(p.name)}</div><div class="muted">${esc(p.group)}｜${esc(p.lang)}</div></td>`; for(const d of days){html+=`<td class="day-cell ${dayClass(d)}" data-date="${d}" data-person="${p.id}"><div class="date-num">${weekdayFull(d)} ${fmtDate(d)}</div>${holidayBadgeBodyHTML(d)}${eventsOnDateForPerson(d,p.id).map(eventHTML).join('')}</td>`} html+='</tr>'} $('calendarArea').innerHTML=html+'</tbody></table></div>'; bindCalendarEvents()}
+function renderPersonalMonth(p,base){if(!p){$('calendarArea').innerHTML='<div class="panel">請選擇人員</div>';return} const mg=monthGridDays(base); let html=`<div class="panel month-toolbar"><div><h2>${esc(p.name)}｜個人按月行程</h2><div class="muted">${esc(p.group)}｜${esc(p.lang)}｜${mg.year} 年 ${String(mg.month).padStart(2,'0')} 月</div></div><div class="muted">雙擊日期格可新增行程；用上方日期切換月份。</div></div><div class="personal-month-wrap"><table class="personal-month-table"><thead><tr>${['星期一','星期二','星期三','星期四','星期五','星期六','星期日'].map(w=>`<th>${w}</th>`).join('')}</tr></thead><tbody>`; for(let i=0;i<mg.days.length;i+=7){html+='<tr>'; for(const d of mg.days.slice(i,i+7)){const evs=eventsOnDateForPerson(d,p.id); const inMonth=(new Date(d+'T00:00:00').getMonth()+1)===mg.month; html+=`<td class="${dayClass(d)} ${inMonth?'':'outmonth'}" data-date="${d}" data-person="${p.id}"><div class="date-num">${fmtDate(d)}</div>${renderHolidayTags(d)}${evs.length?evs.map(eventHTML).join(''):'<div class="muted">無行程</div>'}</td>`} html+='</tr>'} $('calendarArea').innerHTML=html+'</tbody></table></div>'; bindCalendarEvents(); if(currentPage==='calendar'&&window.innerWidth<=760)setTimeout(scrollCalendarToToday,60)}
+function renderMatrix(ps,days){let html='<div class="calendar-wrap"><table class="calendar-table"><thead><tr><th class="person-head">人員名稱 × 日期<div class="drag-hint">可拖曳人員列調整順序</div></th>'+days.map(d=>`<th class="${dayClass(d)}"><div>${weekdayFull(d)}</div><div class="date-num">${fmtDate(d)}</div>${holidayBadgeHTML(d)}</th>`).join('')+'</tr></thead><tbody>'; for(const p of ps){html+=`<tr draggable="${canManagePeople()}" data-person-id="${p.id}"><td class="person-cell"><div class="person-name ${personNameClass(p)}" ${personNameStyle(p)}><span class="drag-handle">☰</span>${esc(p.name)}</div><div class="muted">${esc(p.group)}｜${esc(p.lang)}</div></td>`; for(const d of days){html+=`<td class="day-cell ${dayClass(d)}" data-date="${d}" data-person="${p.id}"><div class="date-num">${weekdayFull(d)} ${fmtDate(d)}</div>${renderHolidayTags(d)}${eventsOnDateForPerson(d,p.id).map(eventHTML).join('')}</td>`} html+='</tr>'} $('calendarArea').innerHTML=html+'</tbody></table></div>'; bindCalendarEvents()}
 
-function renderPersonalDay(p,base){if(!p){$('calendarArea').innerHTML='<div class="panel">請選擇人員</div>';return} const d=base||todayISO(); const evs=eventsOnDateForPerson(d,p.id); $('calendarArea').innerHTML=`<div class="panel"><h2>${esc(p.name)}｜個人當天行程</h2><div class="muted">${weekdayFull(d)} ${fmtDate(d)}｜${esc(p.group)}｜${esc(p.lang)}</div></div><div class="day-card ${dayClass(d)}" data-date="${d}" data-person="${p.id}"><h3>${weekdayFull(d)} ${fmtDate(d)}</h3>${holidayBadgeBodyHTML(d)}${evs.length?evs.map(eventHTML).join(''):'<div class="muted">無行程，雙擊可新增</div>'}</div>`; bindCalendarEvents()}
-function renderPersonal(p,days){if(!p){$('calendarArea').innerHTML='<div class="panel">請選擇人員</div>';return} let html=`<div class="panel"><h2>${esc(p.name)}｜個人本週行程</h2><div class="muted">${esc(p.group)}｜${esc(p.lang)}</div></div><div class="personal-list">`; for(const d of days){const evs=eventsOnDateForPerson(d,p.id); html+=`<div class="day-card ${dayClass(d)}" data-date="${d}" data-person="${p.id}"><h3>${weekdayFull(d)} ${fmtDate(d)}</h3>${holidayBadgeBodyHTML(d)}${evs.length?evs.map(eventHTML).join(''):'<div class="muted">無行程，雙擊可新增</div>'}</div>`} $('calendarArea').innerHTML=html+'</div>'; bindCalendarEvents()}
+function renderPersonalDay(p,base){if(!p){$('calendarArea').innerHTML='<div class="panel">請選擇人員</div>';return} const d=base||todayISO(); const evs=eventsOnDateForPerson(d,p.id); $('calendarArea').innerHTML=`<div class="panel"><h2>${esc(p.name)}｜個人當天行程</h2><div class="muted">${weekdayFull(d)} ${fmtDate(d)}｜${esc(p.group)}｜${esc(p.lang)}</div></div><div class="day-card ${dayClass(d)}" data-date="${d}" data-person="${p.id}"><h3>${weekdayFull(d)} ${fmtDate(d)}</h3>${renderHolidayTags(d)}${evs.length?evs.map(eventHTML).join(''):'<div class="muted">無行程，雙擊可新增</div>'}</div>`; bindCalendarEvents()}
+function renderPersonal(p,days){if(!p){$('calendarArea').innerHTML='<div class="panel">請選擇人員</div>';return} let html=`<div class="panel"><h2>${esc(p.name)}｜個人本週行程</h2><div class="muted">${esc(p.group)}｜${esc(p.lang)}</div></div><div class="personal-list">`; for(const d of days){const evs=eventsOnDateForPerson(d,p.id); html+=`<div class="day-card ${dayClass(d)}" data-date="${d}" data-person="${p.id}"><h3>${weekdayFull(d)} ${fmtDate(d)}</h3>${renderHolidayTags(d)}${evs.length?evs.map(eventHTML).join(''):'<div class="muted">無行程，雙擊可新增</div>'}</div>`} $('calendarArea').innerHTML=html+'</div>'; bindCalendarEvents()}
 
 function reorderPeopleByDrag(fromId,toId){if(!canManagePeople())return toast('此權限無法調整人員順序'); if(!fromId||!toId||fromId===toId)return; const a=state.people.findIndex(p=>p.id===fromId), b=state.people.findIndex(p=>p.id===toId); if(a<0||b<0)return; const [moved]=state.people.splice(a,1); const insertAt=state.people.findIndex(p=>p.id===toId); state.people.splice(insertAt,0,moved); addLog('修改','人員排序',moved.name,'人員順序','','拖曳調整至 '+getPerson(toId).name+' 附近'); save(); renderAll(); toast('已調整人員順序')}
 function bindPersonDrag(selector){let fromId=''; document.querySelectorAll(selector).forEach(row=>{row.addEventListener('dragstart',e=>{if(!canManagePeople()){e.preventDefault();return} fromId=row.dataset.personId; row.classList.add('dragging'); e.dataTransfer.effectAllowed='move';}); row.addEventListener('dragend',()=>{row.classList.remove('dragging'); document.querySelectorAll('.drop-target').forEach(x=>x.classList.remove('drop-target'))}); row.addEventListener('dragover',e=>{if(!canManagePeople())return; e.preventDefault(); row.classList.add('drop-target')}); row.addEventListener('dragleave',()=>row.classList.remove('drop-target')); row.addEventListener('drop',e=>{e.preventDefault(); row.classList.remove('drop-target'); reorderPeopleByDrag(fromId,row.dataset.personId);});});}
@@ -2156,25 +2179,25 @@ function renderFieldCalendar(){
 }
 function renderFieldMatrix(people,days){
   let html='<div class="calendar-wrap"><table class="calendar-table"><thead><tr><th class="person-head">人員名稱</th>'+days.map(d=>`<th class="${dayClass(d)}"><div>${weekdayFull(d)}</div><div>${fmtDate(d)}</div>${holidayBadgeHTML(d)}</th>`).join('')+'</tr></thead><tbody>';
-  for(const p of people){const gcls=p.group==='一部翻譯'?'group-one':p.group==='二部翻譯'?'group-two':''; html+=`<tr><td class="person-cell"><span class="person-name ${gcls}">${esc(p.name)}</span><div class="muted">${esc(p.group)}｜${esc(p.lang||'')}</div></td>`; for(const d of days){const evs=filteredExternalEventsOn(d,p.id); html+=`<td class="day-cell ${dayClass(d)}" data-field-date="${d}" data-field-person="${p.id}"><div class="date-num">${fmtDate(d)}</div>${holidayBadgeBodyHTML(d)}${evs.map(e=>renderFieldEvent(e)).join('')}</td>`} html+='</tr>'}
+  for(const p of people){const gcls=p.group==='一部翻譯'?'group-one':p.group==='二部翻譯'?'group-two':''; html+=`<tr><td class="person-cell"><span class="person-name ${gcls}">${esc(p.name)}</span><div class="muted">${esc(p.group)}｜${esc(p.lang||'')}</div></td>`; for(const d of days){const evs=filteredExternalEventsOn(d,p.id); html+=`<td class="day-cell ${dayClass(d)}" data-field-date="${d}" data-field-person="${p.id}"><div class="date-num">${fmtDate(d)}</div>${renderHolidayTags(d)}${evs.map(e=>renderFieldEvent(e)).join('')}</td>`} html+='</tr>'}
   html+='</tbody></table></div>'; $('fieldCalendarArea').innerHTML=html; bindFieldCalendarEvents();
 }
 function renderFieldPersonalWeek(p,days){
   if(!p){$('fieldCalendarArea').innerHTML='<div class="panel">請選擇人員</div>';return}
   let html=`<div class="panel"><h2>${esc(p.name)}｜外務個人當週</h2><div class="muted">${esc(p.group)}｜${esc(p.lang||'')}</div></div><div class="personal-list">`;
-  for(const d of days){const evs=filteredExternalEventsOn(d,p.id); html+=`<div class="day-card ${dayClass(d)}" data-field-date="${d}" data-field-person="${p.id}"><h3>${weekdayFull(d)} ${fmtDate(d)}</h3>${holidayBadgeBodyHTML(d)}${evs.length?evs.map(renderFieldEvent).join(''):'<div class="muted">無外務行程，雙擊可新增</div>'}</div>`}
+  for(const d of days){const evs=filteredExternalEventsOn(d,p.id); html+=`<div class="day-card ${dayClass(d)}" data-field-date="${d}" data-field-person="${p.id}"><h3>${weekdayFull(d)} ${fmtDate(d)}</h3>${renderHolidayTags(d)}${evs.length?evs.map(renderFieldEvent).join(''):'<div class="muted">無外務行程，雙擊可新增</div>'}</div>`}
   $('fieldCalendarArea').innerHTML=html+'</div>'; bindFieldCalendarEvents();
 }
 function renderFieldPersonalDay(p,base){
   if(!p){$('fieldCalendarArea').innerHTML='<div class="panel">請選擇人員</div>';return}
   const d=base||todayISO(); const evs=filteredExternalEventsOn(d,p.id);
-  $('fieldCalendarArea').innerHTML=`<div class="panel"><h2>${esc(p.name)}｜外務個人當天</h2><div class="muted">${weekdayFull(d)} ${fmtDate(d)}｜${esc(p.group)}｜${esc(p.lang||'')}</div></div><div class="day-card ${dayClass(d)}" data-field-date="${d}" data-field-person="${p.id}"><h3>${weekdayFull(d)} ${fmtDate(d)}</h3>${holidayBadgeBodyHTML(d)}${evs.length?evs.map(renderFieldEvent).join(''):'<div class="muted">無外務行程，雙擊可新增</div>'}</div>`;
+  $('fieldCalendarArea').innerHTML=`<div class="panel"><h2>${esc(p.name)}｜外務個人當天</h2><div class="muted">${weekdayFull(d)} ${fmtDate(d)}｜${esc(p.group)}｜${esc(p.lang||'')}</div></div><div class="day-card ${dayClass(d)}" data-field-date="${d}" data-field-person="${p.id}"><h3>${weekdayFull(d)} ${fmtDate(d)}</h3>${renderHolidayTags(d)}${evs.length?evs.map(renderFieldEvent).join(''):'<div class="muted">無外務行程，雙擊可新增</div>'}</div>`;
   bindFieldCalendarEvents();
 }
 function renderFieldPersonalMonth(p,base){
   if(!p){$('fieldCalendarArea').innerHTML='<div class="panel">請選擇人員</div>';return}
   const mg=monthGridDays(base); let html=`<div class="panel month-toolbar"><div><h2>${esc(p.name)}｜外務個人當月</h2><div class="muted">${esc(p.group)}｜${esc(p.lang||'')}｜${mg.year} 年 ${String(mg.month).padStart(2,'0')} 月</div></div><div class="muted">雙擊日期格可新增外務行程。</div></div><div class="field-month-wrap"><table class="field-month-table"><thead><tr>${['星期一','星期二','星期三','星期四','星期五','星期六','星期日'].map(w=>`<th>${w}</th>`).join('')}</tr></thead><tbody>`;
-  for(let i=0;i<mg.days.length;i+=7){html+='<tr>'; for(const d of mg.days.slice(i,i+7)){const evs=filteredExternalEventsOn(d,p.id); const inMonth=(new Date(d+'T00:00:00').getMonth()+1)===mg.month; html+=`<td class="${dayClass(d)} ${inMonth?'':'outmonth'}" data-field-date="${d}" data-field-person="${p.id}"><div class="date-num">${fmtDate(d)}</div>${holidayBadgeBodyHTML(d)}${evs.map(renderFieldEvent).join('')}</td>`} html+='</tr>'}
+  for(let i=0;i<mg.days.length;i+=7){html+='<tr>'; for(const d of mg.days.slice(i,i+7)){const evs=filteredExternalEventsOn(d,p.id); const inMonth=(new Date(d+'T00:00:00').getMonth()+1)===mg.month; html+=`<td class="${dayClass(d)} ${inMonth?'':'outmonth'}" data-field-date="${d}" data-field-person="${p.id}"><div class="date-num">${fmtDate(d)}</div>${renderHolidayTags(d)}${evs.map(renderFieldEvent).join('')}</td>`} html+='</tr>'}
   $('fieldCalendarArea').innerHTML=html+'</tbody></table></div>'; bindFieldCalendarEvents();
 }
 function bindFieldCalendarEvents(){
@@ -3216,7 +3239,7 @@ window.openIncidentModal=openIncidentModal; window.quickIncidentLog=quickInciden
     const useRooms=rf?rooms.filter(r=>r===rf):rooms;
     let html='<div class="room-week-wrap"><table class="room-week-table"><thead><tr><th class="room-room-head">會議室</th>'+days.map(d=>{
       const w=['日','一','二','三','四','五','六'][new Date(d+'T00:00:00').getDay()];
-      return `<th class="${dayClass(d)}"><div>${w}</div><div class="date-num">${fmtDate(d)}</div>${holidayBadgeBodyHTML(d)}</th>`;
+      return `<th class="${dayClass(d)}"><div>${w}</div><div class="date-num">${fmtDate(d)}</div>${renderHolidayTags(d)}</th>`;
     }).join('')+'</tr></thead><tbody>';
     useRooms.forEach(room=>{
       html+=`<tr data-room-name="${esc(room)}"><td class="room-room-cell">${v105RoomBookingRowLabel(room)}</td>`;
@@ -3225,7 +3248,7 @@ window.openIncidentModal=openIncidentModal; window.quickIncidentLog=quickInciden
         if(dep)bookings=bookings.filter(b=>b.department===dep); if(kw)bookings=bookings.filter(b=>[b.room,b.department,b.title,b.date,b.startTime,b.endTime].join(' ').toLowerCase().includes(kw));
         bookings.sort((a,b)=>String(a.startTime+' '+a.title).localeCompare(String(b.startTime+' '+b.title)));
         html+=`<td class="room-day-cell ${dayClass(day)}" data-room="${esc(room)}" data-room-date="${esc(day)}" ondblclick="openRoomBookingModal({date:'${esc(day)}',room:'${esc(room)}'})">`+
-          `<div class="date-num">${fmtDate(day)}</div>${holidayBadgeBodyHTML(day)}`+
+          `<div class="date-num">${fmtDate(day)}</div>${renderHolidayTags(day)}`+
           bookings.map(b=>{
             const can=v105BookingCanEdit(b); const creator=getUser(b.createdBy).name||'';
             return `<div class="room-booking-item ${can?'':'readonly'}" onclick="event.stopPropagation();openRoomBookingModal('${b.id}')"><div class="time">${esc(b.startTime)}-${esc(b.endTime)}</div><div class="room-title">${esc(b.title)}</div><div class="room-meta">${esc(b.department||'')}｜BOOKING：${esc(creator)}</div>${can?`<div class="room-booking-actions"><button class="small" onclick="event.stopPropagation();openRoomBookingModal('${b.id}')">修改</button><button class="small danger" onclick="event.stopPropagation();deleteRoomBookingById('${b.id}')">刪除</button></div>`:''}</div>`;
@@ -4442,7 +4465,7 @@ v106BindServiceRecordsUI=function(){
     let html='<div class="calendar-wrap"><table class="calendar-table"><thead><tr><th class="person-head">人員名稱 × 日期<div class="drag-hint">可拖曳人員列調整順序</div></th>'+days.map(d=>`<th class="${dayClass(d)}"><div>${weekdayFull(d)}</div><div class="date-num">${fmtDate(d)}</div>${holidayBadgeHTML(d)}</th>`).join('')+'</tr></thead><tbody>';
     for(const p of ps){
       html+=`<tr draggable="${canManagePeople()}" data-person-id="${p.id}"><td class="person-cell"><div class="person-name ${personNameClass(p)}" ${personNameStyle(p)}><span class="drag-handle">☰</span>${esc(p.name)}</div><div class="muted">${esc(p.group)}｜${esc(p.lang)}</div></td>`;
-      for(const d of days){html+=`<td class="day-cell ${dayClass(d)}" data-date="${d}" data-person="${p.id}"><div class="date-num">${weekdayFull(d)} ${fmtDate(d)}</div>${holidayBadgeBodyHTML(d)}${eventsOnDateForPerson(d,p.id).map(eventHTML).join('')}</td>`}
+      for(const d of days){html+=`<td class="day-cell ${dayClass(d)}" data-date="${d}" data-person="${p.id}"><div class="date-num">${weekdayFull(d)} ${fmtDate(d)}</div>${renderHolidayTags(d)}${eventsOnDateForPerson(d,p.id).map(eventHTML).join('')}</td>`}
       html+='</tr>';
     }
     $('calendarArea').innerHTML=html+'</tbody></table></div>'; bindCalendarEvents();
@@ -4453,7 +4476,7 @@ v106BindServiceRecordsUI=function(){
     for(const p of people){
       const gcls=p.group==='一部翻譯'?'group-one':p.group==='二部翻譯'?'group-two':'';
       html+=`<tr><td class="person-cell"><span class="person-name ${gcls}">${esc(p.name)}</span><div class="muted">${esc(p.group)}｜${esc(p.lang||'')}</div></td>`;
-      for(const d of days){const evs=filteredExternalEventsOn(d,p.id); html+=`<td class="day-cell ${dayClass(d)}" data-field-date="${d}" data-field-person="${p.id}"><div class="date-num">${fmtDate(d)}</div>${holidayBadgeBodyHTML(d)}${evs.map(e=>renderFieldEvent(e)).join('')}</td>`}
+      for(const d of days){const evs=filteredExternalEventsOn(d,p.id); html+=`<td class="day-cell ${dayClass(d)}" data-field-date="${d}" data-field-person="${p.id}"><div class="date-num">${fmtDate(d)}</div>${renderHolidayTags(d)}${evs.map(e=>renderFieldEvent(e)).join('')}</td>`}
       html+='</tr>';
     }
     html+='</tbody></table></div>'; $('fieldCalendarArea').innerHTML=html; bindFieldCalendarEvents();
@@ -6747,7 +6770,7 @@ setInterval(v206SetupNavOrder,1500);
       html+=`<tr><td class="person-cell room-name-cell"><span class="person-name">${v209Esc(room)}</span></td>`;
       days.forEach(d=>{
         const bookings=v209RoomBookingsOn(d,room);
-        html+=`<td class="day-cell ${dayClass(d)}" data-room-date="${v209EscAttr(d)}" data-room-name="${v209EscAttr(room)}"><div class="date-num">${fmtDate(d)}</div>${holidayBadgeBodyHTML(d)}${
+        html+=`<td class="day-cell ${dayClass(d)}" data-room-date="${v209EscAttr(d)}" data-room-name="${v209EscAttr(room)}"><div class="date-num">${fmtDate(d)}</div>${renderHolidayTags(d)}${
           bookings.map(b=>`<div class="event room-booking-event" data-room-booking-id="${v209EscAttr(b.id)}"><span class="time">${v209Esc(b.startTime)}-${v209Esc(b.endTime)}</span>｜${v209Esc(b.title||'預約')}<div class="who">${v209Esc(b.department||'')}</div></div>`).join('')
         }</td>`;
       });
@@ -6857,7 +6880,7 @@ setInterval(v206SetupNavOrder,1500);
       html+=`<tr><td class="person-cell room-name-cell"><span class="person-name">${v210Esc(room)}</span></td>`;
       days.forEach(d=>{
         const bs=v210Bookings(d,room);
-        html+=`<td class="day-cell ${dayClass(d)}" data-room-date="${v210EscAttr(d)}" data-room-name="${v210EscAttr(room)}"><div class="date-num">${fmtDate(d)}</div>${holidayBadgeBodyHTML(d)}${
+        html+=`<td class="day-cell ${dayClass(d)}" data-room-date="${v210EscAttr(d)}" data-room-name="${v210EscAttr(room)}"><div class="date-num">${fmtDate(d)}</div>${renderHolidayTags(d)}${
           bs.map(b=>`<div class="event room-booking-event" data-room-booking-id="${v210EscAttr(b.id)}"><span class="time">${v210Esc(b.startTime)}-${v210Esc(b.endTime)}</span>｜${v210Esc(b.title||'預約')}<div class="who">${v210Esc(b.department||'')}</div></div>`).join('')
         }</td>`;
       });
@@ -7370,7 +7393,7 @@ setInterval(v206SetupNavOrder,1500);
       html+=`<tr><td class="person-cell"><span class="person-name">${safe(room)}</span></td>`;
       days.forEach(d=>{
         const bs=bookingRows(d,room);
-        html+=`<td class="day-cell ${dayClass(d)}" data-room-date="${safeA(d)}" data-room-name="${safeA(room)}"><div class="date-num">${fmtDate(d)}</div>${holidayBadgeBodyHTML(d)}${
+        html+=`<td class="day-cell ${dayClass(d)}" data-room-date="${safeA(d)}" data-room-name="${safeA(room)}"><div class="date-num">${fmtDate(d)}</div>${renderHolidayTags(d)}${
           bs.map(b=>`<div class="event room-booking-event" data-room-booking-id="${safeA(b.id)}"><span class="time">${safe(b.startTime)}-${safe(b.endTime)}</span>｜${safe(b.title||'預約')}<div class="who">${safe(b.department||'')}</div></div>`).join('')
         }</td>`;
       });
@@ -10870,7 +10893,7 @@ setInterval(v206SetupNavOrder,1500);
   function escSafe(v){try{return esc(v)}catch(e){return String(v==null?'':v).replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}}
   function escAttrSafe(v){try{return escAttr(v)}catch(e){return escSafe(v)}}
   function fmtDateSafe(d){try{return fmtDate(d)}catch(e){return String(d||'')}}
-  function holidaySafe(d){try{return holidayBadgeBodyHTML(d)||''}catch(e){return ''}}
+  function holidaySafe(d){try{return renderHolidayTags(d)||''}catch(e){return ''}}
   function roomListSafe(){
     try{const r=roomList().filter(Boolean); if(r.length)return r;}catch(e){}
     try{if(Array.isArray(defaultRooms)&&defaultRooms.length)return defaultRooms.filter(Boolean)}catch(e){}
@@ -14450,4 +14473,14 @@ setInterval(v206SetupNavOrder,1500);
 })();
 </script>
 
+
+<script>
+window.v248HolidayTagsReport={
+  sharedFunction:'renderHolidayTags(dateStr)',
+  appliedTo:['行程總覽週曆 td','外務行程週曆 td','會議室預約週曆 td'],
+  order:['台灣節日標籤','東南亞國家節日標籤','行程卡片'],
+  taiwanStyle:{background:'#dbeafe',color:'#1e40af',fontSize:'13px',fontWeight:900},
+  seaStyle:{fontSize:'12px',fontWeight:700,flags:true}
+};
+</script>
 </body></html>
