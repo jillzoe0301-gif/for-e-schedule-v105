@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V225</title>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V226</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -1727,6 +1727,16 @@ function renderMobile(){
   $('mobileList').innerHTML=html;
   document.querySelectorAll('[data-open-mobile-event]').forEach(btn=>btn.onclick=(ev)=>{ev.preventDefault();ev.stopPropagation();openEventModal({eventId:btn.dataset.openMobileEvent});});
   document.querySelectorAll('.mobile-event-card').forEach(el=>el.ondblclick=()=>openEventModal({eventId:el.dataset.id}));
+}
+function renderToday(){
+  const t=todayISO();
+  const evs=state.events.filter(e=>!e.deleted&&t>=e.startDate&&t<=e.endDate&&eventMatches(e)).sort((a,b)=>String(executorNames(a)||'').localeCompare(String(executorNames(b)||''),'zh-Hant',{numeric:true})||String(timeSortValue(a.startTime)).localeCompare(String(timeSortValue(b.startTime)))||String(displayEventType(a.type)||'').localeCompare(String(displayEventType(b.type)||''),'zh-Hant',{numeric:true}));
+  const counts={全部:evs.length,未完成:evs.filter(e=>e.status==='未完成').length,已完成:evs.filter(e=>e.status==='已完成').length,取消:evs.filter(e=>e.status==='取消').length};
+  const statsEl=$('todayStats');
+  if(statsEl) statsEl.innerHTML=Object.entries(counts).map(([k,v])=>`<div class="stat"><div class="muted">${k}</div><b>${v}</b></div>`).join('');
+  const rowsEl=$('todayRows');
+  if(rowsEl) rowsEl.innerHTML=evs.map(e=>`<tr><td class="today-executor-td">${todayExecutorCell(e)}</td><td class="today-time-td">${ampm(e.startTime)}</td><td>${esc(displayEventType(e.type))}</td><td>${esc(e.locationName)}</td><td>${esc(e.name)}</td><td>${e.status}</td><td>${esc(e.vehicleNo||'')}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">今日無行程</td></tr>';
+  if(typeof renderMobileAlerts==='function') renderMobileAlerts();
 }
 function renderMobileAlerts(){
   const box = $('mobileAlertRows');
@@ -11798,4 +11808,5 @@ setInterval(v206SetupNavOrder,1500);
 })();
 </script>
 
+<!-- V226 restored renderToday load fix -->
 </body></html>
