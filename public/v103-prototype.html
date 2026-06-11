@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V221</title>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V222</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -11387,5 +11387,281 @@ setInterval(v206SetupNavOrder,1500);
   window.v221CleanAllTestSchedules=function(){run(true); return cleanRuntime(true);};
 })();
 </script>
+
+
+
+<script id="v222-today-reminder-mobile-action-assignment-fix">
+/*
+  V222：今日待辦提醒、手機個人頁按鈕、任務歸屬修正
+  DRY：共用 v222GetExecutors / v222IsAssignedToOthersOnly / v222TodayTodoRows 三個資料函式。
+  KISS：不改資料結構，只在登入、手機渲染、個人明細篩選做最小覆蓋。
+  SOLID：提醒彈窗、手機按鈕、任務歸屬分開處理，避免互相影響。
+*/
+(function(){
+  'use strict';
+  if(window.__FORE_V222_PATCHED__) return;
+  window.__FORE_V222_PATCHED__=true;
+
+  function byId(id){return document.getElementById(id);}
+  function safe(v){
+    try{ if(typeof esc==='function') return esc(v==null?'':v); }catch(e){}
+    return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});
+  }
+  function safeAttr(v){
+    try{ if(typeof escAttr==='function') return escAttr(v==null?'':v); }catch(e){}
+    return safe(v);
+  }
+  function today(){
+    try{ if(typeof todayISO==='function') return todayISO(); }catch(e){}
+    return new Date().toISOString().slice(0,10);
+  }
+  function getCurrentUser(){
+    try{ if(typeof currentUser!=='undefined') return currentUser; }catch(e){}
+    return window.currentUser||null;
+  }
+  function getMyPid(){
+    try{ if(typeof userPersonId==='function') return userPersonId()||''; }catch(e){}
+    var u=getCurrentUser(); return u&&u.personId||'';
+  }
+  function getExecutors(ev){
+    try{ if(typeof executorPersonIds==='function') return executorPersonIds(ev)||[]; }catch(e){}
+    return (ev&&Array.isArray(ev.assigneeIds)&&ev.assigneeIds.length?ev.assigneeIds:(ev&&ev.participants)||[]).filter(Boolean);
+  }
+  function typeText(ev){
+    try{ return displayEventType(ev&&ev.type||'')||''; }catch(e){ return ev&&ev.type||''; }
+  }
+  function timeText(t){
+    try{ return ampm(t)||''; }catch(e){ return t||''; }
+  }
+  function personName(id){
+    try{ var p=getPerson(id); return p&&p.name||''; }catch(e){ return ''; }
+  }
+  function isActiveEvent(ev){
+    return !!(ev && !ev.deleted && ev.status!=='取消' && ev.status!=='已完成');
+  }
+  function dateCovers(ev,date){
+    var s=String(ev&&ev.startDate||'');
+    var e=String(ev&&(ev.endDate||ev.startDate)||'');
+    return !!s && s<=date && e>=date;
+  }
+
+  // 指派給他人：建立者是目前登入者，且執行者不包含自己。
+  function isAssignedToOthersOnly(ev){
+    var u=getCurrentUser();
+    var myPid=getMyPid();
+    if(!ev || !u || ev.createdBy!==u.id) return false;
+    var exec=getExecutors(ev).filter(Boolean);
+    return exec.length>0 && myPid && exec.indexOf(myPid)===-1;
+  }
+  window.v222IsAssignedToOthersOnly=isAssignedToOthersOnly;
+
+  function clearOldReminderReadFlags(){
+    try{
+      Object.keys(localStorage).forEach(function(k){
+        if(/tomorrow_alert|today_alert|login.*remind|remind.*login|今日已提醒|已提醒|fore_v211_tomorrow|fore_v212_tomorrow|fore_v202_tomorrow/i.test(k)){
+          localStorage.removeItem(k);
+        }
+      });
+      Object.keys(sessionStorage).forEach(function(k){
+        if(/tomorrow_alert|today_alert|login.*remind|remind.*login|今日已提醒|已提醒|fore_v211_tomorrow|fore_v212_tomorrow|fore_v202_tomorrow/i.test(k)){
+          sessionStorage.removeItem(k);
+        }
+      });
+    }catch(e){}
+  }
+
+  function todayTodoRows(){
+    var appState=null;
+    try{ if(typeof state!=='undefined') appState=state; }catch(e){}
+    appState=appState||window.state||{};
+    var u=getCurrentUser();
+    var pid=getMyPid();
+    var t=today();
+    return (appState.events||[]).filter(function(ev){
+      if(!isActiveEvent(ev) || !dateCovers(ev,t)) return false;
+      var exec=getExecutors(ev);
+      if(pid && exec.indexOf(pid)>=0) return true;
+      if(!pid && u && ev.createdBy===u.id) return true;
+      return false;
+    }).sort(function(a,b){
+      return String(a.startTime||'').localeCompare(String(b.startTime||''),'zh-Hant',{numeric:true}) || String(a.name||'').localeCompare(String(b.name||''),'zh-Hant',{numeric:true});
+    });
+  }
+  window.v222TodayTodoRows=todayTodoRows;
+
+  function closeTodayTodoModal(){
+    var el=byId('v222TodayTodoModal');
+    if(el) el.remove();
+  }
+
+  function showTodayTodoReminder(){
+    var u=getCurrentUser();
+    if(!u) return;
+    clearOldReminderReadFlags();
+    closeTodayTodoModal();
+    var rows=todayTodoRows();
+    var listHtml=rows.length ? rows.map(function(ev){
+      var exec=getExecutors(ev).map(personName).filter(Boolean).join('、');
+      return '<div class="v222-reminder-row">'+
+        '<div><b>'+safe(timeText(ev.startTime))+'｜'+safe(typeText(ev))+'</b></div>'+
+        '<div>'+safe(ev.name||'')+'</div>'+
+        '<div class="muted">日期：'+safe(ev.startDate||'')+(ev.locationName?'｜地點 / 客戶：'+safe(ev.locationName):'')+(exec?'｜執行者：'+safe(exec):'')+'</div>'+
+        '<div style="margin-top:6px;text-align:right"><button type="button" class="small" data-v222-open="'+safeAttr(ev.id)+'">查看</button></div>'+
+      '</div>';
+    }).join('') : '<div class="muted">目前沒有今日待辦事項。</div>';
+
+    var modal=document.createElement('div');
+    modal.id='v222TodayTodoModal';
+    modal.className='modal';
+    modal.innerHTML='<div class="modal-card" style="max-width:620px">'+
+      '<div class="modal-head"><h2>今日待辦提醒</h2><button type="button" class="ghost" data-v222-close="1">×</button></div>'+
+      '<p style="font-weight:900;margin:10px 0">以下是您今天的待辦事項：</p>'+
+      '<div class="v222-reminder-list">'+listHtml+'</div>'+
+      '<div class="modal-actions"><button type="button" class="primary" data-v222-close="1">我知道了</button></div>'+
+    '</div>';
+    document.body.appendChild(modal);
+    modal.querySelectorAll('[data-v222-close]').forEach(function(btn){btn.onclick=closeTodayTodoModal;});
+    modal.querySelectorAll('[data-v222-open]').forEach(function(btn){
+      btn.onclick=function(){
+        var id=btn.getAttribute('data-v222-open');
+        closeTodayTodoModal();
+        try{ openEventModal({eventId:id}); }catch(e){ console.warn('[V222] open reminder item failed',e); }
+      };
+    });
+  }
+  window.v222ShowTodayTodoReminder=showTodayTodoReminder;
+
+  // 每次登入成功都顯示，不使用 localStorage / sessionStorage / cookie 已讀標記。
+  try{
+    if(typeof doLoginCore==='function' && !doLoginCore.__v222Wrapped){
+      var baseLogin=doLoginCore;
+      doLoginCore=function(email,pw,force){
+        var ok=baseLogin.apply(this,arguments);
+        if(ok){
+          clearOldReminderReadFlags();
+          setTimeout(showTodayTodoReminder,520);
+        }
+        return ok;
+      };
+      doLoginCore.__v222Wrapped=true;
+    }
+  }catch(e){console.warn('[V222] login reminder wrapper failed',e);}
+
+  // 手機版：待確認 / 待通知提醒，只保留「查看」，刪除「已完成」。
+  try{
+    renderMobilePersonalAlerts=function(pid){
+      var box=byId('mobilePersonalAlertRows'); if(!box) return;
+      var targetPid=pid;
+      try{ targetPid=targetPid||mobileTargetPerson(); }catch(e){ targetPid=targetPid||getMyPid(); }
+      var types=[];
+      try{ types=alertEventTypeList().map(displayEventType); }catch(e){}
+      var t=today();
+      var appState=null; try{ if(typeof state!=='undefined') appState=state; }catch(e){}
+      appState=appState||window.state||{};
+      var rows=(appState.events||[]).filter(function(ev){
+        if(!isActiveEvent(ev)) return false;
+        if(!targetPid || getExecutors(ev).indexOf(targetPid)<0) return false;
+        if(types.length && types.indexOf(typeText(ev))<0) return false;
+        var s=String(ev.startDate||''), ed=String(ev.endDate||ev.startDate||'');
+        return ed<t || s<=t;
+      }).sort(function(a,b){
+        var ao=String(a.endDate||a.startDate||'')<t?0:1;
+        var bo=String(b.endDate||b.startDate||'')<t?0:1;
+        return ao-bo || String(a.startDate||'').localeCompare(String(b.startDate||'')) || String(a.startTime||'').localeCompare(String(b.startTime||''));
+      });
+      if(!rows.length){box.innerHTML='<div class="mobile-alert-empty">目前沒有待確認或待通知提醒</div>';return;}
+      box.innerHTML=rows.map(function(ev){
+        var overdue=String(ev.endDate||ev.startDate||'')<t;
+        return '<div class="mobile-alert-card urgent '+(overdue?'overdue':'')+' v192-mobile-alert-card" data-id="'+safeAttr(ev.id)+'">'+
+          '<div class="v192-alert-content"><div class="v192-alert-head"><div class="mobile-alert-title">⚠ '+safe(typeText(ev))+'</div>'+(overdue?'<div class="mobile-alert-overdue">超過時間了!!!</div>':'')+'</div>'+
+          '<div class="mobile-alert-main">'+safe(ev.name||'')+'</div>'+
+          '<div class="mobile-alert-meta">日期：'+safe(ev.startDate||'')+' '+safe(timeText(ev.startTime))+'｜狀態：'+safe(ev.status||'')+'</div>'+
+          '<div class="mobile-alert-meta">地點 / 客戶：'+safe(ev.locationName||'')+'</div></div>'+
+          '<div class="mobile-alert-actions v192-alert-actions"><button type="button" class="mobile-alert-open primary" data-id="'+safeAttr(ev.id)+'">查看</button></div></div>';
+      }).join('');
+      box.querySelectorAll('.mobile-alert-open').forEach(function(btn){
+        btn.onclick=function(){ try{ openEventModal({eventId:btn.dataset.id}); }catch(e){ console.warn('[V222] open alert failed',e); } };
+      });
+    };
+  }catch(e){console.warn('[V222] renderMobilePersonalAlerts override failed',e);}
+
+  function patchMobileEventButtons(){
+    var list=byId('mobileList'); if(!list) return;
+    list.querySelectorAll('.mobile-event-card').forEach(function(card){
+      var id=card.getAttribute('data-id');
+      var toolbar=card.querySelector('.toolbar');
+      if(!toolbar || !id) return;
+      toolbar.style.justifyContent='flex-end';
+      toolbar.style.display='flex';
+      toolbar.style.gap='8px';
+      toolbar.querySelectorAll('button').forEach(function(btn){
+        var txt=(btn.textContent||'').trim();
+        if(txt.indexOf('複製內容')>=0){ btn.remove(); return; }
+        if(txt.indexOf('詳細')>=0 || txt.indexOf('修改')>=0 || txt==='查看'){
+          btn.textContent='查看';
+          btn.classList.add('primary');
+          btn.onclick=function(ev){
+            if(ev){ev.preventDefault();ev.stopPropagation();}
+            try{ openEventModal({eventId:id}); }catch(e){ console.warn('[V222] mobile open failed',e); }
+            return false;
+          };
+          toolbar.appendChild(btn); // 移到最右側
+        }
+      });
+    });
+  }
+  window.v222PatchMobileEventButtons=patchMobileEventButtons;
+
+  try{
+    if(typeof renderMobile==='function' && !renderMobile.__v222Wrapped){
+      var baseRenderMobile=renderMobile;
+      renderMobile=function(){
+        var r=baseRenderMobile.apply(this,arguments);
+        setTimeout(patchMobileEventButtons,0);
+        setTimeout(patchMobileEventButtons,120);
+        return r;
+      };
+      renderMobile.__v222Wrapped=true;
+    }
+  }catch(e){console.warn('[V222] renderMobile wrapper failed',e);}
+
+  // 個人行程表：我建立且只指派給他人的任務，不列入行程明細表，只留在「我指派的事項追蹤」。
+  try{
+    if(typeof personalDetailRowsFiltered==='function' && !personalDetailRowsFiltered.__v222Wrapped){
+      var basePersonalRows=personalDetailRowsFiltered;
+      personalDetailRowsFiltered=function(){
+        return basePersonalRows.apply(this,arguments).filter(function(row){
+          return !isAssignedToOthersOnly(row && row.event);
+        });
+      };
+      personalDetailRowsFiltered.__v222Wrapped=true;
+    }
+  }catch(e){console.warn('[V222] personal detail filter wrapper failed',e);}
+
+  function rerenderCurrent(){
+    try{ if(typeof renderPersonalDetails==='function') renderPersonalDetails(); }catch(e){}
+    try{ if(typeof renderMobile==='function') renderMobile(); }catch(e){}
+    setTimeout(patchMobileEventButtons,80);
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    clearOldReminderReadFlags();
+    setTimeout(patchMobileEventButtons,300);
+  });
+  document.addEventListener('click',function(ev){
+    if(ev.target && ev.target.closest && ev.target.closest('[data-page="mobile"],#mobileToday,#mobileTomorrow,#mobileWeek,#mobileList,.bottom-nav')){
+      setTimeout(patchMobileEventButtons,80);
+      setTimeout(patchMobileEventButtons,250);
+    }
+  },true);
+  setTimeout(rerenderCurrent,900);
+})();
+</script>
+
+<style id="v222-styles">
+#v222TodayTodoModal .v222-reminder-list{display:grid;gap:8px;max-height:52vh;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:8px;background:#f8fafc}
+#v222TodayTodoModal .v222-reminder-row{background:#fff;border:1px solid var(--line);border-left:5px solid var(--brand);border-radius:12px;padding:10px;line-height:1.45}
+@media(max-width:760px){#mobilePage #mobilePersonalAlertRows .v192-mobile-alert-card{grid-template-columns:minmax(0,1fr) 64px!important}#mobilePage #mobilePersonalAlertRows .v192-alert-actions{justify-content:flex-end!important}#mobilePage #mobilePersonalAlertRows .mobile-alert-open{width:100%!important;padding:8px 6px!important}.mobile-event-card .toolbar{justify-content:flex-end!important}.mobile-event-card .toolbar button.primary{min-width:70px!important}}
+</style>
 
 </body></html>
