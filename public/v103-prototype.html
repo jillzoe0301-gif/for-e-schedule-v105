@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V224</title>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V225</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -884,7 +884,7 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 <div id="fieldModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="fieldModalTitle">新增外務行程</h2><button id="closeFieldX" class="ghost">✕</button></div><input type="hidden" id="editFieldId"><div class="row"><div class="field"><label>人員名稱</label><select id="fieldPerson"></select></div><div class="field"><label>日期</label><input id="fieldDate" type="date"></div></div><div class="row"><div class="field"><label>時間</label><select id="fieldTime"></select></div><div class="field"><label>行程狀態</label><select id="fieldStatus"><option selected>未完成</option><option>已完成</option><option>已送件</option><option>異常</option><option>要補件</option><option>送件失敗</option></select></div></div><div class="field" id="fieldFailureBox"><label>送件失敗原因</label><input id="fieldFailureReason" placeholder="若送件失敗，請填寫原因"></div><div class="row"><div class="field"><label>地點</label><select id="fieldLocation"></select></div><div class="field"><label>地址</label><input id="fieldAddress" placeholder="依地點自動帶出，可手動修改"></div></div><div class="row"><div class="field"><label>目的</label><select id="fieldPurpose"></select></div><div class="field"><label>連續/重複性</label><select id="fieldRepeat"><option value="1">只新增本次</option><option value="4">每週（連續一個月）</option><option value="13">每週（連續三個月）</option><option value="26">每週（連續六個月）</option><option value="custom">每週指定日期區間</option></select><div id="fieldRepeatCustomBox" class="hide" style="margin-top:10px"><div class="row"><div><label>每週起日</label><input id="fieldRepeatStart" type="date"></div><div><label>每週迄日</label><input id="fieldRepeatEnd" type="date"></div></div></div></div></div><div class="field"><label>內容</label><textarea id="fieldNote"></textarea></div><div class="row"><div class="field"><label>現金</label><input id="fieldCash" placeholder="例：有 / 無 / 金額"></div><div class="field"><label>印章</label><input id="fieldStamp" placeholder="例：有 / 無 / 需帶"></div></div><div class="row"><div class="field"><label>證件</label><input id="fieldDocument" placeholder="例：ARC / 護照 / 公司大小章"></div><div class="field"><label>特殊提醒</label><label class="checkline"><input id="fieldMustSend" type="checkbox"> 必送件</label><label class="checkline"><input id="fieldCannotChange" type="checkbox"> 無法更換外務</label></div></div><div class="row"><div class="field"><label>下一次領件日期</label><input id="fieldPickupDate" type="date"></div><div class="field"><label>下一次領件外務人員</label><select id="fieldPickupPerson"></select><div class="muted">填寫後會自動在該日期與人員行程內新增「領件」。</div></div></div><div class="modal-actions"><button id="deleteFieldBtn" class="danger hide">刪除</button><button id="closeFieldBtn">取消</button><button id="saveFieldBtn" class="primary">儲存</button></div></div></div>
 <div id="personModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="personModalTitle">新增人員名稱</h2><button id="closePersonX" class="ghost">✕</button></div><input type="hidden" id="editPersonId"><div class="row"><div class="field"><label>姓名</label><input id="newPersonName"></div><div class="field"><label>職務</label><select id="newPersonLang"><option>越南</option><option>印尼</option><option>泰國</option><option>菲律賓</option><option>其他</option></select></div></div><div class="row"><div class="field"><label>部門</label><select id="newPersonDept"></select></div><div class="field"><label>群組</label><input id="newPersonGroup" placeholder="一部翻譯 / 二部翻譯 / 營運處"></div></div><div class="row"><div class="field"><label>狀態</label><select id="newPersonActive"><option value="true">啟用</option><option value="false">停用</option></select></div><div class="field"></div></div><div class="field"><label>LINE ID</label><input id="newPersonLineId" placeholder="可填 LINE User ID / 群組 ID / 備註代碼"></div><div class="modal-actions"><button id="closePersonBtn">取消</button><button id="savePersonBtn" class="primary">儲存</button></div></div></div><div id="userModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="userModalTitle">修改帳號</h2><button id="closeUserX" class="ghost">✕</button></div><input type="hidden" id="editUserId"><div class="row"><div class="field"><label>姓名</label><input id="editUserName"></div><div class="field"><label>Email / 帳號</label><input id="editUserEmail"></div></div><div class="field"><label>LINE ID</label><input id="editUserLineId" placeholder="可填 LINE User ID / 群組 ID / 備註代碼"></div><div class="row"><div class="field"><label>密碼</label><input id="editUserPassword"></div><div class="field"><label>角色</label><select id="editUserRole"><option value="admin">系統管理員</option><option value="supervisor">主管</option><option value="adminStaff">行政系</option><option value="general">一般人員</option><option value="staff">翻譯</option></select></div></div><div class="row"><div class="field"><label>對應人員</label><select id="editUserPerson"></select></div><div class="field"><label>帳號狀態</label><select id="editUserActive"><option value="true">啟用</option><option value="false">停用</option></select><div class="muted">停用後不可登入；刪除後不顯示於帳號清單。</div></div></div><div class="modal-actions"><button id="closeUserBtn">取消</button><button id="saveUserBtn" class="primary">儲存帳號</button></div></div></div>
 
-<div id="roomBookingModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="roomBookingModalTitle">新增會議室預約</h2><button id="closeRoomBookingX" class="ghost">✕</button></div><input type="hidden" id="roomBookingId"><div class="row"><div class="field"><label>日期</label><input id="roomBookingDate" type="date"></div><div class="field"><label>會議室</label><select id="roomBookingRoom"></select></div></div><div class="row"><div class="field"><label>開始時間</label><select id="roomBookingStartTime"></select></div><div class="field"><label>結束時間</label><select id="roomBookingEndTime"></select></div></div><div class="row"><div class="field"><label>部門</label><select id="roomBookingDept"></select></div><div class="field"><label>會議名稱</label><input id="roomBookingTitle" placeholder="例如：二部週會 / 客戶會議"></div></div><div class="row" id="roomBookingRepeatRow"><div class="field"><label>連續 / 重複</label><select id="roomBookingRepeat"><option value="1">只新增本次</option><option value="4">每週（連續一個月）</option><option value="13">每週（連續三個月）</option><option value="26">每週（連續六個月）</option><option value="custom">每週指定日期區間</option></select></div><div class="field"><label class="muted">提醒</label><div class="muted" style="padding:9px 0">重複預約會依同一星期幾建立，若有衝突會停止儲存。</div></div></div><div id="roomBookingRepeatCustomBox" class="hide"><div class="row"><div class="field"><label>每週起日</label><input id="roomBookingRepeatStart" type="date"></div><div class="field"><label>每週迄日</label><input id="roomBookingRepeatEnd" type="date"></div></div></div><div class="modal-actions"><button id="deleteRoomBookingBtn" class="danger hide">刪除</button><button id="closeRoomBookingBtn">取消</button><button id="saveRoomBookingBtn" class="primary">儲存</button></div></div></div>
+<div id="roomBookingModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="roomBookingModalTitle">新增會議室預約</h2><button id="closeRoomBookingX" class="ghost">✕</button></div><input type="hidden" id="roomBookingId"><div class="row"><div class="field required"><label>日期</label><input id="roomBookingDate" type="date"></div><div class="field required"><label>會議室</label><select id="roomBookingRoom"></select></div></div><div class="row"><div class="field required"><label>開始時間</label><select id="roomBookingStartTime"></select></div><div class="field required"><label>結束時間</label><select id="roomBookingEndTime"></select></div></div><div class="row"><div class="field required"><label>部門</label><select id="roomBookingDept"></select></div><div class="field required"><label>會議名稱</label><input id="roomBookingTitle" placeholder="例如：二部週會 / 客戶會議"></div></div><div class="row" id="roomBookingRepeatRow"><div class="field"><label>連續 / 重複</label><select id="roomBookingRepeat"><option value="1">只新增本次</option><option value="4">每週（連續一個月）</option><option value="13">每週（連續三個月）</option><option value="26">每週（連續六個月）</option><option value="custom">每週指定日期區間</option></select></div><div class="field"><label class="muted">提醒</label><div class="muted" style="padding:9px 0">重複預約會依同一星期幾建立，若有衝突會停止儲存。</div></div></div><div id="roomBookingRepeatCustomBox" class="hide"><div class="row"><div class="field"><label>每週起日</label><input id="roomBookingRepeatStart" type="date"></div><div class="field"><label>每週迄日</label><input id="roomBookingRepeatEnd" type="date"></div></div></div><div class="modal-actions"><button id="deleteRoomBookingBtn" class="danger hide">刪除</button><button id="closeRoomBookingBtn">取消</button><button id="saveRoomBookingBtn" class="primary">儲存</button></div></div></div>
 <script>
 
 (function(){'use strict';
@@ -1393,8 +1393,8 @@ function renderRoomBookingOptionLists(){ensureRoomBookingState(); fillSelect('ro
 function openRoomBookingModal(id){ensureRoomBookingState(); renderRoomBookingOptionLists(); const isEdit=!!id; const item=isEdit?state.roomBookings.find(x=>x.id===id):null; $('roomBookingModalTitle').textContent=isEdit?'修改會議室預約':'新增會議室預約'; $('roomBookingId').value=item?item.id:''; $('roomBookingDate').value=item?item.date:todayISO(); $('roomBookingRoom').value=item?item.room:''; $('roomBookingStartTime').value=item?item.startTime:''; $('roomBookingEndTime').value=item?item.endTime:''; $('roomBookingDept').value=item?item.department:(getPerson(userPersonId()).group||''); $('roomBookingTitle').value=item?item.title:''; $('deleteRoomBookingBtn').classList.toggle('hide',!isEdit); $('roomBookingModal').classList.remove('hide');}
 function closeRoomBookingModal(){$('roomBookingModal').classList.add('hide')}
 function roomTimeNum(t){const a=String(t||'').split(':').map(Number); return (a[0]||0)*60+(a[1]||0)}
-function roomBookingConflict(data,ignoreId){if(!data||!data.date||!data.room||!data.startTime||!data.endTime)return false; return (state.roomBookings||[]).some(b=>!b.deleted&&b.id!==ignoreId&&b.date===data.date&&b.room===data.room&&b.startTime&&b.endTime&&roomTimeNum(data.startTime)<roomTimeNum(b.endTime)&&roomTimeNum(data.endTime)>roomTimeNum(b.startTime));}
-function saveRoomBooking(){ensureRoomBookingState(); const id=$('roomBookingId').value; const data={date:$('roomBookingDate').value,room:$('roomBookingRoom').value,startTime:$('roomBookingStartTime').value,endTime:$('roomBookingEndTime').value,department:$('roomBookingDept').value,title:$('roomBookingTitle').value.trim()}; /* V224：會議室取消必填驗證，空白可儲存。 */ if(data.startTime&&data.endTime&&roomTimeNum(data.endTime)<=roomTimeNum(data.startTime))return toast('結束時間需晚於開始時間'); if(data.date&&data.room&&data.startTime&&data.endTime&&roomBookingConflict(data,id))return toast('此會議室同日期時段已被預約，請調整時間或會議室'); if(id){const item=state.roomBookings.find(x=>x.id===id); if(!item)return; Object.assign(item,data,{updatedAt:new Date().toISOString(),updatedBy:currentUser.id}); addLog('修改','會議室預約',data.title,'BOOKING資料','',`${data.room} ${data.date} ${data.startTime}-${data.endTime}`); toast('已更新會議室預約');}else{state.roomBookings.push(Object.assign({id:uid('room'),createdAt:new Date().toISOString(),createdBy:currentUser.id,deleted:false},data)); addLog('新增','會議室預約',data.title,'BOOKING資料','',`${data.room} ${data.date} ${data.startTime}-${data.endTime}`); toast('已新增會議室預約');} save(); closeRoomBookingModal(); renderRoomBookings();}
+function roomBookingConflict(data,ignoreId){return (state.roomBookings||[]).some(b=>!b.deleted&&b.id!==ignoreId&&b.date===data.date&&b.room===data.room&&roomTimeNum(data.startTime)<roomTimeNum(b.endTime)&&roomTimeNum(data.endTime)>roomTimeNum(b.startTime));}
+function saveRoomBooking(){ensureRoomBookingState(); const id=$('roomBookingId').value; const data={date:$('roomBookingDate').value,room:$('roomBookingRoom').value,startTime:$('roomBookingStartTime').value,endTime:$('roomBookingEndTime').value,department:$('roomBookingDept').value,title:$('roomBookingTitle').value.trim()}; /* V225：會議室取消必填驗證；僅在開始/結束時間都有填時檢查先後，且資料足夠時才檢查衝突。 */ if(data.startTime&&data.endTime&&roomTimeNum(data.endTime)<=roomTimeNum(data.startTime))return toast('結束時間需晚於開始時間'); if(data.date&&data.room&&data.startTime&&data.endTime&&roomBookingConflict(data,id))return toast('此會議室同日期時段已被預約，請調整時間或會議室'); if(id){const item=state.roomBookings.find(x=>x.id===id); if(!item)return; Object.assign(item,data,{updatedAt:new Date().toISOString(),updatedBy:currentUser.id}); addLog('修改','會議室預約',data.title,'BOOKING資料','',`${data.room} ${data.date} ${data.startTime}-${data.endTime}`); toast('已更新會議室預約');}else{state.roomBookings.push(Object.assign({id:uid('room'),createdAt:new Date().toISOString(),createdBy:currentUser.id,deleted:false},data)); addLog('新增','會議室預約',data.title,'BOOKING資料','',`${data.room} ${data.date} ${data.startTime}-${data.endTime}`); toast('已新增會議室預約');} save(); closeRoomBookingModal(); renderRoomBookings();}
 function deleteRoomBooking(){const id=$('roomBookingId').value; const item=(state.roomBookings||[]).find(x=>x.id===id); if(!item)return; if(!confirm('確定刪除此會議室預約？'))return; item.deleted=true; item.deletedAt=new Date().toISOString(); item.deletedBy=currentUser.id; addLog('刪除','會議室預約',item.title,'BOOKING資料','','刪除BOOKING'); save(); closeRoomBookingModal(); renderRoomBookings();}
 function renderRoomBookings(){if(!$('roomBookingRows'))return; ensureRoomBookingState(); renderRoomBookingOptionLists(); const df=$('roomBookingDateFilter')?$('roomBookingDateFilter').value:''; const rf=$('roomBookingRoomFilter')?$('roomBookingRoomFilter').value:''; const dep=$('roomBookingDeptFilter')?$('roomBookingDeptFilter').value:''; const kw=($('roomBookingKeyword')?$('roomBookingKeyword').value:'').trim().toLowerCase(); let rows=(state.roomBookings||[]).filter(b=>!b.deleted); if(df)rows=rows.filter(b=>b.date===df); if(rf)rows=rows.filter(b=>b.room===rf); if(dep)rows=rows.filter(b=>b.department===dep); if(kw)rows=rows.filter(b=>[b.room,b.department,b.title,b.date].join(' ').toLowerCase().includes(kw)); rows.sort((a,b)=>String(a.date+' '+a.startTime+' '+a.room).localeCompare(String(b.date+' '+b.startTime+' '+b.room))); $('roomBookingRows').innerHTML=rows.map(b=>{const creator=getUser(b.createdBy).name||''; const updater=b.updatedBy?getUser(b.updatedBy).name:''; return `<tr><td>${esc(b.date)}</td><td>${esc(b.startTime)}-${esc(b.endTime)}</td><td>${esc(b.room)}</td><td>${esc(b.department)}</td><td>${esc(b.title)}</td><td><div class="muted">建立：${esc(creator)}</div>${updater?`<div class="muted">更新：${esc(updater)}</div>`:''}</td><td><button class="small" onclick="openRoomBookingModal('${b.id}')">修改</button> <button class="small danger" onclick="openRoomBookingModal('${b.id}');deleteRoomBooking()">刪除</button></td></tr>`}).join('')||'<tr><td colspan="7" class="muted">尚無會議室預約</td></tr>';}
 window.openRoomBookingModal=openRoomBookingModal;
@@ -1680,10 +1680,54 @@ function renderPersonalDesktopAlerts(){
   box.querySelectorAll('.mobile-alert-done').forEach(btn=>btn.onclick=()=>completeAlertReminder(btn.dataset.id));
   box.querySelectorAll('.mobile-alert-open').forEach(btn=>btn.onclick=()=>openEventModal({eventId:btn.dataset.id}));
 }
-function renderMobile(){if(!$('mobileDate'))return; if(!$('mobileDate').value)$('mobileDate').value=todayISO(); const own=userPersonId(); let currentPid=mobileTargetPerson(); let available=state.people.filter(p=>p.active!==false&&p.deleted!==true&&p.lang!=='管理'); if(!mobileCanChoosePerson()&&own)available=available.filter(p=>p.id===own); $('mobilePerson').innerHTML=available.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join(''); if(!available.some(p=>p.id===currentPid))currentPid=(available[0]&&available[0].id)||own||''; $('mobilePerson').value=currentPid||''; $('mobilePerson').disabled=!mobileCanChoosePerson(); $('mobilePerson').classList.toggle('staff-locked',!mobileCanChoosePerson()); const person=getPerson(currentPid); $('mobileHello').textContent='APP 個人行程'; $('mobileUserInfo').textContent=`${person.name||''}｜${person.group||''}｜${person.lang||''}`; renderMobilePersonalAlerts(currentPid); const base=$('mobileDate').value||todayISO(); const mode=$('mobileList').dataset.mode||'day'; let dates=[]; if(mode==='week'){const dt=new Date(base+'T00:00:00'); const offset=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-offset); for(let i=0;i<7;i++)dates.push(localISO(new Date(dt.getFullYear(),dt.getMonth(),dt.getDate()+i)));} else dates=[base]; let all=[]; dates.forEach(d=>eventsOnDateForPerson(d,currentPid).forEach(e=>all.push({...e,_displayDate:d}))); const counts={行程:all.length,未完成:all.filter(e=>e.status==='未完成').length,已完成:all.filter(e=>e.status==='已完成').length}; $('mobileStats').innerHTML=Object.entries(counts).map(([k,v])=>`<div class="stat"><div class="muted">${k}</div><b>${v}</b></div>`).join(''); if(!all.length){$('mobileList').innerHTML=`<div class="panel"><b>${mode==='week'?'本週':'當日'}無行程</b><div class="muted">可點「新增行程」建立。</div></div>`;return} let html=''; let last=''; for(const e of all.sort((a,b)=>(a._displayDate+a.startTime).localeCompare(b._displayDate+b.startTime))){if(e._displayDate!==last){last=e._displayDate;html+=`<div class="panel" style="margin-bottom:8px"><b>${weekdayFull(last)} ${fmtDate(last)}</b></div>`} const cls=[e.status==='已完成'?'done':'',alertEventTypeList().map(displayEventType).includes(displayEventType(e.type))?'alert':'',translatorStatusClass(e)].join(' '); html+=`<div class="mobile-event-card v224-mobile-event-card ${cls}" data-id="${escAttr(e.id)}"><div class="v224-card-main"><div class="mobile-event-title">${ampm(e.startTime)}｜${esc(displayEventType(e.type))}｜${esc(e.name)}</div><div class="mobile-meta">地點 / 客戶：${esc(e.locationName||'')}<br>公務車：${esc(e.vehicleNo||'')}<br>狀態：${esc(e.status)}｜最後修改：${esc(getUser(e.updatedBy||e.createdBy).name)}</div>${String(e.note||'').trim()?`<div class="v224-card-note"><b>內容說明：</b>${esc(e.note||'')}</div>`:''}</div><div class="v224-card-actions"><button type="button" class="primary" data-open-mobile-event="${escAttr(e.id)}">查看</button></div></div>`} $('mobileList').innerHTML=html; document.querySelectorAll('[data-open-mobile-event]').forEach(btn=>btn.onclick=(ev)=>{ev.preventDefault();ev.stopPropagation();openEventModal({eventId:btn.dataset.openMobileEvent});}); document.querySelectorAll('.mobile-event-card').forEach(el=>el.ondblclick=()=>openEventModal({eventId:el.dataset.id}))}
-
-function timeSortValue(t){const raw=String(t||''); if(raw==='上午')return '09:00'; if(raw==='下午')return '13:00'; return raw.padStart(5,'0')}
-function renderToday(){const t=todayISO(); const evs=state.events.filter(e=>!e.deleted&&t>=e.startDate&&t<=e.endDate&&eventMatches(e)).sort((a,b)=>String(executorNames(a)||'').localeCompare(String(executorNames(b)||''),'zh-Hant',{numeric:true})||String(timeSortValue(a.startTime)).localeCompare(String(timeSortValue(b.startTime)))||String(displayEventType(a.type)||'').localeCompare(String(displayEventType(b.type)||''),'zh-Hant',{numeric:true})); const counts={全部:evs.length,未完成:evs.filter(e=>e.status==='未完成').length,已完成:evs.filter(e=>e.status==='已完成').length,取消:evs.filter(e=>e.status==='取消').length}; $('todayStats').innerHTML=Object.entries(counts).map(([k,v])=>`<div class="stat"><div class="muted">${k}</div><b>${v}</b></div>`).join(''); $('todayRows').innerHTML=evs.map(e=>`<tr><td class="today-executor-td">${todayExecutorCell(e)}</td><td class="today-time-td">${ampm(e.startTime)}</td><td>${esc(displayEventType(e.type))}</td><td>${esc(e.locationName)}</td><td>${esc(e.name)}</td><td>${e.status}</td><td>${esc(e.vehicleNo||'')}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">今日無行程</td></tr>'; renderMobileAlerts();}
+function renderMobile(){
+  if(!$('mobileDate'))return;
+  if(!$('mobileDate').value)$('mobileDate').value=todayISO();
+  const own=userPersonId();
+  let currentPid=mobileTargetPerson();
+  let available=state.people.filter(p=>p.active!==false&&p.deleted!==true&&p.lang!=='管理');
+  if(!mobileCanChoosePerson()&&own)available=available.filter(p=>p.id===own);
+  $('mobilePerson').innerHTML=available.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  if(!available.some(p=>p.id===currentPid))currentPid=(available[0]&&available[0].id)||own||'';
+  $('mobilePerson').value=currentPid||'';
+  $('mobilePerson').disabled=!mobileCanChoosePerson();
+  $('mobilePerson').classList.toggle('staff-locked',!mobileCanChoosePerson());
+  const person=getPerson(currentPid);
+  $('mobileHello').textContent='APP 個人行程';
+  $('mobileUserInfo').textContent=`${person.name||''}｜${person.group||''}｜${person.lang||''}`;
+  renderMobilePersonalAlerts(currentPid);
+  const base=$('mobileDate').value||todayISO();
+  const mode=$('mobileList').dataset.mode||'day';
+  let dates=[];
+  if(mode==='week'){
+    const dt=new Date(base+'T00:00:00');
+    const offset=(dt.getDay()+6)%7;
+    dt.setDate(dt.getDate()-offset);
+    for(let i=0;i<7;i++)dates.push(localISO(new Date(dt.getFullYear(),dt.getMonth(),dt.getDate()+i)));
+  }else dates=[base];
+  let all=[];
+  dates.forEach(d=>eventsOnDateForPerson(d,currentPid).forEach(e=>all.push({...e,_displayDate:d})));
+  const counts={行程:all.length,未完成:all.filter(e=>e.status==='未完成').length,已完成:all.filter(e=>e.status==='已完成').length};
+  $('mobileStats').innerHTML=Object.entries(counts).map(([k,v])=>`<div class="stat"><div class="muted">${k}</div><b>${v}</b></div>`).join('');
+  if(!all.length){$('mobileList').innerHTML=`<div class="panel"><b>${mode==='week'?'本週':'當日'}無行程</b><div class="muted">可點「新增行程」建立。</div></div>`;return}
+  let html=''; let last='';
+  for(const e of all.sort((a,b)=>(a._displayDate+a.startTime).localeCompare(b._displayDate+b.startTime))){
+    if(e._displayDate!==last){last=e._displayDate;html+=`<div class="panel" style="margin-bottom:8px"><b>${weekdayFull(last)} ${fmtDate(last)}</b></div>`}
+    const cls=[e.status==='已完成'?'done':'',alertEventTypeList().map(displayEventType).includes(displayEventType(e.type))?'alert':'',translatorStatusClass(e)].join(' ');
+    const note=String(e.note||'').trim();
+    html+=`<div class="mobile-event-card v225-mobile-event-card ${cls}" data-id="${escAttr(e.id)}">
+      <div class="v225-card-body">
+        <div class="mobile-event-title">${ampm(e.startTime)}｜${esc(displayEventType(e.type))}｜${esc(e.name)}</div>
+        <div class="mobile-meta">地點 / 客戶：${esc(e.locationName||'')}<br>公務車：${esc(e.vehicleNo||'')}<br>狀態：${esc(e.status)}｜最後修改：${esc(getUser(e.updatedBy||e.createdBy).name)}</div>
+        ${note?`<div class="v225-card-note"><b>內容說明：</b>${esc(note)}</div>`:''}
+      </div>
+      <div class="v225-card-actions"><button type="button" class="primary" data-open-mobile-event="${escAttr(e.id)}">查看</button></div>
+    </div>`;
+  }
+  $('mobileList').innerHTML=html;
+  document.querySelectorAll('[data-open-mobile-event]').forEach(btn=>btn.onclick=(ev)=>{ev.preventDefault();ev.stopPropagation();openEventModal({eventId:btn.dataset.openMobileEvent});});
+  document.querySelectorAll('.mobile-event-card').forEach(el=>el.ondblclick=()=>openEventModal({eventId:el.dataset.id}));
+}
 function renderMobileAlerts(){
   const box = $('mobileAlertRows');
   if(!box) return;
@@ -2154,8 +2198,6 @@ function v203ClearFieldRequired(){
   document.querySelectorAll('#fieldModal .required-hint.v203').forEach(el=>el.remove());
 }
 function v203MarkFieldRequired(){
-  /* V224：外務欄位不再標示必填。 */
-  return;
   ['fieldPerson','fieldDate','fieldTime','fieldLocation','fieldPurpose'].forEach(id=>{
     const el=$(id); if(!el)return;
     const field=el.closest('.field'); if(field)field.classList.add('required');
@@ -2180,7 +2222,7 @@ function v203ValidateFieldRequired(){
   missing.forEach(([id,msg])=>v203ShowFieldMissing(id,msg));
   return missing.length===0;
 }
-function saveFieldEvent(){ensureExternalState(); v203ValidateFieldRequired(); const id=$('editFieldId').value; const data=collectFieldEvent(); if(data.status==='送件失敗'&&!data.failureReason)return toast('請填寫送件失敗原因'); if(id){const idx=state.externalEvents.findIndex(x=>x.id===id); if(idx>=0){const old=clone(state.externalEvents[idx]); const mainOld=clone(state.events.find(x=>x.externalEventId===id)||null); state.externalEvents[idx]={...state.externalEvents[idx],...data}; addLog('修改','外務行程',state.externalEvents[idx].purpose,'外務行程','修改前',JSON.stringify(old)); syncMainEventFromField(state.externalEvents[idx],'修改',mainOld); upsertPickupFieldEvent(state.externalEvents[idx]);}}
+function saveFieldEvent(){ensureExternalState(); v225RelaxRequiredUI&&v225RelaxRequiredUI($('fieldModal')); const id=$('editFieldId').value; const data=collectFieldEvent(); if(data.status==='送件失敗'&&!data.failureReason)return toast('請填寫送件失敗原因'); if(id){const idx=state.externalEvents.findIndex(x=>x.id===id); if(idx>=0){const old=clone(state.externalEvents[idx]); const mainOld=clone(state.events.find(x=>x.externalEventId===id)||null); state.externalEvents[idx]={...state.externalEvents[idx],...data}; addLog('修改','外務行程',state.externalEvents[idx].purpose,'外務行程','修改前',JSON.stringify(old)); syncMainEventFromField(state.externalEvents[idx],'修改',mainOld); upsertPickupFieldEvent(state.externalEvents[idx]);}}
   else{const group=uid('fg'); let firstMain=null; for(const d of fieldRepeatDates()){const ev={id:uid('field'),repeatGroupId:group,createdBy:currentUser.id,createdAt:new Date().toISOString(),deleted:false,...data,date:d}; state.externalEvents.push(ev); addLog('新增','外務行程',ev.purpose,'外務行程','',`${ev.date} ${getPerson(ev.personId).name} ${ev.locationName}`); const main=syncMainEventFromField(ev,'新增'); if(!firstMain){firstMain=main; upsertPickupFieldEvent(ev);}} if(firstMain)state.lastLineText=lineMessage('新增',firstMain)+(fieldRepeatDates().length>1?`\n重複行程：共 ${fieldRepeatDates().length} 筆，已同步加入行程總覽。`:'');}
   save(); $('fieldModal').classList.add('hide'); renderAll(); toast('外務行程已儲存，並已同步至行程總覽')}
 function deleteFieldEvent(){const id=$('editFieldId').value; const e=(state.externalEvents||[]).find(x=>x.id===id); if(!e)return; if(!canDelete())return toast('目前權限不可刪除'); if(!confirm('確定刪除此筆外務行程？'))return; e.deleted=true; e.updatedBy=currentUser.id; e.updatedAt=new Date().toISOString(); const main=state.events.find(x=>x.externalEventId===id); const before=main?clone(main):null; if(main){main.deleted=true; main.updatedBy=currentUser.id; main.updatedAt=new Date().toISOString(); state.lastLineText=lineMessage('刪除',main,before);} addLog('刪除','外務行程',e.purpose,'外務行程','顯示','已刪除'); save(); $('fieldModal').classList.add('hide'); renderAll(); toast('已刪除外務行程，並同步取消行程總覽')}
@@ -3161,12 +3203,13 @@ window.openIncidentModal=openIncidentModal; window.quickIncidentLog=quickInciden
   window.deleteRoomBookingById=function(id){openRoomBookingModal(id);setTimeout(deleteRoomBooking,0)};
   function saveRoomBooking(){
     ensureRoomBookingState(); if(!canUseRoomBooking())return toast('此職務無法使用會議室預約');
-    const id=$('roomBookingId').value; const data={date:$('roomBookingDate').value,room:$('roomBookingRoom').value,startTime:$('roomBookingStartTime').value,endTime:$('roomBookingEndTime').value,department:$('roomBookingDept').value,title:$('roomBookingTitle').value.trim()}; /* V224：會議室取消必填驗證，空白可儲存。 */
+    const id=$('roomBookingId').value; const data={date:$('roomBookingDate').value,room:$('roomBookingRoom').value,startTime:$('roomBookingStartTime').value,endTime:$('roomBookingEndTime').value,department:$('roomBookingDept').value,title:$('roomBookingTitle').value.trim()};
+    /* V225：會議室欄位不再必填，允許空白儲存。 */
     if(data.startTime&&data.endTime&&roomTimeNum(data.endTime)<=roomTimeNum(data.startTime))return toast('結束時間需晚於開始時間');
     if(id){const item=state.roomBookings.find(x=>x.id===id); if(!item)return; if(!v105BookingCanEdit(item))return toast('只有BOOKING的人和管理員可以修改'); if(data.date&&data.room&&data.startTime&&data.endTime&&roomBookingConflict(data,id))return toast('此會議室同日期時段已被預約，請調整時間或會議室'); Object.assign(item,data,{updatedAt:new Date().toISOString(),updatedBy:currentUser.id}); addLog('修改','會議室預約',data.title,'BOOKING資料','',`${data.room} ${data.date} ${data.startTime}-${data.endTime}`); toast('已更新會議室預約');}
     else{
-      const dates=data.date?v105RoomBookingRepeatDates(data.date):[''];
-      const seriesId=dates.length>1?uid('room_series'):''; const conflicts=[]; dates.forEach(d=>{const x=Object.assign({},data,{date:d}); if(x.date&&x.room&&x.startTime&&x.endTime&&roomBookingConflict(x,''))conflicts.push(d)}); if(conflicts.length)return toast('以下日期已有衝突：'+conflicts.join('、'));
+      const dates=v105RoomBookingRepeatDates(data.date); if(!dates.length)return toast('重複區間設定有誤');
+      const seriesId=dates.length>1?uid('room_series'):''; const conflicts=[]; if(data.date&&data.room&&data.startTime&&data.endTime){dates.forEach(d=>{const x=Object.assign({},data,{date:d}); if(roomBookingConflict(x,''))conflicts.push(d)}); if(conflicts.length)return toast('以下日期已有衝突：'+conflicts.join('、'));}
       dates.forEach((d,i)=>{state.roomBookings.push(Object.assign({id:uid('room'),seriesId,seriesIndex:i,createdAt:new Date().toISOString(),createdBy:currentUser.id,deleted:false},data,{date:d}))}); addLog('新增','會議室預約',data.title,'BOOKING資料','',`${data.room} ${data.date} ${data.startTime}-${data.endTime}${dates.length>1?'｜重複'+dates.length+'筆':''}`); toast(dates.length>1?'已新增 '+dates.length+' 筆會議室預約':'已新增會議室預約');
     }
     save(); closeRoomBookingModal(); renderRoomBookings();
@@ -6570,7 +6613,7 @@ setInterval(v206SetupNavOrder,1500);
     setTimeout(()=>{
       const page=[...document.querySelectorAll('.page:not(.hide)')][0]||document;
       const cell=page.querySelector(`[data-date="${t}"],[data-field-date="${t}"],[data-room-date="${t}"]`);
-      if(cell&&(!window.__v224ShouldScrollTodayForVisiblePage||window.__v224ShouldScrollTodayForVisiblePage((typeof visible!=='undefined'&&visible)||cell.closest('.page')||document)))cell.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+      if(cell&&(!window.v225ShouldScrollTodayOnce||window.v225ShouldScrollTodayOnce(page||visible||document)))cell.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
       if(q('#mobilePage')&&!q('#mobilePage').classList.contains('hide')){if(q('#mobileDate')&&!q('#mobileDate').value)q('#mobileDate').value=t;try{renderMobile()}catch(_){ }}
     },180);
   }
@@ -6711,7 +6754,7 @@ setInterval(v206SetupNavOrder,1500);
       setTimeout(()=>{
         const visible=[...document.querySelectorAll('.page:not(.hide)')][0]||document;
         const cell=visible.querySelector(`[data-date="${t}"],[data-field-date="${t}"],[data-room-date="${t}"]`);
-        if(cell&&(!window.__v224ShouldScrollTodayForVisiblePage||window.__v224ShouldScrollTodayForVisiblePage((typeof visible!=='undefined'&&visible)||cell.closest('.page')||document)))cell.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+        if(cell&&(!window.v225ShouldScrollTodayOnce||window.v225ShouldScrollTodayOnce(page||visible||document)))cell.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
         if(q('#mobileDate')&&!q('#mobileDate').value)q('#mobileDate').value=t;
       },150);
     }
@@ -11694,142 +11737,64 @@ setInterval(v206SetupNavOrder,1500);
 </style>
 
 
-<style id="v224-mobile-card-scroll-required-style">
-/* V224：手機行程卡片簡約排版，查看按鈕固定最右側 */
+
+<style id="v225-mobile-card-required-scroll-style">
 @media(max-width:760px){
-  #mobileList .mobile-event-card.v224-mobile-event-card,
-  #mobileList .mobile-event-card{
-    display:grid!important;
-    grid-template-columns:minmax(0,1fr) auto!important;
-    gap:10px!important;
-    align-items:start!important;
-    padding:12px!important;
-    border-radius:16px!important;
-  }
-  #mobileList .v224-card-main{min-width:0!important;line-height:1.5!important;}
+  #mobileList .mobile-event-card.v225-mobile-event-card{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:10px!important;align-items:start!important;padding:12px!important;border-radius:16px!important;}
+  #mobileList .v225-card-body{min-width:0!important;line-height:1.5!important;}
   #mobileList .mobile-event-title{font-size:15px!important;line-height:1.45!important;word-break:break-word!important;}
   #mobileList .mobile-meta{font-size:13px!important;line-height:1.55!important;color:#4b5563!important;word-break:break-word!important;}
-  #mobileList .v224-card-note{margin-top:8px!important;padding:8px 10px!important;background:#f8fafc!important;border:1px solid #e2e8f0!important;border-radius:10px!important;font-size:13px!important;line-height:1.55!important;white-space:pre-wrap!important;word-break:break-word!important;}
-  #mobileList .v224-card-actions{display:flex!important;align-items:flex-start!important;justify-content:flex-end!important;min-width:62px!important;}
-  #mobileList .v224-card-actions button{white-space:nowrap!important;min-width:54px!important;padding:8px 10px!important;border-radius:10px!important;}
-  #mobileList .toolbar button:not([data-open-mobile-event]){display:none!important;}
-  #fieldModal .field.required label:first-child::after,
-  #roomBookingModal .field.required label:first-child::after{content:''!important;display:none!important;}
+  #mobileList .v225-card-note{margin-top:8px!important;padding:8px 10px!important;background:#f8fafc!important;border:1px solid #e2e8f0!important;border-radius:10px!important;font-size:13px!important;line-height:1.55!important;white-space:pre-wrap!important;word-break:break-word!important;}
+  #mobileList .v225-card-actions{display:flex!important;align-items:flex-start!important;justify-content:flex-end!important;min-width:62px!important;}
+  #mobileList .v225-card-actions button{white-space:nowrap!important;min-width:54px!important;padding:8px 10px!important;border-radius:10px!important;}
+  #fieldModal .field.required label:first-child::after,#roomBookingModal .field.required label:first-child::after{content:''!important;display:none!important;}
   #fieldModal .req-missing,#roomBookingModal .req-missing{border-color:var(--line)!important;box-shadow:none!important;background:#fff!important;}
   #fieldModal .required-hint,#roomBookingModal .required-hint{display:none!important;}
 }
 </style>
-
-<script id="v224-mobile-card-scroll-required-fix">
-/*
-  V224 DRY/KISS/SOLID：
-  1. 手機行程卡片渲染後統一整理按鈕與內容說明。
-  2. 總覽 / 外務 / 會議室自動捲動只允許每頁首次進入。
-  3. 外務與會議室儲存前統一清除 required UI；不再因空白欄位中斷。
-  4. 異況測試資料用同一個判斷集中清理。
-*/
+<script id="v225-crash-safe-mobile-scroll-required-incident-fix">
 (function(){
   'use strict';
-  const TEST_WORDS=['測試','測試異況','異況測試','V203','V204','V205','V206','V208','V210','V211','V212','V218','Demo','demo','mock','sample','測試客戶','測試工人','測試地點'];
-  function q(sel,root){return (root||document).querySelector(sel)}
-  function qa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
-  function txt(v){try{return JSON.stringify(v||'')}catch(_){return String(v||'')}}
-  function isTest(o){
-    if(!o||typeof o!=='object')return false;
-    if(o.v203Marker||o.v204Marker||o.v205Marker||o.v206Marker||o.v208Marker||o.v210Marker||o.v211Marker||o.v212Marker)return true;
-    const s=txt(o);
-    return TEST_WORDS.some(w=>s.indexOf(w)>=0);
-  }
-  function saveSafe(){try{if(typeof save==='function')save()}catch(_){}}
-  function cleanIncidentTests(){
+  const scrolledPages={};
+  window.v225ShouldScrollTodayOnce=function(root){
     try{
-      if(typeof state==='undefined'||!state)return 0;
-      let removed=0;
-      if(Array.isArray(state.incidents)){
-        const before=state.incidents.length;
-        state.incidents=state.incidents.filter(x=>!isTest(x));
-        removed+=before-state.incidents.length;
-      }
-      if(Array.isArray(state.incidentLogs)){
-        const ids=new Set((state.incidents||[]).map(x=>x.id));
-        const before=state.incidentLogs.length;
-        state.incidentLogs=state.incidentLogs.filter(x=>!isTest(x)&&(!x.incidentId||ids.has(x.incidentId)));
-        removed+=before-state.incidentLogs.length;
-      }
-      if(Array.isArray(state.events)){
-        const before=state.events.length;
-        state.events=state.events.filter(x=>!(isTest(x)&&/異況|incident|追蹤/.test(txt(x))));
-        removed+=before-state.events.length;
-      }
-      if(removed){saveSafe();console.info('[V224] removed incident test records:',removed)}
-      return removed;
-    }catch(e){console.warn('[V224] clean incident test failed',e);return 0}
-  }
-  function removeRequiredUI(root){
-    try{
-      qa('input,select,textarea',root||document).forEach(el=>{el.required=false;el.removeAttribute('required');el.removeAttribute('aria-required');if(el.setCustomValidity)el.setCustomValidity('')});
-      qa('.field.required',root||document).forEach(el=>el.classList.remove('required'));
-      qa('.req-missing',root||document).forEach(el=>el.classList.remove('req-missing'));
-      qa('.required-hint',root||document).forEach(el=>el.remove());
-      qa('form',root||document).forEach(f=>f.setAttribute('novalidate','novalidate'));
-    }catch(_){ }
-  }
-  function eventById(id){try{return (state.events||[]).find(e=>String(e.id)===String(id))}catch(_){return null}}
-  function escHtml(v){try{return esc(v)}catch(_){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}}
-  function patchMobileCards(){
-    const list=q('#mobileList'); if(!list)return;
-    qa('.mobile-event-card',list).forEach(card=>{
-      const id=card.getAttribute('data-id'); const e=eventById(id);
-      card.classList.add('v224-mobile-event-card');
-      qa('button',card).forEach(btn=>{if(/複製內容|詳細\/修改/.test((btn.textContent||'').trim()))btn.remove();});
-      const btn=card.querySelector('[data-open-mobile-event]')||qa('button',card).find(b=>(b.textContent||'').trim()==='查看');
-      if(btn){btn.textContent='查看';btn.classList.add('primary');btn.setAttribute('type','button');btn.setAttribute('data-open-mobile-event',id||btn.dataset.openMobileEvent||'');btn.onclick=function(ev){ev.preventDefault();ev.stopPropagation();try{openEventModal({eventId:this.dataset.openMobileEvent||id})}catch(err){console.error(err);alert('無法開啟行程明細')}};}
-      let main=card.querySelector('.v224-card-main');
-      if(!main){
-        main=document.createElement('div'); main.className='v224-card-main';
-        const children=Array.from(card.childNodes).filter(n=>!(n.nodeType===1&&n.matches('.toolbar,.v224-card-actions')));
-        children.forEach(n=>main.appendChild(n));
-        card.insertBefore(main,card.firstChild);
-      }
-      if(e&&String(e.note||'').trim()&&!card.querySelector('.v224-card-note')){
-        const note=document.createElement('div'); note.className='v224-card-note'; note.innerHTML='<b>內容說明：</b>'+escHtml(e.note||''); main.appendChild(note);
-      }
-      let actions=card.querySelector('.v224-card-actions');
-      if(!actions){actions=document.createElement('div');actions.className='v224-card-actions';card.appendChild(actions)}
-      if(btn&&btn.parentElement!==actions)actions.appendChild(btn);
-      qa('.toolbar',card).forEach(tb=>{if(!tb.querySelector('button'))tb.remove()});
-    });
-  }
-  const enteredPages={};
-  window.__v224ShouldScrollTodayForVisiblePage=function(root){
-    try{
-      const page=(root&&root.closest&&root.closest('.page'))||(root&&root.id?root:null)||q('.page:not(.hide)');
+      const page=(root&&root.closest&&root.closest('.page'))||(root&&root.id?root:null)||document.querySelector('.page:not(.hide)');
       const id=(page&&page.id)||'global';
       if(!['calendarPage','fieldCalendarPage','roomBookingPage'].includes(id))return true;
-      if(enteredPages[id])return false;
-      enteredPages[id]=true;
+      if(scrolledPages[id])return false;
+      scrolledPages[id]=true;
       return true;
     }catch(_){return false}
   };
-  function patchSaveButtons(){
-    removeRequiredUI(q('#fieldModal')); removeRequiredUI(q('#roomBookingModal'));
+  window.v225RelaxRequiredUI=function(root){
+    try{
+      (root||document).querySelectorAll('input,select,textarea').forEach(el=>{el.required=false;el.removeAttribute('required');el.removeAttribute('aria-required');if(el.setCustomValidity)el.setCustomValidity('')});
+      (root||document).querySelectorAll('.field.required').forEach(el=>el.classList.remove('required'));
+      (root||document).querySelectorAll('.req-missing').forEach(el=>el.classList.remove('req-missing'));
+      (root||document).querySelectorAll('.required-hint').forEach(el=>el.remove());
+      (root||document).querySelectorAll('form').forEach(f=>f.setAttribute('novalidate','novalidate'));
+    }catch(_){ }
+  };
+  function txt(v){try{return JSON.stringify(v||'')}catch(_){return String(v||'')}}
+  function isIncidentTest(x){
+    if(!x||typeof x!=='object')return false;
+    if(x.v203Marker||x.v204Marker||x.v205Marker||x.v206Marker||x.v208Marker||x.v210Marker||x.v211Marker||x.v212Marker)return true;
+    return /測試異況|異況測試|V20[0-9]|V21[0-9]|測試客戶|測試工人|測試地點|demo|mock|sample/i.test(txt(x));
   }
-  const oldRenderAll=typeof renderAll==='function'?renderAll:null;
-  if(oldRenderAll&&!oldRenderAll.v224Wrapped){
-    const wrapped=function(){const r=oldRenderAll.apply(this,arguments);setTimeout(()=>{cleanIncidentTests();patchMobileCards();patchSaveButtons();},80);return r};
-    wrapped.v224Wrapped=true; renderAll=window.renderAll=wrapped;
-  }
-  document.addEventListener('click',function(e){
-    const t=e.target;
-    if(t&&t.closest&&t.closest('#mobileList,.bottom-nav,[data-page],#mobileToday,#mobileTomorrow,#mobileWeek,#saveFieldBtn,#saveRoomBookingBtn'))setTimeout(()=>{patchMobileCards();patchSaveButtons();cleanIncidentTests();},80);
-  },true);
-  document.addEventListener('input',function(e){if(e.target&&e.target.closest&&e.target.closest('#fieldModal,#roomBookingModal'))removeRequiredUI(e.target.closest('.modal')||document)},true);
-  const mo=new MutationObserver(()=>{patchMobileCards();patchSaveButtons()});
-  document.addEventListener('DOMContentLoaded',()=>{try{mo.observe(document.body,{childList:true,subtree:true})}catch(_){};setTimeout(()=>{cleanIncidentTests();patchMobileCards();patchSaveButtons()},200)});
-  setTimeout(()=>{cleanIncidentTests();patchMobileCards();patchSaveButtons()},500);
-  setTimeout(()=>{cleanIncidentTests();patchMobileCards();patchSaveButtons()},1500);
-  window.v224CleanIncidentTests=cleanIncidentTests;
-  window.v224PatchMobileCards=patchMobileCards;
+  window.v225CleanIncidentTests=function(){
+    try{
+      if(typeof state==='undefined'||!state)return;
+      let changed=false;
+      if(Array.isArray(state.incidents)){const before=state.incidents.length;state.incidents=state.incidents.filter(x=>!isIncidentTest(x));changed=changed||before!==state.incidents.length;}
+      if(Array.isArray(state.incidentLogs)){const ids=new Set((state.incidents||[]).map(x=>x.id));const before=state.incidentLogs.length;state.incidentLogs=state.incidentLogs.filter(x=>!isIncidentTest(x)&&(!x.incidentId||ids.has(x.incidentId)));changed=changed||before!==state.incidentLogs.length;}
+      if(Array.isArray(state.events)){const before=state.events.length;state.events=state.events.filter(x=>!(isIncidentTest(x)&&/異況|incident|追蹤/i.test(txt(x))));changed=changed||before!==state.events.length;}
+      if(changed&&typeof save==='function')save();
+    }catch(e){console.warn('V225 clean incident tests failed',e)}
+  };
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(()=>{v225RelaxRequiredUI(document.getElementById('fieldModal')||document);v225RelaxRequiredUI(document.getElementById('roomBookingModal')||document);v225CleanIncidentTests();},200)});
+  document.addEventListener('click',function(e){const m=e.target&&e.target.closest&&e.target.closest('#fieldModal,#roomBookingModal,#addFieldBtn,#saveFieldBtn,#saveRoomBookingBtn');if(m)setTimeout(()=>{v225RelaxRequiredUI(document.getElementById('fieldModal')||document);v225RelaxRequiredUI(document.getElementById('roomBookingModal')||document);},50)},true);
+  document.addEventListener('input',function(e){if(e.target&&e.target.closest&&e.target.closest('#fieldModal,#roomBookingModal'))v225RelaxRequiredUI(e.target.closest('.modal')||document)},true);
+  setTimeout(()=>{try{v225CleanIncidentTests()}catch(_){}},800);
 })();
 </script>
 
