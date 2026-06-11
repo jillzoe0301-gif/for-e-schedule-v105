@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V260</title>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V262</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -4545,14 +4545,14 @@ v106BindServiceRecordsUI=function(){
    KISS：不改資料結構，只補齊 externalEvents 與 UI 綁定。
    SOLID：只覆寫相關函式，不改動其他頁面流程。 */
 (function(){
-  const V227_INCIDENT_TEST_RE=/測試異況|異況測試|異況測試行程|測試案件|測試客戶|測試工人|測試地點|demo|mock|sample/i;
+  const V227_INCIDENT_TEST_RE=/(?!)/i; // V261：停用文字型測試資料刪除
   function v227Text(v){try{return JSON.stringify(v||'')}catch(_){return String(v||'')}}
   function v227IsIncidentTest(item){
     if(!item||typeof item!=='object')return false;
     if(item.v203Marker||item.v204Marker||item.v205Marker||item.v206Marker||item.v208Marker||item.v210Marker||item.v211Marker||item.v212Marker)return true;
     const text=v227Text(item);
     if(V227_INCIDENT_TEST_RE.test(text))return true;
-    return /incident/i.test(text)&&/test|demo|mock|sample/i.test(text);
+    return false; // V261：停用文字型異況清理
   }
   function v227CleanIncidentTests(){
     let changed=false;
@@ -4887,7 +4887,7 @@ v106BindServiceRecordsUI=function(){
     if(!x||typeof x!=='object')return false;
     const text=JSON.stringify(x);
     if(x.v203Marker||x.v204Marker||x.v205Marker||x.v206Marker||x.v208Marker||x.v210Marker||x.v211Marker||x.v212Marker)return true;
-    return /台灣脈思|測試異況|異況測試|測試追蹤|測試客戶|測試工人|測試地點|6\/6|2026-06-06.*異況|異況.*2026-06-06|demo|mock|sample/i.test(text);
+    return false; // V261：停用文字型異況清理
   }
   window.v228CleanIncidentTests=function(){
     try{
@@ -7804,7 +7804,7 @@ setInterval(v206SetupNavOrder,1500);
 
 /* ===== V231：真正修正外務儲存、行程搜尋、異況刪除、登入今日提醒 ===== */
 (function(){
-  const V231_BAD_INCIDENT_RE=/臺灣脈思油槽|台灣脈思油槽|臺灣脈思|台灣脈思|脈思油槽|油槽紀錄|測試異況|異況測試|測試追蹤|demo|mock|sample/i;
+  const V231_BAD_INCIDENT_RE=/(?!)/i; // V261：停用文字型測試資料刪除
   const v231ColorTheme={
     '行程':'#fce7f3','外務':'#ffedd5','外務行程':'#ffedd5','一般記事':'#ffffff','個人待辦':'#fef9c3','異況':'#fde047','請假':'#ede9fe','會議':'#dbeafe','教育訓練':'#dcfce7','活動':'#dcfce7','已完成':'#e5e7eb'
   };
@@ -11821,6 +11821,7 @@ setInterval(v206SetupNavOrder,1500);
     return before-state[name].length;
   }
   function cleanTestData(renderAfter){
+    return 0; // V262：完全停用舊版「刪除測試資料」流程，避免 render/click/interval 覆蓋正式寫入
     if(cleaning || !window.state) return 0;
     cleaning=true;
     let removed=0;
@@ -12284,8 +12285,7 @@ setInterval(v206SetupNavOrder,1500);
 
   function run(renderAfter){
     disableReminder();
-    cleanLocalStorage();
-    cleanRuntime(renderAfter===true);
+    // V262：停用 cleanLocalStorage / cleanRuntime，避免舊清理流程反覆覆蓋 localStorage 正式資料
     relaxRequired();
   }
 
@@ -12321,7 +12321,7 @@ setInterval(v206SetupNavOrder,1500);
   var count=0;
   var timer=setInterval(function(){run(true); if(++count>=8)clearInterval(timer);},1000);
 
-  window.v221CleanAllTestSchedules=function(){run(true); return cleanRuntime(true);};
+  window.v221CleanAllTestSchedules=function(){return 0;}; // V262：停用舊清理
 })();
 </script>
 
@@ -12675,7 +12675,7 @@ setInterval(v206SetupNavOrder,1500);
   function isIncidentTest(x){
     if(!x||typeof x!=='object')return false;
     if(x.v203Marker||x.v204Marker||x.v205Marker||x.v206Marker||x.v208Marker||x.v210Marker||x.v211Marker||x.v212Marker)return true;
-    return /測試異況|異況測試|V20[0-9]|V21[0-9]|測試客戶|測試工人|測試地點|demo|mock|sample/i.test(txt(x));
+    return false; // V261：不得再用「測試 / demo / mock / sample」等文字刪除使用者正式資料
   }
   window.v225CleanIncidentTests=function(){
     try{
@@ -12724,7 +12724,7 @@ setInterval(v206SetupNavOrder,1500);
     '已完成':{bg:'#e5e7eb',border:'#64748b'}
   };
   window.FORE_EVENT_COLOR_THEME=Object.assign({},window.FORE_EVENT_COLOR_THEME||{},COLOR);
-  const BAD_INCIDENT=/臺灣脈思油槽|台灣脈思油槽|臺灣脈思|台灣脈思|脈思油槽|油槽紀錄|測試異況|異況測試|測試追蹤|test incident|demo|mock|sample/i;
+  const BAD_INCIDENT=/(?!)/i; // V261：停用文字型測試資料刪除
   const $=id=>document.getElementById(id);
   const qsa=(sel,root=document)=>Array.from(root.querySelectorAll(sel));
   const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -13078,7 +13078,7 @@ setInterval(v206SetupNavOrder,1500);
   const VERSION='V233';
   const FIELD_TYPE='外務行程';
   window.v233FieldApiEndpoint='state.externalEvents';
-  const BAD_TEXT=/測試行程|測試外務|測試異況|異況測試|測試追蹤|臺灣脈思|台灣脈思|脈思油槽|test\s*(incident|schedule|event)|demo|mock|sample/i;
+  const BAD_TEXT=/(?!)/i; // V261：停用文字型測試資料刪除
   const $=id=>document.getElementById(id);
   const qa=(sel,root=document)=>Array.from((root||document).querySelectorAll(sel));
   const safe=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -13376,7 +13376,7 @@ setInterval(v206SetupNavOrder,1500);
   if(window.__FORE_V234_CORE_BUG_FINAL__) return;
   window.__FORE_V234_CORE_BUG_FINAL__=true;
   const FIELD_TYPE='外務行程';
-  const BAD_RE=/測試行程|測試外務|測試異況|異況測試|測試追蹤|測試紀錄|臺灣脈思|台灣脈思|脈思油槽|油槽紀錄|test\s*(incident|schedule|event)|demo|mock|sample/i;
+  const BAD_RE=/(?!)/i; // V261：停用文字型測試資料刪除
   const $=id=>document.getElementById(id);
   const qa=(s,r=document)=>Array.from((r||document).querySelectorAll(s));
   const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -13456,7 +13456,7 @@ setInterval(v206SetupNavOrder,1500);
   if(window.__FORE_V235_FINAL_REAL_FIX__) return;
   window.__FORE_V235_FINAL_REAL_FIX__=true;
   const FIELD_TYPE='外務行程';
-  const BAD_RE=/彰化油槽爆炸|全身60%|全身約60%|陳一統|臺灣脈思|台灣脈思|脈思油槽|油槽紀錄|測試範本|測試異況|異況測試|測試追蹤|測試行程|demo|mock|sample/i;
+  const BAD_RE=/(?!)/i; // V261：停用文字型測試資料刪除
   const $=id=>document.getElementById(id);
   const qa=(s,r=document)=>Array.from((r||document).querySelectorAll(s));
   const now=()=>new Date().toISOString();
@@ -15017,6 +15017,153 @@ window.v249HolidayTagsReport={
     fixed:'已改成只刪除明確 marker/id/testData/demoData/isTest 的 seed 資料，不再用行程名稱、地點、內容說明文字刪資料。',
     storage:'V260 getState/saveState 已同步 lexical state、window.state、localStorage。'
   };
+})();
+</script>
+
+
+<script id="v261-safe-test-cleanup-guard">
+/*
+  V261 三原則修正：刪除測試資料 BUG
+  DRY：所有「測試資料清理」統一改成 marker-only，不再散落用文字關鍵字判斷。
+  KISS：不刪使用者輸入，只保留明確 seed marker/id 的清理能力。
+  SOLID：清理測試資料與新增/儲存行程解耦，render/click/interval 不可再刪正式資料。
+*/
+(function(){
+  'use strict';
+  if(window.__FORE_V261_SAFE_TEST_CLEANUP_GUARD__) return;
+  window.__FORE_V261_SAFE_TEST_CLEANUP_GUARD__=true;
+  var MARKERS=['v203Marker','v204Marker','v205Marker','v206Marker','v208Marker','v210Marker','v211Marker','v212Marker','testData','demoData','mockData','sampleData','isTest'];
+  function st(){
+    try{if(typeof state!=='undefined'&&state)return state;}catch(_){}
+    return window.state||null;
+  }
+  function isSeedOnly(x){
+    if(!x||typeof x!=='object')return false;
+    var id=String(x.id||'');
+    if(id==='ev_demo1'||/^ev_demo/i.test(id)||/^v\d+_test_/i.test(id)||/^demo_recordsubmit_/i.test(id))return true;
+    for(var i=0;i<MARKERS.length;i++){if(x[MARKERS[i]]===true||x[MARKERS[i]])return true;}
+    return false;
+  }
+  function safeClean(renderAfter){
+    var s=st(); if(!s)return 0;
+    var removed=0;
+    ['events','externalEvents','incidents','incidentLogs'].forEach(function(k){
+      if(!Array.isArray(s[k]))return;
+      var before=s[k].length;
+      s[k]=s[k].filter(function(x){return !isSeedOnly(x);});
+      removed+=before-s[k].length;
+    });
+    if(removed){try{if(typeof save==='function')save();else localStorage.setItem('translator_calendar_v81',JSON.stringify(s));}catch(e){}}
+    if(renderAfter&&removed){try{if(typeof renderAll==='function')renderAll();}catch(e){}}
+    return removed;
+  }
+  window.v218CleanTestData=safeClean;
+  window.v220CleanAllTestSchedules=function(){return safeClean(false)};
+  window.v225CleanIncidentTests=function(){return safeClean(false)};
+  window.v231HardCleanIncidentTests=function(){return safeClean(false)};
+  window.v232HardCleanIncidentTests=function(){return safeClean(false)};
+  window.v233HardDeleteIncidentTests=function(){return safeClean(false)};
+  window.v234HardDeleteTestIncidents=function(){return safeClean(false)};
+  window.v235HardDeleteIncidentSamples=function(){return safeClean(false)};
+  window.__v261CleanupReport={
+    rootCause:'舊版 V218/V220/V221/V225/V231~V235 在 renderAll、click、DOMContentLoaded、setInterval 中用「測試、demo、mock、sample、測試地點、測試客戶」等文字判斷並硬刪資料。',
+    fixed:'V261 已全面停用文字型刪除，只允許刪除明確 seed marker/id 的資料；使用者正式行程即使包含「測試」文字也不會消失。',
+    markerOnly:MARKERS,
+    at:new Date().toISOString()
+  };
+  console.info('[V261 Safe Test Cleanup Guard]',window.__v261CleanupReport);
+})();
+</script>
+
+
+<script id="v262-disable-test-cleanup-write-guard">
+/*
+  V262 三原則修正：徹底停止舊版「刪除測試資料」造成的覆蓋/寫入失效
+  DRY：所有舊清理入口集中改成 no-op。
+  KISS：不再掃描 localStorage、不再刪 events / externalEvents / incidents / incidentLogs。
+  SOLID：只處理清理補丁，不改新增、修改、刪除本身功能。
+*/
+(function(){
+  'use strict';
+  if(window.__FORE_V262_DISABLE_TEST_CLEANUP__) return;
+  window.__FORE_V262_DISABLE_TEST_CLEANUP__=true;
+
+  function noop(){return 0;}
+  [
+    'v218CleanTestData',
+    'v220CleanAllTestSchedules',
+    'v221CleanAllTestSchedules',
+    'v225CleanIncidentTests',
+    'v228CleanIncidentTests',
+    'v231HardCleanIncidentTests',
+    'v232HardCleanIncidentTests',
+    'v233HardDeleteIncidentTests',
+    'v234HardDeleteTestIncidents',
+    'v235HardDeleteIncidentSamples'
+  ].forEach(function(name){try{window[name]=noop;}catch(_){}});
+
+  // 修正多版補丁造成的 state / window.state / localStorage 不同步。
+  var STORE_KEY='translator_calendar_v81';
+  function lexicalState(){try{return (0,eval)('typeof state!=="undefined"&&state?state:null')}catch(_){return null}}
+  function setLexicalState(s){try{window.__foreV262StateRef=s;(0,eval)('state=window.__foreV262StateRef')}catch(_){window.state=s}}
+  function getState(){
+    var s=lexicalState()||window.state;
+    if(!s){try{s=JSON.parse(localStorage.getItem(STORE_KEY)||'{}')}catch(_){s={}}}
+    ['events','externalEvents','incidents','incidentLogs','people','users','roomBookings','logs'].forEach(function(k){s[k]=Array.isArray(s[k])?s[k]:[]});
+    s.options=s.options||{};
+    setLexicalState(s);window.state=s;return s;
+  }
+  function saveUnified(){
+    var s=getState();
+    try{localStorage.setItem(STORE_KEY,JSON.stringify(s));}catch(e){console.error('[V262] localStorage 寫入失敗',e)}
+    window.state=s;setLexicalState(s);return s;
+  }
+
+  var oldSave=window.save;
+  window.save=function(){
+    var s=getState();
+    // 優先保留目前 runtime 的正式資料，避免舊 wrapper 用過期 state 覆蓋 localStorage。
+    try{localStorage.setItem(STORE_KEY,JSON.stringify(s));}catch(e){if(typeof oldSave==='function')return oldSave.apply(this,arguments)}
+    return undefined;
+  };
+
+  var oldLoad=window.load;
+  window.load=function(reset){
+    if(reset===true && !window.__FORE_ALLOW_FULL_RESET__){
+      console.warn('[V262] 已阻擋舊版測試資料 reset，避免正式資料被覆蓋。');
+      return getState();
+    }
+    var r;
+    try{if(typeof oldLoad==='function')r=oldLoad.apply(this,arguments);}catch(e){console.warn('[V262] old load failed',e)}
+    var s=getState();
+    saveUnified();
+    return r||s;
+  };
+
+  // 避免「重置測試資料」按鈕誤刪正式資料；保留登入表單，不動使用者資料。
+  function patchResetButton(){
+    var btn=document.getElementById('resetBtn');
+    if(btn&&!btn.__v262Patched){
+      btn.__v262Patched=true;
+      btn.onclick=function(e){
+        if(e){e.preventDefault();e.stopPropagation();}
+        alert('V262 已停用「重置/刪除測試資料」，避免正式行程與異況被覆蓋。');
+        return false;
+      };
+    }
+  }
+  patchResetButton();
+  document.addEventListener('DOMContentLoaded',patchResetButton);
+  setTimeout(patchResetButton,300);
+  setTimeout(patchResetButton,1000);
+
+  window.__v262WriteGuardReport={
+    fixed:'已完全停用舊版刪除測試資料流程，不再於 render/click/load/interval 掃描並覆蓋 localStorage。',
+    storage:STORE_KEY,
+    rule:'新增/修改/刪除只能由正式儲存函式處理；清理測試資料函式全部 no-op。',
+    at:new Date().toISOString()
+  };
+  console.info('[V262 Disable Test Cleanup Write Guard]',window.__v262WriteGuardReport);
 })();
 </script>
 </body></html>
