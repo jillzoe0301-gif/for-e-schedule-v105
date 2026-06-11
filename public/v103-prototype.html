@@ -1,4 +1,11 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V239</title>
+cp public/v103-prototype-V256-calendar-dblclick-weekend-root-fixed.html public/v103-prototype.html
+
+npm run build
+
+git status
+git add public/v103-prototype.html
+git commit -m "fix calendar weekend background and dblclick root V256"
+git push<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V239</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -816,6 +823,7 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 .holiday-head-tags span{display:block!important;background:transparent!important;border:0!important;border-radius:0!important;padding:0!important;margin:0!important;font-size:11px!important;font-weight:700!important;white-space:normal!important}
 .holiday-head-tags .th{color:#f97316!important}.holiday-head-tags .ph{color:#16a34a!important}.holiday-head-tags .id{color:#ec4899!important}.holiday-head-tags .vn{color:#7c3aed!important}
 .calendar-table td.holiday-tw,.calendar-table .day-cell.holiday-tw,.personal-month-table td.holiday-tw,.room-week-table td.holiday-tw,.field-clean-calendar td.holiday-tw,.field-clean-table td.holiday-tw,.v251-field-table td.holiday-tw{background:#e0f2fe!important}
+.calendar-table td.weekend,.calendar-table .day-cell.weekend,.personal-month-table td.weekend,.room-week-table td.weekend,.field-clean-table td.weekend,.v251-field-table td.weekend{background:#e0f2fe!important}
 .v252-tw-holiday-head .tw,.v251-field-table th .holiday-tags .tw,.field-clean-table th .holiday-tags .tw,.calendar-table th .holiday-tags .tw,.room-week-table th .holiday-tags .tw{font-size:12px!important;font-weight:900!important;padding:2px 6px!important}
 @media(max-width:760px){.holiday-tags .tw{font-size:12px!important}.holiday-head-tags span{font-size:10.5px!important}}
 </style>
@@ -1558,6 +1566,7 @@ function bindPersonDrag(selector){let fromId=''; document.querySelectorAll(selec
 function openCalendarBlankCell(cell,e){if(e&&e.target&&e.target.closest('.event'))return false;if(!cell||!cell.dataset)return false;if(!canEdit()){toast('目前帳號無法新增行程');return false;}openEventModal({date:cell.dataset.date,personId:cell.dataset.person});return false}
 window.openCalendarBlankCell=openCalendarBlankCell;
 function bindCalendarEvents(){bindPersonDrag('.calendar-table tbody tr[data-person-id]'); document.querySelectorAll('.day-cell,.day-card,.personal-month-table td[data-date]').forEach(cell=>{cell.ondblclick=e=>openCalendarBlankCell(cell,e);cell.addEventListener('dblclick',e=>openCalendarBlankCell(cell,e),false)}); document.querySelectorAll('.event').forEach(el=>el.onclick=e=>{e.stopPropagation();openEventModal({eventId:el.dataset.id})})}
+document.addEventListener('dblclick',function(e){const cell=e.target&&e.target.closest&&e.target.closest('#calendarArea .day-cell[data-date][data-person],#calendarArea .day-card[data-date][data-person],#calendarArea .personal-month-table td[data-date][data-person]');if(!cell||e.target.closest('.event'))return;e.preventDefault();e.stopImmediatePropagation();openCalendarBlankCell(cell,e)},true);
 function renderTimeSelects(){['startTime','endTime','followupTime'].forEach(id=>{const el=$(id); if(!el)return; const old=el.value; el.innerHTML=timeOptions.map(o=>`<option value="${o.value}">${o.label}</option>`).join(''); el.value=old;});}
 function handleAllDayTime(){const isAll=$('startTime').value==='整天'; $('endTime').disabled=isAll; if(isAll)$('endTime').value='';}
 function renderAdditionalTypeOptions(selected){if(!$('additionalType'))return; const cur=selected!==undefined?selected:$('additionalType').value; const arr=[''].concat(eventTypeList()); if(cur&& !arr.includes(cur))arr.push(cur); $('additionalType').innerHTML=arr.map(t=>`<option value="${esc(t)}">${esc(t||'不指定')}</option>`).join(''); $('additionalType').value=cur||'';}
@@ -2219,7 +2228,7 @@ function renderFieldCalendar(){
 }
 function renderFieldMatrix(people,days){
   let html='<div class="calendar-wrap"><table class="calendar-table"><thead><tr><th class="person-head">人員名稱</th>'+days.map(d=>`<th class="${dayClass(d)}"><div>${weekdayFull(d)}</div><div>${fmtDate(d)}</div>${holidayBadgeHTML(d)}</th>`).join('')+'</tr></thead><tbody>';
-  for(const p of people){const gcls=p.group==='一部翻譯'?'group-one':p.group==='二部翻譯'?'group-two':''; html+=`<tr><td class="person-cell"><span class="person-name ${gcls}">${esc(p.name)}</span><div class="muted">${esc(p.group)}｜${esc(p.lang||'')}</div></td>`; for(const d of days){const evs=filteredExternalEventsOn(d,p.id); html+=`<td class="day-cell ${dayClass(d)}" data-field-date="${d}" data-field-person="${p.id}"><div class="date-num">${fmtDate(d)}</div>${renderHolidayTags(d)}${evs.map(e=>renderFieldEvent(e)).join('')}</td>`} html+='</tr>'}
+  for(const p of people){const gcls=p.group==='一部翻譯'?'group-one':p.group==='二部翻譯'?'group-two':''; html+=`<tr><td class="person-cell"><span class="person-name ${gcls}">${esc(p.name)}</span><div class="muted">${esc(p.group)}｜${esc(p.lang||'')}</div></td>`; for(const d of days){const evs=filteredExternalEventsOn(d,p.id); html+=`<td class="day-cell ${dayClass(d)}"${calendarCellStyle(d)} data-field-date="${d}" data-field-person="${p.id}"><div class="date-num">${fmtDate(d)}</div>${renderHolidayTags(d)}${evs.map(e=>renderFieldEvent(e)).join('')}</td>`} html+='</tr>'}
   html+='</tbody></table></div>'; $('fieldCalendarArea').innerHTML=html; bindFieldCalendarEvents();
 }
 function renderFieldPersonalWeek(p,days){
@@ -4505,7 +4514,7 @@ v106BindServiceRecordsUI=function(){
     let html='<div class="calendar-wrap"><table class="calendar-table"><thead><tr><th class="person-head">人員名稱 × 日期<div class="drag-hint">可拖曳人員列調整順序</div></th>'+days.map(d=>`<th class="${dayClass(d)}"><div>${weekdayFull(d)}</div><div class="date-num">${fmtDate(d)}</div>${holidayBadgeHTML(d)}</th>`).join('')+'</tr></thead><tbody>';
     for(const p of ps){
       html+=`<tr draggable="${canManagePeople()}" data-person-id="${p.id}"><td class="person-cell"><div class="person-name ${personNameClass(p)}" ${personNameStyle(p)}><span class="drag-handle">☰</span>${esc(p.name)}</div><div class="muted">${esc(p.group)}｜${esc(p.lang)}</div></td>`;
-      for(const d of days){html+=`<td class="day-cell ${dayClass(d)}" data-date="${d}" data-person="${p.id}"><div class="date-num">${weekdayFull(d)} ${fmtDate(d)}</div>${renderHolidayTags(d)}${eventsOnDateForPerson(d,p.id).map(eventHTML).join('')}</td>`}
+      for(const d of days){html+=`<td class="day-cell ${dayClass(d)}"${calendarCellStyle(d)} data-date="${d}" data-person="${p.id}" ondblclick="return window.openCalendarBlankCell(this,event)"><div class="date-num">${weekdayFull(d)} ${fmtDate(d)}</div>${renderHolidayTags(d)}${eventsOnDateForPerson(d,p.id).map(eventHTML).join('')}</td>`}
       html+='</tr>';
     }
     $('calendarArea').innerHTML=html+'</tbody></table></div>'; bindCalendarEvents();
