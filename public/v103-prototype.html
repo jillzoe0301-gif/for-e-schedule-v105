@@ -1,24 +1,3 @@
-FILE="v103-prototype-V236-field-save-real-fix.html"
-MSG="fix field save state access and localStorage write v236"
-
-if [ -f "$FILE" ]; then
-  SRC="$FILE"
-elif [ -f "public/$FILE" ]; then
-  SRC="public/$FILE"
-else
-  echo "找不到更新檔：$FILE"
-  echo "請先把 V236 檔案拖進 Codespaces 專案根目錄，或放到 public/ 裡"
-  exit 1
-fi
-
-cp "$SRC" public/v103-prototype.html
-
-npm run build
-
-git status
-
-git add public/v103-prototype.html
-git commit -m "$MSG"
 git push<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V234</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
