@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V226</title>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V227</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -2232,7 +2232,7 @@ function v203ValidateFieldRequired(){
   missing.forEach(([id,msg])=>v203ShowFieldMissing(id,msg));
   return missing.length===0;
 }
-function saveFieldEvent(){ensureExternalState(); v225RelaxRequiredUI&&v225RelaxRequiredUI($('fieldModal')); const id=$('editFieldId').value; const data=collectFieldEvent(); if(data.status==='送件失敗'&&!data.failureReason)return toast('請填寫送件失敗原因'); if(id){const idx=state.externalEvents.findIndex(x=>x.id===id); if(idx>=0){const old=clone(state.externalEvents[idx]); const mainOld=clone(state.events.find(x=>x.externalEventId===id)||null); state.externalEvents[idx]={...state.externalEvents[idx],...data}; addLog('修改','外務行程',state.externalEvents[idx].purpose,'外務行程','修改前',JSON.stringify(old)); syncMainEventFromField(state.externalEvents[idx],'修改',mainOld); upsertPickupFieldEvent(state.externalEvents[idx]);}}
+function saveFieldEvent(){ensureExternalState(); v225RelaxRequiredUI&&v225RelaxRequiredUI($('fieldModal')); const id=$('editFieldId').value; const data=collectFieldEvent(); /* V227：外務欄位全部取消必填，送件失敗原因可空白。 */ if(id){const idx=state.externalEvents.findIndex(x=>x.id===id); if(idx>=0){const old=clone(state.externalEvents[idx]); const mainOld=clone(state.events.find(x=>x.externalEventId===id)||null); state.externalEvents[idx]={...state.externalEvents[idx],...data}; addLog('修改','外務行程',state.externalEvents[idx].purpose,'外務行程','修改前',JSON.stringify(old)); syncMainEventFromField(state.externalEvents[idx],'修改',mainOld); upsertPickupFieldEvent(state.externalEvents[idx]);}}
   else{const group=uid('fg'); let firstMain=null; for(const d of fieldRepeatDates()){const ev={id:uid('field'),repeatGroupId:group,createdBy:currentUser.id,createdAt:new Date().toISOString(),deleted:false,...data,date:d}; state.externalEvents.push(ev); addLog('新增','外務行程',ev.purpose,'外務行程','',`${ev.date} ${getPerson(ev.personId).name} ${ev.locationName}`); const main=syncMainEventFromField(ev,'新增'); if(!firstMain){firstMain=main; upsertPickupFieldEvent(ev);}} if(firstMain)state.lastLineText=lineMessage('新增',firstMain)+(fieldRepeatDates().length>1?`\n重複行程：共 ${fieldRepeatDates().length} 筆，已同步加入行程總覽。`:'');}
   save(); $('fieldModal').classList.add('hide'); renderAll(); toast('外務行程已儲存，並已同步至行程總覽')}
 function deleteFieldEvent(){const id=$('editFieldId').value; const e=(state.externalEvents||[]).find(x=>x.id===id); if(!e)return; if(!canDelete())return toast('目前權限不可刪除'); if(!confirm('確定刪除此筆外務行程？'))return; e.deleted=true; e.updatedBy=currentUser.id; e.updatedAt=new Date().toISOString(); const main=state.events.find(x=>x.externalEventId===id); const before=main?clone(main):null; if(main){main.deleted=true; main.updatedBy=currentUser.id; main.updatedAt=new Date().toISOString(); state.lastLineText=lineMessage('刪除',main,before);} addLog('刪除','外務行程',e.purpose,'外務行程','顯示','已刪除'); save(); $('fieldModal').classList.add('hide'); renderAll(); toast('已刪除外務行程，並同步取消行程總覽')}
@@ -4416,6 +4416,241 @@ v106BindServiceRecordsUI=function(){
     }
     html+='</tbody></table></div>'; $('fieldCalendarArea').innerHTML=html; bindFieldCalendarEvents();
   };
+})();
+
+
+
+/* V227：外務行事曆 / 地點新增 / 雙擊外務表單 / 自己選項 / 異況測試資料清除
+   DRY：外務資料同步、測試資料判斷、required 清除各自單一函式。
+   KISS：不改資料結構，只補齊 externalEvents 與 UI 綁定。
+   SOLID：只覆寫相關函式，不改動其他頁面流程。 */
+(function(){
+  const V227_INCIDENT_TEST_RE=/測試異況|異況測試|異況測試行程|測試案件|測試客戶|測試工人|測試地點|demo|mock|sample/i;
+  function v227Text(v){try{return JSON.stringify(v||'')}catch(_){return String(v||'')}}
+  function v227IsIncidentTest(item){
+    if(!item||typeof item!=='object')return false;
+    if(item.v203Marker||item.v204Marker||item.v205Marker||item.v206Marker||item.v208Marker||item.v210Marker||item.v211Marker||item.v212Marker)return true;
+    const text=v227Text(item);
+    if(V227_INCIDENT_TEST_RE.test(text))return true;
+    return /incident/i.test(text)&&/test|demo|mock|sample/i.test(text);
+  }
+  function v227CleanIncidentTests(){
+    let changed=false;
+    if(Array.isArray(state.incidents)){
+      const before=state.incidents.length;
+      state.incidents=state.incidents.filter(x=>!v227IsIncidentTest(x));
+      changed=changed||before!==state.incidents.length;
+    }
+    const liveIncidentIds=new Set((state.incidents||[]).filter(x=>!x.deleted).map(x=>x.id));
+    if(Array.isArray(state.incidentLogs)){
+      const before=state.incidentLogs.length;
+      state.incidentLogs=state.incidentLogs.filter(x=>!v227IsIncidentTest(x)&&(!x.incidentId||liveIncidentIds.has(x.incidentId)));
+      changed=changed||before!==state.incidentLogs.length;
+    }
+    if(Array.isArray(state.events)){
+      const before=state.events.length;
+      state.events=state.events.filter(e=>{
+        if(!e)return false;
+        const text=v227Text(e);
+        const isIncident=String(e.sourceType||'').includes('incident')||/異況|incident|追蹤/i.test(text);
+        return !(isIncident&&v227IsIncidentTest(e));
+      });
+      changed=changed||before!==state.events.length;
+    }
+    return changed;
+  }
+  function v227RelaxRequired(root){
+    const scope=root||document;
+    scope.querySelectorAll('input,select,textarea').forEach(el=>{
+      el.required=false;
+      el.removeAttribute('required');
+      el.removeAttribute('aria-required');
+      if(el.setCustomValidity)el.setCustomValidity('');
+    });
+    scope.querySelectorAll('.field.required').forEach(el=>el.classList.remove('required'));
+    scope.querySelectorAll('.req-missing').forEach(el=>el.classList.remove('req-missing'));
+    scope.querySelectorAll('.required-hint').forEach(el=>el.remove());
+    scope.querySelectorAll('form').forEach(f=>f.setAttribute('novalidate','novalidate'));
+  }
+  function v227SyncFieldEventsFromMain(){
+    ensureExternalState();
+    const existing=new Set((state.externalEvents||[]).map(x=>x.id));
+    let changed=false;
+    (state.events||[]).forEach(e=>{
+      if(!e||e.deleted||displayEventType(e.type)!=='外務')return;
+      const pid=(Array.isArray(e.participants)&&e.participants[0])||e.personId||'';
+      if(!pid)return;
+      const fid=e.externalEventId||('field_from_'+e.id);
+      if(existing.has(fid))return;
+      state.externalEvents.push({
+        id:fid,
+        repeatGroupId:e.seriesId||'',
+        createdBy:e.createdBy||currentUser?.id||'system',
+        createdAt:e.createdAt||new Date().toISOString(),
+        updatedBy:e.updatedBy||e.createdBy||currentUser?.id||'system',
+        updatedAt:e.updatedAt||new Date().toISOString(),
+        deleted:false,
+        personId:pid,
+        date:e.startDate||todayISO(),
+        time:e.startTime||'',
+        status:e.fieldStatus||e.status||'未完成',
+        failureReason:e.failureReason||'',
+        locationName:e.locationName||'',
+        address:e.address||'',
+        purpose:e.name||e.type||'外務',
+        note:e.note||'',
+        cash:'',stamp:'',document:'',mustSend:false,cannotChange:false,
+        pickupDate:'',pickupPersonId:''
+      });
+      e.externalEventId=fid;
+      e.externalSource=true;
+      existing.add(fid);
+      changed=true;
+    });
+    return changed;
+  }
+  function v227InsertAddLocationButton(){
+    const sel=$('fieldLocation');
+    if(!sel)return;
+    const field=sel.closest('.field');
+    if(!field||field.querySelector('#v227AddFieldLocationBtn'))return;
+    const wrap=document.createElement('div');
+    wrap.style.cssText='display:flex;gap:8px;margin-top:8px;align-items:center;justify-content:flex-end;';
+    wrap.innerHTML='<button type="button" id="v227AddFieldLocationBtn" class="small">新增</button>';
+    field.appendChild(wrap);
+    $('v227AddFieldLocationBtn').onclick=function(ev){
+      ev.preventDefault();
+      const name=(prompt('請輸入地點名稱')||'').trim();
+      if(!name)return;
+      const address=(prompt('請輸入地址（可空白）')||'').trim();
+      ensureExternalState();
+      state.options.fieldLocations=state.options.fieldLocations||[];
+      const line=address?`${name}｜${address}`:name;
+      const exists=fieldLocationList().some(x=>x.name===name);
+      if(!exists)state.options.fieldLocations.push(line);
+      save();
+      renderFieldOptions();
+      setTimeout(()=>{if($('fieldLocation'))$('fieldLocation').value=name;if($('fieldAddress'))$('fieldAddress').value=address;v227InsertAddLocationButton();},0);
+      toast(exists?'地點已存在，已套用該地點':'已新增外務地點');
+    };
+  }
+  function v227InsertSelfParticipant(){
+    const box=$('participantsBox');
+    if(!box||box.querySelector('[data-v227-self-option]'))return;
+    const pid=userPersonId&&userPersonId();
+    if(!pid||!isCalendarPerson(pid))return;
+    const me=getPerson(pid)||{};
+    const checked=[...box.querySelectorAll('input')].some(i=>i.value===pid&&i.checked);
+    const label=document.createElement('label');
+    label.className='checkline v227-self-option';
+    label.setAttribute('data-v227-self-option','1');
+    label.innerHTML=`<input type="checkbox" value="${escAttr(pid)}" ${checked?'checked':''}> 自己 <span class="muted">${esc(me.name||'')}</span>`;
+    box.insertBefore(label,box.firstChild);
+    const input=label.querySelector('input');
+    input.addEventListener('change',()=>{
+      box.querySelectorAll(`input[value="${CSS.escape(pid)}"]`).forEach(i=>{if(i!==input)i.checked=input.checked;});
+    });
+  }
+
+  const oldLoadV227=load;
+  load=function(reset=false){
+    oldLoadV227(reset);
+    ensureExternalState();
+    const changedIncident=v227CleanIncidentTests();
+    const changedField=v227SyncFieldEventsFromMain();
+    if(changedIncident||changedField)save();
+  };
+
+  const oldExternalPeopleV227=externalPeople;
+  externalPeople=function(){
+    const base=oldExternalPeopleV227();
+    const ids=new Set(base.map(p=>p.id));
+    (state.externalEvents||[]).forEach(e=>{if(e&&!e.deleted&&e.personId)ids.add(e.personId)});
+    (state.events||[]).forEach(e=>{if(e&&!e.deleted&&displayEventType(e.type)==='外務'&&Array.isArray(e.participants))e.participants.forEach(id=>ids.add(id));});
+    return state.people.filter(p=>ids.has(p.id)&&p.active!==false&&p.deleted!==true);
+  };
+
+  const oldRenderFieldCalendarV227=renderFieldCalendar;
+  renderFieldCalendar=function(){
+    const changed=v227SyncFieldEventsFromMain();
+    if(changed)save();
+    return oldRenderFieldCalendarV227();
+  };
+
+  const oldRenderFieldOptionsV227=renderFieldOptions;
+  renderFieldOptions=function(){
+    oldRenderFieldOptionsV227();
+    v227InsertAddLocationButton();
+    v227RelaxRequired($('fieldModal')||document);
+  };
+
+  const oldOpenFieldModalV227=openFieldModal;
+  openFieldModal=function(opts={}){
+    oldOpenFieldModalV227(opts||{});
+    v227InsertAddLocationButton();
+    v227RelaxRequired($('fieldModal')||document);
+  };
+
+  const oldSaveFieldEventV227=saveFieldEvent;
+  saveFieldEvent=function(){
+    v227RelaxRequired($('fieldModal')||document);
+    const result=oldSaveFieldEventV227.apply(this,arguments);
+    setTimeout(()=>{try{v227SyncFieldEventsFromMain();renderFieldCalendar();}catch(_){ }},0);
+    return result;
+  };
+
+  const oldBindFieldCalendarEventsV227=bindFieldCalendarEvents;
+  bindFieldCalendarEvents=function(){
+    oldBindFieldCalendarEventsV227();
+    const area=$('fieldCalendarArea');
+    if(!area)return;
+    area.ondblclick=function(e){
+      const cell=e.target&&e.target.closest&&e.target.closest('[data-field-date]');
+      if(!cell||e.target.closest('.field-event'))return;
+      e.preventDefault();
+      e.stopPropagation();
+      openFieldModal({date:cell.dataset.fieldDate,personId:cell.dataset.fieldPerson});
+    };
+  };
+
+  if(typeof v203ValidateFieldRequired==='function')v203ValidateFieldRequired=function(){v227RelaxRequired($('fieldModal')||document);return true;};
+  if(typeof v203MarkFieldRequired==='function')v203MarkFieldRequired=function(){};
+  if(typeof v203ShowFieldMissing==='function')v203ShowFieldMissing=function(){};
+
+  const oldRenderParticipantsV227=renderParticipants;
+  renderParticipants=function(defaultPid,sel=[]){
+    oldRenderParticipantsV227(defaultPid,sel);
+    v227InsertSelfParticipant();
+  };
+
+  if(window.openRoomBookingModal){
+    const oldOpenRoomBookingModalV227=window.openRoomBookingModal;
+    window.openRoomBookingModal=function(){
+      const r=oldOpenRoomBookingModalV227.apply(this,arguments);
+      v227RelaxRequired($('roomBookingModal')||document);
+      return r;
+    };
+  }
+  if(window.saveRoomBooking){
+    const oldSaveRoomBookingV227=window.saveRoomBooking;
+    window.saveRoomBooking=function(){v227RelaxRequired($('roomBookingModal')||document);return oldSaveRoomBookingV227.apply(this,arguments);};
+  }
+
+  const oldRenderAllV227=renderAll;
+  renderAll=function(){
+    const changedIncident=v227CleanIncidentTests();
+    const changedField=v227SyncFieldEventsFromMain();
+    if(changedIncident||changedField)save();
+    oldRenderAllV227();
+    v227RelaxRequired($('fieldModal')||document);
+    v227RelaxRequired($('roomBookingModal')||document);
+  };
+
+  document.addEventListener('click',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('#fieldModal,#roomBookingModal,#fieldAddBtn,#saveFieldBtn,#saveRoomBookingBtn')){
+      setTimeout(()=>{v227RelaxRequired($('fieldModal')||document);v227RelaxRequired($('roomBookingModal')||document);v227InsertAddLocationButton();},30);
+    }
+  },true);
 })();
 
 try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bindUI();bindExternalUI();/* V75：為避免看不到登入頁，取消自動登入；請每次由登入頁進入。 */ safeRemoveSession(); $('loginView')&&$('loginView').classList.remove('hide'); $('appView')&&$('appView').classList.add('hide');}catch(err){console.error(err); document.body.innerHTML='<div style="padding:24px;font-family:Arial"><h2>系統載入錯誤</h2><p>'+esc(err.message)+'</p><button onclick="localStorage.clear();location.reload()">清除暫存並重新載入</button></div>'}
