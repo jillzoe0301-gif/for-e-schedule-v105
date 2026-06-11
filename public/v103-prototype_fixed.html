@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V250 登入修正版</title>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V239</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -4842,51 +4842,7 @@ v106BindServiceRecordsUI=function(){
   };
 })();
 
-
-/* ===== V250：登入頁真正修正（DRY / KISS / SOLID） =====
-   根因：後續 V247～V249 登入補丁在主程式 IIFE 外操作 state/currentUser/showApp，
-   造成事件覆蓋與遮罩互卡；此修正放回主程式閉包內，使用原本 doLoginCore/showApp。
-*/
-function v250InstallLoginFix(){
-  const login=$('loginView'), app=$('appView');
-  const email=$('loginEmail'), password=$('loginPassword'), btn=$('doLogin'), quick=$('quickLogin'), mobile=$('mobileForceLogin'), msg=$('loginMsg');
-  document.body.classList.remove('v248-login-mode','v249-login-active');
-  document.querySelectorAll('#v249LoginOverlay,#v248LoginOverlay').forEach(el=>el.remove());
-  if(login){login.classList.remove('hide');login.style.pointerEvents='auto';login.style.zIndex='2147483000';}
-  if(app){app.classList.add('hide');app.style.pointerEvents='none';}
-  [email,password,btn,quick,mobile].forEach(el=>{if(!el)return;el.disabled=false;el.readOnly=false;el.removeAttribute('disabled');el.removeAttribute('readonly');el.style.pointerEvents='auto';});
-  if(email){email.autocomplete='username';email.inputMode='email';}
-  if(password){password.autocomplete='current-password';}
-  function setMsg(t){if(msg)msg.textContent=t||'';}
-  function perform(force){
-    const mail=String((email&&email.value)||'').trim().toLowerCase();
-    const pw=String((password&&password.value)||'');
-    if(force){
-      if(email)email.value='admin@demo.com';
-      if(password)password.value='123456';
-      return doLoginCore('admin@demo.com','123456',true);
-    }
-    if(!mail||!pw){setMsg('請輸入帳號與密碼。');return false;}
-    return doLoginCore(mail,pw,false);
-  }
-  if(btn){btn.type='button';btn.onclick=function(e){if(e)e.preventDefault();return perform(false);};}
-  if(quick){quick.type='button';quick.classList.remove('hide');quick.onclick=function(e){if(e)e.preventDefault();return perform(true);};}
-  if(mobile){mobile.type='button';mobile.onclick=function(e){if(e)e.preventDefault();return perform(true);};}
-  [email,password].forEach(el=>{if(!el||el.dataset.v250Enter==='1')return;el.dataset.v250Enter='1';el.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();perform(false);}},false);});
-  if(login&&login.dataset.v250Shield!=='1'){
-    login.dataset.v250Shield='1';
-    ['pointerdown','mousedown','touchstart','click'].forEach(type=>{
-      login.addEventListener(type,function(e){
-        if(e.target&&e.target.closest&&e.target.closest('#loginEmail,#loginPassword,#doLogin,#quickLogin,#mobileForceLogin')) e.stopPropagation();
-      },true);
-    });
-  }
-  window.forceMobileLogin=function(){return perform(true);};
-  window.v250LoginTest=function(){return {emailReady:!!email,passwordReady:!!password,buttonReady:!!btn,loginVisible:!!(login&&!login.classList.contains('hide')),appHidden:!!(app&&app.classList.contains('hide'))};};
-  return true;
-}
-
-try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();v250InstallLoginFix();bindUI();bindExternalUI();/* V75：為避免看不到登入頁，取消自動登入；請每次由登入頁進入。 */ safeRemoveSession(); v250InstallLoginFix();}catch(err){console.error(err); document.body.innerHTML='<div style="padding:24px;font-family:Arial"><h2>系統載入錯誤</h2><p>'+esc(err.message)+'</p><button onclick="localStorage.clear();location.reload()">清除暫存並重新載入</button></div>'}
+try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bindUI();bindExternalUI();/* V75：為避免看不到登入頁，取消自動登入；請每次由登入頁進入。 */ safeRemoveSession(); $('loginView')&&$('loginView').classList.remove('hide'); $('appView')&&$('appView').classList.add('hide');}catch(err){console.error(err); document.body.innerHTML='<div style="padding:24px;font-family:Arial"><h2>系統載入錯誤</h2><p>'+esc(err.message)+'</p><button onclick="localStorage.clear();location.reload()">清除暫存並重新載入</button></div>'}
 
 
 /* V163：DRY/KISS/SOLID 匯出管理器
@@ -15010,17 +14966,90 @@ setInterval(v206SetupNavOrder,1500);
 </script>
 
 
+<script>
+/* ===== V247：登入與舊錯誤檔清理穩定版 =====
+   DRY：沿用原本 state/users/people/currentUser/showApp/renderAll。
+   KISS：登入只做驗證、寫入 currentUser/session、顯示 app。
+   SOLID：登入修補獨立，不再干擾外務行程模組。
+*/
+(function(){
+  const VERSION='V247';
+  const STORE_KEY='translator_calendar_v81';
+  const $=id=>document.getElementById(id);
+  function msg(t){const el=$('loginMsg'); if(el)el.textContent=t||'';}
+  function getState(){
+    try{ if((typeof state==='undefined'||!state) && typeof load==='function') load(false); }catch(e){console.warn('[V247] load(false) failed',e);}
+    try{ if(typeof state==='undefined'||!state){ const raw=localStorage.getItem(STORE_KEY); if(raw) state=JSON.parse(raw); } }catch(e){console.warn('[V247] localStorage parse failed',e);}
+    try{ if(typeof state==='undefined'||!state){ if(typeof defaultState==='function') state=defaultState(); } }catch(e){console.warn('[V247] defaultState failed',e);}
+    if(!state)return null;
+    state.users=Array.isArray(state.users)?state.users:[];
+    state.people=Array.isArray(state.people)?state.people:[];
+    state.events=Array.isArray(state.events)?state.events:[];
+    state.externalEvents=Array.isArray(state.externalEvents)?state.externalEvents:[];
+    state.logs=Array.isArray(state.logs)?state.logs:[];
+    return state;
+  }
+  function saveState(){try{ if(typeof save==='function') save(); else localStorage.setItem(STORE_KEY,JSON.stringify(state)); }catch(e){console.warn('[V247] save skipped',e);}}
+  function ensureAdmin(){
+    const s=getState(); if(!s)return null;
+    let p=s.people.find(x=>String(x.id)==='p20')||s.people.find(x=>String(x.name||'').includes('蘇若儀'))||s.people[0];
+    if(!p){p={id:'p20',name:'蘇若儀',group:'營運處',lang:'管理員',job:'管理員',active:true,deleted:false};s.people.push(p);}
+    let u=s.users.find(x=>String(x.email||'').trim().toLowerCase()==='admin@demo.com');
+    if(!u){u={id:'u_admin',name:'Demo ZoeSu',email:'admin@demo.com',password:'123456',role:'admin',personId:p.id,active:true,deleted:false};s.users.push(u);}
+    u.password='123456';u.role='admin';u.personId=u.personId||p.id;u.active=true;u.deleted=false;
+    saveState();
+    return u;
+  }
+  function enter(user){
+    try{currentUser=user;}catch(e){console.warn('[V247] currentUser assign failed',e);}
+    try{window.currentUser=user;}catch(_){ }
+    try{if(typeof safeSetSession==='function')safeSetSession(user.id);else sessionStorage.setItem('for_e_session',user.id);}catch(_){ }
+    msg('登入成功，載入中...');
+    let ok=false;
+    try{ if(typeof showApp==='function'){showApp(); ok=true;} }catch(e){console.warn('[V247] showApp failed; fallback',e);}
+    if(!ok){
+      const lv=$('loginView'), av=$('appView');
+      if(lv)lv.classList.add('hide');
+      if(av)av.classList.remove('hide');
+      const label=$('currentUserLabel');
+      if(label)label.innerHTML=(user.name||user.email||'使用者')+' <span class="badge">管理員</span>';
+      try{currentPage='calendar';}catch(_){ }
+      try{if(typeof applyPermissionsUI==='function')applyPermissionsUI();}catch(e){console.warn('[V247] permissions skipped',e);}
+      try{if(typeof renderAll==='function')renderAll();}catch(e){console.warn('[V247] render skipped',e);}
+      try{if(typeof showPage==='function')showPage('calendar');}catch(_){ }
+    }
+    window.v247DebugReport={version:VERSION,loginOk:true,user:user.email,users:(state&&state.users||[]).length};
+    return true;
+  }
+  function login(force){
+    const s=getState(); if(!s){msg('系統資料載入失敗，請重新整理後再試');return false;}
+    ensureAdmin();
+    const email=String(($('loginEmail')||{}).value||'').trim().toLowerCase();
+    const pw=String(($('loginPassword')||{}).value||'');
+    let u=null;
+    if(force){u=s.users.find(x=>String(x.email||'').toLowerCase()==='admin@demo.com')||ensureAdmin();}
+    else{u=s.users.find(x=>x&&x.deleted!==true&&String(x.email||'').trim().toLowerCase()===email&&String(x.password||'')===pw);}
+    if(!u&&email==='admin@demo.com'&&pw==='123456')u=ensureAdmin();
+    if(!u){msg('帳號或密碼錯誤。測試帳號：admin@demo.com / 123456');return false;}
+    if(u.active===false){u.active=true;u.deleted=false;saveState();}
+    return enter(u);
+  }
+  function install(){
+    ensureAdmin();
+    const btn=$('doLogin'), quick=$('quickLogin'), mobile=$('mobileForceLogin');
+    window.v247Login=login;
+    window.forceMobileLogin=function(){if($('loginEmail'))$('loginEmail').value='admin@demo.com';if($('loginPassword'))$('loginPassword').value='123456';return login(true);};
+    window.doLoginCore=function(email,pw,force){if(email!==undefined&&$('loginEmail'))$('loginEmail').value=email||'';if(pw!==undefined&&$('loginPassword'))$('loginPassword').value=pw||'';return login(!!force);};
+    if(btn){btn.disabled=false;btn.removeAttribute('disabled');btn.style.pointerEvents='auto';btn.onclick=function(e){if(e)e.preventDefault();return login(false);};}
+    if(quick){quick.classList.remove('hide');quick.onclick=function(e){if(e)e.preventDefault();if($('loginEmail'))$('loginEmail').value='admin@demo.com';if($('loginPassword'))$('loginPassword').value='123456';return login(true);};}
+    if(mobile){mobile.onclick=function(e){if(e)e.preventDefault();return window.forceMobileLogin();};}
+    ['loginEmail','loginPassword'].forEach(id=>{const el=$(id); if(el&&!el.dataset.v247Enter){el.dataset.v247Enter='1';el.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();login(false);}},false);}});
+    window.v247DebugReport={version:VERSION,installed:true,loginButton:!!btn,adminReady:!!ensureAdmin()};
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install); else install();
+  setTimeout(install,300);
+})();
+</script>
 
-<style id="v250-login-stability-style">
-  /* V250：登入頁保底，避免舊遮罩/補丁擋住輸入 */
-  #loginView{position:fixed!important;inset:0!important;z-index:2147483000!important;display:flex!important;pointer-events:auto!important;background:var(--bg,#f6f7fb)!important;}
-  #loginView.hide{display:none!important;}
-  #loginView .login-card{position:relative!important;z-index:2147483001!important;pointer-events:auto!important;}
-  #loginEmail,#loginPassword,#doLogin,#quickLogin,#mobileForceLogin{pointer-events:auto!important;user-select:text!important;-webkit-user-select:text!important;}
-  #doLogin,#quickLogin,#mobileForceLogin{user-select:none!important;-webkit-user-select:none!important;cursor:pointer!important;}
-  body.v250-logged-in #loginView{display:none!important;}
-  body:not(.v250-logged-in) #appView{pointer-events:none!important;}
-  body:not(.v250-logged-in) .modal,body:not(.v250-logged-in) .toast{display:none!important;pointer-events:none!important;}
-</style>
 
 </body></html>
