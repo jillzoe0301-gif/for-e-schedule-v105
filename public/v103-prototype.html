@@ -808,6 +808,15 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 .holiday-tags .vn{background:transparent!important;color:#7c3aed!important;font-size:12px!important;font-weight:700!important;border:0!important}
 @media(max-width:760px){.holiday-tags .tw{font-size:12px!important}.holiday-tags .th,.holiday-tags .ph,.holiday-tags .id,.holiday-tags .vn{font-size:11.5px!important}}
 
+
+/* V249：假日顯示調整：td 只顯示台灣假日，四國節日只顯示在 th 表頭 */
+.holiday-tags{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:3px!important;margin:2px 0 6px!important;line-height:1.35!important}
+.holiday-tags .tw{display:inline-block!important;background:#dbeafe!important;color:#1e40af!important;font-size:13px!important;font-weight:900!important;border:0!important;border-radius:6px!important;padding:2px 8px!important;margin:0!important}
+.holiday-head-tags{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:2px!important;margin-top:4px!important;line-height:1.25!important}
+.holiday-head-tags span{display:block!important;background:transparent!important;border:0!important;border-radius:0!important;padding:0!important;margin:0!important;font-size:11px!important;font-weight:700!important;white-space:normal!important}
+.holiday-head-tags .th{color:#f97316!important}.holiday-head-tags .ph{color:#16a34a!important}.holiday-head-tags .id{color:#ec4899!important}.holiday-head-tags .vn{color:#7c3aed!important}
+.calendar-table td.holiday-tw,.calendar-table .day-cell.holiday-tw,.personal-month-table td.holiday-tw,.room-week-table td.holiday-tw,.field-clean-calendar td.holiday-tw{background:#e0f2fe!important}
+@media(max-width:760px){.holiday-tags .tw{font-size:12px!important}.holiday-head-tags span{font-size:10.5px!important}}
 </style>
 <style>
 /* V176：翻譯「紀錄單繳交」獨立分頁 */
@@ -1054,18 +1063,20 @@ function countryClass(c){return ({'台':'tw','泰':'th','菲':'ph','越':'vn','�
 function hasCountryHoliday(d,c){return holidaysOn(d).some(h=>h.c===c)}
 function isWeekendDate(d){return [0,6].includes(new Date(d+'T00:00:00').getDay())}
 function taiwanHolidayText(d){const hs=holidaysOn(d).filter(h=>h.c==='台'); if(hs.length)return hs.map(h=>h.n).join('、'); return isWeekendDate(d)?'休假日':''}
-function holidayBadgeHTML(d){const tw=taiwanHolidayText(d); const others=holidaysOn(d).filter(h=>h.c!=='台'); if(!tw&&!others.length)return ''; return '<div class="holiday-tags">'+(tw?`<span class="tw">台:${esc(tw)}</span>`:'')+(tw&&others.length?'<br>':'')+others.map(h=>`<span class="${countryClass(h.c)}">${esc(h.c)}:${esc(h.n)}</span>`).join('<br>')+'</div>'}
-function renderHolidayTags(d){const tw=taiwanHolidayText(d); if(!tw)return ''; return '<div class="holiday-tags"><span class="tw">台:'+esc(tw)+'</span></div>'}
+function holidayBadgeHTML(d){return renderCountryHolidayHeaderTags(d)}
+function isTwHoliday(d){return holidaysOn(d).some(h=>h&&h.c==='台')}
 
-/* V248：三大週曆 td 共用假日標籤渲染函式 */
+/* V249：共用假日函式；td 只顯示台灣，th 只顯示四國 */
 function renderHolidayTags(dateStr){
-  const rows = holidaysOn(dateStr) || [];
+  const rows=(holidaysOn(dateStr)||[]).filter(h=>h&&h.c==='台');
   if(!rows.length) return '';
-  const flagMap = {'台':'🇹🇼','泰':'🇹🇭','菲':'🇵🇭','印':'🇮🇩','越':'🇻🇳'};
-  const html = [];
-  rows.filter(h=>h && h.c==='台').forEach(h=>html.push(`<span class="tw">${flagMap[h.c]} ${esc(h.n||'')}</span>`));
-  rows.filter(h=>h && h.c!=='台').forEach(h=>html.push(`<span class="${countryClass(h.c)}">${flagMap[h.c]||''} ${esc(h.n||'')}</span>`));
-  return html.length ? `<div class="holiday-tags">${html.join('')}</div>` : '';
+  return '<div class="holiday-tags">'+rows.map(h=>`<span class="tw">🇹🇼 ${esc(h.n||'')}</span>`).join('')+'</div>';
+}
+function renderCountryHolidayHeaderTags(dateStr){
+  const rows=(holidaysOn(dateStr)||[]).filter(h=>h&&h.c!=='台');
+  if(!rows.length) return '';
+  const flagMap={'泰':'🇹🇭','菲':'🇵🇭','印':'🇮🇩','越':'🇻🇳'};
+  return '<div class="holiday-head-tags">'+rows.map(h=>`<span class="${countryClass(h.c)}">${flagMap[h.c]||''} ${esc(h.n||'')}</span>`).join('')+'</div>';
 }
 function holidayClasses(d){return (hasCountryHoliday(d,'台')||isWeekendDate(d))?'holiday-tw':''}
 function dayClass(d){const wk=isWeekendDate(d)?'weekend':''; return `${wk} ${holidayClasses(d)} ${d===todayISO()?'today':''}`}
@@ -3239,7 +3250,7 @@ window.openIncidentModal=openIncidentModal; window.quickIncidentLog=quickInciden
     const useRooms=rf?rooms.filter(r=>r===rf):rooms;
     let html='<div class="room-week-wrap"><table class="room-week-table"><thead><tr><th class="room-room-head">會議室</th>'+days.map(d=>{
       const w=['日','一','二','三','四','五','六'][new Date(d+'T00:00:00').getDay()];
-      return `<th class="${dayClass(d)}"><div>${w}</div><div class="date-num">${fmtDate(d)}</div>${renderHolidayTags(d)}</th>`;
+      return `<th class="${dayClass(d)}"><div>${w}</div><div class="date-num">${fmtDate(d)}</div>${renderCountryHolidayHeaderTags(d)}</th>`;
     }).join('')+'</tr></thead><tbody>';
     useRooms.forEach(room=>{
       html+=`<tr data-room-name="${esc(room)}"><td class="room-room-cell">${v105RoomBookingRowLabel(room)}</td>`;
@@ -10916,7 +10927,7 @@ setInterval(v206SetupNavOrder,1500);
     const kw=String((document.getElementById('roomBookingKeyword')||{}).value||'').trim().toLowerCase();
     const useRooms=rf?rooms.filter(r=>r===rf):rooms;
     let html='<div class="room-week-wrap"><table class="room-week-table"><thead><tr><th class="room-room-head">會議室</th>'+
-      days.map(d=>{const w=['日','一','二','三','四','五','六'][new Date(d+'T00:00:00').getDay()]||'';return `<th class="${dayClassSafe(d)}"><div>${w}</div><div class="date-num">${fmtDateSafe(d)}</div>${holidaySafe(d)}</th>`}).join('')+
+      days.map(d=>{const w=['日','一','二','三','四','五','六'][new Date(d+'T00:00:00').getDay()]||'';return `<th class="${dayClassSafe(d)}"><div>${w}</div><div class="date-num">${fmtDateSafe(d)}</div>${renderCountryHolidayHeaderTags(d)}</th>`}).join('')+
       '</tr></thead><tbody>';
     useRooms.forEach(room=>{
       html+=`<tr data-room-name="${escAttrSafe(room)}"><td class="room-room-cell"><div class="person-name">${escSafe(room)}</div></td>`;
@@ -14384,7 +14395,7 @@ setInterval(v206SetupNavOrder,1500);
     var picker=$('fieldWeekPicker'); if(picker&&!picker.value)picker.value=today(); var days=weekDaysMonday(picker&&picker.value?picker.value:today());
     var people=peopleSource(); var psel=readMulti('fieldPersonFilter'); if(psel.length) people=people.filter(function(p){return psel.indexOf(p.id)>=0});
     var html='<div class="field-clean-wrap"><table class="field-clean-table"><thead><tr><th class="field-clean-person-head">外務人員</th>'+days.map(function(d){return '<th class="'+(d===today()?'field-clean-today':'')+'"><span class="field-clean-date-title">'+weekday(d)+' '+shortDate(d)+'</span></th>'}).join('')+'</tr></thead><tbody>';
-    people.forEach(function(p){html+='<tr><td class="field-clean-person-cell"><span class="person-name">'+esc(p.name)+'</span><div class="muted">'+esc([p.group,p.lang].filter(Boolean).join('｜'))+'</div></td>';days.forEach(function(d){var rows=fieldEventsFor(d,p.id);html+='<td class="field-clean-day '+(d===today()?'field-clean-today':'')+'" data-field-clean-cell="1" data-date="'+attr(d)+'" data-person="'+attr(p.id)+'"><div class="field-clean-empty">'+rows.map(fieldCard).join('')+'</div></td>'});html+='</tr>'});
+    people.forEach(function(p){html+='<tr><td class="field-clean-person-cell"><span class="person-name">'+esc(p.name)+'</span><div class="muted">'+esc([p.group,p.lang].filter(Boolean).join('｜'))+'</div></td>';days.forEach(function(d){var rows=fieldEventsFor(d,p.id);html+='<td class="field-clean-day '+(d===today()?'field-clean-today ':'')+(isTwHoliday(d)?'holiday-tw ':'')+'" data-field-clean-cell="1" data-date="'+attr(d)+'" data-person="'+attr(p.id)+'"><div class="field-clean-empty">'+rows.map(fieldCard).join('')+'</div></td>'});html+='</tr>'});
     html+='</tbody></table></div>'; area.innerHTML=html;
   }
 
@@ -14396,8 +14407,8 @@ setInterval(v206SetupNavOrder,1500);
     var people=peopleSource(); var psel=readMulti('personFilter'); if(psel.length)people=people.filter(function(p){return psel.indexOf(p.id)>=0});
     var gsel=readMulti('groupFilter'); if(gsel.length)people=people.filter(function(p){return gsel.indexOf(p.group)>=0});
     var jsel=readMulti('jobFilter'); if(jsel.length)people=people.filter(function(p){return jsel.indexOf(p.lang)>=0});
-    var html='<div class="overview-clean-wrap"><table class="calendar-table"><thead><tr><th class="person-head">人員</th>'+days.map(function(d){return '<th class="'+(d===today()?'field-clean-today':'')+'">'+weekday(d)+' '+shortDate(d)+'</th>'}).join('')+'</tr></thead><tbody>';
-    people.forEach(function(p){html+='<tr><td class="person-cell"><span class="person-name">'+esc(p.name)+'</span><div class="muted">'+esc([p.group,p.lang].filter(Boolean).join('｜'))+'</div></td>';days.forEach(function(d){var rows=overviewEventsFor(d,p.id);html+='<td class="day-cell '+(d===today()?'field-clean-today':'')+'"><div class="date-num">'+shortDate(d)+'</div>'+rows.map(overviewCard).join('')+'</td>'});html+='</tr>'});
+    var html='<div class="overview-clean-wrap"><table class="calendar-table"><thead><tr><th class="person-head">人員</th>'+days.map(function(d){return '<th class="'+(d===today()?'field-clean-today':'')+'">'+weekday(d)+' '+shortDate(d)+renderCountryHolidayHeaderTags(d)+'</th>'}).join('')+'</tr></thead><tbody>';
+    people.forEach(function(p){html+='<tr><td class="person-cell"><span class="person-name">'+esc(p.name)+'</span><div class="muted">'+esc([p.group,p.lang].filter(Boolean).join('｜'))+'</div></td>';days.forEach(function(d){var rows=overviewEventsFor(d,p.id);html+='<td class="day-cell '+(d===today()?'field-clean-today ':'')+(isTwHoliday(d)?'holiday-tw ':'')+'"><div class="date-num">'+shortDate(d)+'</div>'+rows.map(overviewCard).join('')+'</td>'});html+='</tr>'});
     html+='</tbody></table></div>'; area.innerHTML=html;
   }
 
@@ -14474,13 +14485,41 @@ setInterval(v206SetupNavOrder,1500);
 </script>
 
 
+
 <script>
-window.v248HolidayTagsReport={
-  sharedFunction:'renderHolidayTags(dateStr)',
-  appliedTo:['行程總覽週曆 td','外務行程週曆 td','會議室預約週曆 td'],
-  order:['台灣節日標籤','東南亞國家節日標籤','行程卡片'],
+/* V249：停止切換頁面時自動捲到今天；保留橘框與手動操作 */
+(function(){
+  const pickerIds=['weekPicker','fieldWeekPicker','roomBookingWeekPicker'];
+  function noop(){}
+  window.v225ShouldScrollTodayOnce=function(){return false};
+  window.scrollCalendarToToday=noop;
+  window.scrollFieldCalendarToToday=noop;
+  window.v105ScrollRoomBookingToToday=noop;
+  document.addEventListener('click',function(e){
+    const btn=e.target&&e.target.closest&&e.target.closest('.navbtn[data-page]');
+    if(!btn) return;
+    const keep={};
+    pickerIds.forEach(function(id){const el=document.getElementById(id); if(el&&el.value) keep[id]=el.value;});
+    setTimeout(function(){Object.keys(keep).forEach(function(id){const el=document.getElementById(id); if(el) el.value=keep[id];});},0);
+    setTimeout(function(){Object.keys(keep).forEach(function(id){const el=document.getElementById(id); if(el) el.value=keep[id];});},180);
+  },true);
+  window.v249HolidayScrollReport={
+    holidayDataTwCount:45,
+    tdHolidayFunction:'renderHolidayTags(dateStr) 只回傳台灣節日',
+    headerHolidayFunction:'renderCountryHolidayHeaderTags(dateStr) 只回傳泰菲印越節日',
+    autoScrollDisabled:['scrollCalendarToToday','scrollFieldCalendarToToday','v105ScrollRoomBookingToToday','v225ShouldScrollTodayOnce'],
+    mobilePickerAutoToday:'切換頁面時若原本已有日期，會保留原值，不再強制跳今天'
+  };
+})();
+</script>
+
+<script>
+window.v249HolidayTagsReport={
+  tdSharedFunction:'renderHolidayTags(dateStr)',headerSharedFunction:'renderCountryHolidayHeaderTags(dateStr)',
+  appliedToTd:['行程總覽週曆 td 台灣假日','外務行程週曆 td 台灣假日','會議室預約週曆 td 台灣假日'],appliedToTh:['行程總覽週曆 th 四國節日','外務行程週曆 th 四國節日','會議室預約週曆 th 四國節日'],
+  order:['td 台灣節日標籤','行程卡片；th 星期文字下方顯示四國節日'],
   taiwanStyle:{background:'#dbeafe',color:'#1e40af',fontSize:'13px',fontWeight:900},
-  seaStyle:{fontSize:'12px',fontWeight:700,flags:true}
+  seaHeaderStyle:{fontSize:'11px',fontWeight:700,flags:true},tdSeaRemoved:true
 };
 </script>
 </body></html>
