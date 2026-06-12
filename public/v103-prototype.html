@@ -1,14 +1,4 @@
-FILE="v103-prototype-V280-reports-search-root-fix.html"
-MSG="fix reports nav flicker and stabilize schedule search filters"
-
-cp "public/$FILE" "public/v103-prototype.html"
-
-npm run build
-
-git status
-git add public/v103-prototype.html
-git commit -m "$MSG"
-git push<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V262</title>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V262</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -16020,6 +16010,219 @@ window.v249HolidayTagsReport={
   else setTimeout(init,250);
   setTimeout(init,900);
   setTimeout(stabilizeReportsNav,1800);
+})();
+</script>
+
+<style id="v281-core-fix-style">
+/* V281：移除個人待辦、穩定搜尋、異況協助人員下拉 */
+.navbtn[data-page="personalTodo"],button[data-page="personalTodo"],#personalTodoPage{display:none!important;visibility:hidden!important;opacity:0!important;width:0!important;height:0!important;overflow:hidden!important}
+.side .navbtn[data-page="reports"],.bottom-nav [data-page="reports"]{display:flex!important;visibility:visible!important;opacity:1!important}
+#scheduleSearchPage.v281-search .schedule-search-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;align-items:end}
+#scheduleSearchPage.v281-search .schedule-search-actions,#scheduleSearchPage.v281-search .schedule-search-pager{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#scheduleSearchPage.v281-search .schedule-search-pager{justify-content:flex-end;margin-top:10px}
+#scheduleSearchPage.v281-search select,#scheduleSearchPage.v281-search input{width:100%}
+#scheduleSearchPage.v281-search .v281-chip{display:inline-block;border:1px solid #d8dde8;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:900;background:#eef2ff;white-space:nowrap}
+.incident-helper-select{width:100%;min-height:108px;border:1px solid var(--line,#d8dde8);border-radius:10px;padding:8px;background:#fff}
+.incident-helper-hint{font-size:12px;color:#64748b;margin-top:4px}
+@media(max-width:760px){#scheduleSearchPage.v281-search .schedule-search-grid{grid-template-columns:1fr!important}}
+</style>
+<script id="v281-core-root-fix">
+(function(){
+  'use strict';
+  if(window.__FORE_V281_CORE_FIX__) return;
+  window.__FORE_V281_CORE_FIX__=true;
+
+  var STORE_KEY='translator_calendar_v81';
+  var searchPage=1, pageSize=25, lastSearchKey='';
+  function $(id){return document.getElementById(id)}
+  function qa(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel))}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function attr(v){return esc(v)}
+  function stateRef(){
+    try{if(typeof state!=='undefined'&&state){window.state=state;return state}}catch(_){ }
+    if(window.state) return window.state;
+    try{var raw=localStorage.getItem(STORE_KEY); if(raw){window.state=JSON.parse(raw);return window.state}}catch(_){ }
+    window.state={events:[],externalEvents:[],roomBookings:[],incidents:[],incidentLogs:[],people:[]};return window.state;
+  }
+  function saveState(){try{if(typeof save==='function')save();else localStorage.setItem(STORE_KEY,JSON.stringify(stateRef()))}catch(_){try{localStorage.setItem(STORE_KEY,JSON.stringify(stateRef()))}catch(__){}}}
+  function activePeople(){var s=stateRef();return (s.people||[]).filter(function(p){return p&&p.deleted!==true&&p.active!==false&&p.id&&p.name})}
+  function person(id){id=String(id||'');return activePeople().find(function(p){return String(p.id)===id})||null}
+  function personName(id){var p=person(id);return p?p.name:''}
+  function personDept(id){var p=person(id);return p?(p.group||p.department||p.dept||''):''}
+  function uniq(arr){var out=[];(arr||[]).forEach(function(x){x=String(x||'').trim();if(x&&out.indexOf(x)<0)out.push(x)});return out}
+  function val(id){var el=$(id);return el?String(el.value||''):''}
+  function opt(v,t,sel){return '<option value="'+attr(v)+'" '+(sel?'selected':'')+'>'+esc(t)+'</option>'}
+  function today(){try{return typeof todayISO==='function'?todayISO():new Date().toISOString().slice(0,10)}catch(_){return new Date().toISOString().slice(0,10)}}
+
+  /* 6. 個人待辦：不再隱藏，直接移除並封鎖舊函式重建 */
+  function removePersonalTodo(){
+    qa('[data-page="personalTodo"],#personalTodoPage').forEach(function(el){try{el.remove()}catch(_){el.style.display='none'}});
+  }
+  window.showPersonalTodoPageV200=function(){removePersonalTodo();return false};
+  window.renderPersonalTodoPageV200=function(){removePersonalTodo();return false};
+  window.showPersonalTodoPageV202=function(){removePersonalTodo();return false};
+  window.renderPersonalTodoPageV202=function(){removePersonalTodo();return false};
+  document.addEventListener('click',function(e){var b=e.target&&e.target.closest&&e.target.closest('[data-page="personalTodo"]');if(b){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();removePersonalTodo();return false}},true);
+  var todoObserver=new MutationObserver(removePersonalTodo);
+  try{todoObserver.observe(document.documentElement,{childList:true,subtree:true})}catch(_){ }
+
+  /* 2. 外務人員：來源改成系統全部啟用人員，配色跟行程總覽一致 */
+  function allActiveExternalPeople(){return activePeople()}
+  try{window.externalPeople=allActiveExternalPeople;(0,eval)('externalPeople=window.externalPeople')}catch(_){window.externalPeople=allActiveExternalPeople}
+  function groupClassByText(txt){txt=String(txt||'');if(txt.indexOf('一部')>=0)return 'group-one';if(txt.indexOf('二部')>=0)return 'group-two';return ''}
+  function applyFieldPersonColors(){
+    qa('#fieldCalendarArea .person-cell').forEach(function(cell){
+      var name=cell.querySelector('.person-name'); if(!name)return;
+      var meta=(cell.querySelector('.muted')||{}).textContent||'';
+      name.classList.remove('group-one','group-two');
+      var cls=groupClassByText(meta); if(cls)name.classList.add(cls);
+    });
+  }
+  function patchFieldCalendar(){
+    try{window.externalPeople=allActiveExternalPeople;(0,eval)('externalPeople=window.externalPeople')}catch(_){ }
+    if(typeof renderFieldCalendar==='function'&&!renderFieldCalendar.__v281){
+      var old=renderFieldCalendar;
+      window.renderFieldCalendar=renderFieldCalendar=function(){
+        try{window.externalPeople=allActiveExternalPeople;(0,eval)('externalPeople=window.externalPeople')}catch(_){ }
+        var r=old.apply(this,arguments);
+        setTimeout(applyFieldPersonColors,0);
+        return r;
+      };
+      renderFieldCalendar.__v281=true;
+    }
+    if(typeof renderFieldOptions==='function'&&!renderFieldOptions.__v281){
+      var oldOpt=renderFieldOptions;
+      window.renderFieldOptions=renderFieldOptions=function(){try{window.externalPeople=allActiveExternalPeople;(0,eval)('externalPeople=window.externalPeople')}catch(_){};return oldOpt.apply(this,arguments)};
+      renderFieldOptions.__v281=true;
+    }
+  }
+
+  /* 3-5. 異況協助人員：三個欄位都改成 select multiple，並可正常儲存 */
+  function selectedIds(id){var el=$(id);if(!el)return[];if(el.tagName==='SELECT')return qa('option',el).filter(function(o){return o.selected}).map(function(o){return o.value});return qa('input[type=checkbox]:checked',el).map(function(cb){return cb.value})}
+  function setSelected(id,ids){var el=$(id);if(!el)return;var set=new Set((ids||[]).map(String));if(el.tagName==='SELECT')qa('option',el).forEach(function(o){o.selected=set.has(String(o.value))});else qa('input[type=checkbox]',el).forEach(function(cb){cb.checked=set.has(String(cb.value))})}
+  function ensureFollowContainers(){
+    var mainTime=$('incidentNextFollowTime')&&$('incidentNextFollowTime').closest('.field');
+    if(mainTime&&!$('incidentNextFollowHelpers')){
+      var wrap=document.createElement('div');wrap.id='incidentNextFollowHelpersWrap';wrap.className='field follow-helper-wrap';wrap.innerHTML='<label>下次追蹤協助人員</label><select multiple id="incidentNextFollowHelpers" class="incident-helper-select"></select><div class="incident-helper-hint">按住 Ctrl（Mac: Cmd）可多選</div>';
+      var row=mainTime.parentElement; if(row&&row.classList.contains('row'))row.insertAdjacentElement('afterend',wrap);else mainTime.insertAdjacentElement('afterend',wrap);
+    }
+    var logTime=$('incidentLogNextFollowTime')&&$('incidentLogNextFollowTime').closest('.field');
+    if(logTime&&!$('incidentLogNextFollowHelpers')){
+      var w=document.createElement('div');w.id='incidentLogNextFollowHelpersWrap';w.className='field follow-helper-wrap';w.innerHTML='<label>新增追蹤紀錄｜下次追蹤協助人員</label><select multiple id="incidentLogNextFollowHelpers" class="incident-helper-select"></select><div class="incident-helper-hint">按住 Ctrl（Mac: Cmd）可多選</div>';
+      var r=logTime.parentElement; if(r&&r.classList.contains('row'))r.insertAdjacentElement('afterend',w);else logTime.insertAdjacentElement('afterend',w);
+    }
+  }
+  function ensureIncidentSelect(id,ids){
+    ensureFollowContainers();
+    var old=$(id);if(!old)return null;
+    var current=ids||selectedIds(id);
+    var sel=old;
+    if(old.tagName!=='SELECT'){
+      sel=document.createElement('select');sel.id=id;sel.multiple=true;sel.className='incident-helper-select';sel.title='按住 Ctrl（Mac: Cmd）可多選';
+      old.parentNode.replaceChild(sel,old);
+    }
+    sel.multiple=true;sel.classList.add('incident-helper-select');sel.title='按住 Ctrl（Mac: Cmd）可多選';
+    sel.innerHTML=activePeople().map(function(p){var dept=p.group||p.department||'';return opt(p.id,(p.name||'')+(dept?' ｜ '+dept:''),current.map(String).indexOf(String(p.id))>=0)}).join('');
+    if(!sel.nextElementSibling||!sel.nextElementSibling.classList||!sel.nextElementSibling.classList.contains('incident-helper-hint')){
+      var hint=document.createElement('div');hint.className='incident-helper-hint';hint.textContent='按住 Ctrl（Mac: Cmd）可多選';sel.insertAdjacentElement('afterend',hint);
+    }
+    return sel;
+  }
+  function ensureIncidentHelperSelects(inc){
+    var main=(inc&&inc.nextFollowHelperPersonIds&&inc.nextFollowHelperPersonIds.length)?inc.nextFollowHelperPersonIds:(inc&&inc.helperPersonIds||[]);
+    ensureIncidentSelect('incidentHelpers',inc&&inc.helperPersonIds||selectedIds('incidentHelpers'));
+    ensureIncidentSelect('incidentNextFollowHelpers',main);
+    ensureIncidentSelect('incidentLogNextFollowHelpers',main);
+  }
+  function currentIncident(){var id=val('incidentId');var s=stateRef();return id?(s.incidents||[]).find(function(x){return String(x.id)===String(id)}):null}
+  function patchIncident(){
+    if(typeof renderIncidentOptions==='function'&&!renderIncidentOptions.__v281){
+      var oldOpt=renderIncidentOptions; window.renderIncidentOptions=renderIncidentOptions=function(){var r=oldOpt.apply(this,arguments);setTimeout(function(){ensureIncidentHelperSelects(currentIncident())},0);return r};renderIncidentOptions.__v281=true;
+    }
+    if(typeof openIncidentModal==='function'&&!openIncidentModal.__v281){
+      var oldOpen=openIncidentModal; window.openIncidentModal=openIncidentModal=function(id){var r=oldOpen.apply(this,arguments);setTimeout(function(){ensureIncidentHelperSelects(currentIncident())},30);setTimeout(function(){ensureIncidentHelperSelects(currentIncident())},180);return r};openIncidentModal.__v281=true;
+    }
+    if(typeof collectIncident==='function'&&!collectIncident.__v281){
+      var oldCollect=collectIncident; window.collectIncident=collectIncident=function(){var d=oldCollect.apply(this,arguments)||{};d.helperPersonIds=selectedIds('incidentHelpers');d.nextFollowHelperPersonIds=selectedIds('incidentNextFollowHelpers');return d};collectIncident.__v281=true;
+    }
+    if(typeof saveIncident==='function'&&!saveIncident.__v281){
+      var oldSave=saveIncident; window.saveIncident=saveIncident=function(){ensureIncidentHelperSelects(currentIncident());var idBefore=val('incidentId');var helpers=selectedIds('incidentHelpers');var nextHelpers=selectedIds('incidentNextFollowHelpers');var r=oldSave.apply(this,arguments);setTimeout(function(){var s=stateRef();var id=val('incidentId')||idBefore;var inc=(s.incidents||[]).find(function(x){return String(x.id)===String(id)});if(inc){inc.helperPersonIds=helpers;inc.nextFollowHelperPersonIds=nextHelpers;saveState();ensureIncidentHelperSelects(inc);try{if(typeof renderIncidents==='function')renderIncidents()}catch(_){}}},220);return r};saveIncident.__v281=true;
+    }
+    if(typeof addIncidentLog==='function'&&!addIncidentLog.__v281){
+      var oldLog=addIncidentLog; window.addIncidentLog=addIncidentLog=function(){ensureIncidentHelperSelects(currentIncident());var incidentId=val('incidentId');var logHelpers=selectedIds('incidentLogNextFollowHelpers');var r=oldLog.apply(this,arguments);setTimeout(function(){var s=stateRef();var inc=(s.incidents||[]).find(function(x){return String(x.id)===String(incidentId)});var latest=(s.incidentLogs||[]).slice().reverse().find(function(x){return x&&!x.deleted&&String(x.incidentId)===String(incidentId)&&String(x.id).indexOf('ilog_main_follow_')!==0});if(latest)latest.nextFollowHelperPersonIds=logHelpers;if(inc&&logHelpers.length)inc.nextFollowHelperPersonIds=logHelpers;saveState();ensureIncidentHelperSelects(inc)},220);return r};addIncidentLog.__v281=true;
+    }
+  }
+
+  /* 1. 行程搜尋：用單一原生 select 版本接管，搜尋按鈕、下拉篩選皆可用 */
+  function ensureSearchNav(){
+    var side=document.querySelector('.side');
+    if(side&&!side.querySelector('[data-page="scheduleSearch"]')){var b=document.createElement('button');b.type='button';b.className='navbtn';b.dataset.page='scheduleSearch';b.innerHTML='<span class="mono-ico ico-list"></span>行程搜尋';var ref=side.querySelector('[data-page="incidents"]')||side.querySelector('[data-page="reports"]')||side.lastElementChild;if(ref)ref.insertAdjacentElement('afterend',b);else side.appendChild(b)}
+    qa('[data-page="scheduleSearch"],[data-page="reports"]').forEach(function(b){b.classList.remove('hide','role-hidden');b.hidden=false;b.removeAttribute('aria-hidden');b.style.removeProperty('display')});
+  }
+  function rowPersonIds(e){var p=[];['participants','assigneeIds','assignedPersonIds','personIds','helperPersonIds','nextFollowHelperPersonIds'].forEach(function(k){if(Array.isArray(e&&e[k]))p=p.concat(e[k])});['personId','ownerPersonId','createdPersonId','ownerPersonId'].forEach(function(k){if(e&&e[k])p.push(e[k])});return uniq(p)}
+  function allSearchRows(){
+    var s=stateRef(),rows=[],seen={};
+    (s.externalEvents||[]).forEach(function(e){if(!e||e.deleted)return;seen[e.id]=1;rows.push({src:'field',srcLabel:'外務行程',id:e.id,kind:e.purpose||e.type||'外務行程',name:e.name||e.purpose||'外務行程',date:e.date||e.startDate||'',time:e.time||e.startTime||'',status:e.status||'',loc:e.locationName||e.location||e.customerName||'',note:e.note||'',pids:rowPersonIds(e),raw:e})});
+    (s.events||[]).forEach(function(e){if(!e||e.deleted||e.status==='取消')return;if(e.externalEventId&&seen[e.externalEventId])return;rows.push({src:'event',srcLabel:'行程總覽',id:e.id,kind:e.type||e.kind||'行程',name:e.name||e.title||'',date:e.startDate||e.date||'',time:e.startTime||e.time||'',status:e.status||'',loc:e.locationName||e.location||e.customerName||'',note:e.note||e.description||'',pids:rowPersonIds(e),raw:e})});
+    (s.roomBookings||[]).forEach(function(r){if(!r||r.deleted)return;rows.push({src:'room',srcLabel:'會議室預約',id:r.id,kind:'會議室',name:r.title||r.name||'會議室預約',date:r.date||r.startDate||'',time:[r.startTime||r.time||'',r.endTime||''].filter(Boolean).join('-'),status:r.status||'',loc:r.room||r.location||'',note:r.note||r.description||'',pids:rowPersonIds(r),raw:r})});
+    (s.incidents||[]).forEach(function(i){if(!i||i.deleted)return;rows.push({src:'incident',srcLabel:'異況追蹤',id:i.id,kind:'異況',name:i.title||i.workerName||i.customerName||'異況追蹤',date:i.occurrenceDate||i.date||String(i.createdAt||'').slice(0,10),time:i.occurrenceTime||i.time||'',status:i.status||'',loc:i.location||i.customerName||'',note:i.description||i.closeNote||'',pids:rowPersonIds(i),raw:i})});
+    return rows.sort(function(a,b){return String((b.date||'')+' '+(b.time||'')).localeCompare(String((a.date||'')+' '+(a.time||'')),'zh-Hant',{numeric:true})});
+  }
+  function buildSearchPage(){
+    var main=document.querySelector('.main')||document.body;var page=$('scheduleSearchPage');if(!page){page=document.createElement('section');page.id='scheduleSearchPage';page.className='page hide';main.appendChild(page)}
+    page.__v235Ready=true;page.__v280Blocked=true;page.classList.add('v281-search');
+    if(page.dataset.v281Ready==='1')return page;
+    page.dataset.v281Ready='1';
+    page.innerHTML='<div class="panel"><div class="section-title"><h2>行程搜尋</h2><div class="schedule-search-actions"><button id="scheduleSearchBtn" class="primary" type="button">搜尋</button><button id="scheduleSearchClearBtn" type="button">清除條件</button></div></div><div class="schedule-search-grid"><div class="field"><label>資料來源</label><select id="scheduleSearchSource"></select></div><div class="field"><label>人員</label><select id="scheduleSearchPeople"></select></div><div class="field"><label>部門</label><select id="scheduleSearchDepartments"></select></div><div class="field"><label>行程類型</label><select id="scheduleSearchTypes"></select></div><div class="field"><label>狀態</label><select id="scheduleSearchStatus"></select></div><div class="field"><label>起始日期</label><input id="scheduleSearchStart" type="date"></div><div class="field"><label>結束日期</label><input id="scheduleSearchEnd" type="date"></div><div class="field"><label>關鍵字</label><input id="scheduleSearchKeyword" placeholder="辦理內容、地點、備註、工人"></div></div></div><div class="panel"><div class="section-title"><h2>搜尋結果</h2><span id="scheduleSearchCount" class="muted"></span></div><div class="detail-table-wrap"><table class="table"><thead><tr><th>來源</th><th>類型</th><th>日期</th><th>辦理內容</th><th>人員</th><th>部門</th><th>地點</th><th>狀態</th><th>操作</th></tr></thead><tbody id="scheduleSearchRows"></tbody></table></div><div class="schedule-search-pager"><button id="scheduleSearchPrev" type="button">上一頁</button><span id="scheduleSearchPageInfo" class="muted"></span><button id="scheduleSearchNext" type="button">下一頁</button></div></div>';
+    bindSearch();return page;
+  }
+  function fillSearchSelects(){
+    var rows=allSearchRows(),ps=activePeople();var cur={src:val('scheduleSearchSource'),p:val('scheduleSearchPeople'),d:val('scheduleSearchDepartments'),t:val('scheduleSearchTypes'),st:val('scheduleSearchStatus')};
+    var srcs=[['all','全部來源'],['event','行程總覽'],['field','外務行程'],['room','會議室預約'],['incident','異況追蹤']];if($('scheduleSearchSource'))$('scheduleSearchSource').innerHTML=srcs.map(function(x){return opt(x[0],x[1],cur.src===x[0]||(!cur.src&&x[0]==='all'))}).join('');
+    if($('scheduleSearchPeople'))$('scheduleSearchPeople').innerHTML=opt('','全部人員',!cur.p)+ps.map(function(p){var d=p.group||p.department||'';return opt(p.id,p.name+(d?' ｜ '+d:''),cur.p===String(p.id))}).join('');
+    var depts=uniq(ps.map(function(p){return p.group||p.department||''}));if($('scheduleSearchDepartments'))$('scheduleSearchDepartments').innerHTML=opt('','全部部門',!cur.d)+depts.map(function(d){return opt(d,d,cur.d===d)}).join('');
+    var types=uniq(rows.map(function(r){return r.kind})).sort();if($('scheduleSearchTypes'))$('scheduleSearchTypes').innerHTML=opt('','全部類型',!cur.t)+types.map(function(t){return opt(t,t,cur.t===t)}).join('');
+    var sts=uniq(rows.map(function(r){return r.status})).sort();if($('scheduleSearchStatus'))$('scheduleSearchStatus').innerHTML=opt('','全部狀態',!cur.st)+sts.map(function(s){return opt(s,s,cur.st===s)}).join('');
+  }
+  function filteredSearchRows(){
+    var source=val('scheduleSearchSource'),pid=val('scheduleSearchPeople'),dept=val('scheduleSearchDepartments'),type=val('scheduleSearchTypes'),status=val('scheduleSearchStatus'),start=val('scheduleSearchStart'),end=val('scheduleSearchEnd'),kw=val('scheduleSearchKeyword').trim().toLowerCase();
+    return allSearchRows().filter(function(r){
+      if(source&&source!=='all'&&r.src!==source)return false;
+      if(pid&&r.pids.indexOf(pid)<0)return false;
+      if(dept&&!r.pids.some(function(id){return personDept(id)===dept}))return false;
+      if(type&&r.kind!==type)return false;if(status&&r.status!==status)return false;if(start&&String(r.date||'')<start)return false;if(end&&String(r.date||'')>end)return false;
+      if(kw){var hay=[r.srcLabel,r.kind,r.name,r.date,r.time,r.status,r.loc,r.note,r.pids.map(personName).join(' ')].join(' ').toLowerCase();if(hay.indexOf(kw)<0)return false}
+      return true;
+    });
+  }
+  function renderScheduleSearchV281(){
+    buildSearchPage();fillSearchSelects();var rows=filteredSearchRows();var total=Math.max(1,Math.ceil(rows.length/pageSize));searchPage=Math.min(Math.max(1,searchPage),total);var part=rows.slice((searchPage-1)*pageSize,searchPage*pageSize);
+    var html=part.map(function(r){var names=r.pids.map(personName).filter(Boolean).join('、');var depts=uniq(r.pids.map(personDept)).join('、');return '<tr><td>'+esc(r.srcLabel)+'</td><td><span class="v281-chip">'+esc(r.kind)+'</span></td><td>'+esc([r.date,r.time].filter(Boolean).join(' '))+'</td><td>'+esc(r.name)+'</td><td>'+esc(names)+'</td><td>'+esc(depts)+'</td><td>'+esc(r.loc)+'</td><td>'+esc(r.status)+'</td><td><button class="small primary" type="button" data-v281-open="'+attr(r.src)+'" data-v281-id="'+attr(r.id)+'">查看</button></td></tr>'}).join('')||'<tr><td colspan="9" class="muted">沒有符合條件的行程</td></tr>';
+    var key=html+'|'+rows.length+'|'+searchPage+'|'+total;if(key!==lastSearchKey){if($('scheduleSearchRows'))$('scheduleSearchRows').innerHTML=html;lastSearchKey=key}
+    if($('scheduleSearchCount'))$('scheduleSearchCount').textContent='共 '+rows.length+' 筆';if($('scheduleSearchPageInfo'))$('scheduleSearchPageInfo').textContent='第 '+searchPage+' / '+total+' 頁';if($('scheduleSearchPrev'))$('scheduleSearchPrev').disabled=searchPage<=1;if($('scheduleSearchNext'))$('scheduleSearchNext').disabled=searchPage>=total;
+  }
+  function showSearchPage(){try{currentPage='scheduleSearch'}catch(_){}buildSearchPage();qa('.page').forEach(function(p){p.classList.add('hide')});var p=$('scheduleSearchPage');if(p)p.classList.remove('hide');qa('.navbtn').forEach(function(b){b.classList.toggle('active',b.dataset.page==='scheduleSearch')});renderScheduleSearchV281()}
+  function bindSearch(){
+    ['scheduleSearchSource','scheduleSearchPeople','scheduleSearchDepartments','scheduleSearchTypes','scheduleSearchStatus','scheduleSearchStart','scheduleSearchEnd'].forEach(function(id){var el=$(id);if(el&&!el.__v281){el.__v281=1;el.addEventListener('change',function(){searchPage=1;renderScheduleSearchV281()})}});
+    var kw=$('scheduleSearchKeyword');if(kw&&!kw.__v281){kw.__v281=1;kw.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();searchPage=1;renderScheduleSearchV281()}})}
+    var btn=$('scheduleSearchBtn');if(btn&&!btn.__v281){btn.__v281=1;btn.onclick=function(e){if(e){e.preventDefault();e.stopPropagation()}searchPage=1;renderScheduleSearchV281();return false}}
+    var clear=$('scheduleSearchClearBtn');if(clear&&!clear.__v281){clear.__v281=1;clear.onclick=function(e){if(e)e.preventDefault();['scheduleSearchKeyword','scheduleSearchPeople','scheduleSearchDepartments','scheduleSearchTypes','scheduleSearchStatus','scheduleSearchStart','scheduleSearchEnd'].forEach(function(id){var el=$(id);if(el)el.value=''});if($('scheduleSearchSource'))$('scheduleSearchSource').value='all';searchPage=1;renderScheduleSearchV281()}}
+    var prev=$('scheduleSearchPrev');if(prev&&!prev.__v281){prev.__v281=1;prev.onclick=function(e){if(e)e.preventDefault();searchPage--;renderScheduleSearchV281()}}
+    var next=$('scheduleSearchNext');if(next&&!next.__v281){next.__v281=1;next.onclick=function(e){if(e)e.preventDefault();searchPage++;renderScheduleSearchV281()}}
+  }
+  function openSearchRow(src,id){try{if(src==='field'&&typeof openFieldModal==='function')return openFieldModal({id:id});if(src==='incident'&&typeof openIncidentModal==='function')return openIncidentModal(id);if(src==='room'&&typeof openRoomBookingModal==='function')return openRoomBookingModal(id);if(typeof openEventModal==='function')return openEventModal({eventId:id,id:id})}catch(e){console.warn('[V281] open row failed',e)}}
+  window.renderScheduleSearch=renderScheduleSearchV281;window.v281ShowScheduleSearch=showSearchPage;
+  document.addEventListener('click',function(e){
+    var nav=e.target&&e.target.closest&&e.target.closest('[data-page="scheduleSearch"]');if(nav){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();showSearchPage();return false}
+    var searchBtn=e.target&&e.target.closest&&e.target.closest('#scheduleSearchBtn,#v280ScheduleSearchBtn');if(searchBtn){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();searchPage=1;renderScheduleSearchV281();return false}
+    var open=e.target&&e.target.closest&&e.target.closest('[data-v281-open]');if(open){e.preventDefault();e.stopPropagation();openSearchRow(open.getAttribute('data-v281-open'),open.getAttribute('data-v281-id'));return false}
+  },true);
+
+  function init(){removePersonalTodo();ensureSearchNav();patchFieldCalendar();patchIncident();ensureIncidentHelperSelects(currentIncident());if($('scheduleSearchPage')){buildSearchPage();bindSearch();}if((function(){try{return currentPage==='scheduleSearch'}catch(_){return false}})())showSearchPage();if((function(){try{return currentPage==='fieldCalendar'}catch(_){return false}})())setTimeout(applyFieldPersonColors,0)}
+  var oldRenderAll=typeof renderAll==='function'?renderAll:null;
+  if(oldRenderAll&&!oldRenderAll.__v281){window.renderAll=renderAll=function(){var r=oldRenderAll.apply(this,arguments);setTimeout(init,30);return r};renderAll.__v281=true}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(init,120)});else setTimeout(init,120);
+  setTimeout(init,600);setTimeout(init,1400);setInterval(function(){removePersonalTodo();if((function(){try{return currentPage==='scheduleSearch'}catch(_){return false}})())bindSearch();if($('incidentModal')&&!$('incidentModal').classList.contains('hide'))ensureIncidentHelperSelects(currentIncident())},1500);
 })();
 </script>
 
