@@ -1353,7 +1353,7 @@ function userPersonId(){return (currentUser?currentUser.personId:null)} function
   if(currentUser.role==='admin'||currentUser.role==='options')return 'admin';
   if(currentUser.role==='supervisor')return 'supervisor'; if(currentUser.role==='admin_staff'||currentUser.role==='adminStaff')return 'adminStaff';
   return 'staff';
-} function isAdmin(){return normalizedRole()==='admin'} function isSupervisor(){return normalizedRole()==='supervisor'} function isStaff(){return normalizedRole()==='staff'} function canManageOptions(){return isAdmin()} function canEdit(){return !!currentUser} function canDelete(){return isAdmin()} function canManagePeople(){return isAdmin()||isSupervisor()} function canAddPeople(){return isAdmin()} function canSeePage(page){return true; /* V272: 全部開放，後續重新設定 */} function isCalendarPerson(pid){const p=state.people.find(x=>x.id===pid); return !!(p&&p.active!==false)} function linesToArray(v){return String(v||'').split(/\n|,/).map(x=>x.trim()).filter(Boolean)} function normalizeEventTypeName(t){t=String(t||'').trim(); return t==='送工'?'送工(新入境、承接)':t} function cleanEventTypeList(arr){return [...new Set((arr||[]).map(normalizeEventTypeName).filter(t=>t&&t!=='外務'))]} function cleanAlertEventTypeList(arr){return [...new Set([...(arr||[]).map(normalizeEventTypeName), '驗證提醒','提醒事項'].filter(t=>t&&t!=='外務'))]} function eventTypeList(){const arr=(state.options&&state.options.eventTypes&&state.options.eventTypes.length)?state.options.eventTypes:defaultEventTypes; return cleanEventTypeList(arr)} function alertEventTypeList(){const arr=(state.options&&state.options.alertEventTypes&&state.options.alertEventTypes.length)?state.options.alertEventTypes:alertEventTypes; return cleanAlertEventTypeList(arr)} function eventTypeContentMap(){const m=Object.assign({},defaultEventTypeContents,(state.options&&state.options.eventTypeContents)||{}); delete m['外務']; if(m['送工']&&!m['送工(新入境、承接)'])m['送工(新入境、承接)']=m['送工']; delete m['送工']; return m} function eventTypeContentText(type){const m=eventTypeContentMap(); const arr=m[type]||m[displayEventType(type)]||[]; return Array.isArray(arr)?arr.join('\n'):String(arr||'')} function allEventTypeContentTexts(){const m=eventTypeContentMap(); return Object.values(m).map(v=>Array.isArray(v)?v.join('\n'):String(v||'')).filter(Boolean)} function formatEventTypeContents(map){return Object.entries(map||{}).map(([k,v])=>k+'｜'+(Array.isArray(v)?v.join('、'):String(v||''))).join('\n')} function parseEventTypeContentsText(text){const out={}; String(text||'').split(/\n/).forEach(line=>{const s=line.trim(); if(!s)return; const parts=s.split(/\s*[｜|]\s*/); const key=(parts.shift()||'').trim(); if(!key)return; const vals=parts.join('｜').split(/[、,，]/).map(x=>x.trim()).filter(Boolean); out[key]=vals.length?vals:[];}); return out} 
+} function isAdmin(){return true;} function isSupervisor(){return true;} function isStaff(){return false;} function canManageOptions(){return true;} function canEdit(){return !!currentUser} function canDelete(){return true;} function canManagePeople(){return isAdmin()||isSupervisor()} function canAddPeople(){return true;} function canSeePage(page){return true;} function isCalendarPerson(pid){const p=state.people.find(x=>x.id===pid); return !!(p&&p.active!==false)} function linesToArray(v){return String(v||'').split(/\n|,/).map(x=>x.trim()).filter(Boolean)} function normalizeEventTypeName(t){t=String(t||'').trim(); return t==='送工'?'送工(新入境、承接)':t} function cleanEventTypeList(arr){return [...new Set((arr||[]).map(normalizeEventTypeName).filter(t=>t&&t!=='外務'))]} function cleanAlertEventTypeList(arr){return [...new Set([...(arr||[]).map(normalizeEventTypeName), '驗證提醒','提醒事項'].filter(t=>t&&t!=='外務'))]} function eventTypeList(){const arr=(state.options&&state.options.eventTypes&&state.options.eventTypes.length)?state.options.eventTypes:defaultEventTypes; return cleanEventTypeList(arr)} function alertEventTypeList(){const arr=(state.options&&state.options.alertEventTypes&&state.options.alertEventTypes.length)?state.options.alertEventTypes:alertEventTypes; return cleanAlertEventTypeList(arr)} function eventTypeContentMap(){const m=Object.assign({},defaultEventTypeContents,(state.options&&state.options.eventTypeContents)||{}); delete m['外務']; if(m['送工']&&!m['送工(新入境、承接)'])m['送工(新入境、承接)']=m['送工']; delete m['送工']; return m} function eventTypeContentText(type){const m=eventTypeContentMap(); const arr=m[type]||m[displayEventType(type)]||[]; return Array.isArray(arr)?arr.join('\n'):String(arr||'')} function allEventTypeContentTexts(){const m=eventTypeContentMap(); return Object.values(m).map(v=>Array.isArray(v)?v.join('\n'):String(v||'')).filter(Boolean)} function formatEventTypeContents(map){return Object.entries(map||{}).map(([k,v])=>k+'｜'+(Array.isArray(v)?v.join('、'):String(v||''))).join('\n')} function parseEventTypeContentsText(text){const out={}; String(text||'').split(/\n/).forEach(line=>{const s=line.trim(); if(!s)return; const parts=s.split(/\s*[｜|]\s*/); const key=(parts.shift()||'').trim(); if(!key)return; const vals=parts.join('｜').split(/[、,，]/).map(x=>x.trim()).filter(Boolean); out[key]=vals.length?vals:[];}); return out} 
 let eventTypeContentEditingType='';
 function splitEventTypeContentEditor(text){return String(text||'').split(/\n|[、,，]/).map(x=>x.trim()).filter(Boolean)}
 function getOptionEventTypeContentMap(){return Object.assign({},defaultEventTypeContents,parseEventTypeContentsText($('optEventTypeContents')?$('optEventTypeContents').value:''))}
@@ -1435,16 +1435,13 @@ function showApp(){
 function logout(){safeRemoveSession(); currentUser=null; $('appView').classList.add('hide'); $('loginView').classList.remove('hide')}
 
 function applyPermissionsUI(){
-  document.querySelectorAll('.navbtn').forEach(btn=>{btn.classList.toggle('hide',!canSeePage(btn.dataset.page));});
-  if($('addEventBtn'))$('addEventBtn').classList.toggle('hide',!canEdit());
-  if($('addPersonBtn'))$('addPersonBtn').classList.toggle('hide',!canAddPeople());
-  if($('addUserBtn'))$('addUserBtn').classList.toggle('hide',!isAdmin());
-  const exportIds=['exportCsvBtn','fieldExportBtn','exportFieldDetailsBtn','exportPersonalDetailsBtn','exportIncidentsBtn','exportReportBtn','exportLogBtn','exportServiceRecordsBtn'];
-  const hideExport=isStaff()||window.innerWidth<=760;
-  exportIds.forEach(id=>{const el=$(id); if(el)el.classList.toggle('hide', hideExport || (id==='exportLogBtn'&&!isAdmin()));});
-  if($('saveOptions'))$('saveOptions').disabled=!canManageOptions();
-  if($('resetOptions'))$('resetOptions').disabled=!canManageOptions();
-  if(currentPage&&!canSeePage(currentPage)){currentPage='calendar';document.querySelectorAll('.page').forEach(p=>p.classList.add('hide'));$('calendarPage').classList.remove('hide');document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page==='calendar'));}
+  document.querySelectorAll('.navbtn').forEach(btn=>{
+    btn.classList.remove('hide','role-hidden');
+    btn.style.removeProperty('display');
+  });
+  ['addEventBtn','addPersonBtn','addUserBtn'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.classList.remove('hide');
+  });
 }
 
 function syncEventDateRange(){
@@ -2145,7 +2142,7 @@ function saveReportSnapshot(){if(!$('reportMonth'))return; const snap=currentRep
 function exportReports(){if(!$('reportMonth'))return; const ym=$('reportMonth').value||monthISO(); const year=Number($('reportYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym); const monthData=buildReportData(ms,me); const yearData=buildReportData(`${year}-01-01`,`${year}-12-31`); const rows=[['區間','部門','人員名稱','職務','總數','未完成','已完成','取消','分類','分類數']]; function addRows(label,data){const activeTypes=data.types.filter(t=>data.rows.some(r=>(r.byType[t]||0)>0)); data.rows.forEach(r=>{rows.push([label,r.person.group,r.person.name,r.person.lang,r.total,r.undone,r.done,r.cancel,'全部',r.total]); activeTypes.forEach(t=>rows.push([label,r.person.group,r.person.name,r.person.lang,r.total,r.undone,r.done,r.cancel,t,r.byType[t]||0]));}); ['一部翻譯','二部翻譯','總計'].forEach(g=>{const r=data.dept[g]; rows.push([label,g,'部門總計','',r.total,r.undone,r.done,r.cancel,'全部',r.total]);});} addRows(`月統計 ${ym}`,monthData); addRows(`年度統計 ${year}`,yearData); exportCsv(rows,`行程統計_${ym}_${year}.csv`)}
 function initServiceFilters(){if(!$('serviceMonth'))return; if(!$('serviceMonth').value)$('serviceMonth').value=monthISO(); if(!$('serviceYear').value)$('serviceYear').value=($('serviceMonth').value||monthISO()).slice(0,4)}
 function serviceFilterPeople(){let people=state.people.filter(reportEligiblePerson); const g=$('serviceGroup')?$('serviceGroup').value:''; if(g)people=people.filter(p=>p.group===g); return people}
-function renderServiceRecords(){if(typeof normalizedRole==='function'&&normalizedRole()==='staff'){return;}if(!$('serviceMonth'))return; initServiceFilters(); const ym=$('serviceMonth').value||monthISO(); const year=Number($('serviceYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym); const people=serviceFilterPeople(); const md=serviceRecordsInRange(ms,me,people).filter(x=>!x.submitted); const yd=serviceRecordsInRange(`${year}-01-01`,`${year}-12-31`,people).filter(x=>!x.submitted); function stats(rows){const one=rows.filter(x=>x.person.group==='一部翻譯').length,two=rows.filter(x=>x.person.group==='二部翻譯').length; return `<div class="stat"><div class="muted">未交總數</div><b>${rows.length}</b></div><div class="stat"><div class="muted">一部翻譯未交</div><b>${one}</b></div><div class="stat"><div class="muted">二部翻譯未交</div><b>${two}</b></div>`} if($('serviceMonthStats'))$('serviceMonthStats').innerHTML=stats(md); if($('serviceYearStats'))$('serviceYearStats').innerHTML=stats(yd); const rowHtml=rows=>rows.sort((a,b)=>(a.date+a.person.group+a.person.name).localeCompare(b.date+b.person.group+b.person.name)).map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.person.group)}</td><td>${esc(x.person.name)}</td><td>${esc(x.person.lang)}</td><td>${esc(displayEventType(x.event.type))}</td><td>${esc(x.event.name)}</td><td>${esc(x.event.locationName||'')}</td><td>${esc(x.event.status)}</td><td>🔴 未交</td></tr>`).join('')||'<tr><td colspan="9" class="muted">沒有未交明細</td></tr>'; if($('serviceMonthDetailRows'))$('serviceMonthDetailRows').innerHTML=rowHtml(md); if($('serviceYearDetailRows'))$('serviceYearDetailRows').innerHTML=rowHtml(yd)}
+function renderServiceRecords(){/* V273: 已移除 staff 限制 */if(!$('serviceMonth'))return; initServiceFilters(); const ym=$('serviceMonth').value||monthISO(); const year=Number($('serviceYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym); const people=serviceFilterPeople(); const md=serviceRecordsInRange(ms,me,people).filter(x=>!x.submitted); const yd=serviceRecordsInRange(`${year}-01-01`,`${year}-12-31`,people).filter(x=>!x.submitted); function stats(rows){const one=rows.filter(x=>x.person.group==='一部翻譯').length,two=rows.filter(x=>x.person.group==='二部翻譯').length; return `<div class="stat"><div class="muted">未交總數</div><b>${rows.length}</b></div><div class="stat"><div class="muted">一部翻譯未交</div><b>${one}</b></div><div class="stat"><div class="muted">二部翻譯未交</div><b>${two}</b></div>`} if($('serviceMonthStats'))$('serviceMonthStats').innerHTML=stats(md); if($('serviceYearStats'))$('serviceYearStats').innerHTML=stats(yd); const rowHtml=rows=>rows.sort((a,b)=>(a.date+a.person.group+a.person.name).localeCompare(b.date+b.person.group+b.person.name)).map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.person.group)}</td><td>${esc(x.person.name)}</td><td>${esc(x.person.lang)}</td><td>${esc(displayEventType(x.event.type))}</td><td>${esc(x.event.name)}</td><td>${esc(x.event.locationName||'')}</td><td>${esc(x.event.status)}</td><td>🔴 未交</td></tr>`).join('')||'<tr><td colspan="9" class="muted">沒有未交明細</td></tr>'; if($('serviceMonthDetailRows'))$('serviceMonthDetailRows').innerHTML=rowHtml(md); if($('serviceYearDetailRows'))$('serviceYearDetailRows').innerHTML=rowHtml(yd)}
 function exportServiceRecords(){if(!$('serviceMonth'))return; initServiceFilters(); const ym=$('serviceMonth').value||monthISO(); const [ms,me]=monthRange(ym); const people=serviceFilterPeople(); const rows=[['日期','部門','人員','職務','行程類型','辦理內容','地點 / 客戶','狀態','繳交狀態']]; serviceRecordsInRange(ms,me,people).filter(x=>!x.submitted).forEach(x=>rows.push([x.date,x.person.group,x.person.name,x.person.lang,displayEventType(x.event.type),x.event.name,x.event.locationName||'',x.event.status,'未交'])); exportCsv(rows,`未交服務紀錄單_${ym}.csv`)}
 
 function exportEvents(){const rows=[['行程ID','類別','狀態','起日','迄日','開始時間','結束時間','類型','附加行程類型','附加行程備註','辦理內容','地點 / 客戶','地址','公務車調整','相關人員','建立人','建立時間','最後修改人','最後修改時間','是否刪除','刪除原因','服務紀錄單','繳交日期','下次回診日期','下次回診時間','下次回診人員','掛號號碼','內容說明']]; state.events.forEach(e=>rows.push([e.id,e.kind,e.status,e.startDate,e.endDate,e.startTime,e.endTime,e.type,e.additionalType||'',e.additionalNote||'',e.name,e.locationName,e.address,e.vehicleNo||'',e.participants.map(id=>getPerson(id).name).join('、'),getUser(e.createdBy).name,e.createdAt,getUser(e.updatedBy).name,e.updatedAt,e.deleted?'是':'否',e.deleteReason||'',requiresServiceRecord(e)?(e.serviceRecordSubmitted?'已交':'未交'):'',e.serviceRecordDate||'',e.followupDate||'',e.followupTime||'',e.followupPersonId?getPerson(e.followupPersonId).name:'',e.followupRegNo||'',e.note])); exportCsv(rows,'翻譯行程匯出.csv')}
@@ -11129,8 +11126,6 @@ setInterval(v206SetupNavOrder,1500);
     return page;
   }
   function ensurePersonalTodoNavV200(){
-    // V272: 停用動態插入 personalTodo navbtn
-    return;
     const side=q('.side');
     if(side && !side.querySelector('[data-page="personalTodo"]')){
       const btn=document.createElement('button');
@@ -15785,7 +15780,7 @@ window.v249HolidayTagsReport={
   var oldRenderAll=window.renderAll;if(oldRenderAll&&!oldRenderAll.__v269){window.renderAll=renderAll=function(){var r=oldRenderAll.apply(this,arguments);setTimeout(init,60);return r};window.renderAll.__v269=true}
   var oldApply=window.applyPermissionsUI;if(oldApply&&!oldApply.__v269){window.applyPermissionsUI=applyPermissionsUI=function(){var r=oldApply.apply(this,arguments);setTimeout(init,60);return r};window.applyPermissionsUI.__v269=true}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(init,300);setTimeout(init,1200)});else{setTimeout(init,100);setTimeout(init,900)}
-  // V272: 停用 v269 setInterval 隱藏按鈕
+  // V273: 停用
   // setInterval(function(){ensureNav();fixIncidentStatusText();},2500);
   window.v269TrueRootCauseReport={
     serviceRecords:'舊版多段 canSeePage/v105AllowedPages 與 cleanServiceRecordNav 互相覆蓋，導致 serviceRecords 按鈕/頁面被後段權限清理隱藏；V269 在最後統一權限、導覽與點擊流程。',
@@ -15821,7 +15816,16 @@ window.v249HolidayTagsReport={
   }
 
   function ensureNavButton(page,label,icon,afterPage){
-    // V272: 不再動態插入 navbtn，原始 HTML 已有所有按鈕
+    var side=q('.side');
+    if(side&&!q('.side .navbtn[data-page="'+page+'"]')){
+      var b=document.createElement('button');
+      b.type='button';
+      b.className='navbtn';
+      b.dataset.page=page;
+      b.innerHTML='<span class="mono-ico '+icon+'"></span>'+label;
+      var ref=q('.side .navbtn[data-page="'+afterPage+'"]')||q('.side .navbtn[data-page="reports"]')||q('.side .navbtn[data-page="calendar"]');
+      if(ref)ref.insertAdjacentElement('afterend',b);else side.appendChild(b);
+    }
   }
 
   function forceVisibleNav(){
@@ -15930,7 +15934,7 @@ window.v249HolidayTagsReport={
   function init(){forceVisibleNav();fixIncidentOpenText();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(init,80);setTimeout(init,600);setTimeout(init,1600)});
   else{setTimeout(init,20);setTimeout(init,500);setTimeout(init,1500)}
-  // V272: 停用 v270 setInterval
+  // V273: 停用
   // setInterval(function(){forceVisibleNav();fixIncidentOpenText();},1800);
 
   window.v270RestoreReport={
@@ -15942,90 +15946,60 @@ window.v249HolidayTagsReport={
 </script>
 
 
-<script id="v272-stable-nav-fix">
-/*
-  V272: 穩定導覽列
-  - 原始 HTML 已有所有 navbtn，不再動態插入
-  - 停用所有 setInterval 隱藏/顯示搶奪
-  - 一次性確保所有按鈕可見
-  - 取消所有權限設置
-*/
+<script id="v273-open-all-permissions">
 (function(){
   'use strict';
-  if(window.__V272__) return;
-  window.__V272__ = true;
+  if(window.__V273__) return;
+  window.__V273__ = true;
 
-  /* 取消所有權限 */
-  window.canSeePage   = function(){ return true; };
-  window.canEdit      = function(){ return true; };
-  window.canAddPeople = function(){ return true; };
-  window.canService   = function(){ return true; };
-  window.canIncidents = function(){ return true; };
-  window.isAdmin      = function(){ return true; };
-  window.isSupervisor = function(){ return true; };
+  // 全部權限開放
+  window.canSeePage    = function(){ return true; };
+  window.canEdit       = function(){ return true; };
+  window.canDelete     = function(){ return true; };
+  window.canAddPeople  = function(){ return true; };
+  window.canManageOptions = function(){ return true; };
+  window.canService    = function(){ return true; };
+  window.canIncidents  = function(){ return true; };
+  window.isAdmin       = function(){ return true; };
+  window.isSupervisor  = function(){ return true; };
+  window.isStaff       = function(){ return false; };
 
-  /* 一次性顯示所有 navbtn，不使用 setInterval */
-  function showAllNavOnce(){
-    document.querySelectorAll('.navbtn').forEach(function(btn){
-      btn.classList.remove('hide','role-hidden');
-      btn.hidden = false;
-      btn.removeAttribute('aria-hidden');
-      btn.style.removeProperty('display');
-    });
-    // 移除多餘的重複按鈕（同一 data-page 只保留第一個）
+  // 顯示所有 navbtn（移除重複，只保留第一個）
+  function showAll(){
     var seen = {};
     document.querySelectorAll('.side .navbtn[data-page]').forEach(function(btn){
-      var page = btn.dataset.page;
-      if(seen[page]){
-        btn.parentNode && btn.parentNode.removeChild(btn);
+      var pg = btn.dataset.page;
+      if(seen[pg]){
+        if(btn.parentNode) btn.parentNode.removeChild(btn);
       } else {
-        seen[page] = true;
+        seen[pg] = true;
+        btn.classList.remove('hide','role-hidden');
+        btn.hidden = false;
+        btn.removeAttribute('aria-hidden');
+        btn.style.removeProperty('display');
       }
     });
-  }
-
-  /* applyPermissionsUI 不隱藏任何按鈕 */
-  window.applyPermissionsUI = function(){
-    showAllNavOnce();
-    ['addEventBtn','addPersonBtn','addUserBtn'].forEach(function(id){
-      var el = document.getElementById(id);
-      if(el) el.classList.remove('hide');
+    document.querySelectorAll('.bottom-nav .navbtn[data-page]').forEach(function(btn){
+      btn.classList.remove('hide','role-hidden');
+      btn.hidden = false;
+      btn.style.removeProperty('display');
     });
-  };
-
-  /* 異況追蹤預設顯示當天全部 */
-  function initIncidentPage(){
-    var t = new Date();
-    var td = t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
-    var s = document.getElementById('incidentStart');
-    var e = document.getElementById('incidentEnd');
-    var cf = document.getElementById('incidentClosedFilter');
-    if(s) s.value = td;
-    if(e) e.value = td;
-    if(cf) cf.value = 'all';
-    try{ if(typeof renderIncidents==='function') renderIncidents(); }catch(_){}
   }
 
-  /* 點擊異況追蹤時初始化 */
-  document.addEventListener('click', function(ev){
-    var btn = ev.target && ev.target.closest && ev.target.closest('[data-page="incidents"]');
-    if(btn) setTimeout(initIncidentPage, 250);
-  }, true);
+  // applyPermissionsUI 只顯示，不隱藏
+  window.applyPermissionsUI = function(){ showAll(); };
 
-  /* 執行一次 */
   function init(){
-    showAllNavOnce();
-    var ip = document.getElementById('incidentsPage');
-    if(ip && !ip.classList.contains('hide')) initIncidentPage();
+    showAll();
   }
 
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', function(){ setTimeout(init, 200); });
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(init,100); });
   } else {
-    setTimeout(init, 200);
+    setTimeout(init,100);
   }
-  // 只執行兩次確保穩定，不使用 setInterval
-  setTimeout(init, 800);
+  setTimeout(init,600);
+  setTimeout(init,1500);
 })();
 </script>
 </body></html>
