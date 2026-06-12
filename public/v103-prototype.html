@@ -1,3 +1,4 @@
+
 <!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V262</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -16376,6 +16377,134 @@ window.v249HolidayTagsReport={
   function init(){try{renderSR()}catch(e){console.warn('[V282] service records failed',e)}try{restoreCalFilters(window.__v282CalendarSnap)}catch(_){ }}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(init,150)});else setTimeout(init,150);
   setTimeout(init,700);setTimeout(init,1600);
+})();
+</script>
+
+
+<script>
+/* V283 核心修正：行程/外務篩選狀態穩定、依原部門配色、人員篩選個人視圖、服務紀錄單提醒顯示 */
+(function(){
+  if(window.__V283_CAL_FIELD_SR_FIX__)return; window.__V283_CAL_FIELD_SR_FIX__=true;
+  function $(id){return document.getElementById(id)}
+  function qa(s,root){return Array.prototype.slice.call((root||document).querySelectorAll(s))}
+  function esc(s){return String(s==null?'':s).replace(/[&<>\"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]||c})}
+  function attr(s){return esc(s).replace(/'/g,'&#39;')}
+  function state(){return window.state||{people:[],events:[],externalEvents:[]}}
+  function today(){try{return typeof todayISO==='function'?todayISO():new Date().toISOString().slice(0,10)}catch(_){return new Date().toISOString().slice(0,10)}}
+  function addDays(d,n){try{if(typeof dateAdd==='function')return dateAdd(d,n)}catch(_){}var x=new Date((d||today())+'T00:00:00');x.setDate(x.getDate()+n);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')}
+  function weekStart(d){try{if(typeof weekStartISO==='function')return weekStartISO(d)}catch(_){}var x=new Date((d||today())+'T00:00:00');var day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')}
+  function weekDays(d){var s=weekStart(d);return [0,1,2,3,4,5,6].map(function(i){return addDays(s,i)})}
+  function monthDays(base){var x=new Date((base||today())+'T00:00:00');var y=x.getFullYear(),m=x.getMonth();var last=new Date(y,m+1,0).getDate();var a=[];for(var i=1;i<=last;i++)a.push(y+'-'+String(m+1).padStart(2,'0')+'-'+String(i).padStart(2,'0'));return a}
+  function fmt(d){try{return typeof fmtDate==='function'?fmtDate(d):d.slice(5).replace('-','/')}catch(_){return String(d||'').slice(5)}}
+  function weekday(d){try{return typeof weekdayFull==='function'?weekdayFull(d):['週日','週一','週二','週三','週四','週五','週六'][new Date(d+'T00:00:00').getDay()]}catch(_){return ''}}
+  function dayCls(d){try{return typeof dayClass==='function'?dayClass(d):''}catch(_){return ''}}
+  function dayStyle(d){try{return typeof calendarCellStyle==='function'?calendarCellStyle(d):''}catch(_){return ''}}
+  function hol(d){try{return typeof renderHolidayTags==='function'?renderHolidayTags(d):''}catch(_){return ''}}
+  function countryHol(d){try{return typeof renderCountryHolidayHeaderTags==='function'?renderCountryHolidayHeaderTags(d):''}catch(_){return ''}}
+  function am(t){try{return typeof ampm==='function'?ampm(t):t}catch(_){return t||''}}
+  function userPid(){try{return typeof userPersonId==='function'?userPersonId():((window.currentUser&&window.currentUser.personId)||'')}catch(_){return ''}}
+  function uniq(a){var o=[];(a||[]).forEach(function(x){x=String(x||'');if(x&&o.indexOf(x)<0)o.push(x)});return o}
+  function activePeople(){return (state().people||[]).filter(function(p){return p&&p.active!==false&&p.deleted!==true&&p.id}).sort(function(a,b){
+    var order={'一部翻譯':1,'二部翻譯':2}; var ag=order[a.group]||9,bg=order[b.group]||9; return ag-bg || String(a.group||'').localeCompare(String(b.group||''),'zh-Hant') || String(a.name||'').localeCompare(String(b.name||''),'zh-Hant',{numeric:true});
+  })}
+  function pById(id){return (state().people||[]).find(function(p){return String(p.id)===String(id)})||{id:id,name:'',group:'',lang:''}}
+  function pName(id){return pById(id).name||''}
+  function groupClass(g){g=String(g||'');if(g.indexOf('一部')>=0)return 'group-one';if(g.indexOf('二部')>=0)return 'group-two';return ''}
+  function personNameHtml(p){return '<span class="person-name '+groupClass(p.group)+'">'+esc(p.name||'')+'</span><div class="muted">'+esc([p.group,p.lang].filter(Boolean).join('｜'))+'</div>'}
+  function getMulti(id){try{if(typeof getMultiValues==='function')return getMultiValues(id).map(String)}catch(_){}var el=$(id);return el&&el.dataset.values?el.dataset.values.split('|').filter(Boolean):[]}
+  function setMulti(id,vals){try{if(typeof setMultiValues==='function')return setMultiValues(id,vals||[])}catch(_){}var el=$(id);if(el)el.dataset.values=(vals||[]).join('|')}
+  function captureOverview(){return {g:getMulti('groupFilter'),j:getMulti('jobFilter'),p:getMulti('personFilter'),t:getMulti('typeFilter'),st:$('statusFilter')?$('statusFilter').value:'',kw:$('keywordFilter')?$('keywordFilter').value:'',view:$('viewMode')?$('viewMode').value:'all',week:$('weekPicker')?$('weekPicker').value:''}}
+  function restoreOverview(s){if(!s)return;setMulti('groupFilter',s.g);setMulti('jobFilter',s.j);setMulti('personFilter',s.p);setMulti('typeFilter',s.t);if($('statusFilter'))$('statusFilter').value=s.st||'';if($('keywordFilter'))$('keywordFilter').value=s.kw||'';if($('viewMode'))$('viewMode').value=s.view||'all';if($('weekPicker'))$('weekPicker').value=s.week||today()}
+  function captureField(){return {p:getMulti('fieldPersonFilter'),loc:getMulti('fieldLocationFilter'),pur:getMulti('fieldPurposeFilter'),st:getMulti('fieldStatusFilter'),view:$('fieldViewMode')?$('fieldViewMode').value:'allWeek',week:$('fieldWeekPicker')?$('fieldWeekPicker').value:''}}
+  function restoreField(s){if(!s)return;setMulti('fieldPersonFilter',s.p);setMulti('fieldLocationFilter',s.loc);setMulti('fieldPurposeFilter',s.pur);setMulti('fieldStatusFilter',s.st);if($('fieldViewMode'))$('fieldViewMode').value=s.view||'allWeek';if($('fieldWeekPicker'))$('fieldWeekPicker').value=s.week||today()}
+  function normalizeType(x){var t=String((typeof x==='string'?x:(x&&(x.type||x.additionalType||x.kind)))||'').replace(/\s+/g,'');try{if(typeof displayEventType==='function')t=String(displayEventType(t)).replace(/\s+/g,'')}catch(_){}if(t.indexOf('醫療')===0||['看診','回診','住院','急診','開刀'].indexOf(t)>=0)return '醫療';if(t.indexOf('銀行')===0||['開戶','補辦','領錢','異動'].indexOf(t)>=0)return '銀行';if(t.indexOf('定期')===0||t.indexOf('開會')>=0)return '定期';if(t.indexOf('送工')===0||t.indexOf('新入境')>=0||t.indexOf('承接')>=0)return '送工';if(t.indexOf('車禍處理')===0||['做筆錄','現場協調','和解','出庭'].some(function(s){return t.indexOf(s)>=0}))return '車禍處理';if(t.indexOf('面談')===0)return '面談';if(t.indexOf('上線')>=0||t.indexOf('教育訓練')>=0)return '上線/教育訓練';return t.replace(/\(.*/,'').replace(/（.*/,'')}
+  function requiresSR(e){return ['醫療','銀行','定期','送工','車禍處理','面談','上線/教育訓練'].indexOf(normalizeType(e))>=0}
+  function srDone(e){return !!(e&&e.serviceRecordSubmitted&&e.serviceRecordDate)}
+  function srLine(e){if(!requiresSR(e))return '';return srDone(e)?'(服務紀錄單已交)':'(服務紀錄單未交)'}
+  window.requiresServiceRecord=function(x){return requiresSR(x)};
+  window.serviceRecordText=function(e){return srLine(e)};
+
+  function passEventFilters(e){
+    if(!e||e.deleted)return false;
+    var types=getMulti('typeFilter'); if(types.length&&types.indexOf(String(e.type||''))<0&&types.indexOf(normalizeType(e))<0)return false;
+    var st=$('statusFilter')?$('statusFilter').value:''; if(st&&String(e.status||'')!==st)return false;
+    var kw=($('keywordFilter')?$('keywordFilter').value:'').trim().toLowerCase(); if(kw&&[e.locationName,e.name,e.type,e.note,e.address,e.vehicleNo,e.fieldStatus].join(' ').toLowerCase().indexOf(kw)<0)return false;
+    return true;
+  }
+  function overviewPeople(){
+    var ps=activePeople(), g=getMulti('groupFilter'), j=getMulti('jobFilter'), p=getMulti('personFilter');
+    if(g.length)ps=ps.filter(function(x){return g.indexOf(String(x.group||''))>=0});
+    if(j.length)ps=ps.filter(function(x){return j.indexOf(String(x.lang||''))>=0});
+    if(p.length)ps=ps.filter(function(x){return p.indexOf(String(x.id))>=0});
+    return ps;
+  }
+  function modePeopleForOverview(){
+    var mode=$('viewMode')?$('viewMode').value:'all'; var selectedPeople=getMulti('personFilter'), selectedGroups=getMulti('groupFilter'), selectedJobs=getMulti('jobFilter');
+    if(mode==='all')return overviewPeople();
+    if(selectedPeople.length||selectedGroups.length||selectedJobs.length)return overviewPeople();
+    var pid=userPid();var p=pid?pById(pid):null;return p&&p.id?[p]:(overviewPeople()[0]?[overviewPeople()[0]]:[]);
+  }
+  function eventsFor(d,pid){return (state().events||[]).filter(function(e){var ids=(e.participants||[]).concat(e.assigneeIds||[],e.assignedPersonIds||[]).map(String);var sd=e.startDate||e.date||'', ed=e.endDate||sd;return ids.indexOf(String(pid))>=0&&String(sd)<=d&&d<=String(ed||sd)&&passEventFilters(e)}).sort(function(a,b){return String(a.startTime||'99:99').localeCompare(String(b.startTime||'99:99'))})}
+  function eventCard(e){
+    var isField=e.externalKind==='field'||e.fieldType==='外務行程'||e.type==='外務';
+    var done=String(e.status||'')==='已完成';var cancel=String(e.status||'')==='取消';var typ=normalizeType(e)||String(e.type||'行程');
+    var name=isField?(e.locationName||e.name||''):(e.name||e.locationName||'');
+    var op='';try{op=(typeof getUser==='function'?getUser(e.updatedBy||e.createdBy).name:'')||''}catch(_){}
+    var sr=srLine(e);var srHtml=sr?'<div class="service-record" style="color:'+(srDone(e)?'#111827':'#dc2626')+';font-weight:900;margin-top:3px">'+esc(sr)+'</div>':'';
+    var add=e.additionalNote?'<div class="muted" style="font-size:11px;margin-top:2px">附加：'+esc(e.additionalNote)+'</div>':'';
+    var cls='event '+(done?'done ':'')+(cancel?'cancel ':'')+(isField?'field-event ':'');
+    var idAttr=isField&&e.externalEventId?'data-field-clean-id="'+attr(e.externalEventId)+'"':'data-id="'+attr(e.id||'')+'"';
+    return '<div class="'+cls+'" '+idAttr+' title="'+attr([typ,name,e.note||''].join('｜'))+'"><div><span class="time">'+esc(am(e.startTime||e.time||''))+'</span> '+esc(typ)+'｜'+esc(name)+(e.vehicleNo?'｜車號:'+esc(e.vehicleNo):'')+(op?'｜'+esc(op):'')+'</div>'+add+srHtml+'</div>';
+  }
+  window.eventHTML=function(e){return eventCard(e)};
+  function renderMatrix(areaId,people,days,cellPrefix){
+    var html='<div class="calendar-wrap"><table class="calendar-table"><thead><tr><th class="person-head">人員名稱 × 日期</th>'+days.map(function(d){return '<th class="'+dayCls(d)+'"><div>'+weekday(d)+'</div><div class="date-num">'+fmt(d)+'</div>'+hol(d)+countryHol(d)+'</th>'}).join('')+'</tr></thead><tbody>';
+    people.forEach(function(p){html+='<tr data-person-id="'+attr(p.id)+'"><td class="person-cell">'+personNameHtml(p)+'</td>';days.forEach(function(d){var evs=eventsFor(d,p.id);html+='<td class="day-cell '+dayCls(d)+'" '+dayStyle(d)+' data-date="'+attr(d)+'" data-person="'+attr(p.id)+'" ondblclick="return window.openOverviewCleanCell?window.openOverviewCleanCell(this,event):window.openCalendarBlankCell(this,event)"><div class="date-num">'+fmt(d)+'</div>'+hol(d)+evs.map(eventCard).join('')+'</td>'});html+='</tr>'});
+    html+='</tbody></table></div>';$(areaId).innerHTML=html;
+  }
+  function renderOverviewV283(){
+    var area=$('calendarArea');if(!area)return;var snap=captureOverview();
+    try{if(typeof syncAllExternalEvents==='function')syncAllExternalEvents()}catch(_){}
+    restoreOverview(snap);var base=($('weekPicker')&&$('weekPicker').value)||today();var mode=($('viewMode')&&$('viewMode').value)||'all';var ps=modePeopleForOverview();
+    if(mode==='personalDay')return renderMatrix('calendarArea',ps,[base]);
+    if(mode==='personalMonth')return renderMatrix('calendarArea',ps,monthDays(base));
+    return renderMatrix('calendarArea',ps,weekDays(base));
+  }
+  window.renderCalendar=renderOverviewV283;try{renderCalendar=renderOverviewV283}catch(_){}
+
+  function fieldAllEvents(){var s=state();return (s.externalEvents||[]).filter(function(e){return e&&!e.deleted}).sort(function(a,b){return String(a.date||'').localeCompare(String(b.date||''))||String(a.time||'').localeCompare(String(b.time||''))})}
+  function fieldIds(fe){var out=[];if(Array.isArray(fe.personIds))out=out.concat(fe.personIds);if(fe.personId)out.push(fe.personId);return uniq(out)}
+  function fieldPass(fe){var loc=getMulti('fieldLocationFilter'),pur=getMulti('fieldPurposeFilter'),st=getMulti('fieldStatusFilter');if(loc.length&&loc.indexOf(String(fe.locationName||''))<0)return false;if(pur.length&&pur.indexOf(String(fe.purpose||''))<0)return false;if(st.length&&st.indexOf(String(fe.status||''))<0)return false;return true}
+  function fieldEventsFor(d,pid){return fieldAllEvents().filter(function(fe){return String(fe.date||'')===String(d)&&fieldIds(fe).indexOf(String(pid))>=0&&fieldPass(fe)})}
+  function fillFieldFilterOptions(){
+    try{if(typeof renderFieldFilters==='function')renderFieldFilters()}catch(_){}
+    var snap=captureField();restoreField(snap);
+  }
+  function fieldPeople(){var ps=activePeople(),sel=getMulti('fieldPersonFilter');if(sel.length)ps=ps.filter(function(p){return sel.indexOf(String(p.id))>=0});return ps}
+  function modePeopleForField(){var mode=$('fieldViewMode')?$('fieldViewMode').value:'allWeek';var sel=getMulti('fieldPersonFilter');if(mode==='allWeek')return activePeople();if(mode==='selectedWeek')return fieldPeople();if(sel.length)return fieldPeople();var pid=userPid();var p=pid?pById(pid):null;return p&&p.id?[p]:(activePeople()[0]?[activePeople()[0]]:[])}
+  function fieldCard(fe){var flags=[fe.mustSend?'🚨 必送件':'',fe.cannotChange?'🔒 無法更換外務':''].filter(Boolean);return '<div class="event field-event" data-field-clean-id="'+attr(fe.id||'')+'"><div><span class="time">'+esc(am(fe.time||''))+'</span> '+esc(fe.purpose||'外務')+'｜'+esc(fe.locationName||'')+'</div><div class="who">'+esc(fe.status||'未完成')+'</div>'+(flags.length?'<div class="field-flag must">'+esc(flags.join('、'))+'</div>':'')+'</div>'}
+  function renderFieldV283(){
+    var area=$('fieldCalendarArea');if(!area)return;var snap=captureField();fillFieldFilterOptions();restoreField(snap);var base=($('fieldWeekPicker')&&$('fieldWeekPicker').value)||today();var mode=($('fieldViewMode')&&$('fieldViewMode').value)||'allWeek';var ps=modePeopleForField();var days=mode==='personalDay'?[base]:(mode==='personalMonth'?monthDays(base):weekDays(base));
+    var html='<div class="calendar-wrap"><table class="calendar-table"><thead><tr><th class="person-head">外務人員</th>'+days.map(function(d){return '<th class="'+dayCls(d)+'"><div>'+weekday(d)+'</div><div class="date-num">'+fmt(d)+'</div>'+hol(d)+countryHol(d)+'</th>'}).join('')+'</tr></thead><tbody>';
+    ps.forEach(function(p){html+='<tr><td class="person-cell">'+personNameHtml(p)+'</td>';days.forEach(function(d){var evs=fieldEventsFor(d,p.id);html+='<td class="day-cell '+dayCls(d)+'" '+dayStyle(d)+' data-field-clean-cell="1" data-date="'+attr(d)+'" data-person="'+attr(p.id)+'"><div class="date-num">'+fmt(d)+'</div>'+hol(d)+evs.map(fieldCard).join('')+'</td>'});html+='</tr>'});html+='</tbody></table></div>';area.innerHTML=html;
+  }
+  window.renderFieldCalendar=renderFieldV283;try{renderFieldCalendar=renderFieldV283}catch(_){}
+
+  /* 儲存/修改後不清空篩選，不跳回全部人員 */
+  window.setViewToEvent=function(e){if(!e)return;var snap=captureOverview();if(e.startDate&&$('weekPicker'))snap.week=weekStart(e.startDate);restoreOverview(snap);currentPage='calendar';qa('.page').forEach(function(p){p.classList.add('hide')});if($('calendarPage'))$('calendarPage').classList.remove('hide');qa('.navbtn').forEach(function(b){b.classList.toggle('active',b.dataset.page==='calendar')})};
+  try{setViewToEvent=window.setViewToEvent}catch(_){}
+  if(window.syncScheduleEvent&&!window.syncScheduleEvent.__v283){var oldSync=window.syncScheduleEvent;window.syncScheduleEvent=function(){var snap=captureOverview();var r=oldSync.apply(this,arguments);setTimeout(function(){restoreOverview(snap);renderOverviewV283()},60);setTimeout(function(){restoreOverview(snap);renderOverviewV283()},220);return r};window.syncScheduleEvent.__v283=true;try{syncScheduleEvent=window.syncScheduleEvent}catch(_){}}
+  if(window.renderAll&&!window.renderAll.__v283){var oldAll=window.renderAll;window.renderAll=function(){var os=captureOverview(),fs=captureField(),r;try{r=oldAll.apply(this,arguments)}catch(e){console.warn('[V283] old renderAll skipped',e)}restoreOverview(os);restoreField(fs);if($('calendarPage')&&!$('calendarPage').classList.contains('hide'))renderOverviewV283();if($('fieldCalendarPage')&&!$('fieldCalendarPage').classList.contains('hide'))renderFieldV283();return r};window.renderAll.__v283=true;try{renderAll=window.renderAll}catch(_){}}
+
+  function rerenderFromFilter(target){
+    if(/^field/.test(target)){var fs=captureField();setTimeout(function(){restoreField(fs);renderFieldV283()},0);setTimeout(function(){restoreField(fs);renderFieldV283()},120)}
+    else{var os=captureOverview();setTimeout(function(){restoreOverview(os);renderOverviewV283()},0);setTimeout(function(){restoreOverview(os);renderOverviewV283()},120)}
+  }
+  document.addEventListener('change',function(e){var id=e.target&&e.target.id;var box=e.target&&e.target.closest&&e.target.closest('.multi-select');var bid=box&&box.id;if(['weekPicker','viewMode','statusFilter'].indexOf(id)>=0||['groupFilter','jobFilter','personFilter','typeFilter'].indexOf(bid)>=0)rerenderFromFilter('overview');if(['fieldWeekPicker','fieldViewMode'].indexOf(id)>=0||['fieldPersonFilter','fieldLocationFilter','fieldPurposeFilter','fieldStatusFilter'].indexOf(bid)>=0)rerenderFromFilter('field')},true);
+  document.addEventListener('input',function(e){var id=e.target&&e.target.id;if(id==='keywordFilter')rerenderFromFilter('overview')},true);
+  document.addEventListener('click',function(e){var card=e.target&&e.target.closest&&e.target.closest('#calendarArea .event[data-id]');if(card){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();try{openEventModal({eventId:card.getAttribute('data-id')})}catch(err){console.warn('[V283] open event failed',err)}return false}var f=e.target&&e.target.closest&&e.target.closest('#fieldCalendarArea [data-field-clean-id]');if(f){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();try{if(window.openFieldModalClean)window.openFieldModalClean({id:f.getAttribute('data-field-clean-id')});else openFieldModal({id:f.getAttribute('data-field-clean-id')})}catch(err){console.warn('[V283] open field failed',err)}return false}},true);
+  document.addEventListener('dblclick',function(e){var c=e.target&&e.target.closest&&e.target.closest('#fieldCalendarArea [data-field-clean-cell]');if(c&&!e.target.closest('.event')){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();try{if(window.openFieldModalClean)window.openFieldModalClean({date:c.dataset.date,personId:c.dataset.person});else openFieldModal({date:c.dataset.date,personId:c.dataset.person})}catch(_){}}},true);
+  setTimeout(function(){try{renderOverviewV283();renderFieldV283()}catch(e){console.warn('[V283] init failed',e)}},400);
 })();
 </script>
 
