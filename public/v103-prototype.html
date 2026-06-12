@@ -1643,10 +1643,11 @@ function collectEvent(){const kind=$('eventKind').value; const isNote=kind==='ge
 function setViewToEvent(e){if(!e)return; if($('weekPicker'))$('weekPicker').value=weekStartISO(e.startDate); $('viewMode').value='all'; ['groupFilter','jobFilter','personFilter','typeFilter'].forEach(id=>clearMulti(id)); ['statusFilter','keywordFilter'].forEach(id=>{if($(id))$(id).value=''}); currentPage='calendar'; document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page==='calendar')); document.querySelectorAll('.page').forEach(p=>p.classList.add('hide')); $('calendarPage').classList.remove('hide');} 
 function syncScheduleEvent(e){
   save();
-  try{ renderAll(); }catch(err){ console.warn('[V261] renderAll',err); }
-  try{ if(typeof renderPersonalDetails==='function') renderPersonalDetails(); }catch(err){ console.warn('[V261] personalDetails',err); }
-  try{ if(typeof renderIncidents==='function') renderIncidents(); }catch(err){ console.warn('[V261] incidents',err); }
-  try{ if(typeof renderFieldCalendar==='function') renderFieldCalendar(); }catch(err){ console.warn('[V261] fieldCalendar',err); }
+  try{ renderAll(); }catch(err){ console.warn('[V262] renderAll',err); }
+  try{ if(typeof renderPersonalDetails==='function') renderPersonalDetails(); }catch(err){ console.warn('[V262] personalDetails',err); }
+  try{ if(typeof renderIncidents==='function') renderIncidents(); }catch(err){ console.warn('[V262] incidents',err); }
+  try{ if(typeof renderFieldCalendar==='function') renderFieldCalendar(); }catch(err){ console.warn('[V262] fieldCalendar',err); }
+  try{ if(typeof renderToday==='function') renderToday(); }catch(err){ console.warn('[V262] today',err); }
   return e;
 }
 window.syncScheduleEvent=syncScheduleEvent;
@@ -11795,185 +11796,13 @@ setInterval(v206SetupNavOrder,1500);
 #v218DoneEventBtn{background:#16a34a!important;border-color:#16a34a!important;color:#fff!important}
 </style>
 <script id="v218-real-fix">
-/*
-  V218 三原則修正
-  DRY：所有測試資料用同一個 isTestRecord() 判斷清理。
-  KISS：不拆主程式，只在最後加保底補丁，避免覆蓋失敗或破壞原功能。
-  SOLID：清測試資料、取消顏色、完成按鈕三段獨立處理。
-*/
+// V262: v218 已完全停用，避免 renderAll/click 誤刪正式行程
 (function(){
   'use strict';
-  const V='V218';
-  let cleaning=false, rendering=false;
-
-  function hasText(obj, words){
-    const s=JSON.stringify(obj||'');
-    return words.some(w=>s.indexOf(w)>=0);
-  }
-  function isTestRecord(x){
-    if(!x || typeof x!=='object') return false;
-    if(x.id==='ev_demo1') return true;
-    if(x.v203Marker||x.v204Marker||x.v205Marker||x.v206Marker||x.v208Marker||x.v210Marker||x.v211Marker||x.v212Marker) return true;
-    if(x.v211Marker||x.v212Marker) return true;
-    const demoCreator=['u_admin','u_staff','u_general','u_adminstaff'].includes(String(x.createdBy||''));
-    const testWords=['測試行程','測試資料','測試待辦','測試一般','測試醫療','測試醫院','測試地點','測試客戶','測試工人','催繳測試','1週提醒測試','已繳交測試','V203','V204','V205','V206','V208','V210','V211','V212','6/11 測試','黃明書基本測試','外務測試'];
-    if(false && hasText(x,testWords)) return true; // V260：避免使用者新增含「測試」等字樣的正式行程被清掉
-    if(false && demoCreator && hasText(x,['陪同看診','桃園醫院','Demo','測試'])) return true; // V260
-    return false;
-  }
-  function cleanArray(name){
-    if(!window.state || !Array.isArray(state[name])) return 0;
-    const before=state[name].length;
-    state[name]=state[name].filter(item=>!isTestRecord(item));
-    return before-state[name].length;
-  }
-  function cleanTestData(renderAfter){
-    return 0; // V262：完全停用舊版「刪除測試資料」流程，避免 render/click/interval 覆蓋正式寫入
-    if(cleaning || !window.state) return 0;
-    cleaning=true;
-    let removed=0;
-    try{
-      removed+=cleanArray('events');
-      removed+=cleanArray('externalEvents');
-      removed+=cleanArray('incidents');
-      // 追蹤紀錄若內容是測試，或來源異況已不存在，也一併清掉
-      if(Array.isArray(state.incidentLogs)){
-        const incIds=new Set((state.incidents||[]).map(i=>i.id));
-        const before=state.incidentLogs.length;
-        state.incidentLogs=state.incidentLogs.filter(l=>!isTestRecord(l) && (!l.incidentId || incIds.has(l.incidentId)));
-        removed+=before-state.incidentLogs.length;
-      }
-      // 報表快照若是測試資料產生，可保留使用者資料；這裡不動。
-      if(removed>0){
-        try{ if(typeof save==='function') save(); }catch(_){ }
-        console.info('[V218] removed test records:',removed);
-      }
-    }catch(e){console.warn('[V218] clean failed',e)}
-    finally{cleaning=false;}
-    if(removed>0 && renderAfter && !rendering){
-      rendering=true;
-      setTimeout(()=>{try{ if(typeof renderAll==='function') renderAll(); }catch(_){ } rendering=false;},80);
-    }
-    return removed;
-  }
-
-  function applyNoEventTheme(){
-    try{
-      if(window.state){
-        state.theme=state.theme||{};
-        state.theme.eventPending='#ffffff';
-        state.theme.eventDone='#ffffff';
-        if(typeof document!=='undefined'){
-          document.documentElement.style.setProperty('--theme-event-pending','#ffffff');
-          document.documentElement.style.setProperty('--theme-event-done','#ffffff');
-        }
-      }
-    }catch(_){ }
-  }
-
-  function canCompleteEvent(e){
-    try{
-      if(!e || !window.currentUser) return false;
-      if(typeof isAdmin==='function' && isAdmin()) return true;
-      const pid=(typeof userPersonId==='function')?userPersonId():(currentUser.personId||'');
-      return e.createdBy===currentUser.id || (e.participants||[]).includes(pid) || (e.assigneeIds||[]).includes(pid);
-    }catch(_){return true;}
-  }
-  function completeEventFromModal(){
-    const statusEl=document.getElementById('eventStatus');
-    if(statusEl) statusEl.value='已完成';
-    const idEl=document.getElementById('eventId');
-    const id=idEl&&idEl.value;
-    if(!id){
-      try{ if(typeof toast==='function') toast('已切換為已完成，請按儲存新增行程'); }catch(_){ }
-      return;
-    }
-    try{
-      const e=(state.events||[]).find(x=>x&&x.id===id);
-      if(!e) return;
-      if(!canCompleteEvent(e)){ if(typeof toast==='function') toast('目前帳號無法將此行程設為已完成'); return; }
-      if(typeof requiresServiceRecord==='function' && requiresServiceRecord(e) && (!e.serviceRecordSubmitted || !e.serviceRecordDate)){
-        if(typeof toast==='function') toast('此行程需先勾選服務紀錄單並填寫繳交日期，才能已完成');
-        return;
-      }
-      e.status='已完成';
-      e.updatedBy=(window.currentUser&&currentUser.id)||e.updatedBy||'';
-      e.updatedAt=new Date().toISOString();
-      if(typeof save==='function') save();
-      if(typeof closeEventModal==='function') closeEventModal(); else document.getElementById('eventModal')?.classList.add('hide');
-      if(typeof renderAll==='function') renderAll();
-      if(typeof toast==='function') toast('已完成');
-    }catch(err){console.warn('[V218] complete failed',err);}
-  }
-  function ensureDoneButton(){
-    const modal=document.getElementById('eventModal');
-    if(!modal) return;
-    const actions=modal.querySelector('.modal-actions');
-    if(!actions) return;
-    let btn=document.getElementById('v218DoneEventBtn');
-    if(!btn){
-      btn=document.createElement('button');
-      btn.id='v218DoneEventBtn';
-      btn.type='button';
-      btn.className='primary';
-      btn.textContent='已完成';
-      btn.onclick=completeEventFromModal;
-      const saveBtn=document.getElementById('saveEventBtn');
-      if(saveBtn && saveBtn.parentElement===actions) actions.insertBefore(btn, saveBtn);
-      else actions.insertBefore(btn, actions.firstChild);
-    }
-    btn.classList.remove('hide');
-    btn.disabled=false;
-  }
-
-  function patchOpenEventModal(){
-    if(window.__v218OpenEventPatched) return;
-    if(typeof window.openEventModal==='function'){
-      const old=window.openEventModal;
-      window.openEventModal=function(){
-        const r=old.apply(this,arguments);
-        setTimeout(ensureDoneButton,30);
-        setTimeout(ensureDoneButton,180);
-        return r;
-      };
-      window.__v218OpenEventPatched=true;
-    }
-  }
-  function patchRenderAll(){
-    if(window.__v218RenderPatched) return;
-    if(typeof window.renderAll==='function'){
-      const old=window.renderAll;
-      window.renderAll=function(){
-        cleanTestData(false);
-        applyNoEventTheme();
-        const r=old.apply(this,arguments);
-        setTimeout(()=>{cleanTestData(true);applyNoEventTheme();ensureDoneButton();},80);
-        return r;
-      };
-      window.__v218RenderPatched=true;
-    }
-  }
-
-  function boot(){
-    patchOpenEventModal();
-    patchRenderAll();
-    cleanTestData(true);
-    applyNoEventTheme();
-    ensureDoneButton();
-  }
-  boot();
-  document.addEventListener('DOMContentLoaded',boot);
-  document.addEventListener('click',function(e){
-    if(e.target && e.target.closest && e.target.closest('[data-event-id],.event,[data-page],#addEventBtn,#mobileAddEvent')){
-      setTimeout(()=>{cleanTestData(true);ensureDoneButton();},120);
-    }
-  },true);
-  setTimeout(boot,300);
-  setTimeout(boot,900);
-  // 舊版 seed 有多個 setTimeout/ renderAll wrapper，短時間內持續清理，避免又被補回。
-  let n=0;
-  const timer=setInterval(()=>{boot(); if(++n>=10)clearInterval(timer);},800);
-  window.v218CleanTestData=()=>cleanTestData(true);
+  if(window.__V218_DISABLED__) return;
+  window.__V218_DISABLED__ = true;
+  window.v218CleanTestData = function(){ return 0; };
+  console.log('[V262] v218 hooks disabled');
 })();
 </script>
 
@@ -12008,8 +11837,8 @@ setInterval(v206SetupNavOrder,1500);
     for(var i=0;i<markerKeys.length;i++){
       if(x[markerKeys[i]]) return true;
     }
-    // V261: 文字比對已完全停用，避免誤刪正式新增行程
-    // 只依 marker key 判斷（上方 for loop 已處理）
+    var s=v220Stringify(x);
+    // V262: 文字比對完全停用，避免誤刪正式行程
     return false;
   }
 
@@ -12112,7 +11941,7 @@ setInterval(v206SetupNavOrder,1500);
 
   // renderAll 前後都清，避免舊版 seed 腳本再次寫入。
   if(false && typeof window.renderAll==='function' && !window.__v220RenderPatched){
-    window.__v220RenderPatched=true; // V261: 停用 renderAll 觸發清除
+    window.__v220RenderPatched=true; // V262: 停用
     var oldRenderAll=window.renderAll;
     window.renderAll=function(){
       v220Run(false);
@@ -12124,10 +11953,10 @@ setInterval(v206SetupNavOrder,1500);
 
   document.addEventListener('DOMContentLoaded',function(){v220Run(true);});
   window.addEventListener('load',function(){v220Run(true);});
-  // V261: 停用 click 觸發清除，避免每次點擊誤刪正式行程
+  // V262: 停用 v220 click 觸發清除
   // document.addEventListener('click',function(){setTimeout(function(){v220Run(false);},80);},true);
   setTimeout(function(){v220Run(true);},100);
-  // V261: 停用重複清除計時器
+  // V262: 停用 v220 重複計時器
   // setTimeout(function(){v220Run(true);},600);
   // setTimeout(function(){v220Run(true);},1500);
   setInterval(function(){v220DisableLoginReminder();v220RelaxRequired();v220CleanRuntimeState(false);},1200);
@@ -12138,194 +11967,13 @@ setInterval(v206SetupNavOrder,1500);
 
 
 <script id="v221-clean-test-schedules-root-cause">
-/*
-  V221 根因修正
-  1. V220 清理沒有生效：主程式的 state 是 top-level let，不是 window.state，所以 window.state 判斷永遠失敗。
-  2. 舊版 V211/V212/V203 仍有剩餘 seed/migration 會重新產生測試行程。
-  3. 本版改用直接讀取 lexical state，並在 renderAll 前清理，避免畫面先渲染出舊測試資料。
-*/
+// V262: v221 已完全停用，避免 renderAll/click/setInterval 誤刪正式行程
 (function(){
   'use strict';
-  var V221_CLEANING=false;
-  var V221_RENDERING=false;
-
-  function getAppState(){
-    try{
-      if(typeof state !== 'undefined' && state && typeof state === 'object') return state;
-    }catch(e){}
-    try{
-      if(window.state && typeof window.state === 'object') return window.state;
-    }catch(e){}
-    return null;
-  }
-
-  function stringify(x){
-    try{return JSON.stringify(x||'');}catch(e){return String(x||'');}
-  }
-
-  function hasAny(text, words){
-    text=String(text||'');
-    return words.some(function(w){return text.indexOf(w)>=0;});
-  }
-
-  function isTestRecord(x){
-    if(!x || typeof x!=='object') return false;
-    var id=String(x.id||'');
-    if(id==='ev_demo1' || /^ev_demo/i.test(id) || /^v\d+_test_/i.test(id)) return true;
-
-    var markerKeys=[
-      'v103Marker','v180Marker','v182Marker','v203Marker','v204Marker','v205Marker','v206Marker','v208Marker','v210Marker','v211Marker','v212Marker',
-      'testData','demoData','mockData','sampleData','isTest','v212Keep'
-    ];
-    for(var i=0;i<markerKeys.length;i++){
-      if(x[markerKeys[i]]) return true;
-    }
-
-    var s=stringify(x);
-    var words=[
-      '測試行程','測試外務','測試會議','測試資料','測試待辦','測試一般','測試醫療','測試醫院','測試地點','測試客戶','測試工人','測試工廠','測試文件','測試提醒','測試驗證','測試一般事項','測試一般記事','測試會議活動','外務測試','一般行程測試','隔日待辦提醒測試','含服務紀錄單與下次看診','6/11 測試','黃明書基本測試','黃明書測試','催繳測試','1週提醒測試','已繳交測試',
-      'V203','V204','V205','V206','V208','V210','V211','V212','V213','V214','V215','V216','V217','V218','V219','V220',
-      'test schedule','test event','test data','demo schedule','demo event','demo data','mock schedule','mock event','sample schedule','sample event'
-    ];
-    if(false && hasAny(s,words)) return true; // V260：測試字樣不得刪除正式新增資料
-
-    // 預設 seed 產生的看診測試：名稱可能不是「測試」，但 note/log 有預設測試資料。
-    if(false && hasAny(s,['陪同看診','桃園醫院']) && hasAny(s,['u_admin','Demo','系統預設測試資料','schedule'])) return true; // V260
-
-    return false;
-  }
-
-  function cleanArray(obj,key){
-    if(!obj || !Array.isArray(obj[key])) return 0;
-    var before=obj[key].length;
-    obj[key]=obj[key].filter(function(item){return !isTestRecord(item);});
-    return before-obj[key].length;
-  }
-
-  function cleanStateObject(obj){
-    if(!obj || typeof obj!=='object') return 0;
-    var removed=0;
-    ['events','externalEvents','roomBookings','incidents','reportSnapshots','logs'].forEach(function(k){removed+=cleanArray(obj,k);});
-
-    if(Array.isArray(obj.incidentLogs)){
-      var incIds=new Set((obj.incidents||[]).map(function(i){return i&&i.id;}).filter(Boolean));
-      var before=obj.incidentLogs.length;
-      obj.incidentLogs=obj.incidentLogs.filter(function(l){return !isTestRecord(l) && (!l.incidentId || incIds.has(l.incidentId));});
-      removed+=before-obj.incidentLogs.length;
-    }
-
-    return removed;
-  }
-
-  function cleanLocalStorage(){
-    try{
-      Object.keys(localStorage).forEach(function(key){
-        var raw=localStorage.getItem(key);
-        if(!raw) return;
-        var first=String(raw).trim().charAt(0);
-        if(first!=='{' && first!=='[') return;
-        var parsed;
-        try{parsed=JSON.parse(raw);}catch(e){return;}
-        var removed=0;
-        if(Array.isArray(parsed)){
-          var before=parsed.length;
-          parsed=parsed.filter(function(item){return !isTestRecord(item);});
-          removed=before-parsed.length;
-        }else if(parsed && typeof parsed==='object'){
-          removed=cleanStateObject(parsed);
-        }
-        if(removed>0){
-          localStorage.setItem(key,JSON.stringify(parsed));
-          console.info('[V221] localStorage cleaned',key,removed);
-        }
-      });
-    }catch(e){console.warn('[V221] localStorage clean failed',e);}
-  }
-
-  function cleanRuntime(renderAfter){
-    if(V221_CLEANING) return 0;
-    var appState=getAppState();
-    if(!appState) return 0;
-    V221_CLEANING=true;
-    var removed=0;
-    try{
-      removed=cleanStateObject(appState);
-      if(removed>0){
-        try{ if(typeof save==='function') save(); }catch(e){}
-        console.info('[V221] runtime test schedules removed',removed);
-      }
-    }catch(e){console.warn('[V221] runtime clean failed',e);}
-    V221_CLEANING=false;
-
-    if(removed>0 && renderAfter && !V221_RENDERING){
-      V221_RENDERING=true;
-      setTimeout(function(){
-        try{ if(typeof renderAll==='function') renderAll(); }catch(e){}
-        V221_RENDERING=false;
-      },80);
-    }
-    return removed;
-  }
-
-  function disableReminder(){
-    try{
-      window.FORE_DISABLE_LOGIN_REMINDERS=true;
-      window.FORE_V221_DISABLE_LOGIN_REMINDERS=true;
-      ['showTomorrowReminder','v211TomorrowAlert','v212TomorrowAlert','showLoginReminder','showTodayReminder','showScheduleReminder','openLoginReminder'].forEach(function(name){window[name]=function(){return false;};});
-    }catch(e){}
-  }
-
-  function relaxRequired(){
-    try{
-      document.querySelectorAll('form').forEach(function(f){f.setAttribute('novalidate','novalidate');});
-      document.querySelectorAll('input,select,textarea').forEach(function(el){
-        el.removeAttribute('required');
-        el.removeAttribute('aria-required');
-        try{el.required=false;}catch(e){}
-        try{if(el.setCustomValidity)el.setCustomValidity('');}catch(e){}
-      });
-    }catch(e){}
-  }
-
-  function run(renderAfter){
-    disableReminder();
-    // V262：停用 cleanLocalStorage / cleanRuntime，避免舊清理流程反覆覆蓋 localStorage 正式資料
-    relaxRequired();
-  }
-
-  // 再補一層 renderAll：先清再畫，畫完再清，避免舊 wrapper 又補測試資料。
-  if(typeof renderAll==='function' && !window.__v221RenderPatched){
-    window.__v221RenderPatched=true;
-    var oldRenderAll=renderAll;
-    renderAll=function(){
-      run(false);
-      var result=oldRenderAll.apply(this,arguments);
-      setTimeout(function(){run(true);},40);
-      return result;
-    };
-  }
-
-  if(!window.__v221AlertPatched){
-    window.__v221AlertPatched=true;
-    var oldAlert=window.alert;
-    window.alert=function(msg){
-      var s=String(msg||'');
-      if(/【隔日行程】|【隔日待辦\/記事】|登入提醒|行程提醒|今日待辦提醒/.test(s)) return;
-      return oldAlert.apply(window,arguments);
-    };
-  }
-
-  document.addEventListener('DOMContentLoaded',function(){run(true);});
-  window.addEventListener('load',function(){run(true);});
-  document.addEventListener('click',function(){setTimeout(function(){run(true);},80);},true);
-  setTimeout(function(){run(true);},50);
-  setTimeout(function(){run(true);},300);
-  setTimeout(function(){run(true);},900);
-  setTimeout(function(){run(true);},1800);
-  var count=0;
-  var timer=setInterval(function(){run(true); if(++count>=8)clearInterval(timer);},1000);
-
-  window.v221CleanAllTestSchedules=function(){return 0;}; // V262：停用舊清理
+  if(window.__V221_DISABLED__) return;
+  window.__V221_DISABLED__ = true;
+  window.v221CleanAllTestSchedules = function(){ return 0; };
+  console.log('[V262] v221 hooks disabled');
 })();
 </script>
 
