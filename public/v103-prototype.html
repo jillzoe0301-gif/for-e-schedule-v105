@@ -1157,7 +1157,7 @@ const sendWorkNoteTemplate=noteTemplates['送工'];
 let state,currentUser=null,currentPage='calendar';
 function uid(p){return p+'_'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4)}
 function pad2(n){return String(n).padStart(2,'0')} function localISO(dt){return dt.getFullYear()+'-'+pad2(dt.getMonth()+1)+'-'+pad2(dt.getDate())} function localMonth(dt){return dt.getFullYear()+'-'+pad2(dt.getMonth()+1)} function todayISO(){return localISO(new Date())} function monthISO(){return localMonth(new Date())} function weekStartISO(d){const dt=new Date((d||todayISO())+'T00:00:00'); const offset=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-offset); return localISO(dt)} function weekDays(d){const start=new Date(weekStartISO(d)+'T00:00:00'); const out=[]; for(let i=0;i<7;i++)out.push(localISO(new Date(start.getFullYear(),start.getMonth(),start.getDate()+i))); return out}
-function save(){localStorage.setItem(KEY,JSON.stringify(state)); window.state=state; /* V262: 同步 window.state */} function clone(o){return JSON.parse(JSON.stringify(o))}
+function save(){localStorage.setItem(KEY,JSON.stringify(state)); window.state=state;} function clone(o){return JSON.parse(JSON.stringify(o))}
 function toast(t){let el=$('toast'); if(!el){el=document.createElement('div');el.id='toast';el.className='toast';document.body.appendChild(el)} el.textContent=t; setTimeout(()=>el.remove(),2200)}
 function copyText(text){ try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(function(){toast('已複製')}).catch(function(){fallbackCopy(text)}); } else { fallbackCopy(text); } }catch(e){fallbackCopy(text)} }
 function fallbackCopy(text){ var ta=document.createElement('textarea'); ta.value=text||''; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.focus(); ta.select(); try{document.execCommand('copy'); toast('已複製');}catch(e){toast('請手動複製');} document.body.removeChild(ta); }
@@ -1641,16 +1641,7 @@ function openEventModal(opts={}){renderTimeSelects();renderKindOptions();setEven
 function closeEventModal(){$('eventModal').classList.add('hide')}
 function collectEvent(){const kind=$('eventKind').value; const isNote=kind==='generalNote'; const isTodo=kind==='todo'; const isActivity=kind==='translatorStatus'; const compact=isNote||isTodo; let selectedParticipants=[...$('participantsBox').querySelectorAll('input:checked')].map(i=>i.value).filter(isCalendarPerson); let participants=[...selectedParticipants]; const cp=userPersonId(); if(compact){participants=[]; if(isCalendarPerson(cp))participants.push(cp); if(!participants.length){const first=calendarPeople()[0]; if(first)participants.push(first.id);}}else if(isExecutablePerson(cp)&&!participants.includes(cp))participants.push(cp); const assigneeIds=compact?[]:[...new Set(selectedParticipants.filter(isExecutablePerson))]; const st=$('startTime').value; const et=st==='整天'?'':$('endTime').value; return {kind,status:$('eventStatus').value,startDate:$('startDate').value,endDate:$('endDate').value||$('startDate').value,startTime:st,endTime:et,type:isNote?'一般記事':($('eventType').value||''),name:$('eventName').value.trim()||(($('eventKind').value==='todo')?'待辦事項':(($('eventKind').value==='generalNote')?'一般記事':'未命名行程')),additionalType:(compact||isActivity)?'':($('additionalType')?$('additionalType').value.trim():''),additionalNote:(compact||isActivity)?'':($('additionalNote')?$('additionalNote').value.trim():''),locationName:(compact||isActivity)?'':$('locationName').value.trim(),address:(compact||isActivity)?'':$('address').value.trim(),vehicleNo:(compact||isActivity)?'':$('vehicleNo').value.trim(),meetingRoom:'不指定',participants,assigneeIds,note:$('note').value.trim(),serviceRecordSubmitted:(compact||isActivity)?false:($('serviceRecordSubmitted')?$('serviceRecordSubmitted').checked:false),serviceRecordDate:(compact||isActivity)?'':($('serviceRecordDate')?$('serviceRecordDate').value:''),followupDate:(compact||isActivity)?'':($('followupDate')?$('followupDate').value:''),followupTime:(compact||isActivity)?'':($('followupTime')?$('followupTime').value:''),followupPersonId:(compact||isActivity)?'':($('followupPerson')?$('followupPerson').value:''),followupRegNo:(compact||isActivity)?'':($('followupRegNo')?$('followupRegNo').value.trim():'')}}
 function setViewToEvent(e){if(!e)return; if($('weekPicker'))$('weekPicker').value=weekStartISO(e.startDate); $('viewMode').value='all'; ['groupFilter','jobFilter','personFilter','typeFilter'].forEach(id=>clearMulti(id)); ['statusFilter','keywordFilter'].forEach(id=>{if($(id))$(id).value=''}); currentPage='calendar'; document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page==='calendar')); document.querySelectorAll('.page').forEach(p=>p.classList.add('hide')); $('calendarPage').classList.remove('hide');} 
-function syncScheduleEvent(e){
-  window.state = state;
-  save();
-  try{ renderAll(); }catch(err){ console.warn('[V263] renderAll',err); }
-  try{ if(typeof renderPersonalDetails==='function') renderPersonalDetails(); }catch(err){}
-  try{ if(typeof renderIncidents==='function') renderIncidents(); }catch(err){}
-  try{ if(typeof renderFieldCalendar==='function') renderFieldCalendar(); }catch(err){}
-  try{ if(typeof renderToday==='function') renderToday(); }catch(err){}
-  return e;
-}
+function syncScheduleEvent(e){save();try{renderAll()}catch(err){console.warn('[V255] 行程總覽重繪失敗',err)}try{if(typeof renderPersonalDetails==='function')renderPersonalDetails()}catch(err){console.warn('[V255] 個人行程表重繪失敗',err)}return e}
 window.syncScheduleEvent=syncScheduleEvent;
 window.openEventModal=openEventModal;
 window.openAddEventModal=function(personId,dateStr){return openEventModal({date:dateStr||todayISO(),personId:personId||''})};
@@ -3017,7 +3008,14 @@ function saveIncident(){
   const idx=state.incidents.findIndex(x=>x.id===data.id); if(idx>=0){const old=state.incidents[idx]; state.incidents[idx]=Object.assign({},old,data,{createdAt:old.createdAt,createdBy:old.createdBy}); addLog('修改','異況紀錄',data.title||data.workerName,'異況','更新','已更新');}
   else{state.incidents.push(Object.assign(data,{createdAt:new Date().toISOString(),createdBy:currentUser.id})); addLog('新增','異況紀錄',data.title||data.workerName,'異況','','新增');}
   if(data.status==='已結案'){const inc=state.incidents.find(x=>x.id===data.id); if(inc&&!inc.closedAt){inc.closedAt=new Date().toISOString(); inc.closedBy=currentUser.id;}}
-  save(); renderIncidents(); renderIncidentLogList(data.id); toast('異況已儲存');
+  window.state=state; save();
+  renderIncidents();
+  renderIncidentLogList(data.id);
+  // 同步行程總覽顯示異況
+  try{ if(typeof renderOverviewCalendarClean==='function') renderOverviewCalendarClean(); }catch(e){}
+  try{ if(typeof renderCalendar==='function') renderCalendar(); }catch(e){}
+  try{ if(typeof renderToday==='function') renderToday(); }catch(e){}
+  toast('異況已儲存');
 }
 function addIncidentLog(){
   ensureIncidentState(); const incidentId=$('incidentId').value; if(!incidentId)return toast('請先儲存異況'); const inc=state.incidents.find(x=>x.id===incidentId); if(!inc)return toast('找不到異況');
@@ -14465,8 +14463,51 @@ setInterval(v206SetupNavOrder,1500);
     html+='</tbody></table></div>'; area.innerHTML=html; bindFieldWeekButtonsClean();
   }
 
-  function overviewEventsFor(d,pid){var s=getState();return (s.events||[]).filter(function(e){if(!e||e.deleted)return false;var ids=(e.participants||e.assigneeIds||e.assignedPersonIds||[]).map(String);var sd=e.startDate||e.date, ed=e.endDate||sd;return ids.indexOf(String(pid))>=0 && String(sd)<=d && d<=String(ed||sd)})}
-  function overviewCard(e){var isField=e.externalKind==='field'||e.fieldType===FIELD_TYPE||e.type===OVERVIEW_TYPE;var cls=isField?'event field-clean-event field-event':'event';var title=isField?(e.purpose||e.name||FIELD_TYPE):(e.type||'行程');var name=isField?(e.locationName||''):(e.name||e.locationName||'');var cfg=(window.FORE_EVENT_TYPE_STYLES||{}).field||FIELD_COLOR;var style=isField?'style="background:'+cfg.background+'!important;border-left:5px solid '+cfg.border+'!important;color:'+(cfg.text||'#c2410c')+'!important"':'';return '<div class="'+cls+'" '+style+' '+(isField?'data-field-clean-id="'+attr(e.externalEventId||'')+'"':'data-id="'+attr(e.id||'')+'"')+'><div><span class="time">'+esc(e.startTime||'')+'</span> '+esc(title)+'</div><div class="who">'+esc(name)+'｜'+esc(e.fieldStatus||e.status||'')+'</div></div>'}
+  function overviewEventsFor(d,pid){
+  var s=getState();
+  // 一般行程
+  var evs=(s.events||[]).filter(function(e){
+    if(!e||e.deleted)return false;
+    var ids=(e.participants||e.assigneeIds||e.assignedPersonIds||[]).map(String);
+    var sd=e.startDate||e.date, ed=e.endDate||sd;
+    return ids.indexOf(String(pid))>=0 && String(sd)<=d && d<=String(ed||sd);
+  });
+  // 異況 - 顯示在負責人欄位
+  var incs=(s.incidents||[]).filter(function(i){
+    if(!i||i.deleted)return false;
+    return String(i.ownerPersonId||'')=== String(pid) && String(i.occurrenceDate||'')===d;
+  }).map(function(i){
+    return {id:i.id,_isIncident:true,startTime:i.occurrenceTime||'',type:'異況',
+      name:i.title||i.workerName||'異況',status:i.status||'',urgency:i.urgency||'',
+      startDate:i.occurrenceDate,endDate:i.occurrenceDate,
+      participants:[i.ownerPersonId]};
+  });
+  return evs.concat(incs);
+}
+  function overviewCard(e){
+  var isField=e.externalKind==='field'||e.fieldType===FIELD_TYPE||e.type===OVERVIEW_TYPE;
+  var isIncident=e._isIncident===true;
+  var isDone=String(e.status||'')===String('已完成');
+  var typ=String(e.type||'');
+  var kind=String(e.kind||'');
+  // 顏色對應
+  var bg,bd,tc;
+  if(isDone){bg='#f1f5f9';bd='#94a3b8';tc='#64748b';}
+  else if(isIncident){bg='#fef9c3';bd='#f59e0b';tc='#92400e';}
+  else if(isField){bg='#fff7ed';bd='#f97316';tc='#c2410c';}
+  else if(typ==='請假'){bg='#f3e8ff';bd='#9333ea';tc='#6b21a8';}
+  else if(typ==='會議'){bg='#dbeafe';bd='#3b82f6';tc='#1e40af';}
+  else if(typ.indexOf('教育訓練')>=0||typ.indexOf('外訓')>=0||typ.indexOf('返鄉')>=0){bg='#dcfce7';bd='#16a34a';tc='#14532d';}
+  else if(kind==='generalNote'){bg='#ffffff';bd='#d1d5db';tc='#374151';}
+  else if(kind==='todo'){bg='#fef9c3';bd='#facc15';tc='#713f12';}
+  else{bg='#fce7f3';bd='#f472b6';tc='#9d174d';}
+  var style='style="background:'+bg+'!important;border-left:5px solid '+bd+'!important;color:'+tc+'!important"';
+  var cls='event'+(isField?' field-clean-event field-event':'')+(isIncident?' incident-event':'');
+  var title=isIncident?'⚠ '+(e.name||'異況'):(isField?(e.purpose||e.name||FIELD_TYPE):(typ||'行程'));
+  var name=isIncident?(e.urgency||''):(isField?(e.locationName||''):(e.name||e.locationName||''));
+  var idAttr=isIncident?'data-incident-id="'+attr(e.id||'')+'"':(isField?'data-field-clean-id="'+attr(e.externalEventId||'')+'"':'data-id="'+attr(e.id||'')+'"');
+  return '<div class="'+cls+'" '+style+' '+idAttr+'><div><span class="time">'+esc(e.startTime||'')+'</span> '+esc(title)+'</div><div class="who">'+esc(name)+'｜'+esc(e.fieldStatus||e.status||'')+'</div></div>';
+}
   function openOverviewCleanCell(cell,e){if(e&&e.target&&e.target.closest&&e.target.closest('.event'))return false;if(!cell||!cell.dataset)return false;try{if(typeof window.openAddEventModal==='function')window.openAddEventModal(cell.dataset.person,cell.dataset.date);else if(typeof window.openEventModal==='function')window.openEventModal({date:cell.dataset.date,personId:cell.dataset.person});else if(typeof openEventModal==='function')openEventModal({date:cell.dataset.date,personId:cell.dataset.person});}catch(err){console.warn('[V257] 開啟行程新增視窗失敗',err)}return false}
   window.openOverviewCleanCell=openOverviewCleanCell;
   document.addEventListener('dblclick',function(e){var cell=e.target&&e.target.closest&&e.target.closest('#calendarArea .day-cell[data-date][data-person]');if(!cell||e.target.closest('.event'))return;e.preventDefault();e.stopImmediatePropagation();openOverviewCleanCell(cell,e)},true);
@@ -15173,99 +15214,6 @@ window.v249HolidayTagsReport={
     at:new Date().toISOString()
   };
   console.info('[V262 Disable Test Cleanup Write Guard]',window.__v262WriteGuardReport);
-})();
-</script>
-
-<script id="v263-state-sync-fix">
-/*
-  V263 根因修正：window.state 與 lexical state 不同步
-  主程式 save() 只寫 localStorage，不更新 window.state
-  V247 renderOverviewCalendarClean 的 getState() 讀 window.state
-  導致新增行程後畫面看不到（讀到舊的 window.state）
-*/
-(function(){
-  'use strict';
-  if(window.__V263_STATE_SYNC__) return;
-  window.__V263_STATE_SYNC__ = true;
-
-  var KEY = 'translator_calendar_v81';
-
-  /* ── 1. 讓 window.state 始終等於 lexical state ── */
-  function syncWindowState(){
-    try{
-      if(typeof state !== 'undefined' && state && typeof state === 'object'){
-        window.state = state;
-      }
-    }catch(e){}
-  }
-
-  /* ── 2. Patch main save() if not yet patched ── */
-  if(typeof window.save === 'function' && !window.save.__v263){
-    var _origSave = window.save;
-    window.save = function(){
-      var r = _origSave.apply(this, arguments);
-      syncWindowState();
-      return r;
-    };
-    window.save.__v263 = true;
-  }
-
-  /* ── 3. Patch saveEvent to force sync and re-render ── */
-  if(typeof window.saveEvent === 'function' && !window.saveEvent.__v263){
-    var _origSaveEvent = window.saveEvent;
-    window.saveEvent = function(){
-      var r = _origSaveEvent.apply(this, arguments);
-      syncWindowState();
-      setTimeout(function(){
-        syncWindowState();
-        try{ if(typeof renderAll==='function') renderAll(); }catch(e){}
-      }, 80);
-      return r;
-    };
-    window.saveEvent.__v263 = true;
-  }
-
-  /* ── 4. Patch saveIncident to force sync and re-render ── */
-  function patchSaveIncident(){
-    if(typeof window.saveIncident === 'function' && !window.saveIncident.__v263){
-      var _origSaveIncident = window.saveIncident;
-      window.saveIncident = function(){
-        var r = _origSaveIncident.apply(this, arguments);
-        syncWindowState();
-        setTimeout(function(){
-          syncWindowState();
-          try{ if(typeof renderAll==='function') renderAll(); }catch(e){}
-          try{ if(typeof renderIncidents==='function') renderIncidents(); }catch(e){}
-        }, 80);
-        return r;
-      };
-      window.saveIncident.__v263 = true;
-    }
-  }
-
-  /* ── 5. Keep window.state in sync on every renderAll ── */
-  if(typeof renderAll === 'function' && !renderAll.__v263){
-    var _origRenderAll = renderAll;
-    window.renderAll = renderAll = function(){
-      syncWindowState();
-      return _origRenderAll.apply(this, arguments);
-    };
-    renderAll.__v263 = true;
-  }
-
-  /* ── 6. Run on load ── */
-  function init(){
-    syncWindowState();
-    patchSaveIncident();
-    console.log('[V263] state sync patch installed');
-  }
-
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', function(){ setTimeout(init, 300); });
-  } else {
-    setTimeout(init, 300);
-  }
-  setTimeout(init, 1000);
 })();
 </script>
 </body></html>
