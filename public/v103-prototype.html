@@ -1349,7 +1349,7 @@ function userPersonId(){return (currentUser?currentUser.personId:null)} function
   if(currentUser.role==='admin'||currentUser.role==='options')return 'admin';
   if(currentUser.role==='supervisor')return 'supervisor'; if(currentUser.role==='admin_staff'||currentUser.role==='adminStaff')return 'adminStaff';
   return 'staff';
-} function isAdmin(){return normalizedRole()==='admin'} function isSupervisor(){return normalizedRole()==='supervisor'} function isStaff(){return normalizedRole()==='staff'} function canManageOptions(){return isAdmin()} function canEdit(){return !!currentUser} function canDelete(){return isAdmin()} function canManagePeople(){return isAdmin()||isSupervisor()} function canAddPeople(){return isAdmin()} function canSeePage(page){const r=normalizedRole(); if(r==='admin')return true; if(r==='supervisor')return ['calendar','roomBooking','today','mobile','reports','serviceRecords','line','theme','users'].includes(page); return ['calendar','roomBooking','mobile','line','theme','users'].includes(page)} function isCalendarPerson(pid){const p=state.people.find(x=>x.id===pid); return !!(p&&p.active!==false)} function linesToArray(v){return String(v||'').split(/\n|,/).map(x=>x.trim()).filter(Boolean)} function normalizeEventTypeName(t){t=String(t||'').trim(); return t==='送工'?'送工(新入境、承接)':t} function cleanEventTypeList(arr){return [...new Set((arr||[]).map(normalizeEventTypeName).filter(t=>t&&t!=='外務'))]} function cleanAlertEventTypeList(arr){return [...new Set([...(arr||[]).map(normalizeEventTypeName), '驗證提醒','提醒事項'].filter(t=>t&&t!=='外務'))]} function eventTypeList(){const arr=(state.options&&state.options.eventTypes&&state.options.eventTypes.length)?state.options.eventTypes:defaultEventTypes; return cleanEventTypeList(arr)} function alertEventTypeList(){const arr=(state.options&&state.options.alertEventTypes&&state.options.alertEventTypes.length)?state.options.alertEventTypes:alertEventTypes; return cleanAlertEventTypeList(arr)} function eventTypeContentMap(){const m=Object.assign({},defaultEventTypeContents,(state.options&&state.options.eventTypeContents)||{}); delete m['外務']; if(m['送工']&&!m['送工(新入境、承接)'])m['送工(新入境、承接)']=m['送工']; delete m['送工']; return m} function eventTypeContentText(type){const m=eventTypeContentMap(); const arr=m[type]||m[displayEventType(type)]||[]; return Array.isArray(arr)?arr.join('\n'):String(arr||'')} function allEventTypeContentTexts(){const m=eventTypeContentMap(); return Object.values(m).map(v=>Array.isArray(v)?v.join('\n'):String(v||'')).filter(Boolean)} function formatEventTypeContents(map){return Object.entries(map||{}).map(([k,v])=>k+'｜'+(Array.isArray(v)?v.join('、'):String(v||''))).join('\n')} function parseEventTypeContentsText(text){const out={}; String(text||'').split(/\n/).forEach(line=>{const s=line.trim(); if(!s)return; const parts=s.split(/\s*[｜|]\s*/); const key=(parts.shift()||'').trim(); if(!key)return; const vals=parts.join('｜').split(/[、,，]/).map(x=>x.trim()).filter(Boolean); out[key]=vals.length?vals:[];}); return out} 
+} function isAdmin(){return true;} function isSupervisor(){return true;} function isStaff(){return false;} function canManageOptions(){return true;} function canEdit(){return !!currentUser} function canDelete(){return true;} function canManagePeople(){return isAdmin()||isSupervisor()} function canAddPeople(){return true;} function canSeePage(page){return true;/*V274:全部開放*/} function isCalendarPerson(pid){const p=state.people.find(x=>x.id===pid); return !!(p&&p.active!==false)} function linesToArray(v){return String(v||'').split(/\n|,/).map(x=>x.trim()).filter(Boolean)} function normalizeEventTypeName(t){t=String(t||'').trim(); return t==='送工'?'送工(新入境、承接)':t} function cleanEventTypeList(arr){return [...new Set((arr||[]).map(normalizeEventTypeName).filter(t=>t&&t!=='外務'))]} function cleanAlertEventTypeList(arr){return [...new Set([...(arr||[]).map(normalizeEventTypeName), '驗證提醒','提醒事項'].filter(t=>t&&t!=='外務'))]} function eventTypeList(){const arr=(state.options&&state.options.eventTypes&&state.options.eventTypes.length)?state.options.eventTypes:defaultEventTypes; return cleanEventTypeList(arr)} function alertEventTypeList(){const arr=(state.options&&state.options.alertEventTypes&&state.options.alertEventTypes.length)?state.options.alertEventTypes:alertEventTypes; return cleanAlertEventTypeList(arr)} function eventTypeContentMap(){const m=Object.assign({},defaultEventTypeContents,(state.options&&state.options.eventTypeContents)||{}); delete m['外務']; if(m['送工']&&!m['送工(新入境、承接)'])m['送工(新入境、承接)']=m['送工']; delete m['送工']; return m} function eventTypeContentText(type){const m=eventTypeContentMap(); const arr=m[type]||m[displayEventType(type)]||[]; return Array.isArray(arr)?arr.join('\n'):String(arr||'')} function allEventTypeContentTexts(){const m=eventTypeContentMap(); return Object.values(m).map(v=>Array.isArray(v)?v.join('\n'):String(v||'')).filter(Boolean)} function formatEventTypeContents(map){return Object.entries(map||{}).map(([k,v])=>k+'｜'+(Array.isArray(v)?v.join('、'):String(v||''))).join('\n')} function parseEventTypeContentsText(text){const out={}; String(text||'').split(/\n/).forEach(line=>{const s=line.trim(); if(!s)return; const parts=s.split(/\s*[｜|]\s*/); const key=(parts.shift()||'').trim(); if(!key)return; const vals=parts.join('｜').split(/[、,，]/).map(x=>x.trim()).filter(Boolean); out[key]=vals.length?vals:[];}); return out} 
 let eventTypeContentEditingType='';
 function splitEventTypeContentEditor(text){return String(text||'').split(/\n|[、,，]/).map(x=>x.trim()).filter(Boolean)}
 function getOptionEventTypeContentMap(){return Object.assign({},defaultEventTypeContents,parseEventTypeContentsText($('optEventTypeContents')?$('optEventTypeContents').value:''))}
@@ -1431,7 +1431,10 @@ function showApp(){
 function logout(){safeRemoveSession(); currentUser=null; $('appView').classList.add('hide'); $('loginView').classList.remove('hide')}
 
 function applyPermissionsUI(){
-  document.querySelectorAll('.navbtn').forEach(btn=>{btn.classList.toggle('hide',!canSeePage(btn.dataset.page));});
+  document.querySelectorAll('.navbtn').forEach(btn=>{
+    btn.classList.remove('hide','role-hidden');
+    btn.style.removeProperty('display');
+  });
   if($('addEventBtn'))$('addEventBtn').classList.toggle('hide',!canEdit());
   if($('addPersonBtn'))$('addPersonBtn').classList.toggle('hide',!canAddPeople());
   if($('addUserBtn'))$('addUserBtn').classList.toggle('hide',!isAdmin());
@@ -2141,7 +2144,7 @@ function saveReportSnapshot(){if(!$('reportMonth'))return; const snap=currentRep
 function exportReports(){if(!$('reportMonth'))return; const ym=$('reportMonth').value||monthISO(); const year=Number($('reportYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym); const monthData=buildReportData(ms,me); const yearData=buildReportData(`${year}-01-01`,`${year}-12-31`); const rows=[['區間','部門','人員名稱','職務','總數','未完成','已完成','取消','分類','分類數']]; function addRows(label,data){const activeTypes=data.types.filter(t=>data.rows.some(r=>(r.byType[t]||0)>0)); data.rows.forEach(r=>{rows.push([label,r.person.group,r.person.name,r.person.lang,r.total,r.undone,r.done,r.cancel,'全部',r.total]); activeTypes.forEach(t=>rows.push([label,r.person.group,r.person.name,r.person.lang,r.total,r.undone,r.done,r.cancel,t,r.byType[t]||0]));}); ['一部翻譯','二部翻譯','總計'].forEach(g=>{const r=data.dept[g]; rows.push([label,g,'部門總計','',r.total,r.undone,r.done,r.cancel,'全部',r.total]);});} addRows(`月統計 ${ym}`,monthData); addRows(`年度統計 ${year}`,yearData); exportCsv(rows,`行程統計_${ym}_${year}.csv`)}
 function initServiceFilters(){if(!$('serviceMonth'))return; if(!$('serviceMonth').value)$('serviceMonth').value=monthISO(); if(!$('serviceYear').value)$('serviceYear').value=($('serviceMonth').value||monthISO()).slice(0,4)}
 function serviceFilterPeople(){let people=state.people.filter(reportEligiblePerson); const g=$('serviceGroup')?$('serviceGroup').value:''; if(g)people=people.filter(p=>p.group===g); return people}
-function renderServiceRecords(){if(typeof normalizedRole==='function'&&normalizedRole()==='staff'){return;}if(!$('serviceMonth'))return; initServiceFilters(); const ym=$('serviceMonth').value||monthISO(); const year=Number($('serviceYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym); const people=serviceFilterPeople(); const md=serviceRecordsInRange(ms,me,people).filter(x=>!x.submitted); const yd=serviceRecordsInRange(`${year}-01-01`,`${year}-12-31`,people).filter(x=>!x.submitted); function stats(rows){const one=rows.filter(x=>x.person.group==='一部翻譯').length,two=rows.filter(x=>x.person.group==='二部翻譯').length; return `<div class="stat"><div class="muted">未交總數</div><b>${rows.length}</b></div><div class="stat"><div class="muted">一部翻譯未交</div><b>${one}</b></div><div class="stat"><div class="muted">二部翻譯未交</div><b>${two}</b></div>`} if($('serviceMonthStats'))$('serviceMonthStats').innerHTML=stats(md); if($('serviceYearStats'))$('serviceYearStats').innerHTML=stats(yd); const rowHtml=rows=>rows.sort((a,b)=>(a.date+a.person.group+a.person.name).localeCompare(b.date+b.person.group+b.person.name)).map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.person.group)}</td><td>${esc(x.person.name)}</td><td>${esc(x.person.lang)}</td><td>${esc(displayEventType(x.event.type))}</td><td>${esc(x.event.name)}</td><td>${esc(x.event.locationName||'')}</td><td>${esc(x.event.status)}</td><td>🔴 未交</td></tr>`).join('')||'<tr><td colspan="9" class="muted">沒有未交明細</td></tr>'; if($('serviceMonthDetailRows'))$('serviceMonthDetailRows').innerHTML=rowHtml(md); if($('serviceYearDetailRows'))$('serviceYearDetailRows').innerHTML=rowHtml(yd)}
+function renderServiceRecords(){if(!$('serviceMonth'))return; initServiceFilters(); const ym=$('serviceMonth').value||monthISO(); const year=Number($('serviceYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym); const people=serviceFilterPeople(); const md=serviceRecordsInRange(ms,me,people).filter(x=>!x.submitted); const yd=serviceRecordsInRange(`${year}-01-01`,`${year}-12-31`,people).filter(x=>!x.submitted); function stats(rows){const one=rows.filter(x=>x.person.group==='一部翻譯').length,two=rows.filter(x=>x.person.group==='二部翻譯').length; return `<div class="stat"><div class="muted">未交總數</div><b>${rows.length}</b></div><div class="stat"><div class="muted">一部翻譯未交</div><b>${one}</b></div><div class="stat"><div class="muted">二部翻譯未交</div><b>${two}</b></div>`} if($('serviceMonthStats'))$('serviceMonthStats').innerHTML=stats(md); if($('serviceYearStats'))$('serviceYearStats').innerHTML=stats(yd); const rowHtml=rows=>rows.sort((a,b)=>(a.date+a.person.group+a.person.name).localeCompare(b.date+b.person.group+b.person.name)).map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.person.group)}</td><td>${esc(x.person.name)}</td><td>${esc(x.person.lang)}</td><td>${esc(displayEventType(x.event.type))}</td><td>${esc(x.event.name)}</td><td>${esc(x.event.locationName||'')}</td><td>${esc(x.event.status)}</td><td>🔴 未交</td></tr>`).join('')||'<tr><td colspan="9" class="muted">沒有未交明細</td></tr>'; if($('serviceMonthDetailRows'))$('serviceMonthDetailRows').innerHTML=rowHtml(md); if($('serviceYearDetailRows'))$('serviceYearDetailRows').innerHTML=rowHtml(yd)}
 function exportServiceRecords(){if(!$('serviceMonth'))return; initServiceFilters(); const ym=$('serviceMonth').value||monthISO(); const [ms,me]=monthRange(ym); const people=serviceFilterPeople(); const rows=[['日期','部門','人員','職務','行程類型','辦理內容','地點 / 客戶','狀態','繳交狀態']]; serviceRecordsInRange(ms,me,people).filter(x=>!x.submitted).forEach(x=>rows.push([x.date,x.person.group,x.person.name,x.person.lang,displayEventType(x.event.type),x.event.name,x.event.locationName||'',x.event.status,'未交'])); exportCsv(rows,`未交服務紀錄單_${ym}.csv`)}
 
 function exportEvents(){const rows=[['行程ID','類別','狀態','起日','迄日','開始時間','結束時間','類型','附加行程類型','附加行程備註','辦理內容','地點 / 客戶','地址','公務車調整','相關人員','建立人','建立時間','最後修改人','最後修改時間','是否刪除','刪除原因','服務紀錄單','繳交日期','下次回診日期','下次回診時間','下次回診人員','掛號號碼','內容說明']]; state.events.forEach(e=>rows.push([e.id,e.kind,e.status,e.startDate,e.endDate,e.startTime,e.endTime,e.type,e.additionalType||'',e.additionalNote||'',e.name,e.locationName,e.address,e.vehicleNo||'',e.participants.map(id=>getPerson(id).name).join('、'),getUser(e.createdBy).name,e.createdAt,getUser(e.updatedBy).name,e.updatedAt,e.deleted?'是':'否',e.deleteReason||'',requiresServiceRecord(e)?(e.serviceRecordSubmitted?'已交':'未交'):'',e.serviceRecordDate||'',e.followupDate||'',e.followupTime||'',e.followupPersonId?getPerson(e.followupPersonId).name:'',e.followupRegNo||'',e.note])); exportCsv(rows,'翻譯行程匯出.csv')}
@@ -15396,6 +15399,144 @@ window.v249HolidayTagsReport={
   }
   setTimeout(fixServiceNav,1200);
   setTimeout(fixServiceNav,2500);
+})();
+</script>
+
+<script id="v274-open-all-nav">
+/*
+  V274: DRY/KISS/SOLID
+  目標：
+  1. 取消所有權限
+  2. 所有 navbtn 全部顯示
+  3. 加回 serviceRecords、scheduleSearch、personalTodo、recordSubmit 按鈕
+*/
+(function(){
+  'use strict';
+  if(window.__V274__) return;
+  window.__V274__ = true;
+
+  /* ── 取消所有權限 ── */
+  window.canSeePage        = function(){ return true; };
+  window.canEdit           = function(){ return true; };
+  window.canDelete         = function(){ return true; };
+  window.canAddPeople      = function(){ return true; };
+  window.canManageOptions  = function(){ return true; };
+  window.canService        = function(){ return true; };
+  window.canIncidents      = function(){ return true; };
+  window.isAdmin           = function(){ return true; };
+  window.isSupervisor      = function(){ return true; };
+  window.isStaff           = function(){ return false; };
+  window.isTranslatorAccount = function(){ return false; };
+
+  /* ── 確保按鈕定義（頁面 id、label、icon、插入在哪個按鈕之後）── */
+  var NAV_BUTTONS = [
+    { page:'serviceRecords', label:'服務紀錄單', icon:'ico-clipboard', after:'reports'    },
+    { page:'scheduleSearch', label:'行程搜尋',   icon:'ico-list',      after:'incidents'  },
+    { page:'personalTodo',   label:'個人待辦',   icon:'ico-list',      after:'today'      },
+    { page:'recordSubmit',   label:'紀錄單繳交', icon:'ico-clipboard', after:'personalTodo'},
+  ];
+
+  /* ── 確保頁面 section 存在 ── */
+  function ensureSection(pageId){
+    if(document.getElementById(pageId)) return;
+    var sec = document.createElement('section');
+    sec.id = pageId;
+    sec.className = 'page hide';
+    sec.innerHTML = '<div class="panel"><div class="section-title"><h2>'+pageId+'</h2></div><p class="muted">頁面載入中...</p></div>';
+    var main = document.querySelector('.main') || document.body;
+    main.appendChild(sec);
+  }
+
+  /* ── 核心：顯示所有 navbtn + 確保必要按鈕存在（去重）── */
+  function showAll(){
+    var side = document.querySelector('.side');
+    if(!side) return;
+
+    /* 1. 顯示既有所有 navbtn */
+    document.querySelectorAll('.navbtn').forEach(function(btn){
+      btn.classList.remove('hide','role-hidden');
+      btn.hidden = false;
+      btn.removeAttribute('aria-hidden');
+      btn.style.removeProperty('display');
+    });
+
+    /* 2. 確保必要按鈕存在於 side */
+    NAV_BUTTONS.forEach(function(def){
+      if(side.querySelector('.navbtn[data-page="'+def.page+'"]')) return;
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'navbtn';
+      btn.dataset.page = def.page;
+      btn.innerHTML = '<span class="mono-ico '+def.icon+'"></span>'+def.label;
+      var ref = side.querySelector('.navbtn[data-page="'+def.after+'"]');
+      if(ref) ref.insertAdjacentElement('afterend', btn);
+      else side.appendChild(btn);
+      ensureSection(def.page+'Page');
+    });
+
+    /* 3. 去重：同 data-page 只保留第一個 */
+    var seen = {};
+    side.querySelectorAll('.navbtn[data-page]').forEach(function(btn){
+      var pg = btn.dataset.page;
+      if(seen[pg]) btn.parentNode && btn.parentNode.removeChild(btn);
+      else seen[pg] = true;
+    });
+  }
+
+  /* ── applyPermissionsUI 覆寫 ── */
+  window.applyPermissionsUI = function(){ showAll(); };
+
+  /* ── navbtn 點擊路由：支援動態加入的頁面 ── */
+  document.addEventListener('click', function(e){
+    var btn = e.target && e.target.closest && e.target.closest('.navbtn[data-page]');
+    if(!btn) return;
+    var page = btn.dataset.page;
+    // 已有原生處理的頁面不干預
+    var nativePage = document.getElementById(page+'Page');
+    if(!nativePage) return;
+    // 顯示對應頁面
+    document.querySelectorAll('.page').forEach(function(p){ p.classList.add('hide'); });
+    nativePage.classList.remove('hide');
+    document.querySelectorAll('.navbtn').forEach(function(b){
+      b.classList.toggle('active', b.dataset.page === page);
+    });
+    // renderAll 觸發各頁面渲染
+    setTimeout(function(){
+      try{ if(typeof renderAll==='function') renderAll(); }catch(_){}
+      // personalTodo 專用渲染
+      if(page==='personalTodo'){
+        try{ if(typeof showPersonalTodoPageV200==='function') showPersonalTodoPageV200(); }catch(_){}
+        try{ if(typeof renderPersonalTodoPageV202==='function') renderPersonalTodoPageV202(); }catch(_){}
+      }
+      // recordSubmit 專用渲染
+      if(page==='recordSubmit'){
+        try{ if(typeof openRecordPage==='function') openRecordPage(); }catch(_){}
+        try{ if(typeof renderRecordSubmitPageV176==='function') renderRecordSubmitPageV176(); }catch(_){}
+      }
+      // scheduleSearch 專用渲染
+      if(page==='scheduleSearch'){
+        try{ if(typeof renderScheduleSearch==='function') renderScheduleSearch(); }catch(_){}
+        try{ if(typeof window.renderScheduleSearch==='function') window.renderScheduleSearch(); }catch(_){}
+      }
+      // serviceRecords 專用渲染
+      if(page==='serviceRecords'){
+        try{ if(typeof renderServiceRecords==='function') renderServiceRecords(); }catch(_){}
+      }
+    }, 50);
+  }, false);
+
+  /* ── init ── */
+  function init(){
+    showAll();
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(init,300); });
+  } else {
+    setTimeout(init,300);
+  }
+  setTimeout(init, 900);
+  setTimeout(init, 2000);
 })();
 </script>
 </body></html>
