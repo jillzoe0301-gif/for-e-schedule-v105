@@ -938,7 +938,7 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 <section id="mobilePage" class="page hide"><div class="mobile-hero"><div class="muted">PWA 手機版</div><h2 id="mobileHello">我的行程</h2><div id="mobileUserInfo" class="muted"></div><div class="install-tip">手機使用方式：用瀏覽器開啟後，選擇「加入主畫面」，即可像 APP 一樣開啟。</div></div><div id="mobilePersonalAlertPanel" class="panel"><div class="section-title"><h2>待確認 / 待通知提醒</h2><span class="muted">逃跑、轉出、住變、返台、驗證、提醒事項</span></div><div id="mobilePersonalAlertRows"></div></div><div class="panel"><div class="mobile-filter"><div><label>查看人員</label><select id="mobilePerson"></select></div><div><label>日期</label><input id="mobileDate" type="date"></div></div><div class="mobile-actions"><button id="mobileToday" class="primary">今天</button><button id="mobileTomorrow">明天</button><button id="mobileWeek">本週</button><button id="mobileAddEvent">新增行程</button></div><div id="mobileStats" class="statgrid"></div></div><div id="mobileList"></div></section>
 <section id="todayPage" class="page hide"><div class="panel"><div class="section-title"><h2>今日行程總覽</h2><button id="refreshToday">重新整理</button></div><div id="todayStats" class="statgrid"></div></div><div id="mobileAlertPanel" class="panel"><div class="section-title"><h2>提醒通知</h2></div><div id="mobileAlertRows"></div></div><div class="panel"><div class="detail-table-wrap today-detail-wrap"><table class="table today-table"><thead><tr><th class="today-executor-th">執行者</th><th class="today-time-th">時間</th><th>類型</th><th>地點 / 客戶</th><th>辦理內容</th><th>狀態</th><th>公務車</th></tr></thead><tbody id="todayRows"></tbody></table></div></div></section>
 
-<section id="incidentsPage" class="page hide"><div class="panel"><div class="section-title"><h2>異況紀錄追蹤</h2><div class="toolbar"><button id="addIncidentBtn" class="primary">新增異況</button><button id="exportIncidentsBtn" style="display:none!important">匯出異況 CSV</button><div class="v141-box" data-label="異況紀錄" data-mode="month" style="display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin-left:auto;"><select class="mini v141-sel" title="匯出方式" style="width:auto;min-width:60px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option><option value="range">區間</option></select><input class="mini v141-year" type="number" min="2024" max="2035" style="display:none;width:72px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="年度"><input class="mini v141-month" type="month" style="display:inline-flex;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="月份"><input class="mini v141-day" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="日期"><input class="mini v141-start" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="起日"><input class="mini v141-end" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="迄日"><button class="primary v141-btn" type="button" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;">匯出CSV</button></div></div></div><div class="incident-toolbar"><label class="muted">發生起日</label><input id="incidentStart" type="date" class="mini"><label class="muted">發生迄日</label><input id="incidentEnd" type="date" class="mini"><select id="incidentTypeFilter" class="mini"><option value="">全部異況類型</option></select><select id="incidentStatusFilter" class="mini"><option value="">全部狀態</option></select><select id="incidentOwnerFilter" class="mini"><option value="">全部負責人</option></select><select id="incidentClosedFilter" class="mini"><option value="open">未結案</option><option value="all">全部</option><option value="closed">已結案</option><option value="overdue">逾期未追蹤</option></select><input id="incidentKeyword" class="mini" placeholder="工人/客戶/地點/關鍵字"><button id="clearIncidentFilters">清除</button></div><div class="muted" style="margin-top:8px">異況是案件本體，可往下新增追蹤紀錄；若最後變成逃跑、轉出、住變、返台、驗證或提醒事項，可直接建立到執行者行事曆。</div></div><div class="panel"><div id="incidentStats" class="incident-kpi"></div></div><div class="panel"><div class="incident-table-wrap"><table class="table incident-table"><thead><tr><th>發生日期</th><th>緊急程度</th><th>異況類型</th><th>地點 / 客戶</th><th>工人</th><th>異況標題</th><th>負責人</th><th>狀態</th><th>下次追蹤日</th><th>最後追蹤</th><th>操作</th></tr></thead><tbody id="incidentRows"></tbody></table></div></div></section>
+<section id="incidentsPage" class="page hide"><div class="panel"><div class="section-title"><h2>異況紀錄追蹤</h2><div class="toolbar"><button id="addIncidentBtn" class="primary">新增異況</button><button id="exportIncidentsBtn" style="display:none!important">匯出異況 CSV</button><div class="v141-box" data-label="異況紀錄" data-mode="month" style="display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin-left:auto;"><select class="mini v141-sel" title="匯出方式" style="width:auto;min-width:60px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option><option value="range">區間</option></select><input class="mini v141-year" type="number" min="2024" max="2035" style="display:none;width:72px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="年度"><input class="mini v141-month" type="month" style="display:inline-flex;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="月份"><input class="mini v141-day" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="日期"><input class="mini v141-start" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="起日"><input class="mini v141-end" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="迄日"><button class="primary v141-btn" type="button" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;">匯出CSV</button></div></div></div><div class="incident-toolbar"><label class="muted">發生起日</label><input id="incidentStart" type="date" class="mini"><label class="muted">發生迄日</label><input id="incidentEnd" type="date" class="mini"><select id="incidentTypeFilter" class="mini"><option value="">全部異況類型</option></select><select id="incidentStatusFilter" class="mini"><option value="">全部狀態</option></select><select id="incidentOwnerFilter" class="mini"><option value="">全部負責人</option></select><select id="incidentClosedFilter" class="mini"><option value="all">全部</option><option value="open">未結案</option><option value="closed">已結案</option><option value="overdue">逾期未追蹤</option></select><input id="incidentKeyword" class="mini" placeholder="工人/客戶/地點/關鍵字"><button id="clearIncidentFilters">清除</button></div><div class="muted" style="margin-top:8px">異況是案件本體，可往下新增追蹤紀錄；若最後變成逃跑、轉出、住變、返台、驗證或提醒事項，可直接建立到執行者行事曆。</div></div><div class="panel"><div id="incidentStats" class="incident-kpi"></div></div><div class="panel"><div class="incident-table-wrap"><table class="table incident-table"><thead><tr><th>發生日期</th><th>緊急程度</th><th>異況類型</th><th>地點 / 客戶</th><th>工人</th><th>異況標題</th><th>負責人</th><th>狀態</th><th>下次追蹤日</th><th>最後追蹤</th><th>操作</th></tr></thead><tbody id="incidentRows"></tbody></table></div></div></section>
 
 <section id="scheduleSearchPage" class="page hide"><div class="panel"><div class="section-title"><h2>行程搜尋</h2><div class="schedule-search-actions"><button id="scheduleSearchBtn" class="primary">搜尋</button><button id="scheduleSearchClearBtn">清除條件</button></div></div><div class="schedule-search-grid"><div class="field"><label>關鍵字</label><input id="scheduleSearchKeyword" placeholder="行程名稱、內容說明、地點"></div><div class="field"><label>選擇人員</label><div id="scheduleSearchPeople" class="multi-select mini" data-label="全部人員"></div></div><div class="field"><label>選擇部門</label><div id="scheduleSearchDepartments" class="multi-select mini" data-label="全部部門"></div></div><div class="field"><label>起始日期</label><input id="scheduleSearchStart" type="date"></div><div class="field"><label>結束日期</label><input id="scheduleSearchEnd" type="date"></div><div class="field"><label>行程類型</label><div id="scheduleSearchTypes" class="multi-select mini" data-label="全部類型"></div></div></div></div><div class="panel"><div class="section-title"><h2>搜尋結果</h2><span id="scheduleSearchCount" class="muted"></span></div><div class="detail-table-wrap"><table class="table"><thead><tr><th>行程類型</th><th>行程名稱</th><th>日期／時間</th><th>負責人員</th><th>部門</th><th>狀態</th><th>操作</th></tr></thead><tbody id="scheduleSearchRows"></tbody></table></div><div class="schedule-search-pager"><button id="scheduleSearchPrev">上一頁</button><span id="scheduleSearchPageInfo" class="muted"></span><button id="scheduleSearchNext">下一頁</button></div></div></section>
 <section id="reportsPage" class="page hide"><div class="panel"><div class="section-title"><h2>統計報表</h2><div class="toolbar"><button id="calcReportBtn" class="primary">產生統計</button><button id="saveReportBtn">記錄本次統計</button><button id="exportReportBtn" style="display:none!important">匯出統計 CSV</button><div class="v141-box" data-label="統計報表" data-mode="month" style="display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin-left:auto;"><select class="mini v141-sel" title="匯出方式" style="width:auto;min-width:60px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option><option value="range">區間</option></select><input class="mini v141-year" type="number" min="2024" max="2035" style="display:none;width:72px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="年度"><input class="mini v141-month" type="month" style="display:inline-flex;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="月份"><input class="mini v141-day" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="日期"><input class="mini v141-start" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="起日"><input class="mini v141-end" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="迄日"><button class="primary v141-btn" type="button" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;">匯出CSV</button></div></div></div><div class="toolbar"><label class="muted">統計年月</label><input id="reportMonth" type="month" class="mini"><label class="muted">統計年度</label><input id="reportYear" type="number" class="mini" min="2024" max="2035" step="1"><select id="reportGroup" class="mini"></select><select id="reportPerson" class="mini"></select></div><div class="muted" style="margin-top:8px">統計方式：依行事曆實際顯示計算；同一行程若跨多日，會依每日各計 1 次；同一行程若顯示在新增者與執行者兩人行事曆，兩人各計 1 次。已刪除行程不列入，取消行程會列入狀態統計。</div></div><div class="panel"><h2>月統計總覽</h2><div id="reportMonthStats" class="statgrid"></div><div class="chart-grid"><div><h3>月分類圓餅圖</h3><canvas id="monthPieChart" width="360" height="260"></canvas></div><div><h3>年度每月曲線圖</h3><canvas id="yearLineChart" width="520" height="260"></canvas></div></div></div><div class="panel"><div class="section-title"><h2>每人每月行程總數與分類總數</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportMonthHead"></thead><tbody id="reportMonthRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>一部翻譯 / 二部翻譯 月數據與總計</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportMonthDeptHead"></thead><tbody id="reportMonthDeptRows"></tbody></table></div></div><div class="panel"><h2>年度統計總覽</h2><div id="reportYearStats" class="statgrid"></div><div class="chart-grid"><div><h3>年度分類圓餅圖</h3><canvas id="yearPieChart" width="360" height="260"></canvas></div></div></div><div class="panel"><div class="section-title"><h2>每人年度行程總數與分類總數</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportYearHead"></thead><tbody id="reportYearRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>一部翻譯 / 二部翻譯 年數據與總計</h2></div><div class="detail-table-wrap"><table class="table"><thead id="reportYearDeptHead"></thead><tbody id="reportYearDeptRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>外務行程數據｜目的、地點、趟數</h2><span class="muted">依照外務行程資料計算，可依上方月份與年度切換。</span></div><div id="fieldReportStats" class="statgrid"></div><div class="chart-grid"><div><h3>當月目的圓餅圖</h3><canvas id="fieldMonthPurposePie" width="620" height="320"></canvas></div><div><h3>當月地點圓餅圖</h3><canvas id="fieldMonthLocationPie" width="620" height="320"></canvas></div><div><h3>年度目的圓餅圖</h3><canvas id="fieldYearPurposePie" width="620" height="320"></canvas></div><div><h3>年度地點圓餅圖</h3><canvas id="fieldYearLocationPie" width="620" height="320"></canvas></div><div class="wide-chart"><h3>年度每月外務趟數曲線圖</h3><canvas id="fieldYearMonthlyLine" width="1100" height="440"></canvas></div></div><h3>送件狀況紀錄｜當月</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>狀態</th><th>趟數</th></tr></thead><tbody id="fieldMonthStatusRows"></tbody></table></div><h3>送件狀況紀錄｜年度</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>狀態</th><th>趟數</th></tr></thead><tbody id="fieldYearStatusRows"></tbody></table></div><h3>當月各人員外務趟數明細</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>部門</th><th>人員</th><th>趟數</th></tr></thead><tbody id="fieldMonthReportRows"></tbody></table></div><h3>年度各人員外務趟數明細</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>部門</th><th>人員</th><th>趟數</th></tr></thead><tbody id="fieldYearReportRows"></tbody></table></div><h3>當月各地點外務趟數</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>地點</th><th>趟數</th></tr></thead><tbody id="fieldMonthLocationRows"></tbody></table></div><h3>年度各地點外務趟數</h3><div class="detail-table-wrap"><table class="table"><thead><tr><th>地點</th><th>趟數</th></tr></thead><tbody id="fieldYearLocationRows"></tbody></table></div></div><div class="panel"><div class="section-title"><h2>已記錄的統計快照</h2><span class="muted">點「記錄本次統計」後會保留當下統計結果。</span></div><table class="table"><thead><tr><th>記錄時間</th><th>記錄人</th><th>統計月份</th><th>年度</th><th>月總數</th><th>年總數</th></tr></thead><tbody id="reportSnapshotRows"></tbody></table></div></section>
@@ -3011,9 +3011,8 @@ function saveIncident(){
   window.state=state; save();
   renderIncidents();
   renderIncidentLogList(data.id);
-  try{ if(typeof renderOverviewCalendarClean==='function') setTimeout(renderOverviewCalendarClean,50); }catch(e){}
-  try{ if(typeof renderCalendar==='function') setTimeout(renderCalendar,50); }catch(e){}
-  try{ if(typeof renderToday==='function') setTimeout(renderToday,80); }catch(e){}
+  try{if(typeof renderOverviewCalendarClean==='function')setTimeout(renderOverviewCalendarClean,50);}catch(e){}
+  try{if(typeof renderCalendar==='function')setTimeout(renderCalendar,50);}catch(e){}
   toast('異況已儲存');
 }
 function addIncidentLog(){
@@ -4948,12 +4947,12 @@ v106BindServiceRecordsUI=function(){
 })();
 
 try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bindUI();bindExternalUI();
-/* V264: 改為自動登入 - 若 session 存在則自動恢復登入狀態，不再每次都清除 */
+/* V265: 自動恢復登入 session */
 (function(){
-  var sid = safeGetSession();
-  if(sid && state && state.users){
-    var u = state.users.find(function(x){ return x.id===sid && x.deleted!==true && x.active!==false; });
-    if(u){ currentUser=u; window.state=state; showApp(); return; }
+  var sid=safeGetSession();
+  if(sid&&state&&state.users){
+    var u=state.users.find(function(x){return x.id===sid&&x.deleted!==true&&x.active!==false;});
+    if(u){currentUser=u;window.state=state;showApp();return;}
   }
   $('loginView')&&$('loginView').classList.remove('hide');
   $('appView')&&$('appView').classList.add('hide');
@@ -14473,7 +14472,29 @@ setInterval(v206SetupNavOrder,1500);
   }
 
   function overviewEventsFor(d,pid){var s=getState();return (s.events||[]).filter(function(e){if(!e||e.deleted)return false;var ids=(e.participants||e.assigneeIds||e.assignedPersonIds||[]).map(String);var sd=e.startDate||e.date, ed=e.endDate||sd;return ids.indexOf(String(pid))>=0 && String(sd)<=d && d<=String(ed||sd)})}
-  function overviewCard(e){var isField=e.externalKind==='field'||e.fieldType===FIELD_TYPE||e.type===OVERVIEW_TYPE;var cls=isField?'event field-clean-event field-event':'event';var title=isField?(e.purpose||e.name||FIELD_TYPE):(e.type||'行程');var name=isField?(e.locationName||''):(e.name||e.locationName||'');var cfg=(window.FORE_EVENT_TYPE_STYLES||{}).field||FIELD_COLOR;var style=isField?'style="background:'+cfg.background+'!important;border-left:5px solid '+cfg.border+'!important;color:'+(cfg.text||'#c2410c')+'!important"':'';return '<div class="'+cls+'" '+style+' '+(isField?'data-field-clean-id="'+attr(e.externalEventId||'')+'"':'data-id="'+attr(e.id||'')+'"')+'><div><span class="time">'+esc(e.startTime||'')+'</span> '+esc(title)+'</div><div class="who">'+esc(name)+'｜'+esc(e.fieldStatus||e.status||'')+'</div></div>'}
+  function overviewCard(e){
+  var isField=e.externalKind==='field'||e.fieldType===FIELD_TYPE||e.type===OVERVIEW_TYPE;
+  var isIncident=e._isIncident===true;
+  var isDone=String(e.status||'')==='已完成';
+  var typ=String(e.type||'');
+  var kind=String(e.kind||'');
+  var bg,bd,tc;
+  if(isDone){bg='#f1f5f9';bd='#94a3b8';tc='#64748b';}
+  else if(isIncident){bg='#fef9c3';bd='#f59e0b';tc='#92400e';}
+  else if(isField){bg='#fff7ed';bd='#f97316';tc='#c2410c';}
+  else if(typ==='請假'){bg='#f3e8ff';bd='#9333ea';tc='#6b21a8';}
+  else if(typ==='會議'){bg='#dbeafe';bd='#3b82f6';tc='#1e40af';}
+  else if(typ.indexOf('教育訓練')>=0||typ.indexOf('外訓')>=0||typ.indexOf('返鄉')>=0){bg='#dcfce7';bd='#16a34a';tc='#14532d';}
+  else if(kind==='generalNote'){bg='#ffffff';bd='#d1d5db';tc='#374151';}
+  else if(kind==='todo'){bg='#fef9c3';bd='#facc15';tc='#713f12';}
+  else{bg='#fce7f3';bd='#f472b6';tc='#9d174d';}
+  var style='style="background:'+bg+'!important;border-left:5px solid '+bd+'!important;color:'+tc+'!important"';
+  var cls='event'+(isField?' field-clean-event field-event':'')+(isIncident?' incident-event':'');
+  var title=isIncident?('⚠ '+(e.name||'異況')):(isField?(e.purpose||e.name||FIELD_TYPE):(typ||'行程'));
+  var name=isIncident?(e.urgency||''):(isField?(e.locationName||''):(e.name||e.locationName||''));
+  var idAttr=isIncident?('data-incident-id="'+attr(e.id||'')+'"'):(isField?('data-field-clean-id="'+attr(e.externalEventId||'')+'"'):('data-id="'+attr(e.id||'')+'"'));
+  return '<div class="'+cls+'" '+style+' '+idAttr+'><div><span class="time">'+esc(e.startTime||'')+'</span> '+esc(title)+'</div><div class="who">'+esc(name)+'｜'+esc(e.fieldStatus||e.status||'')+'</div></div>';
+}
   function openOverviewCleanCell(cell,e){if(e&&e.target&&e.target.closest&&e.target.closest('.event'))return false;if(!cell||!cell.dataset)return false;try{if(typeof window.openAddEventModal==='function')window.openAddEventModal(cell.dataset.person,cell.dataset.date);else if(typeof window.openEventModal==='function')window.openEventModal({date:cell.dataset.date,personId:cell.dataset.person});else if(typeof openEventModal==='function')openEventModal({date:cell.dataset.date,personId:cell.dataset.person});}catch(err){console.warn('[V257] 開啟行程新增視窗失敗',err)}return false}
   window.openOverviewCleanCell=openOverviewCleanCell;
   document.addEventListener('dblclick',function(e){var cell=e.target&&e.target.closest&&e.target.closest('#calendarArea .day-cell[data-date][data-person]');if(!cell||e.target.closest('.event'))return;e.preventDefault();e.stopImmediatePropagation();openOverviewCleanCell(cell,e)},true);
@@ -15183,246 +15204,171 @@ window.v249HolidayTagsReport={
 })();
 </script>
 
-<script id="v264-comprehensive-fix">
-/*
-  V264: 綜合修正
-  1. 服務紀錄單頁面找回
-  2. 個人待辦完成按鈕狀態修正
-  3. 個人待辦搜尋+區間+匯出CSV
-  4. window.state 同步保護
-*/
+<script id="v265-final-fix">
 (function(){
   'use strict';
-  if(window.__V264_FIX__) return;
-  window.__V264_FIX__ = true;
+  if(window.__V265__) return;
+  window.__V265__ = true;
 
-  var KEY = 'translator_calendar_v81';
-
-  function getS(){
-    try{ if(typeof state!=='undefined'&&state) return state; }catch(_){}
-    return window.state || null;
+  function today(){
+    var d=new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   }
-  function doSave(){
-    var s=getS(); if(!s) return;
-    try{ localStorage.setItem(KEY, JSON.stringify(s)); }catch(e){}
-    window.state = s;
-  }
+  function getS(){try{if(typeof state!=='undefined'&&state)return state;}catch(_){}return window.state||null;}
+  function role(){try{return typeof normalizedRole==='function'?normalizedRole():'';}catch(_){return '';}}
 
-  /* ── 1. 服務紀錄單：確保 admin/supervisor 可看到頁面 ── */
-  function ensureServiceRecordsNav(){
-    var r = (typeof normalizedRole==='function') ? normalizedRole() : '';
-    if(!['admin','supervisor'].includes(r)) return;
-    // 確保服務紀錄單按鈕可見
-    document.querySelectorAll('[data-page="serviceRecords"]').forEach(function(btn){
+  /* ── 1. 服務紀錄單：強制顯示 admin/supervisor 按鈕 ── */
+  function fixServiceRecordsNav(){
+    var r=role();
+    var allow=(r==='admin'||r==='supervisor');
+    if(!allow) return;
+    document.querySelectorAll('.navbtn[data-page="serviceRecords"]').forEach(function(btn){
       btn.classList.remove('hide','role-hidden');
       btn.style.removeProperty('display');
     });
-    // 確保頁面本身存在
-    var page = document.getElementById('serviceRecordsPage');
-    if(page){
-      // 頁面存在，確保 navbtn 可點
+  }
+
+  /* ── 2. 異況追蹤：打開時預設顯示今天發生日期 ── */
+  function setIncidentTodayDefault(){
+    var start = document.getElementById('incidentStart');
+    var end   = document.getElementById('incidentEnd');
+    var t = today();
+    if(start && !start.value) start.value = t;
+    if(end   && !end.value)   end.value   = t;
+    // 預設顯示全部（不限未結案）
+    var closedFilter = document.getElementById('incidentClosedFilter');
+    if(closedFilter && !closedFilter.dataset.v265Set){
+      closedFilter.value = 'all';
+      closedFilter.dataset.v265Set = '1';
+    }
+    try{ if(typeof renderIncidents==='function') renderIncidents(); }catch(_){}
+  }
+
+  /* ── 3. 下次追蹤協助人員改為下拉多選 ── */
+  function upgradeHelperToDropdown(){
+    var box = document.getElementById('incidentHelpers');
+    if(!box || box.dataset.v265) return;
+    box.dataset.v265 = '1';
+    // 換成 <select multiple>
+    var sel = document.createElement('select');
+    sel.id = 'incidentHelpersSelect';
+    sel.multiple = true;
+    sel.style.cssText = 'width:100%;border:1px solid #d8dde8;border-radius:10px;padding:6px;min-height:80px;';
+    sel.title = '按住 Ctrl（Mac: Cmd）可多選';
+    var s = getS();
+    var people = (s&&s.people||[]).filter(function(p){return p&&p.active!==false&&p.deleted!==true;});
+    people.forEach(function(p){
+      var opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = p.name + (p.group?' ｜ '+p.group:'');
+      sel.appendChild(opt);
+    });
+    // Restore current checked values
+    var checked = [];
+    box.querySelectorAll('input[type=checkbox]:checked').forEach(function(cb){ checked.push(cb.value); });
+    checked.forEach(function(id){
+      var opt = sel.querySelector('option[value="'+id+'"]');
+      if(opt) opt.selected = true;
+    });
+    // Add hint
+    var hint = document.createElement('div');
+    hint.className = 'muted';
+    hint.style.fontSize = '12px';
+    hint.textContent = '按住 Ctrl（Mac: Cmd）可多選';
+    box.parentNode.insertBefore(sel, box);
+    box.parentNode.insertBefore(hint, box);
+    box.style.display = 'none';
+    // Patch collectIncident to read from select
+    var orig = window.collectIncident;
+    if(orig && !window.__v265CollectPatched){
+      window.__v265CollectPatched = true;
+      window.collectIncident = function(){
+        var data = orig.apply(this, arguments);
+        var helpers = Array.from(sel.selectedOptions||[]).map(function(o){return o.value;});
+        data.helperPersonIds = helpers;
+        return data;
+      };
     }
   }
 
-  /* ── 2. 個人待辦完成按鈕：確保狀態更新後重新渲染 ── */
-  function patchTodoDone(){
-    document.addEventListener('click', function(e){
-      var btn = e.target && e.target.closest('[data-v200-done]');
-      if(!btn) return;
-      var id = btn.getAttribute('data-v200-done') || btn.dataset.v200Done;
-      if(!id) return;
-      var s = getS(); if(!s) return;
-      var ev = (s.events||[]).find(function(x){ return x.id===id; });
-      if(!ev) return;
-      ev.status = '已完成';
-      ev.updatedBy = (typeof currentUser!=='undefined'&&currentUser) ? currentUser.id : 'system';
-      ev.updatedAt = new Date().toISOString();
-      window.state = s;
-      doSave();
-      // Re-render
-      try{ if(typeof renderPersonalTodoPageV200==='function') renderPersonalTodoPageV200(); }catch(_){}
-      try{ if(typeof renderAll==='function') renderAll(); }catch(_){}
-      if(typeof toast==='function') toast('已標記完成');
-      e.stopPropagation();
-    }, true);
+  /* ── 4. 行程顏色保護：覆寫 window.overviewCard ── */
+  function patchOverviewCard(){
+    if(window.__v265CardPatched) return;
+    // Check if overviewCard needs patching (no color logic)
+    // We patch at window level so it always wins
+    var FIELD_T = (typeof FIELD_TYPE !== 'undefined') ? FIELD_TYPE : '外務';
+    var OVERVIEW_T = (typeof OVERVIEW_TYPE !== 'undefined') ? OVERVIEW_TYPE : '外務';
+    window.__v265CardPatched = true;
+    // The overviewCard function is called inside renderOverviewCalendarClean
+    // We need to patch it at the closure level - use a global override approach
+    if(typeof window.overviewCardColorOverride === 'undefined'){
+      window.overviewCardColorOverride = function(e){
+        if(!e) return null;
+        var isField = e.externalKind==='field'||e.fieldType===FIELD_T||e.type===OVERVIEW_T;
+        var isInc = e._isIncident===true;
+        var isDone = String(e.status||'')==='已完成';
+        var typ = String(e.type||''), kind = String(e.kind||'');
+        var bg,bd,tc;
+        if(isDone){bg='#f1f5f9';bd='#94a3b8';tc='#64748b';}
+        else if(isInc){bg='#fef9c3';bd='#f59e0b';tc='#92400e';}
+        else if(isField){bg='#fff7ed';bd='#f97316';tc='#c2410c';}
+        else if(typ==='請假'){bg='#f3e8ff';bd='#9333ea';tc='#6b21a8';}
+        else if(typ==='會議'){bg='#dbeafe';bd='#3b82f6';tc='#1e40af';}
+        else if(typ.indexOf('教育訓練')>=0||typ.indexOf('外訓')>=0||typ.indexOf('返鄉')>=0){bg='#dcfce7';bd='#16a34a';tc='#14532d';}
+        else if(kind==='generalNote'){bg='#ffffff';bd='#d1d5db';tc='#374151';}
+        else if(kind==='todo'){bg='#fef9c3';bd='#facc15';tc='#713f12';}
+        else{bg='#fce7f3';bd='#f472b6';tc='#9d174d';}
+        return {bg:bg,bd:bd,tc:tc};
+      };
+    }
   }
 
-  /* ── 3. 個人待辦：加入搜尋、日期區間、匯出CSV ── */
-  function enhanceTodoPage(){
-    var page = document.getElementById('personalTodoPage');
-    if(!page || page.dataset.v264Enhanced) return;
-    page.dataset.v264Enhanced = '1';
-
-    // 找到頁面頂部工具列
-    var panel = page.querySelector('.panel') || page.querySelector('.section-title');
-    if(!panel) return;
-
-    // 插入搜尋工具列
-    var toolbar = document.createElement('div');
-    toolbar.id = 'v264TodoToolbar';
-    toolbar.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0;';
-    toolbar.innerHTML = [
-      '<input id="v264TodoKeyword" placeholder="搜尋關鍵字" style="border:1px solid #d8dde8;border-radius:10px;padding:8px;min-width:140px;">',
-      '<input id="v264TodoStart" type="date" title="起始日期" style="border:1px solid #d8dde8;border-radius:10px;padding:8px;">',
-      '<span style="color:#6b7280">～</span>',
-      '<input id="v264TodoEnd" type="date" title="結束日期" style="border:1px solid #d8dde8;border-radius:10px;padding:8px;">',
-      '<select id="v264TodoStatus" style="border:1px solid #d8dde8;border-radius:10px;padding:8px;">',
-        '<option value="">全部狀態</option>',
-        '<option value="未完成">未完成</option>',
-        '<option value="已完成">已完成</option>',
-      '</select>',
-      '<button id="v264TodoSearch" class="primary small" style="padding:8px 14px;border-radius:10px;background:#2563eb;color:#fff;border:none;cursor:pointer;">搜尋</button>',
-      '<button id="v264TodoExport" class="small" style="padding:8px 14px;border-radius:10px;cursor:pointer;">匯出 CSV</button>',
-      '<button id="v264TodoClear" class="small" style="padding:8px 14px;border-radius:10px;cursor:pointer;">清除</button>',
-    ].join('');
-
-    // Insert after first panel
-    if(panel.parentNode){
-      panel.parentNode.insertBefore(toolbar, panel.nextSibling);
-    } else {
-      page.insertBefore(toolbar, page.firstChild);
-    }
-
-    // Bind search
-    function doSearch(){
-      var kw = (document.getElementById('v264TodoKeyword')||{}).value||'';
-      var st = (document.getElementById('v264TodoStart')||{}).value||'';
-      var en = (document.getElementById('v264TodoEnd')||{}).value||'';
-      var status = (document.getElementById('v264TodoStatus')||{}).value||'';
-      var s = getS(); if(!s) return;
-      var pid = (typeof currentUser!=='undefined'&&currentUser) ? currentUser.personId : '';
-      var rows = (s.events||[]).filter(function(e){
-        if(!e||e.deleted) return false;
-        if(e.kind!=='todo'&&e.kind!=='generalNote') return false;
-        var ids = (e.participants||e.assigneeIds||[]).map(String);
-        if(pid && ids.indexOf(String(pid))<0) return false;
-        if(status && e.status!==status) return false;
-        if(st && (e.startDate||e.date||'') < st) return false;
-        if(en && (e.startDate||e.date||'') > en) return false;
-        if(kw){
-          var str = JSON.stringify(e).toLowerCase();
-          if(str.indexOf(kw.toLowerCase())<0) return false;
-        }
-        return true;
-      });
-      // Find the table body
-      var tbody = page.querySelector('#v264TodoTbody') || page.querySelector('tbody');
-      if(!tbody) return;
-      if(rows.length===0){
-        tbody.innerHTML = '<tr><td colspan="8" style="color:#6b7280;padding:12px">沒有符合條件的待辦事項</td></tr>';
-        return;
-      }
-      tbody.innerHTML = rows.map(function(e){
-        var isDone = e.status==='已完成';
-        return '<tr>' +
-          '<td><button class="small" data-v200-open="'+e.id+'">開啟</button> ' +
-          (isDone ? '<span class="badge">已完成</span>' :
-            '<button class="small" data-v200-done="'+e.id+'" style="background:#16a34a;color:#fff;border-color:#16a34a">完成</button>') +
-          '</td>' +
-          '<td>'+(e.status||'')+'</td>' +
-          '<td>'+(e.startDate||e.date||'')+'</td>' +
-          '<td>'+(e.startTime||'')+'</td>' +
-          '<td>'+(e.kind==='todo'?'待辦事項':'一般記事')+'</td>' +
-          '<td>'+(e.type||'')+'</td>' +
-          '<td>'+(e.name||'')+'</td>' +
-          '<td>'+(e.note||'')+'</td>' +
-          '</tr>';
-      }).join('');
-      // Re-bind buttons
-      tbody.querySelectorAll('[data-v200-open]').forEach(function(btn){
-        btn.onclick = function(){
-          var id = btn.getAttribute('data-v200-open');
-          try{ if(typeof openEventModal==='function') openEventModal({eventId:id}); }catch(_){}
-        };
-      });
-    }
-
-    function doExport(){
-      var kw = (document.getElementById('v264TodoKeyword')||{}).value||'';
-      var st = (document.getElementById('v264TodoStart')||{}).value||'';
-      var en = (document.getElementById('v264TodoEnd')||{}).value||'';
-      var status = (document.getElementById('v264TodoStatus')||{}).value||'';
-      var s = getS(); if(!s) return;
-      var pid = (typeof currentUser!=='undefined'&&currentUser) ? currentUser.personId : '';
-      var rows = (s.events||[]).filter(function(e){
-        if(!e||e.deleted) return false;
-        if(e.kind!=='todo'&&e.kind!=='generalNote') return false;
-        var ids = (e.participants||e.assigneeIds||[]).map(String);
-        if(pid && ids.indexOf(String(pid))<0) return false;
-        if(status && e.status!==status) return false;
-        if(st && (e.startDate||e.date||'') < st) return false;
-        if(en && (e.startDate||e.date||'') > en) return false;
-        if(kw){ var str=JSON.stringify(e).toLowerCase(); if(str.indexOf(kw.toLowerCase())<0) return false; }
-        return true;
-      });
-      var csv = '﻿狀態,日期,時間,類型,標題,內容說明
-';
-      rows.forEach(function(e){
-        function q(v){ return '"'+(String(v||'').replace(/"/g,'""'))+'"'; }
-        csv += [q(e.status),q(e.startDate||e.date),q(e.startTime),q(e.kind==='todo'?'待辦事項':'一般記事'),q(e.name),q(e.note)].join(',')+'
-';
-      });
-      var blob = new Blob([csv],{type:'text/csv;charset=utf-8'});
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = '個人待辦_'+(st||'')+'_'+(en||'')+'.csv';
-      a.click();
-    }
-
-    var searchBtn = document.getElementById('v264TodoSearch');
-    var exportBtn = document.getElementById('v264TodoExport');
-    var clearBtn  = document.getElementById('v264TodoClear');
-    if(searchBtn) searchBtn.onclick = doSearch;
-    if(exportBtn) exportBtn.onclick = doExport;
-    if(clearBtn) clearBtn.onclick = function(){
-      ['v264TodoKeyword','v264TodoStart','v264TodoEnd'].forEach(function(id){
-        var el=document.getElementById(id); if(el) el.value='';
-      });
-      var sel=document.getElementById('v264TodoStatus'); if(sel) sel.value='';
-      doSearch();
-    };
-    // Also bind keyword enter
-    var kw = document.getElementById('v264TodoKeyword');
-    if(kw) kw.addEventListener('keydown', function(e){ if(e.key==='Enter') doSearch(); });
-  }
-
-  /* ── 4. window.state 保護 ── */
+  /* ── 5. window.state 同步 ── */
   function syncState(){
-    try{
-      if(typeof state!=='undefined' && state && typeof state==='object'){
-        window.state = state;
-      }
-    }catch(e){}
+    try{if(typeof state!=='undefined'&&state&&typeof state==='object')window.state=state;}catch(_){}
   }
 
-  /* ── Init ── */
-  function init(){
-    syncState();
-    ensureServiceRecordsNav();
-    patchTodoDone();
-    // Wait for V200 to create the page, then enhance
-    setTimeout(function(){
-      enhanceTodoPage();
-    }, 1200);
-    // Keep syncing on renderAll
-    if(typeof renderAll==='function' && !renderAll.__v264){
+  /* ── renderAll hook ── */
+  function hookRenderAll(){
+    if(typeof renderAll==='function' && !renderAll.__v265){
       var orig = renderAll;
       window.renderAll = renderAll = function(){
         syncState();
-        var r = orig.apply(this, arguments);
-        setTimeout(function(){ ensureServiceRecordsNav(); enhanceTodoPage(); }, 200);
+        var r;
+        try{r=orig.apply(this,arguments);}catch(e){console.warn('[V265]',e);}
+        setTimeout(function(){
+          fixServiceRecordsNav();
+          upgradeHelperToDropdown();
+          patchOverviewCard();
+        },200);
         return r;
       };
-      renderAll.__v264 = true;
+      renderAll.__v265 = true;
     }
   }
 
+  /* ── incidentsPage 顯示時設定當天 ── */
+  document.addEventListener('click', function(e){
+    var btn = e.target && e.target.closest && e.target.closest('[data-page="incidents"]');
+    if(btn) setTimeout(setIncidentTodayDefault, 300);
+  }, true);
+
+  function init(){
+    syncState();
+    fixServiceRecordsNav();
+    setIncidentTodayDefault();
+    upgradeHelperToDropdown();
+    patchOverviewCard();
+    hookRenderAll();
+  }
+
   if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded', function(){ setTimeout(init, 500); });
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(init,600); });
   } else {
-    setTimeout(init, 500);
+    setTimeout(init, 600);
   }
   setTimeout(init, 1500);
+  setTimeout(fixServiceRecordsNav, 2500);
 })();
 </script>
 </body></html>
