@@ -16226,4 +16226,157 @@ window.v249HolidayTagsReport={
 })();
 </script>
 
+
+<script id="v282-calendar-filter-open-service-record-fix">
+/*
+  V282 三原則修正
+  DRY：服務紀錄單判斷集中在 v282RequiresServiceRecord / v282BuildServiceRows。
+  KISS：不重寫登入與核心資料，只覆蓋篩選保留、行程點開、服務紀錄單統計與提醒顯示。
+  SOLID：每個修正函式單一職責，避免再用多組補丁互相覆蓋。
+*/
+(function(){
+  function byId(id){return document.getElementById(id)}
+  function qsa(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel))}
+  function escHtml(s){return String(s==null?'':s).replace(/[&<>\"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]||c})}
+  function attr(s){return escHtml(s).replace(/'/g,'&#39;')}
+  function st(){return window.state||{people:[],events:[]}}
+  function uniq(arr){var out=[];(arr||[]).forEach(function(x){x=String(x||'');if(x&&out.indexOf(x)<0)out.push(x)});return out}
+  function activePeople(){return (st().people||[]).filter(function(p){return p&&p.active!==false&&p.deleted!==true})}
+  function pName(id){var p=(st().people||[]).find(function(x){return String(x.id)===String(id)});return p?p.name:''}
+  function pGroup(id){var p=(st().people||[]).find(function(x){return String(x.id)===String(id)});return p?(p.group||p.department||''):''}
+  function pLang(id){var p=(st().people||[]).find(function(x){return String(x.id)===String(id)});return p?(p.lang||p.job||''):''}
+  function localMonth(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
+  function monthRange(ym){ym=ym||localMonth();var a=ym.split('-').map(Number),y=a[0],m=a[1];var s=y+'-'+String(m).padStart(2,'0')+'-01';var e=new Date(y,m,0);return [s,y+'-'+String(m).padStart(2,'0')+'-'+String(e.getDate()).padStart(2,'0')]}
+  function dAdd(d,n){if(typeof window.dateAdd==='function')return window.dateAdd(d,n);var x=new Date(d+'T00:00:00');x.setDate(x.getDate()+n);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')}
+  function overlaps(e,start,end){var s=e.startDate||e.date||'',en=e.endDate||s;if(!s)return false;return en>=start&&s<=end}
+  function normType(x){
+    var t='';
+    if(typeof x==='string')t=x;else if(x)t=x.type||x.additionalType||x.kind||'';
+    t=String(t||'').trim();
+    t=t.replace(/\s+/g,'');
+    if(t.indexOf('醫療')===0||['看診','回診','住院','急診','開刀'].indexOf(t)>=0)return '醫療';
+    if(t.indexOf('銀行')===0||['開戶','補辦','領錢','異動'].indexOf(t)>=0)return '銀行';
+    if(t.indexOf('定期')===0||t.indexOf('開會')>=0)return '定期';
+    if(t.indexOf('送工')===0||t.indexOf('新入境')>=0||t.indexOf('承接')>=0)return '送工';
+    if(t.indexOf('車禍處理')===0||t.indexOf('做筆錄')>=0||t.indexOf('現場協調')>=0||t.indexOf('和解')>=0||t.indexOf('出庭')>=0)return '車禍處理';
+    if(t.indexOf('面談')===0)return '面談';
+    if(t.indexOf('上線')>=0||t.indexOf('教育訓練')>=0)return '上線/教育訓練';
+    return t.replace(/\(.*/, '').replace(/（.*/, '').trim();
+  }
+  function reqService(x){return ['醫療','銀行','定期','送工','車禍處理','面談','上線/教育訓練'].indexOf(normType(x))>=0}
+  function submitted(e){return !!(e&&e.serviceRecordSubmitted&&e.serviceRecordDate)}
+  function serviceLabel(e){if(!reqService(e))return '';return submitted(e)?'(服務紀錄單已交)':'(服務紀錄單未交)'}
+  window.v282RequiresServiceRecord=reqService;
+  try{window.requiresServiceRecord=reqService; if(typeof requiresServiceRecord!=='undefined')requiresServiceRecord=reqService}catch(_){ }
+  try{window.serviceRecordText=serviceLabel; if(typeof serviceRecordText!=='undefined')serviceRecordText=serviceLabel}catch(_){ }
+
+  function captureCalFilters(){
+    function gv(id){try{if(typeof getMultiValues==='function')return getMultiValues(id).slice()}catch(_){}var el=byId(id);return el&&el.dataset.values?el.dataset.values.split('|').filter(Boolean):[]}
+    function val(id){var el=byId(id);return el?el.value:''}
+    return {group:gv('groupFilter'),job:gv('jobFilter'),person:gv('personFilter'),type:gv('typeFilter'),status:val('statusFilter'),kw:val('keywordFilter'),view:val('viewMode'),week:val('weekPicker')};
+  }
+  function restoreCalFilters(snap){
+    if(!snap)return;
+    function sm(id,vals){try{if(typeof setMultiValues==='function')setMultiValues(id,vals||[]);else{var el=byId(id);if(el)el.dataset.values=(vals||[]).join('|')}}catch(_){var el=byId(id);if(el)el.dataset.values=(vals||[]).join('|')}}
+    sm('groupFilter',snap.group);sm('jobFilter',snap.job);sm('personFilter',snap.person);sm('typeFilter',snap.type);
+    [['statusFilter',snap.status],['keywordFilter',snap.kw],['viewMode',snap.view],['weekPicker',snap.week]].forEach(function(x){var el=byId(x[0]);if(el)el.value=x[1]||''});
+  }
+  function restoreAndRenderCal(snap){
+    setTimeout(function(){
+      try{if(typeof renderFilters==='function')renderFilters()}catch(_){ }
+      restoreCalFilters(snap||window.__v282CalendarSnap);
+      try{if(typeof renderCalendar==='function')renderCalendar()}catch(e){console.warn('[V282] renderCalendar failed',e)}
+    },80);
+    setTimeout(function(){restoreCalFilters(snap||window.__v282CalendarSnap);try{if(typeof renderCalendar==='function')renderCalendar()}catch(_){}},240);
+  }
+  document.addEventListener('click',function(e){
+    if(e.target&&e.target.closest&&e.target.closest('#saveEventBtn'))window.__v282CalendarSnap=captureCalFilters();
+  },true);
+  if(typeof window.syncScheduleEvent==='function'&&!window.syncScheduleEvent.__v282){
+    var oldSync=window.syncScheduleEvent;
+    window.syncScheduleEvent=function(){var snap=window.__v282CalendarSnap||captureCalFilters();var r=oldSync.apply(this,arguments);restoreAndRenderCal(snap);return r};
+    window.syncScheduleEvent.__v282=true;try{syncScheduleEvent=window.syncScheduleEvent}catch(_){ }
+  }
+
+  /* 行程總覽：事件卡片永遠可點開 */
+  document.addEventListener('click',function(e){
+    var card=e.target&&e.target.closest&&e.target.closest('#calendarArea .event[data-id]');
+    if(!card)return;
+    e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+    var id=card.getAttribute('data-id');
+    try{if(typeof openEventModal==='function')openEventModal({eventId:id,id:id})}catch(err){console.warn('[V282] open event failed',err)}
+    return false;
+  },true);
+
+  /* 行程表服務紀錄單提醒：未交紅色、已交黑色 */
+  function baseEventHTML(e){
+    var operator='';try{operator=(typeof getUser==='function'?getUser(e.updatedBy||e.createdBy).name:'')||''}catch(_){ }
+    var type=normType(e)||String(e.type||'');var nm=String(e.name||'');var vehicle=e.vehicleNo?'｜車號:'+escHtml(e.vehicleNo):'';
+    var doneCls=(!e.externalSource&&e.status==='已完成')?'done':'';var cancelCls=e.status==='取消'?'cancel':'';
+    var sr=serviceLabel(e);var srHtml=sr?('<div class="service-record v282-sr" style="color:'+(submitted(e)?'#111827':'#dc2626')+';font-weight:900">'+escHtml(sr)+'</div>'):'';
+    var add=e.additionalNote?('<div class="muted" style="font-size:11px;margin-top:2px">附加：'+escHtml(e.additionalNote)+'</div>'):'';
+    var cls='event '+doneCls+' '+cancelCls+(e.externalSource?' field-event':'');
+    var title='';try{title=(typeof detailText==='function'?detailText(e):'')}catch(_){ }
+    var time='';try{time=(typeof ampm==='function'?ampm(e.startTime):(e.startTime||''))}catch(_){time=e.startTime||''}
+    return '<div class="'+cls+'" title="'+attr(title)+'" data-id="'+attr(e.id)+'"><div><span class="time">'+escHtml(time)+'</span> '+escHtml(type)+'｜'+escHtml(nm)+vehicle+'｜'+escHtml(operator)+'</div>'+add+srHtml+'</div>';
+  }
+  if(typeof window.eventHTML==='function'&&!window.eventHTML.__v282){
+    window.eventHTML=function(e){return baseEventHTML(e)};window.eventHTML.__v282=true;try{eventHTML=window.eventHTML}catch(_){ }
+  }
+
+  /* 服務紀錄單：重新抓取全部已交/未交統計 */
+  function peopleForService(){var ps=activePeople();var g=byId('serviceGroup')?byId('serviceGroup').value:'';var pid=byId('servicePerson')?byId('servicePerson').value:'';if(g)ps=ps.filter(function(p){return (p.group||p.department||'')===g});if(pid)ps=ps.filter(function(p){return String(p.id)===String(pid)});return ps}
+  function initServiceUI(){
+    if(!byId('serviceMonth'))return;
+    if(!byId('serviceMonth').value)byId('serviceMonth').value=localMonth();
+    if(!byId('serviceYear').value)byId('serviceYear').value=(byId('serviceMonth').value||localMonth()).slice(0,4);
+    var ps=activePeople();
+    var groups=uniq(ps.map(function(p){return p.group||p.department||''}));var sg=byId('serviceGroup');if(sg){var cur=sg.value;sg.innerHTML='<option value="">全部部門</option>'+groups.map(function(g){return '<option value="'+attr(g)+'" '+(cur===g?'selected':'')+'>'+escHtml(g)+'</option>'}).join('')}
+    var sp=byId('servicePerson');if(sp){var curp=sp.value;var gval=sg?sg.value:'';var list=gval?ps.filter(function(p){return (p.group||p.department||'')===gval}):ps;sp.innerHTML='<option value="">全部人員</option>'+list.map(function(p){var g=p.group||p.department||'';return '<option value="'+attr(p.id)+'" '+(curp===String(p.id)?'selected':'')+'>'+escHtml(p.name+(g?' ｜ '+g:''))+'</option>'}).join('')}
+  }
+  function serviceRows(start,end,people){
+    var allow={};(people||activePeople()).forEach(function(p){allow[String(p.id)]=p});var rows=[];
+    (st().events||[]).forEach(function(e){
+      if(!e||e.deleted||e.status==='取消'||!reqService(e)||!overlaps(e,start,end))return;
+      var pids=Array.isArray(e.participants)?e.participants.slice():[];if(!pids.length&&e.personId)pids=[e.personId];pids=uniq(pids);
+      pids.forEach(function(pid){var p=allow[String(pid)];if(!p)return;var d=e.startDate<start?start:e.startDate;rows.push({date:d,month:String(d||'').slice(0,7),person:p,event:e,submitted:submitted(e)})});
+    });
+    var stv=byId('serviceStatus')?byId('serviceStatus').value:'';if(stv==='submitted')rows=rows.filter(function(r){return r.submitted});if(stv==='unsubmitted')rows=rows.filter(function(r){return !r.submitted});
+    return rows.sort(function(a,b){return String(a.date+a.person.group+a.person.name).localeCompare(String(b.date+b.person.group+b.person.name),'zh-Hant',{numeric:true})});
+  }
+  function serviceSummary(rows){var total=rows.length,sub=rows.filter(function(r){return r.submitted}).length,un=total-sub;return {total:total,submitted:sub,unsubmitted:un}}
+  function cards(rows){var s=serviceSummary(rows);return '<div class="stat"><div class="muted">需繳交總數</div><b>'+s.total+'</b></div><div class="stat"><div class="muted">已交</div><b>'+s.submitted+'</b></div><div class="stat"><div class="muted">未交</div><b style="color:#dc2626">'+s.unsubmitted+'</b></div>'}
+  function personTable(rows,people){
+    var map={};(people||[]).forEach(function(p){map[p.id]={p:p,total:0,submitted:0,unsubmitted:0}});rows.forEach(function(r){var x=map[r.person.id]||(map[r.person.id]={p:r.person,total:0,submitted:0,unsubmitted:0});x.total++;if(r.submitted)x.submitted++;else x.unsubmitted++});
+    return Object.keys(map).map(function(k){var x=map[k],p=x.p;return '<tr><td>'+escHtml(p.name)+'</td><td>'+escHtml(p.group||'')+'</td><td>'+escHtml(p.lang||'')+'</td><td><b>'+x.total+'</b></td><td>'+x.submitted+'</td><td style="color:#dc2626;font-weight:900">'+x.unsubmitted+'</td></tr>'}).join('')||'<tr><td colspan="6" class="muted">沒有資料</td></tr>';
+  }
+  function deptTable(rows){var depts={};activePeople().forEach(function(p){var g=p.group||p.department||'未分組';if(!depts[g])depts[g]={total:0,submitted:0,unsubmitted:0}});rows.forEach(function(r){var g=r.person.group||r.person.department||'未分組';var x=depts[g]||(depts[g]={total:0,submitted:0,unsubmitted:0});x.total++;if(r.submitted)x.submitted++;else x.unsubmitted++});var total={total:0,submitted:0,unsubmitted:0};Object.keys(depts).forEach(function(g){total.total+=depts[g].total;total.submitted+=depts[g].submitted;total.unsubmitted+=depts[g].unsubmitted});depts['總計']=total;return Object.keys(depts).map(function(g){var x=depts[g];return '<tr><td><b>'+escHtml(g)+'</b></td><td><b>'+x.total+'</b></td><td>'+x.submitted+'</td><td style="color:#dc2626;font-weight:900">'+x.unsubmitted+'</td></tr>'}).join('')}
+  function detailRows(rows,yearMode){return rows.map(function(r){var e=r.event,p=r.person,status=r.submitted?'已交':'未交';var sr='<span style="color:'+(r.submitted?'#111827':'#dc2626')+';font-weight:900">'+(r.submitted?'服務紀錄單已交':'服務紀錄單未交')+'</span>';return '<tr>'+(yearMode?'<td>'+escHtml(r.month)+'</td>':'')+'<td>'+escHtml(r.date)+'</td><td>'+escHtml(p.group||'')+'</td><td>'+escHtml(p.name||'')+'</td><td>'+escHtml(p.lang||'')+'</td><td>'+escHtml(normType(e))+'</td><td>'+escHtml(e.name||'')+'</td><td>'+escHtml(e.locationName||'')+'</td><td>'+escHtml(e.status||'')+'</td><td>'+sr+'</td><td>'+escHtml(e.serviceRecordDate||'')+'</td></tr>'}).join('')||'<tr><td colspan="'+(yearMode?11:10)+'" class="muted">沒有符合條件的服務紀錄單資料</td></tr>'}
+  function pendingStats(rows){var un=rows.filter(function(r){return !r.submitted});var map={};un.forEach(function(r){var k=(r.person.group||'')+'||'+r.person.name;map[k]=(map[k]||0)+1});return Object.keys(map).map(function(k){var a=k.split('||');return '<div class="stat"><div class="muted">'+escHtml(a[0])+'</div><b>'+escHtml(a[1])+'：<span style="color:#dc2626">'+map[k]+'</span></b></div>'}).join('')||'<div class="muted">沒有未交資料</div>'}
+  function renderSR(){
+    if(!byId('serviceMonth'))return;initServiceUI();var ym=byId('serviceMonth').value||localMonth(),yr=Number(byId('serviceYear').value||ym.slice(0,4));var mr=monthRange(ym),people=peopleForService();var monthRows=serviceRows(mr[0],mr[1],people),yearRows=serviceRows(yr+'-01-01',yr+'-12-31',people);
+    if(byId('serviceOverviewStats'))byId('serviceOverviewStats').innerHTML=cards(monthRows);
+    if(byId('serviceMonthStats'))byId('serviceMonthStats').innerHTML=cards(monthRows);
+    if(byId('serviceYearStats'))byId('serviceYearStats').innerHTML=cards(yearRows);
+    if(byId('serviceMonthPendingStats'))byId('serviceMonthPendingStats').innerHTML=pendingStats(monthRows);
+    if(byId('serviceMonthHead'))byId('serviceMonthHead').innerHTML='<tr><th>人員名稱</th><th>部門</th><th>職務</th><th>需繳交總數</th><th>已交</th><th>未交</th></tr>';
+    if(byId('serviceYearHead'))byId('serviceYearHead').innerHTML='<tr><th>人員名稱</th><th>部門</th><th>職務</th><th>需繳交總數</th><th>已交</th><th>未交</th></tr>';
+    if(byId('serviceDeptHead'))byId('serviceDeptHead').innerHTML='<tr><th>部門</th><th>需繳交總數</th><th>已交</th><th>未交</th></tr>';
+    if(byId('serviceMonthRows'))byId('serviceMonthRows').innerHTML=personTable(monthRows,people);
+    if(byId('serviceYearRows'))byId('serviceYearRows').innerHTML=personTable(yearRows,people);
+    if(byId('serviceDeptRows'))byId('serviceDeptRows').innerHTML=deptTable(monthRows);
+    if(byId('serviceMonthDetailRows'))byId('serviceMonthDetailRows').innerHTML=detailRows(monthRows,false);
+    if(byId('serviceYearDetailRows'))byId('serviceYearDetailRows').innerHTML=detailRows(yearRows,true);
+  }
+  function exportSR(){initServiceUI();var ym=byId('serviceMonth').value||localMonth(),yr=Number(byId('serviceYear').value||ym.slice(0,4));var mr=monthRange(ym),people=peopleForService();var rows=[['月份','日期','部門','人員','職務','行程類型','辦理內容','地點 / 客戶','行程狀態','服務紀錄單','繳交日期']];serviceRows(mr[0],mr[1],people).forEach(function(r){rows.push([r.month,r.date,r.person.group||'',r.person.name||'',r.person.lang||'',normType(r.event),r.event.name||'',r.event.locationName||'',r.event.status||'',r.submitted?'已交':'未交',r.event.serviceRecordDate||''])});if(typeof exportCsv==='function')exportCsv(rows,'服務紀錄單_'+ym+'.csv')}
+  window.renderServiceRecords=renderSR;try{renderServiceRecords=renderSR}catch(_){ }window.exportServiceRecords=exportSR;try{exportServiceRecords=exportSR}catch(_){ }
+  document.addEventListener('change',function(e){if(e.target&&['serviceMonth','serviceYear','serviceGroup','servicePerson','serviceStatus'].indexOf(e.target.id)>=0)renderSR()},true);
+  document.addEventListener('click',function(e){if(e.target&&e.target.closest&&e.target.closest('#refreshServiceRecords')){e.preventDefault();renderSR()} if(e.target&&e.target.closest&&e.target.closest('#exportServiceRecordsBtn,.v141-box[data-label="服務紀錄單"] .v141-btn')){setTimeout(renderSR,20)}},true);
+
+  function init(){try{renderSR()}catch(e){console.warn('[V282] service records failed',e)}try{restoreCalFilters(window.__v282CalendarSnap)}catch(_){ }}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(init,150)});else setTimeout(init,150);
+  setTimeout(init,700);setTimeout(init,1600);
+})();
+</script>
+
 </body></html>
