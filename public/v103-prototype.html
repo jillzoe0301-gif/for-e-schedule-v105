@@ -1,4 +1,14 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V262</title>
+FILE="v103-prototype-V280-reports-search-root-fix.html"
+MSG="fix reports nav flicker and stabilize schedule search filters"
+
+cp "public/$FILE" "public/v103-prototype.html"
+
+npm run build
+
+git status
+git add public/v103-prototype.html
+git commit -m "$MSG"
+git push<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V262</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -15422,7 +15432,8 @@ window.v249HolidayTagsReport={
   var NAV_BUTTONS = [
     { page:'serviceRecords', label:'服務紀錄單', icon:'ico-clipboard', after:'reports'    },
     { page:'scheduleSearch', label:'行程搜尋',   icon:'ico-list',      after:'incidents'  },
-    { page:'recordSubmit',   label:'紀錄單繳交', icon:'ico-clipboard', after:'today'      },
+    { page:'personalTodo',   label:'個人待辦',   icon:'ico-list',      after:'today'      },
+    { page:'recordSubmit',   label:'紀錄單繳交', icon:'ico-clipboard', after:'personalTodo'},
   ];
 
   /* ── 確保頁面 section 存在 ── */
@@ -15602,16 +15613,24 @@ window.v249HolidayTagsReport={
     }
   }
 
-  /* ── V278：個人待辦為舊隱藏頁面，改為移除，不再綁定 onclick ── */
-  function removePersonalTodoArtifacts(){
-    document.querySelectorAll('.navbtn[data-page="personalTodo"],button[data-page="personalTodo"],[data-page="personalTodo"]').forEach(function(el){
-      el.remove();
-    });
-    var pg = document.getElementById('personalTodoPage');
-    if(pg) pg.remove();
-  }
+  /* ── 確保 personalTodo 按鈕有正確的 onclick ── */
   function fixPersonalTodoBtn(){
-    removePersonalTodoArtifacts();
+    document.querySelectorAll('.navbtn[data-page="personalTodo"]').forEach(function(btn){
+      if(btn.__v277onclick) return;
+      btn.__v277onclick = true;
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        try{ if(typeof showPersonalTodoPageV200==='function') showPersonalTodoPageV200(); }catch(_){}
+        try{ if(typeof renderPersonalTodoPageV202==='function') renderPersonalTodoPageV202(); }catch(_){}
+        // 手動顯示頁面
+        document.querySelectorAll('.page').forEach(function(p){ p.classList.add('hide'); });
+        var pg = document.getElementById('personalTodoPage');
+        if(pg){ pg.classList.remove('hide'); }
+        document.querySelectorAll('.navbtn').forEach(function(b){
+          b.classList.toggle('active', b.dataset.page==='personalTodo');
+        });
+      });
+    });
   }
 
   /* ── 確保 recordSubmit 按鈕有正確的 onclick ── */
@@ -15659,80 +15678,348 @@ window.v249HolidayTagsReport={
 })();
 </script>
 
-<script id="v278-remove-personal-todo-page">
-/*
-  V278：刪除舊版「個人待辦」隱藏頁面
-  根因：V274/V277 後段補丁會重新建立 data-page="personalTodo" 按鈕，
-  且 V200/V202 的 showPersonalTodoPage/renderPersonalTodoPage 會動態建立 #personalTodoPage。
-  結果點其他導覽時，舊頁面會被後段 setTimeout / click listener 短暫顯示，造成「個人待辦」閃出來。
-  修正：不再只隱藏，改成移除按鈕、移除頁面、停用舊函式、攔截舊導覽。
-*/
+<style id="v280-stable-reports-search-style">
+/* V280：穩定統計表按鈕與行程搜尋，避免舊補丁重繪造成閃爍 */
+.side .navbtn[data-page="reports"],
+.side .navbtn[data-page="reports"].hide,
+.side .navbtn[data-page="reports"].role-hidden,
+.bottom-nav .navbtn[data-page="reports"],
+.bottom-nav .navbtn[data-page="reports"].hide,
+.bottom-nav .navbtn[data-page="reports"].role-hidden,
+.bottom-nav button[data-page="reports"],
+.bottom-nav button[data-page="reports"].hide,
+.bottom-nav button[data-page="reports"].role-hidden{
+  display:flex!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+#scheduleSearchPage.v280-stable-search .schedule-search-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  gap:10px;
+  align-items:end;
+}
+#scheduleSearchPage.v280-stable-search .schedule-search-actions,
+#scheduleSearchPage.v280-stable-search .schedule-search-pager{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+#scheduleSearchPage.v280-stable-search .schedule-search-pager{
+  justify-content:flex-end;
+  margin-top:10px;
+}
+#scheduleSearchPage.v280-stable-search .v280-type-chip{
+  display:inline-block;
+  border:1px solid #d8dde8;
+  border-radius:999px;
+  padding:3px 10px;
+  font-size:12px;
+  font-weight:900;
+  white-space:nowrap;
+  background:#eef2ff;
+}
+#scheduleSearchPage.v280-stable-search .v280-view-btn{
+  background:#2563eb!important;
+  border-color:#2563eb!important;
+  color:#fff!important;
+  font-weight:900!important;
+}
+@media(max-width:760px){
+  #scheduleSearchPage.v280-stable-search .schedule-search-grid{grid-template-columns:1fr!important;}
+  #scheduleSearchPage.v280-stable-search .schedule-search-actions button{flex:1;}
+}
+</style>
+<script id="v280-stable-reports-search-fix">
 (function(){
   'use strict';
-  if(window.__V278_REMOVE_PERSONAL_TODO__) return;
-  window.__V278_REMOVE_PERSONAL_TODO__ = true;
+  if(window.__V280_STABLE_REPORTS_SEARCH__) return;
+  window.__V280_STABLE_REPORTS_SEARCH__=true;
 
-  function removePersonalTodo(){
-    document.querySelectorAll('.navbtn[data-page="personalTodo"],button[data-page="personalTodo"],[data-page="personalTodo"]').forEach(function(el){
-      el.remove();
-    });
-    var page = document.getElementById('personalTodoPage');
-    if(page) page.remove();
-    if(window.currentPage === 'personalTodo'){
-      window.currentPage = '';
-      var fallback = document.querySelector('.navbtn[data-page="mobile"]') || document.querySelector('.navbtn[data-page="calendar"]');
-      if(fallback) setTimeout(function(){ fallback.click(); }, 0);
+  var searchPageNo=1;
+  var pageSize=20;
+  var lastSearchHtml='';
+  var lastActivePage='';
+  var renderTimer=null;
+
+  function $(id){return document.getElementById(id);}
+  function qa(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel));}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function attr(v){return esc(v).replace(/"/g,'&quot;');}
+  function today(){try{return typeof todayISO==='function'?todayISO():new Date().toISOString().slice(0,10);}catch(_){return new Date().toISOString().slice(0,10);}}
+  function stateRef(){
+    try{if(typeof state!=='undefined'&&state)return state;}catch(_){ }
+    if(window.state)return window.state;
+    try{var raw=localStorage.getItem('translator_calendar_v81'); if(raw)return JSON.parse(raw);}catch(_){ }
+    return {events:[],externalEvents:[],roomBookings:[],incidents:[],people:[]};
+  }
+  function people(){
+    var s=stateRef();
+    return (s.people||[]).filter(function(p){return p&&p.deleted!==true&&p.active!==false&&p.name;});
+  }
+  function person(id){return people().find(function(p){return String(p.id)===String(id);})||null;}
+  function personName(id){var p=person(id); return p?p.name:'';}
+  function personGroup(id){var p=person(id); return p?(p.group||p.department||''):'';}
+  function uniq(arr){var out=[]; arr.forEach(function(x){x=String(x||'').trim(); if(x&&out.indexOf(x)<0)out.push(x);}); return out;}
+  function optionHtml(value,label,selected){return '<option value="'+attr(value)+'" '+(selected?'selected':'')+'>'+esc(label)+'</option>';}
+  function getValue(id){var el=$(id); return el?String(el.value||''):'';}
+
+  function stabilizeReportsNav(){
+    var side=document.querySelector('.side');
+    if(side&&!side.querySelector('.navbtn[data-page="reports"]')){
+      var btn=document.createElement('button');
+      btn.type='button';
+      btn.className='navbtn';
+      btn.dataset.page='reports';
+      btn.innerHTML='<span class="mono-ico ico-chart"></span>統計表';
+      var ref=side.querySelector('.navbtn[data-page="incidents"]')||side.lastElementChild;
+      if(ref)ref.insertAdjacentElement('afterend',btn); else side.appendChild(btn);
     }
+    qa('.navbtn[data-page="reports"],button[data-page="reports"]').forEach(function(btn){
+      btn.classList.remove('hide','role-hidden');
+      btn.hidden=false;
+      btn.removeAttribute('aria-hidden');
+      btn.style.setProperty('display','flex','important');
+      btn.style.setProperty('visibility','visible','important');
+      btn.style.setProperty('opacity','1','important');
+    });
   }
 
-  // 直接停用會動態產生舊頁面的函式
-  window.showPersonalTodoPageV200 = function(){ removePersonalTodo(); return false; };
-  window.renderPersonalTodoPageV202 = function(){ removePersonalTodo(); return false; };
+  function ensureScheduleSearchNav(){
+    var side=document.querySelector('.side');
+    if(side&&!side.querySelector('.navbtn[data-page="scheduleSearch"]')){
+      var b=document.createElement('button');
+      b.type='button';
+      b.className='navbtn';
+      b.dataset.page='scheduleSearch';
+      b.innerHTML='<span class="mono-ico ico-list"></span>行程搜尋';
+      var ref=side.querySelector('.navbtn[data-page="incidents"]')||side.querySelector('.navbtn[data-page="reports"]')||side.lastElementChild;
+      if(ref)ref.insertAdjacentElement('afterend',b); else side.appendChild(b);
+    }
+    var bottom=document.querySelector('.bottom-nav');
+    if(bottom&&!bottom.querySelector('[data-page="scheduleSearch"]')){
+      var m=document.createElement('button');
+      m.type='button';
+      m.className='navbtn';
+      m.dataset.page='scheduleSearch';
+      m.innerHTML='<span class="mono-ico ico-list"></span>搜尋';
+      bottom.appendChild(m);
+    }
+    qa('.navbtn[data-page="scheduleSearch"],button[data-page="scheduleSearch"]').forEach(function(btn){
+      btn.classList.remove('hide','role-hidden');
+      btn.hidden=false;
+      btn.removeAttribute('aria-hidden');
+      btn.style.removeProperty('display');
+    });
+  }
 
-  // 若舊版 showPage 被呼叫 personalTodo，導回行程/個人頁，不讓舊頁面出現
-  if(typeof window.showPage === 'function' && !window.showPage.__v278NoPersonalTodo){
-    var oldShowPage = window.showPage;
-    window.showPage = function(page){
-      if(page === 'personalTodo'){
-        removePersonalTodo();
-        return oldShowPage.call(this, document.getElementById('mobilePage') ? 'mobile' : 'calendar');
-      }
-      removePersonalTodo();
-      return oldShowPage.apply(this, arguments);
+  function allRows(){
+    var s=stateRef();
+    var rows=[];
+    var seenExternal={};
+    (s.externalEvents||[]).forEach(function(e){
+      if(!e||e.deleted===true)return;
+      seenExternal[e.id]=true;
+      var pids=[];
+      if(e.personId)pids.push(e.personId);
+      if(Array.isArray(e.personIds))pids=pids.concat(e.personIds);
+      rows.push({source:'field',sourceLabel:'外務行程',kind:e.type||e.purpose||'外務行程',id:e.id,name:e.purpose||e.name||'外務行程',date:e.date||e.startDate||'',time:e.time||e.startTime||'',pids:uniq(pids),status:e.status||'',loc:e.locationName||e.location||e.address||'',note:[e.note,e.remark,e.content].filter(Boolean).join(' '),raw:e});
+    });
+    (s.events||[]).forEach(function(e){
+      if(!e||e.deleted===true)return;
+      if(e.externalEventId&&seenExternal[e.externalEventId])return;
+      var pids=[];
+      ['participants','assigneeIds','assignedPersonIds','personIds'].forEach(function(k){if(Array.isArray(e[k]))pids=pids.concat(e[k]);});
+      if(e.personId)pids.push(e.personId);
+      var kind=e.type||e.kind||e.category||'行程';
+      if(e.externalSource)kind='外務行程';
+      rows.push({source:'event',sourceLabel:'行程總覽',kind:kind,id:e.id,name:e.name||e.title||'',date:e.startDate||e.date||'',time:e.startTime||e.time||'',pids:uniq(pids),status:e.status||'',loc:e.locationName||e.location||e.customerName||'',note:[e.note,e.description,e.content].filter(Boolean).join(' '),raw:e});
+    });
+    (s.roomBookings||[]).forEach(function(r){
+      if(!r||r.deleted===true)return;
+      var pids=uniq([r.ownerPersonId,r.personId,r.createdPersonId].filter(Boolean));
+      rows.push({source:'room',sourceLabel:'會議室預約',kind:'會議',id:r.id,name:r.title||r.name||'會議室預約',date:r.date||r.startDate||'',time:[r.startTime||r.time||'',r.endTime||''].filter(Boolean).join('-'),pids:pids,status:r.status||'',loc:r.room||r.meetingRoom||'',note:r.note||r.description||'',raw:r});
+    });
+    (s.incidents||[]).forEach(function(i){
+      if(!i||i.deleted===true)return;
+      var pids=[];
+      ['helperPersonIds','helpers','personIds','assigneeIds','assignedPersonIds'].forEach(function(k){if(Array.isArray(i[k]))pids=pids.concat(i[k]);});
+      if(i.personId)pids.push(i.personId);
+      rows.push({source:'incident',sourceLabel:'異況追蹤',kind:'異況',id:i.id,name:i.title||i.workerName||i.name||'異況追蹤',date:i.date||i.incidentDate||i.createdDate||String(i.createdAt||'').slice(0,10),time:i.time||'',pids:uniq(pids),status:i.closed===true?'已結案':(i.status||i.closedStatus||'未結案'),loc:i.customerName||i.location||i.employerName||'',note:[i.description,i.note,i.content].filter(Boolean).join(' '),raw:i});
+    });
+    return rows.sort(function(a,b){return String((b.date||'')+' '+(b.time||'')).localeCompare(String((a.date||'')+' '+(a.time||'')),'zh-Hant',{numeric:true});});
+  }
+
+  function buildSearchPage(){
+    var main=document.querySelector('.main')||document.body;
+    var page=$('scheduleSearchPage');
+    if(!page){page=document.createElement('section'); page.id='scheduleSearchPage'; page.className='page hide'; main.appendChild(page);}
+    page.__v235Ready=true;
+    page.classList.add('v280-stable-search');
+    if(page.dataset.v280Ready==='1')return page;
+    page.dataset.v280Ready='1';
+    page.innerHTML='<div class="panel"><div class="section-title"><h2>行程搜尋</h2><div class="schedule-search-actions"><button id="v280ScheduleSearchBtn" class="primary" type="button">搜尋</button><button id="v280ScheduleSearchClearBtn" type="button">清除條件</button></div></div><div class="schedule-search-grid"><div class="field"><label>關鍵字</label><input id="v280ScheduleSearchKeyword" placeholder="行程名稱、內容、地點、客戶"></div><div class="field"><label>資料來源</label><select id="v280ScheduleSearchSource"></select></div><div class="field"><label>人員</label><select id="v280ScheduleSearchPerson"></select></div><div class="field"><label>部門</label><select id="v280ScheduleSearchDept"></select></div><div class="field"><label>行程類型</label><select id="v280ScheduleSearchType"></select></div><div class="field"><label>狀態</label><select id="v280ScheduleSearchStatus"></select></div><div class="field"><label>起始日期</label><input id="v280ScheduleSearchStart" type="date"></div><div class="field"><label>結束日期</label><input id="v280ScheduleSearchEnd" type="date"></div></div></div><div class="panel"><div class="section-title"><h2>搜尋結果</h2><span id="v280ScheduleSearchCount" class="muted"></span></div><div class="detail-table-wrap"><table class="table"><thead><tr><th>來源</th><th>行程類型</th><th>行程名稱</th><th>日期／時間</th><th>負責人員</th><th>部門</th><th>狀態</th><th>操作</th></tr></thead><tbody id="v280ScheduleSearchRows"></tbody></table></div><div class="schedule-search-pager"><button id="v280ScheduleSearchPrev" type="button">上一頁</button><span id="v280ScheduleSearchPageInfo" class="muted"></span><button id="v280ScheduleSearchNext" type="button">下一頁</button></div></div>';
+    bindSearchEvents();
+    return page;
+  }
+
+  function fillSelects(){
+    var rows=allRows();
+    var ps=people();
+    var current={
+      source:getValue('v280ScheduleSearchSource'),
+      person:getValue('v280ScheduleSearchPerson'),
+      dept:getValue('v280ScheduleSearchDept'),
+      type:getValue('v280ScheduleSearchType'),
+      status:getValue('v280ScheduleSearchStatus')
     };
-    window.showPage.__v278NoPersonalTodo = true;
+    var sources=[['all','全部來源'],['event','行程總覽'],['field','外務行程'],['room','會議室預約'],['incident','異況追蹤']];
+    var sourceEl=$('v280ScheduleSearchSource');
+    if(sourceEl)sourceEl.innerHTML=sources.map(function(x){return optionHtml(x[0],x[1],current.source===x[0]);}).join('');
+    var personEl=$('v280ScheduleSearchPerson');
+    if(personEl)personEl.innerHTML=optionHtml('','全部人員',!current.person)+ps.map(function(p){return optionHtml(p.id,(p.name||'')+(p.group?' ｜ '+p.group:''),current.person===String(p.id));}).join('');
+    var depts=uniq(ps.map(function(p){return p.group||p.department||'';}));
+    var deptEl=$('v280ScheduleSearchDept');
+    if(deptEl)deptEl.innerHTML=optionHtml('','全部部門',!current.dept)+depts.map(function(d){return optionHtml(d,d,current.dept===d);}).join('');
+    var types=uniq(rows.map(function(r){return r.kind;})).sort();
+    var typeEl=$('v280ScheduleSearchType');
+    if(typeEl)typeEl.innerHTML=optionHtml('','全部類型',!current.type)+types.map(function(t){return optionHtml(t,t,current.type===t);}).join('');
+    var statuses=uniq(rows.map(function(r){return r.status;})).sort();
+    var statusEl=$('v280ScheduleSearchStatus');
+    if(statusEl)statusEl.innerHTML=optionHtml('','全部狀態',!current.status)+statuses.map(function(s){return optionHtml(s,s,current.status===s);}).join('');
   }
 
-  // 攔截任何殘留按鈕
-  document.addEventListener('click', function(e){
-    var personalBtn = e.target && e.target.closest && e.target.closest('[data-page="personalTodo"]');
-    if(personalBtn){
+  function filteredRows(){
+    var kw=getValue('v280ScheduleSearchKeyword').trim().toLowerCase();
+    var source=getValue('v280ScheduleSearchSource');
+    var pid=getValue('v280ScheduleSearchPerson');
+    var dept=getValue('v280ScheduleSearchDept');
+    var type=getValue('v280ScheduleSearchType');
+    var status=getValue('v280ScheduleSearchStatus');
+    var start=getValue('v280ScheduleSearchStart');
+    var end=getValue('v280ScheduleSearchEnd');
+    return allRows().filter(function(r){
+      if(source&&source!=='all'&&r.source!==source)return false;
+      if(pid&&r.pids.indexOf(pid)<0)return false;
+      if(dept&&!r.pids.some(function(id){return personGroup(id)===dept;}))return false;
+      if(type&&r.kind!==type)return false;
+      if(status&&r.status!==status)return false;
+      if(start&&r.date<start)return false;
+      if(end&&r.date>end)return false;
+      if(kw){
+        var hay=[r.sourceLabel,r.kind,r.name,r.date,r.time,r.status,r.loc,r.note].join(' ').toLowerCase();
+        if(hay.indexOf(kw)<0)return false;
+      }
+      return true;
+    });
+  }
+
+  function renderSearch(){
+    buildSearchPage();
+    fillSelects();
+    var rows=filteredRows();
+    var total=Math.max(1,Math.ceil(rows.length/pageSize));
+    searchPageNo=Math.min(Math.max(1,searchPageNo),total);
+    var part=rows.slice((searchPageNo-1)*pageSize,searchPageNo*pageSize);
+    var html=part.map(function(r){
+      var names=r.pids.map(personName).filter(Boolean).join('、');
+      var depts=uniq(r.pids.map(personGroup)).join('、');
+      return '<tr><td>'+esc(r.sourceLabel)+'</td><td><span class="v280-type-chip">'+esc(r.kind)+'</span></td><td>'+esc(r.name)+'</td><td>'+esc([r.date,r.time].filter(Boolean).join(' '))+'</td><td>'+esc(names)+'</td><td>'+esc(depts)+'</td><td>'+esc(r.status)+'</td><td><button type="button" class="small v280-view-btn" data-v280-open="'+attr(r.source)+'" data-v280-id="'+attr(r.id)+'">查看</button></td></tr>';
+    }).join('')||'<tr><td colspan="8" class="muted">沒有符合條件的行程</td></tr>';
+    if(html!==lastSearchHtml){var body=$('v280ScheduleSearchRows'); if(body)body.innerHTML=html; lastSearchHtml=html;}
+    if($('v280ScheduleSearchCount'))$('v280ScheduleSearchCount').textContent='共 '+rows.length+' 筆';
+    if($('v280ScheduleSearchPageInfo'))$('v280ScheduleSearchPageInfo').textContent='第 '+searchPageNo+' / '+total+' 頁';
+    if($('v280ScheduleSearchPrev'))$('v280ScheduleSearchPrev').disabled=searchPageNo<=1;
+    if($('v280ScheduleSearchNext'))$('v280ScheduleSearchNext').disabled=searchPageNo>=total;
+  }
+
+  function showScheduleSearch(){
+    try{currentPage='scheduleSearch';}catch(_){ }
+    buildSearchPage();
+    qa('.page').forEach(function(p){p.classList.add('hide');});
+    var page=$('scheduleSearchPage'); if(page)page.classList.remove('hide');
+    qa('.navbtn').forEach(function(b){b.classList.toggle('active',b.dataset.page==='scheduleSearch');});
+    stabilizeReportsNav();
+    renderSearch();
+  }
+
+  function bindSearchEvents(){
+    var ids=['v280ScheduleSearchSource','v280ScheduleSearchPerson','v280ScheduleSearchDept','v280ScheduleSearchType','v280ScheduleSearchStatus','v280ScheduleSearchStart','v280ScheduleSearchEnd'];
+    ids.forEach(function(id){var el=$(id); if(el&&!el.__v280Bound){el.__v280Bound=true; el.addEventListener('change',function(){searchPageNo=1; renderSearch();});}});
+    var kw=$('v280ScheduleSearchKeyword');
+    if(kw&&!kw.__v280Bound){kw.__v280Bound=true; kw.addEventListener('input',function(){clearTimeout(renderTimer); renderTimer=setTimeout(function(){searchPageNo=1;renderSearch();},180);});}
+    var btn=$('v280ScheduleSearchBtn'); if(btn&&!btn.__v280Bound){btn.__v280Bound=true; btn.addEventListener('click',function(){searchPageNo=1;renderSearch();});}
+    var clear=$('v280ScheduleSearchClearBtn'); if(clear&&!clear.__v280Bound){clear.__v280Bound=true; clear.addEventListener('click',function(){['v280ScheduleSearchKeyword','v280ScheduleSearchSource','v280ScheduleSearchPerson','v280ScheduleSearchDept','v280ScheduleSearchType','v280ScheduleSearchStatus','v280ScheduleSearchStart','v280ScheduleSearchEnd'].forEach(function(id){var el=$(id); if(el)el.value='';}); var src=$('v280ScheduleSearchSource'); if(src)src.value='all'; searchPageNo=1; renderSearch();});}
+    var prev=$('v280ScheduleSearchPrev'); if(prev&&!prev.__v280Bound){prev.__v280Bound=true; prev.addEventListener('click',function(){searchPageNo--;renderSearch();});}
+    var next=$('v280ScheduleSearchNext'); if(next&&!next.__v280Bound){next.__v280Bound=true; next.addEventListener('click',function(){searchPageNo++;renderSearch();});}
+  }
+
+  function openRow(kind,id){
+    try{
+      if(kind==='field'&&typeof openFieldModal==='function')return openFieldModal({id:id});
+      if(kind==='room'&&typeof openRoomBookingModal==='function')return openRoomBookingModal(id);
+      if(kind==='incident'&&typeof openIncidentModal==='function')return openIncidentModal(id);
+      if(typeof openEventModal==='function')return openEventModal({eventId:id});
+    }catch(err){console.warn('[V280] open row failed',err);}
+  }
+
+  window.renderScheduleSearch=renderSearch;
+  window.v280ShowScheduleSearch=showScheduleSearch;
+
+  function init(){
+    stabilizeReportsNav();
+    ensureScheduleSearchNav();
+    buildSearchPage();
+    if(lastActivePage==='scheduleSearch')renderSearch();
+  }
+
+  document.addEventListener('click',function(e){
+    var reportBtn=e.target&&e.target.closest&&e.target.closest('[data-page="reports"]');
+    if(reportBtn){setTimeout(stabilizeReportsNav,0);setTimeout(stabilizeReportsNav,80);setTimeout(stabilizeReportsNav,250);}
+    var nav=e.target&&e.target.closest&&e.target.closest('[data-page="scheduleSearch"]');
+    if(nav){
       e.preventDefault();
       e.stopPropagation();
-      removePersonalTodo();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      lastActivePage='scheduleSearch';
+      showScheduleSearch();
       return false;
     }
-    setTimeout(removePersonalTodo, 0);
-    setTimeout(removePersonalTodo, 120);
-  }, true);
+    var open=e.target&&e.target.closest&&e.target.closest('[data-v280-open]');
+    if(open){
+      e.preventDefault();
+      e.stopPropagation();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      openRow(open.getAttribute('data-v280-open'),open.getAttribute('data-v280-id'));
+      return false;
+    }
+  },true);
 
-  // 後段補丁若又新增，馬上刪除
-  var observer = new MutationObserver(function(){
-    removePersonalTodo();
-  });
-  function start(){
-    removePersonalTodo();
-    observer.observe(document.documentElement, {childList:true, subtree:true});
-    setTimeout(removePersonalTodo, 300);
-    setTimeout(removePersonalTodo, 900);
-    setTimeout(removePersonalTodo, 2000);
+  document.addEventListener('change',function(e){
+    if(e.target&&e.target.id&&/^v280ScheduleSearch/.test(e.target.id)){
+      e.stopPropagation();
+    }
+  },true);
+
+  var oldRenderAll=typeof renderAll==='function'?renderAll:null;
+  if(oldRenderAll&&!oldRenderAll.__v280ReportsSearch){
+    window.renderAll=renderAll=function(){
+      var r=oldRenderAll.apply(this,arguments);
+      setTimeout(function(){
+        stabilizeReportsNav();
+        ensureScheduleSearchNav();
+        if((function(){try{return currentPage==='scheduleSearch';}catch(_){return lastActivePage==='scheduleSearch';}})())showScheduleSearch();
+      },60);
+      return r;
+    };
+    renderAll.__v280ReportsSearch=true;
   }
 
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', start);
-  }else{
-    start();
-  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(init,250);});
+  else setTimeout(init,250);
+  setTimeout(init,900);
+  setTimeout(stabilizeReportsNav,1800);
 })();
 </script>
 
