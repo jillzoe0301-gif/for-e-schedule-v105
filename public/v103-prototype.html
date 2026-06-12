@@ -15792,4 +15792,158 @@ window.v249HolidayTagsReport={
 })();
 </script>
 
+
+
+<script id="v270-restore-incidents-and-show-service-records">
+(function(){
+  'use strict';
+  if(window.__V270_RESTORE_INCIDENTS_SHOW_SERVICE_RECORDS__)return;
+  window.__V270_RESTORE_INCIDENTS_SHOW_SERVICE_RECORDS__=true;
+
+  /*
+    V270 修正重點
+    1. 恢復異況追蹤：不再讓 V269 的權限攔截把 incidents nav 擋掉。
+    2. 服務紀錄單取消權限：所有登入角色都可看到、可點選。
+    3. 使用 window capture listener 比 document capture 更早執行，避免 V269 delegated click 先 stopImmediatePropagation。
+  */
+
+  function $(id){return document.getElementById(id)}
+  function qa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
+  function q(sel,root){return (root||document).querySelector(sel)}
+  function todayISO(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+  function getState(){
+    try{if(typeof state!=='undefined'&&state&&typeof state==='object')return state}catch(_){ }
+    if(window.state&&typeof window.state==='object')return window.state;
+    return {people:[],events:[],incidents:[],incidentLogs:[]};
+  }
+
+  function ensureNavButton(page,label,icon,afterPage){
+    var side=q('.side');
+    if(side&&!q('.side .navbtn[data-page="'+page+'"]')){
+      var b=document.createElement('button');
+      b.type='button';
+      b.className='navbtn';
+      b.dataset.page=page;
+      b.innerHTML='<span class="mono-ico '+icon+'"></span>'+label;
+      var ref=q('.side .navbtn[data-page="'+afterPage+'"]')||q('.side .navbtn[data-page="reports"]')||q('.side .navbtn[data-page="calendar"]');
+      if(ref)ref.insertAdjacentElement('afterend',b);else side.appendChild(b);
+    }
+  }
+
+  function forceVisibleNav(){
+    ensureNavButton('incidents','異況追蹤','ico-warning','today');
+    ensureNavButton('serviceRecords','服務紀錄單','ico-clipboard','reports');
+    qa('.navbtn[data-page="incidents"],.navbtn[data-page="serviceRecords"]').forEach(function(btn){
+      btn.classList.remove('hide','role-hidden');
+      btn.hidden=false;
+      btn.removeAttribute('aria-hidden');
+      btn.style.removeProperty('display');
+      if(btn.closest('.side'))btn.style.display='flex';
+      btn.disabled=false;
+      btn.type='button';
+    });
+  }
+
+  function showTargetPage(page){
+    forceVisibleNav();
+    try{window.currentPage=page;if(typeof currentPage!=='undefined')currentPage=page}catch(_){ }
+    qa('.page').forEach(function(p){p.classList.add('hide');p.style.display='none'});
+    var pg=$(page+'Page');
+    if(pg){pg.classList.remove('hide');pg.style.display='block'}
+    qa('.navbtn').forEach(function(btn){btn.classList.toggle('active',btn.dataset.page===page)});
+
+    if(page==='incidents'){
+      var t=todayISO();
+      if($('incidentStart'))$('incidentStart').value=t;
+      if($('incidentEnd'))$('incidentEnd').value=t;
+      if($('incidentClosedFilter'))$('incidentClosedFilter').value='all';
+      try{if(typeof renderIncidents==='function')renderIncidents()}catch(e){console.warn('[V270] renderIncidents failed',e)}
+    }
+    if(page==='serviceRecords'){
+      try{if(typeof renderServiceRecords==='function')renderServiceRecords()}catch(e){console.warn('[V270] renderServiceRecords failed',e)}
+    }
+    return false;
+  }
+
+  /* 取消 serviceRecords / incidents 的權限限制，避免舊 canSeePage / v105AllowedPages 再清掉。 */
+  var oldCanSee=window.canSeePage;
+  window.canSeePage=function(page){
+    if(page==='serviceRecords'||page==='incidents')return true;
+    return oldCanSee?oldCanSee.apply(this,arguments):true;
+  };
+  try{canSeePage=window.canSeePage}catch(_){ }
+
+  var oldAllowed=window.v105AllowedPages;
+  window.v105AllowedPages=function(){
+    var arr=[];
+    try{arr=oldAllowed?oldAllowed():[]}catch(_){arr=[]}
+    if(!Array.isArray(arr))arr=[];
+    ['incidents','serviceRecords'].forEach(function(p){if(!arr.includes(p))arr.push(p)});
+    return Array.from(new Set(arr));
+  };
+
+  /* 不再讓 cleanServiceRecordNav 隱藏服務紀錄單。 */
+  window.cleanServiceRecordNav=function(){forceVisibleNav();};
+  try{cleanServiceRecordNav=window.cleanServiceRecordNav}catch(_){ }
+
+  /* 在 window capture 階段先接住點擊，阻止 V269 document capture 的權限攔截。 */
+  window.addEventListener('click',function(e){
+    var nav=e.target&&e.target.closest&&e.target.closest('.navbtn[data-page="incidents"],.navbtn[data-page="serviceRecords"],button[data-page="incidents"],button[data-page="serviceRecords"]');
+    if(!nav)return;
+    e.preventDefault();
+    e.stopPropagation();
+    if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+    showTargetPage(nav.dataset.page);
+    return false;
+  },true);
+
+  /* applyPermissionsUI / renderAll 執行後，再補回導覽。 */
+  var oldApply=window.applyPermissionsUI;
+  if(oldApply&&!oldApply.__v270){
+    window.applyPermissionsUI=applyPermissionsUI=function(){
+      var r=oldApply.apply(this,arguments);
+      setTimeout(forceVisibleNav,0);
+      setTimeout(forceVisibleNav,120);
+      return r;
+    };
+    window.applyPermissionsUI.__v270=true;
+  }
+
+  var oldRenderAll=window.renderAll;
+  if(oldRenderAll&&!oldRenderAll.__v270){
+    window.renderAll=renderAll=function(){
+      var r=oldRenderAll.apply(this,arguments);
+      setTimeout(forceVisibleNav,0);
+      setTimeout(forceVisibleNav,160);
+      return r;
+    };
+    window.renderAll.__v270=true;
+  }
+
+  function fixIncidentOpenText(){
+    qa('option').forEach(function(o){
+      if((o.textContent||'').trim()==='尚未結案')o.textContent='未結案';
+      if(o.value==='尚未結案')o.value='未結案';
+    });
+    var s=getState();
+    if(Array.isArray(s.incidents)){
+      var changed=false;
+      s.incidents.forEach(function(i){if(i&&i.status==='尚未結案'){i.status='未結案';changed=true}});
+      if(changed){try{if(typeof save==='function')save()}catch(_){ }}
+    }
+  }
+
+  function init(){forceVisibleNav();fixIncidentOpenText();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(init,80);setTimeout(init,600);setTimeout(init,1600)});
+  else{setTimeout(init,20);setTimeout(init,500);setTimeout(init,1500)}
+  setInterval(function(){forceVisibleNav();fixIncidentOpenText();},1800);
+
+  window.v270RestoreReport={
+    incidents:'已恢復異況追蹤按鈕顯示與點擊；用 window capture 先處理，避開 V269 document capture 權限攔截。',
+    serviceRecords:'服務紀錄單已取消權限限制，所有角色都顯示、可點選。',
+    statusText:'異況狀態文字「尚未結案」維持統一顯示為「未結案」。'
+  };
+})();
+</script>
+
 </body></html>
