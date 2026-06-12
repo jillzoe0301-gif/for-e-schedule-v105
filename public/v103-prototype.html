@@ -946,7 +946,7 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 <section id="auditPage" class="page hide"><div class="panel"><div class="section-title"><h2>操作紀錄 Audit Log</h2><button id="exportLogBtn" class="export-control export-control">匯出紀錄 CSV</button></div><table class="table"><thead><tr><th>時間</th><th>操作人</th><th>動作</th><th>行程</th><th>欄位</th><th>修改前</th><th>修改後</th></tr></thead><tbody id="auditRows"></tbody></table></div></section>
 <section id="linePage" class="page hide"><div class="panel"><div class="section-title"><h2>LINE 通知文字</h2><button id="copyLineBtn" class="primary">複製文字</button></div><pre id="lineText"></pre></div></section>
 <section id="themePage" class="page hide"><div class="panel"><div class="section-title"><h2>顏色設定</h2><span class="muted">所有權限皆可調整背景色；儲存後會套用在目前瀏覽器。</span></div><div class="row"><div class="field"><label>日期欄位背景色</label><div class="color-setting"><input id="themeDateHeader" type="color"><span class="color-swatch" data-swatch="themeDateHeader"></span><span class="color-code" data-code="themeDateHeader"></span></div></div><div class="field"><label>人員名稱欄位背景色</label><div class="color-setting"><input id="themePersonCell" type="color"><span class="color-swatch" data-swatch="themePersonCell"></span><span class="color-code" data-code="themePersonCell"></span></div></div></div><div class="row"><div class="field"><label>人員職務/名字顯示背景色（預設）</label><div class="color-setting"><input id="themePersonName" type="color"><span class="color-swatch" data-swatch="themePersonName"></span><span class="color-code" data-code="themePersonName"></span></div></div><div class="field"><label>一部翻譯人員名稱背景色</label><div class="color-setting"><input id="themePersonOne" type="color"><span class="color-swatch" data-swatch="themePersonOne"></span><span class="color-code" data-code="themePersonOne"></span></div></div></div><div class="row"><div class="field"><label>二部翻譯人員名稱背景色</label><div class="color-setting"><input id="themePersonTwo" type="color"><span class="color-swatch" data-swatch="themePersonTwo"></span><span class="color-code" data-code="themePersonTwo"></span></div></div><div class="field"><label>假日/星期六日背景色</label><div class="color-setting"><input id="themeHoliday" type="color"><span class="color-swatch" data-swatch="themeHoliday"></span><span class="color-code" data-code="themeHoliday"></span></div></div></div><div class="row"><div class="field"><label>當日行程/今天背景色</label><div class="color-setting"><input id="themeToday" type="color"><span class="color-swatch" data-swatch="themeToday"></span><span class="color-code" data-code="themeToday"></span></div></div><div class="field"><label>未完成行程背景色</label><div class="color-setting"><input id="themeEventPending" type="color"><span class="color-swatch" data-swatch="themeEventPending"></span><span class="color-code" data-code="themeEventPending"></span></div></div></div><div class="row"><div class="field"><label>已完成行程背景色</label><div class="color-setting"><input id="themeEventDone" type="color"><span class="color-swatch" data-swatch="themeEventDone"></span><span class="color-code" data-code="themeEventDone"></span></div></div><div class="field"><label>預覽</label><div style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 0"><span class="badge" style="background:var(--theme-date-header)">日期</span><span class="badge" style="background:var(--theme-person-one)">一部翻譯</span><span class="badge" style="background:var(--theme-person-two)">二部翻譯</span><span class="badge" style="background:var(--theme-holiday)">假日</span><span class="badge" style="background:var(--theme-today)">今天</span><span class="badge" style="background:var(--theme-event-pending)">未完成</span><span class="badge" style="background:var(--theme-event-done)">已完成</span><span class="badge" style="background:var(--theme-person-name)">職務預設</span></div></div></div><div class="panel" style="box-shadow:none;margin-top:12px"><div class="section-title"><h2>職務顏色設定</h2><span class="muted">可針對不同職務設定人員名稱背景色；儲存後會套用在行事曆左側人員名稱。</span></div><div id="jobColorSettings"></div></div><div class="toolbar"><button id="saveTheme" class="primary">儲存顏色設定</button><button id="resetTheme">還原預設顏色</button></div></div></section>
-<section id="serviceRecordsPage" class="page hide"><div id="srAdminSection"><div class="panel"><div class="section-title"><h2>服務紀錄單</h2><div class="toolbar"><button id="exportServiceRecordsBtn" style="display:none!important">匯出服務紀錄 CSV</button><div class="v141-box" data-label="服務紀錄單" data-mode="month" style="display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin-left:auto;"><button id="refreshServiceRecords" class="primary" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;">重新整理</button><select class="mini v141-sel" title="匯出方式" style="width:auto;min-width:60px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option><option value="range">區間</option></select><input class="mini v141-year" type="number" min="2024" max="2035" style="display:none;width:72px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="年度"><input class="mini v141-month" type="month" style="display:inline-flex;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="月份"><input class="mini v141-day" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="日期"><input class="mini v141-start" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="起日"><input class="mini v141-end" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="迄日"><button class="primary v141-btn" type="button" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;">匯出CSV</button></div></div></div><div class="toolbar"><label class="muted">統計年月</label><input id="serviceMonth" type="month" class="mini"><label class="muted">統計年度</label><input id="serviceYear" type="number" class="mini" min="2024" max="2035" step="1"><label class="muted">部門</label><select id="serviceGroup" class="mini"><option value="">全部部門</option><option>一部翻譯</option><option>二部翻譯</option></select><label class="muted">翻譯</label><select id="servicePerson" class="mini"><option value="">全部翻譯</option></select><select id="serviceStatus" class="mini"><option value="">全部繳交狀態</option><option value="submitted">已繳交</option><option value="unsubmitted">未繳交</option></select></div><div class="muted" style="margin-top:8px">此頁統一放服務紀錄單相關數據；可依年度、部門、翻譯與繳交狀態篩選，已繳交與未繳交都會列出。</div></div><div class="panel"><div class="section-title"><h2>服務紀錄單繳交狀況</h2><span class="muted">依上方統計年月、年度、部門、翻譯與繳交狀態篩選。</span></div><div class="statgrid" id="serviceOverviewStats"></div><h3>當月各翻譯繳交狀況</h3><div class="detail-table-wrap"><table class="table"><thead id="serviceMonthHead"></thead><tbody id="serviceMonthRows"></tbody></table></div><h3>當年各翻譯繳交狀況</h3><div class="detail-table-wrap"><table class="table"><thead id="serviceYearHead"></thead><tbody id="serviceYearRows"></tbody></table></div><h3>一部翻譯 / 二部翻譯繳交狀況</h3><div class="detail-table-wrap"><table class="table"><thead id="serviceDeptHead"></thead><tbody id="serviceDeptRows"></tbody></table></div></div><div class="panel"><h2>當月各翻譯尚未繳交數字</h2><div id="serviceMonthPendingStats" class="statgrid"></div></div><div class="panel"><h2>當月服務紀錄單明細</h2><div id="serviceMonthStats" class="statgrid"></div><div class="detail-table-wrap"><table class="table"><thead><tr><th>日期</th><th>部門</th><th>翻譯</th><th>職務</th><th>行程類型</th><th>辦理內容</th><th>地點 / 客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead><tbody id="serviceMonthDetailRows"></tbody></table></div></div><div class="panel"><h2>當年度服務紀錄單明細</h2><div id="serviceYearStats" class="statgrid"></div><div class="detail-table-wrap"><table class="table"><thead><tr><th>月份</th><th>日期</th><th>部門</th><th>翻譯</th><th>職務</th><th>行程類型</th><th>辦理內容</th><th>地點 / 客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead><tbody id="serviceYearDetailRows"></tbody></table></div></div></div><div id="srStaffPage" style="display:none"></div></section><section id="settingsPage" class="page hide"><div class="panel"><h2>Airtable / Webhook 設定</h2><div class="row"><div class="field"><label>Airtable Base ID</label><input id="airtableBase"></div><div class="field"><label>Table Name</label><input id="airtableTable"></div></div><div class="field"><label>Webhook URL</label><input id="webhookUrl"></div><div class="field"><label>LINE 備註</label><textarea id="lineMemo"></textarea></div><div class="toolbar"><button id="saveSettings" class="primary">儲存設定</button><button id="simulateWebhook">產生 Webhook 模擬通知</button></div></div><div class="panel"><div class="section-title"><h2>管理員｜下拉選項維護</h2><span class="muted">每行一個選項，儲存後會同步到新增/篩選下拉。</span></div><div class="row"><div class="field"><label>行程類型</label><textarea id="optEventTypes"></textarea></div><div class="field"><label>翻譯狀態</label><textarea id="optTranslatorStatus"></textarea></div></div><div class="row"><div class="field"><label>提醒通知類型（每行一項）</label><textarea id="optAlertEventTypes" placeholder="逃跑通知
+<section id="serviceRecordsPage" class="page hide"><div id="srAdminSection" style="display:block!important"><div class="panel"><div class="section-title"><h2>服務紀錄單</h2><div class="toolbar"><button id="exportServiceRecordsBtn" style="display:none!important">匯出服務紀錄 CSV</button><div class="v141-box" data-label="服務紀錄單" data-mode="month" style="display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;margin-left:auto;"><button id="refreshServiceRecords" class="primary" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;">重新整理</button><select class="mini v141-sel" title="匯出方式" style="width:auto;min-width:60px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;"><option value="all">全部</option><option value="year">年</option><option value="month" selected>月</option><option value="day">日</option><option value="range">區間</option></select><input class="mini v141-year" type="number" min="2024" max="2035" style="display:none;width:72px;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="年度"><input class="mini v141-month" type="month" style="display:inline-flex;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="月份"><input class="mini v141-day" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="日期"><input class="mini v141-start" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="起日"><input class="mini v141-end" type="date" style="display:none;height:30px;padding:3px 6px;font-size:12px;border-radius:8px;" title="迄日"><button class="primary v141-btn" type="button" style="height:30px;padding:3px 10px;font-size:12px;border-radius:8px;white-space:nowrap;">匯出CSV</button></div></div></div><div class="toolbar"><label class="muted">統計年月</label><input id="serviceMonth" type="month" class="mini"><label class="muted">統計年度</label><input id="serviceYear" type="number" class="mini" min="2024" max="2035" step="1"><label class="muted">部門</label><select id="serviceGroup" class="mini"><option value="">全部部門</option><option>一部翻譯</option><option>二部翻譯</option></select><label class="muted">翻譯</label><select id="servicePerson" class="mini"><option value="">全部翻譯</option></select><select id="serviceStatus" class="mini"><option value="">全部繳交狀態</option><option value="submitted">已繳交</option><option value="unsubmitted">未繳交</option></select></div><div class="muted" style="margin-top:8px">此頁統一放服務紀錄單相關數據；可依年度、部門、翻譯與繳交狀態篩選，已繳交與未繳交都會列出。</div></div><div class="panel"><div class="section-title"><h2>服務紀錄單繳交狀況</h2><span class="muted">依上方統計年月、年度、部門、翻譯與繳交狀態篩選。</span></div><div class="statgrid" id="serviceOverviewStats"></div><h3>當月各翻譯繳交狀況</h3><div class="detail-table-wrap"><table class="table"><thead id="serviceMonthHead"></thead><tbody id="serviceMonthRows"></tbody></table></div><h3>當年各翻譯繳交狀況</h3><div class="detail-table-wrap"><table class="table"><thead id="serviceYearHead"></thead><tbody id="serviceYearRows"></tbody></table></div><h3>一部翻譯 / 二部翻譯繳交狀況</h3><div class="detail-table-wrap"><table class="table"><thead id="serviceDeptHead"></thead><tbody id="serviceDeptRows"></tbody></table></div></div><div class="panel"><h2>當月各翻譯尚未繳交數字</h2><div id="serviceMonthPendingStats" class="statgrid"></div></div><div class="panel"><h2>當月服務紀錄單明細</h2><div id="serviceMonthStats" class="statgrid"></div><div class="detail-table-wrap"><table class="table"><thead><tr><th>日期</th><th>部門</th><th>翻譯</th><th>職務</th><th>行程類型</th><th>辦理內容</th><th>地點 / 客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead><tbody id="serviceMonthDetailRows"></tbody></table></div></div><div class="panel"><h2>當年度服務紀錄單明細</h2><div id="serviceYearStats" class="statgrid"></div><div class="detail-table-wrap"><table class="table"><thead><tr><th>月份</th><th>日期</th><th>部門</th><th>翻譯</th><th>職務</th><th>行程類型</th><th>辦理內容</th><th>地點 / 客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead><tbody id="serviceYearDetailRows"></tbody></table></div></div></div><div id="srStaffPage" style="display:none"></div></section><section id="settingsPage" class="page hide"><div class="panel"><h2>Airtable / Webhook 設定</h2><div class="row"><div class="field"><label>Airtable Base ID</label><input id="airtableBase"></div><div class="field"><label>Table Name</label><input id="airtableTable"></div></div><div class="field"><label>Webhook URL</label><input id="webhookUrl"></div><div class="field"><label>LINE 備註</label><textarea id="lineMemo"></textarea></div><div class="toolbar"><button id="saveSettings" class="primary">儲存設定</button><button id="simulateWebhook">產生 Webhook 模擬通知</button></div></div><div class="panel"><div class="section-title"><h2>管理員｜下拉選項維護</h2><span class="muted">每行一個選項，儲存後會同步到新增/篩選下拉。</span></div><div class="row"><div class="field"><label>行程類型</label><textarea id="optEventTypes"></textarea></div><div class="field"><label>翻譯狀態</label><textarea id="optTranslatorStatus"></textarea></div></div><div class="row"><div class="field"><label>提醒通知類型（每行一項）</label><textarea id="optAlertEventTypes" placeholder="逃跑通知
 轉出追蹤
 住變資訊
 返台提醒
@@ -1490,7 +1490,43 @@ function scrollFieldCalendarToToday(){
     wrap.scrollLeft=Math.max(0,cell.offsetLeft-stickyW-6);
   }catch(err){console.warn('scrollFieldCalendarToToday failed',err);}
 }
-function bindUI(){ $('logoutBtn').onclick=logout; document.querySelectorAll('.navbtn').forEach(btn=>btn.onclick=()=>{const target=btn.dataset.page;if(!canSeePage(target))return toast('此權限無法開啟此頁面');document.querySelectorAll('.navbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');currentPage=target;document.querySelectorAll('.page').forEach(p=>p.classList.add('hide'));$(currentPage+'Page').classList.remove('hide');if(target==='calendar'&&window.innerWidth<=760&&$('weekPicker'))$('weekPicker').value=todayISO();if(target==='fieldCalendar'&&window.innerWidth<=760&&$('fieldWeekPicker'))$('fieldWeekPicker').value=todayISO();if(target==='roomBooking'&&window.innerWidth<=760&&$('roomBookingWeekPicker'))$('roomBookingWeekPicker').value=todayISO();renderAll();if(target==='calendar')setTimeout(scrollCalendarToToday,100);if(target==='fieldCalendar')setTimeout(scrollFieldCalendarToToday,100);if(target==='roomBooking')setTimeout(v105ScrollRoomBookingToToday,120)}); $('prevWeek').onclick=()=>{$('weekPicker').value=dateAdd($('weekPicker').value||todayISO(),-7);renderAll()}; $('nextWeek').onclick=()=>{$('weekPicker').value=dateAdd($('weekPicker').value||todayISO(),7);renderAll()}; ['weekPicker','viewMode','statusFilter','keywordFilter'].forEach(id=>$(id).addEventListener('input',renderAll)); $('clearFilter').onclick=()=>{['groupFilter','jobFilter','personFilter','typeFilter'].forEach(id=>clearMulti(id)); ['statusFilter','keywordFilter'].forEach(id=>$(id).value='');renderAll()}; $('addEventBtn').onclick=()=>{if(!canEdit())return toast('目前帳號無法新增行程'); openEventModal()}; $('eventKind').onchange=()=>{renderTypeOptions();applySendWorkNoteTemplate();updateServiceRecordUI();updateGeneralNoteFormUI()}; $('eventType').onchange=()=>{applySendWorkNoteTemplate();updateServiceRecordUI();autoResizeNote()}; if($('note'))$('note').addEventListener('input',autoResizeNote); $('eventStatus').onchange=()=>{if($('eventStatus').value==='已完成'&&requiresServiceRecord($('eventType').value)&&(!$('serviceRecordSubmitted').checked||!$('serviceRecordDate').value)){toast('請先勾選服務紀錄單並填寫繳交日期，才能選擇已完成');$('eventStatus').value='未完成';}}; $('repeatWeeks').onchange=()=>{$('repeatCustomBox').classList.toggle('hide',$('repeatWeeks').value!=='custom')}; bindDateRangeLinkage(); $('startTime').onchange=handleAllDayTime; $('closeEventX').onclick=$('closeEventBtn').onclick=closeEventModal; $('saveEventBtn').onclick=saveEvent; $('deleteEventBtn').onclick=deleteEvent; $('exportCsvBtn').onclick=exportEvents; $('exportLogBtn').onclick=exportLogs; $('calcReportBtn').onclick=renderReports; $('saveReportBtn').onclick=saveReportSnapshot; $('exportReportBtn').onclick=exportReports; ['reportMonth','reportYear','reportGroup','reportPerson'].forEach(id=>$(id).addEventListener('input',renderReports)); if($('refreshServiceRecords'))$('refreshServiceRecords').onclick=renderServiceRecords; if($('exportServiceRecordsBtn'))$('exportServiceRecordsBtn').onclick=exportServiceRecords; ['serviceMonth','serviceYear','serviceGroup'].forEach(id=>{if($(id))$(id).addEventListener('input',renderServiceRecords)}); $('copyLineBtn').onclick=()=>copyText(state.lastLineText||''); $('saveSettings').onclick=()=>{state.settings={airtableBase:$('airtableBase').value,airtableTable:$('airtableTable').value,webhookUrl:$('webhookUrl').value,lineMemo:$('lineMemo').value};save();toast('已儲存設定')}; $('simulateWebhook').onclick=()=>{state.lastLineText='【Webhook 模擬】\n已準備送出最新行程資料到：\n'+($('webhookUrl').value||'尚未設定 Webhook URL');save();renderLine();toast('已產生模擬通知')}; $('refreshToday').onclick=renderToday; $('mobileToday').onclick=()=>{$('mobileDate').value=todayISO();renderMobile()}; $('mobileTomorrow').onclick=()=>{$('mobileDate').value=dateAdd(todayISO(),1);renderMobile()}; $('mobileWeek').onclick=()=>{const d=$('mobileDate').value||todayISO();$('mobileList').dataset.mode='week';renderMobile()}; $('mobileAddEvent').onclick=()=>{if(!canEdit())return toast('目前帳號無法新增行程'); openEventModal({date:$('mobileDate').value||todayISO(),personId:$('mobilePerson').value||userPersonId()})}; ['mobilePerson','mobileDate'].forEach(id=>$(id).addEventListener('input',()=>{$('mobileList').dataset.mode='day';renderMobile()})); $('addPersonBtn').onclick=()=>{if(!canAddPeople())return toast('只有管理員可以新增人員名稱');openPersonModal();}; $('closePersonX').onclick=$('closePersonBtn').onclick=()=>$('personModal').classList.add('hide'); $('savePersonBtn').onclick=savePersonEdit; $('saveOptions').onclick=saveOptions; $('resetOptions').onclick=resetOptions; if($('optEventTypeContentType'))$('optEventTypeContentType').onchange=()=>{syncEventTypeContentEditorToHidden(eventTypeContentEditingType);renderEventTypeContentEditor($('optEventTypeContentType').value)}; if($('optEventTypeContentEditor'))$('optEventTypeContentEditor').addEventListener('input',()=>syncEventTypeContentEditorToHidden()); if($('optEventTypes'))$('optEventTypes').addEventListener('input',refreshEventTypeContentEditorOptions); if($('saveTheme'))$('saveTheme').onclick=saveThemeSettings; if($('resetTheme'))$('resetTheme').onclick=resetThemeSettings; ['themeDateHeader','themePersonCell','themePersonName','themePersonOne','themePersonTwo','themeHoliday','themeToday','themeEventPending','themeEventDone'].forEach(id=>{if($(id))$(id).addEventListener('input',()=>{state.theme=collectTheme();applyTheme();updateThemeSwatches();})}); $('addUserBtn').onclick=()=>openUserCreate(); $('closeUserX').onclick=$('closeUserBtn').onclick=()=>$('userModal').classList.add('hide'); $('saveUserBtn').onclick=saveUserEdit; if($('addRoomBookingBtn'))$('addRoomBookingBtn').onclick=()=>openRoomBookingModal(); if($('closeRoomBookingX'))$('closeRoomBookingX').onclick=$('closeRoomBookingBtn').onclick=closeRoomBookingModal; if($('saveRoomBookingBtn'))$('saveRoomBookingBtn').onclick=saveRoomBooking; if($('deleteRoomBookingBtn'))$('deleteRoomBookingBtn').onclick=deleteRoomBooking; ['roomBookingDateFilter','roomBookingRoomFilter','roomBookingDeptFilter','roomBookingKeyword'].forEach(id=>{if($(id))$(id).addEventListener('input',renderRoomBookings)}); if($('clearRoomBookingFilters'))$('clearRoomBookingFilters').onclick=()=>{['roomBookingDateFilter','roomBookingRoomFilter','roomBookingDeptFilter','roomBookingKeyword'].forEach(id=>{if($(id))$(id).value=''});renderRoomBookings()}; }
+function bindUI(){ $('logoutBtn').onclick=logout; /* V277: 改為 event delegation，動態插入的按鈕也可正常運作 */
+  (function setupNavDelegation(){
+    var side = document.querySelector('.side');
+    if(!side) return;
+    side.addEventListener('click', function(e){
+      var btn = e.target && e.target.closest && e.target.closest('.navbtn[data-page]');
+      if(!btn) return;
+      var target = btn.dataset.page;
+      // 所有角色皆可進入（已取消權限限制）
+      document.querySelectorAll('.navbtn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      currentPage = target;
+      document.querySelectorAll('.page').forEach(function(p){ p.classList.add('hide'); });
+      var pg = document.getElementById(currentPage+'Page');
+      if(pg) pg.classList.remove('hide');
+      // 特定頁面處理
+      if(target==='calendar'&&window.innerWidth<=760&&$('weekPicker')) $('weekPicker').value=todayISO();
+      if(target==='fieldCalendar'&&window.innerWidth<=760&&$('fieldWeekPicker')) $('fieldWeekPicker').value=todayISO();
+      if(target==='roomBooking'&&window.innerWidth<=760&&$('roomBookingWeekPicker')) $('roomBookingWeekPicker').value=todayISO();
+      // 動態頁面的渲染
+      if(target==='personalTodo'){
+        try{ if(typeof showPersonalTodoPageV200==='function') showPersonalTodoPageV200(); }catch(_){}
+        try{ if(typeof renderPersonalTodoPageV202==='function') renderPersonalTodoPageV202(); }catch(_){}
+      } else if(target==='recordSubmit'){
+        try{ if(typeof openRecordPage==='function') openRecordPage(); }catch(_){}
+        try{ if(typeof renderRecordSubmitPageV176==='function') renderRecordSubmitPageV176(); }catch(_){}
+      } else if(target==='scheduleSearch'){
+        try{ if(typeof renderScheduleSearch==='function') renderScheduleSearch(); }catch(_){}
+        try{ if(typeof window.renderScheduleSearch==='function') window.renderScheduleSearch(); }catch(_){}
+      } else {
+        renderAll();
+      }
+      if(target==='calendar') setTimeout(scrollCalendarToToday,100);
+      if(target==='fieldCalendar') setTimeout(scrollFieldCalendarToToday,100);
+      if(target==='roomBooking') setTimeout(v105ScrollRoomBookingToToday,120);
+    });
+  })(); $('prevWeek').onclick=()=>{$('weekPicker').value=dateAdd($('weekPicker').value||todayISO(),-7);renderAll()}; $('nextWeek').onclick=()=>{$('weekPicker').value=dateAdd($('weekPicker').value||todayISO(),7);renderAll()}; ['weekPicker','viewMode','statusFilter','keywordFilter'].forEach(id=>$(id).addEventListener('input',renderAll)); $('clearFilter').onclick=()=>{['groupFilter','jobFilter','personFilter','typeFilter'].forEach(id=>clearMulti(id)); ['statusFilter','keywordFilter'].forEach(id=>$(id).value='');renderAll()}; $('addEventBtn').onclick=()=>{if(!canEdit())return toast('目前帳號無法新增行程'); openEventModal()}; $('eventKind').onchange=()=>{renderTypeOptions();applySendWorkNoteTemplate();updateServiceRecordUI();updateGeneralNoteFormUI()}; $('eventType').onchange=()=>{applySendWorkNoteTemplate();updateServiceRecordUI();autoResizeNote()}; if($('note'))$('note').addEventListener('input',autoResizeNote); $('eventStatus').onchange=()=>{if($('eventStatus').value==='已完成'&&requiresServiceRecord($('eventType').value)&&(!$('serviceRecordSubmitted').checked||!$('serviceRecordDate').value)){toast('請先勾選服務紀錄單並填寫繳交日期，才能選擇已完成');$('eventStatus').value='未完成';}}; $('repeatWeeks').onchange=()=>{$('repeatCustomBox').classList.toggle('hide',$('repeatWeeks').value!=='custom')}; bindDateRangeLinkage(); $('startTime').onchange=handleAllDayTime; $('closeEventX').onclick=$('closeEventBtn').onclick=closeEventModal; $('saveEventBtn').onclick=saveEvent; $('deleteEventBtn').onclick=deleteEvent; $('exportCsvBtn').onclick=exportEvents; $('exportLogBtn').onclick=exportLogs; $('calcReportBtn').onclick=renderReports; $('saveReportBtn').onclick=saveReportSnapshot; $('exportReportBtn').onclick=exportReports; ['reportMonth','reportYear','reportGroup','reportPerson'].forEach(id=>$(id).addEventListener('input',renderReports)); if($('refreshServiceRecords'))$('refreshServiceRecords').onclick=renderServiceRecords; if($('exportServiceRecordsBtn'))$('exportServiceRecordsBtn').onclick=exportServiceRecords; ['serviceMonth','serviceYear','serviceGroup'].forEach(id=>{if($(id))$(id).addEventListener('input',renderServiceRecords)}); $('copyLineBtn').onclick=()=>copyText(state.lastLineText||''); $('saveSettings').onclick=()=>{state.settings={airtableBase:$('airtableBase').value,airtableTable:$('airtableTable').value,webhookUrl:$('webhookUrl').value,lineMemo:$('lineMemo').value};save();toast('已儲存設定')}; $('simulateWebhook').onclick=()=>{state.lastLineText='【Webhook 模擬】\n已準備送出最新行程資料到：\n'+($('webhookUrl').value||'尚未設定 Webhook URL');save();renderLine();toast('已產生模擬通知')}; $('refreshToday').onclick=renderToday; $('mobileToday').onclick=()=>{$('mobileDate').value=todayISO();renderMobile()}; $('mobileTomorrow').onclick=()=>{$('mobileDate').value=dateAdd(todayISO(),1);renderMobile()}; $('mobileWeek').onclick=()=>{const d=$('mobileDate').value||todayISO();$('mobileList').dataset.mode='week';renderMobile()}; $('mobileAddEvent').onclick=()=>{if(!canEdit())return toast('目前帳號無法新增行程'); openEventModal({date:$('mobileDate').value||todayISO(),personId:$('mobilePerson').value||userPersonId()})}; ['mobilePerson','mobileDate'].forEach(id=>$(id).addEventListener('input',()=>{$('mobileList').dataset.mode='day';renderMobile()})); $('addPersonBtn').onclick=()=>{if(!canAddPeople())return toast('只有管理員可以新增人員名稱');openPersonModal();}; $('closePersonX').onclick=$('closePersonBtn').onclick=()=>$('personModal').classList.add('hide'); $('savePersonBtn').onclick=savePersonEdit; $('saveOptions').onclick=saveOptions; $('resetOptions').onclick=resetOptions; if($('optEventTypeContentType'))$('optEventTypeContentType').onchange=()=>{syncEventTypeContentEditorToHidden(eventTypeContentEditingType);renderEventTypeContentEditor($('optEventTypeContentType').value)}; if($('optEventTypeContentEditor'))$('optEventTypeContentEditor').addEventListener('input',()=>syncEventTypeContentEditorToHidden()); if($('optEventTypes'))$('optEventTypes').addEventListener('input',refreshEventTypeContentEditorOptions); if($('saveTheme'))$('saveTheme').onclick=saveThemeSettings; if($('resetTheme'))$('resetTheme').onclick=resetThemeSettings; ['themeDateHeader','themePersonCell','themePersonName','themePersonOne','themePersonTwo','themeHoliday','themeToday','themeEventPending','themeEventDone'].forEach(id=>{if($(id))$(id).addEventListener('input',()=>{state.theme=collectTheme();applyTheme();updateThemeSwatches();})}); $('addUserBtn').onclick=()=>openUserCreate(); $('closeUserX').onclick=$('closeUserBtn').onclick=()=>$('userModal').classList.add('hide'); $('saveUserBtn').onclick=saveUserEdit; if($('addRoomBookingBtn'))$('addRoomBookingBtn').onclick=()=>openRoomBookingModal(); if($('closeRoomBookingX'))$('closeRoomBookingX').onclick=$('closeRoomBookingBtn').onclick=closeRoomBookingModal; if($('saveRoomBookingBtn'))$('saveRoomBookingBtn').onclick=saveRoomBooking; if($('deleteRoomBookingBtn'))$('deleteRoomBookingBtn').onclick=deleteRoomBooking; ['roomBookingDateFilter','roomBookingRoomFilter','roomBookingDeptFilter','roomBookingKeyword'].forEach(id=>{if($(id))$(id).addEventListener('input',renderRoomBookings)}); if($('clearRoomBookingFilters'))$('clearRoomBookingFilters').onclick=()=>{['roomBookingDateFilter','roomBookingRoomFilter','roomBookingDeptFilter','roomBookingKeyword'].forEach(id=>{if($(id))$(id).value=''});renderRoomBookings()}; }
 
 function ensureRoomBookingState(){if(!Array.isArray(state.roomBookings))state.roomBookings=[]; if(!state.options)state.options={}; if(!state.options.meetingRooms)state.options.meetingRooms=defaultRooms; if(!state.options.departments)state.options.departments=defaultDepartments;
 state.options.departments=[...new Set([...defaultDepartments,...(state.options.departments||[])])];}
@@ -5667,7 +5703,7 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
     const page=ensurePage();
     if(!page)return;
     bindPage();
-    const show=isTranslatorAccount();
+    const show=true; // V277: 所有角色皆可看到
     page.style.display=show?'':'none';
     if(!show)return;
     ensureDemoRecordSubmitEvents();
@@ -15442,11 +15478,16 @@ window.v249HolidayTagsReport={
 
     /* 3. 去重：同 data-page 只保留第一個 */
     var seen = {};
-    side.querySelectorAll('.navbtn[data-page]').forEach(function(btn){
+    document.querySelectorAll('.side .navbtn[data-page]').forEach(function(btn){
       var pg = btn.dataset.page;
       if(seen[pg]) btn.parentNode && btn.parentNode.removeChild(btn);
       else seen[pg] = true;
     });
+    /* 4. 確保 serviceRecords srAdminSection 可見 */
+    var srAdmin = document.getElementById('srAdminSection');
+    if(srAdmin) srAdmin.style.display = 'block';
+    var srStaff = document.getElementById('srStaffPage');
+    if(srStaff) srStaff.style.display = 'none';
   }
 
   /* ── applyPermissionsUI 覆寫 ── */
@@ -15541,6 +15582,89 @@ window.v249HolidayTagsReport={
   }
 
   console.log('[V276] 所有權限已開放，所有按鈕已顯示');
+})();
+</script>
+
+<script id="v277-final-patch">
+(function(){
+  'use strict';
+  if(window.__V277__) return;
+  window.__V277__ = true;
+
+  /* ── 確保 srAdminSection 始終可見 ── */
+  function fixServiceRecordsPage(){
+    var admin = document.getElementById('srAdminSection');
+    if(admin){
+      admin.style.cssText = 'display:block!important';
+    }
+    var staff = document.getElementById('srStaffPage');
+    if(staff){
+      staff.style.cssText = 'display:none!important';
+    }
+  }
+
+  /* ── 確保 personalTodo 按鈕有正確的 onclick ── */
+  function fixPersonalTodoBtn(){
+    document.querySelectorAll('.navbtn[data-page="personalTodo"]').forEach(function(btn){
+      if(btn.__v277onclick) return;
+      btn.__v277onclick = true;
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        try{ if(typeof showPersonalTodoPageV200==='function') showPersonalTodoPageV200(); }catch(_){}
+        try{ if(typeof renderPersonalTodoPageV202==='function') renderPersonalTodoPageV202(); }catch(_){}
+        // 手動顯示頁面
+        document.querySelectorAll('.page').forEach(function(p){ p.classList.add('hide'); });
+        var pg = document.getElementById('personalTodoPage');
+        if(pg){ pg.classList.remove('hide'); }
+        document.querySelectorAll('.navbtn').forEach(function(b){
+          b.classList.toggle('active', b.dataset.page==='personalTodo');
+        });
+      });
+    });
+  }
+
+  /* ── 確保 recordSubmit 按鈕有正確的 onclick ── */
+  function fixRecordSubmitBtn(){
+    document.querySelectorAll('.navbtn[data-page="recordSubmit"]').forEach(function(btn){
+      if(btn.__v277onclick) return;
+      btn.__v277onclick = true;
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        try{ if(typeof openRecordPage==='function') openRecordPage(); }catch(_){}
+        try{ if(typeof renderRecordSubmitPageV176==='function') renderRecordSubmitPageV176(); }catch(_){}
+        var pg = document.getElementById('recordSubmitPage');
+        if(pg){
+          document.querySelectorAll('.page').forEach(function(p){ p.classList.add('hide'); });
+          pg.classList.remove('hide');
+        }
+        document.querySelectorAll('.navbtn').forEach(function(b){
+          b.classList.toggle('active', b.dataset.page==='recordSubmit');
+        });
+      });
+    });
+  }
+
+  function init(){
+    fixServiceRecordsPage();
+    fixPersonalTodoBtn();
+    fixRecordSubmitBtn();
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(init, 200); });
+  } else {
+    setTimeout(init, 200);
+  }
+  setTimeout(init, 800);
+  setTimeout(init, 2000);
+
+  // 點擊 serviceRecords 時確保頁面顯示
+  document.addEventListener('click', function(e){
+    var btn = e.target && e.target.closest && e.target.closest('.navbtn[data-page="serviceRecords"]');
+    if(btn){ setTimeout(fixServiceRecordsPage, 100); }
+    setTimeout(fixPersonalTodoBtn, 200);
+    setTimeout(fixRecordSubmitBtn, 200);
+  }, true);
 })();
 </script>
 </body></html>
