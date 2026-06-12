@@ -260,7 +260,7 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
   .bottom-nav .mono-ico.ico-car::before{background-size:125% 125%!important;}
 }
 
-/* V105 incident status color chips: 未結案 / 追蹤中 / 已完成 */
+/* V105 incident status color chips: 尚未結案 / 追蹤中 / 已完成 */
 .incident-status-chip{
   display:inline-flex;
   align-items:center;
@@ -830,10 +830,6 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 #fieldCalendarArea td[data-date].holiday-tw,
 #fieldCalendarArea td[data-field-date].weekend,
 #fieldCalendarArea td[data-field-date].holiday-tw{background:#e0f2fe!important;background-color:#e0f2fe!important;}
-
-/* V267 incident helper selects */
-.incident-helper-select{width:100%;min-height:96px;border:1px solid var(--line);border-radius:10px;padding:8px;background:#fff;font-size:14px;line-height:1.5}
-.incident-helper-select option{padding:4px 6px}
 </style>
 <style>
 /* V176：翻譯「紀錄單繳交」獨立分頁 */
@@ -969,7 +965,7 @@ tr.dragging{opacity:.45}.drag-hint{font-size:12px;color:#64748b;margin-top:4px}.
 <section id="usersPage" class="page hide"><div class="panel"><div class="section-title"><h2>帳號</h2><div class="toolbar"><span class="muted">管理員可建立帳號、查看帳號並修改密碼與角色。所有人皆可新增/修改行程；人員名單與帳號設定依權限限制。</span><button id="addUserBtn" class="primary">新增帳號</button></div></div><table class="table"><thead><tr><th>姓名</th><th>Email</th><th>密碼</th><th>LINE ID</th><th>角色</th><th>對應人員</th><th>帳號狀態</th><th>操作</th></tr></thead><tbody id="userRows"></tbody></table></div><div class="panel"><div class="section-title"><h2>人員名稱</h2><button id="addPersonBtn" class="primary">新增人員名稱</button></div><table class="table"><thead><tr><th>姓名</th><th>部門</th><th>群組</th><th>職務</th><th>LINE ID</th><th>狀態</th><th>操作</th></tr></thead><tbody id="personRows"></tbody></table></div></section>
 </main></div></div>
 
-<div id="incidentModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="incidentModalTitle">新增異況</h2><button id="closeIncidentX" class="ghost">✕</button></div><input type="hidden" id="incidentId"><div class="row"><div class="field"><label>發生日期</label><input id="incidentDate" type="date"></div><div class="field"><label>發生時間</label><select id="incidentTime"><option value="">不指定</option><option value="上午">上午</option><option value="下午">下午</option><option value="晚上">晚上</option><option value="08:00">08:00</option><option value="08:30">08:30</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option></select></div></div><div class="row"><div class="field"><label>異況類型</label><select id="incidentType"></select></div><div class="field"><label>緊急程度</label><select id="incidentUrgency"><option>一般</option><option>需追蹤</option><option>緊急</option><option>重大異況</option></select></div></div><div class="row"><div class="field"><label>地點 / 客戶</label><input id="incidentCustomer" placeholder="例如：宏志祥 / 宿舍名稱"></div><div class="field"><label>發生地點</label><input id="incidentLocation" placeholder="工廠 / 宿舍 / 醫院 / 其他"></div></div><div class="row"><div class="field"><label>工人姓名</label><input id="incidentWorkerName"></div><div class="field"><label>證件號碼</label><input id="incidentWorkerId" placeholder="護照號 / 居留證號，可留空"></div></div><div class="row"><div class="field"><label>負責人</label><select id="incidentOwner"></select></div><div class="field"><label>目前狀態</label><select id="incidentStatus"><option>待處理</option><option>處理中</option><option>待追蹤</option><option>已建立行程</option><option>已結案</option><option>取消 / 誤登</option></select></div></div><div class="row"><div class="field"><label>下次追蹤日期</label><input id="incidentNextFollow" type="date"></div><div class="field"><label>下次追蹤時間</label><select id="incidentNextFollowTime"><option value="">不指定</option><option value="上午">上午</option><option value="下午">下午</option><option value="晚上">晚上</option><option value="08:00">08:00</option><option value="08:30">08:30</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option></select></div></div><div class="field"><label>協助人員</label><select multiple id="incidentHelpers" class="incident-helper-select" title="按住 Ctrl（Mac: Cmd）可多選"></select><div class="muted">按住 Ctrl（Mac: Cmd）可多選</div></div><div class="field"><label>異況標題</label><input id="incidentTitle" placeholder="例如：工人未到工廠 / 宿舍衝突 / 雇主客訴"></div><div class="field"><label>異況內容</label><textarea id="incidentDescription" placeholder="請記錄發生原因、目前狀況、已通知對象等"></textarea></div><div class="field"><label>結案說明</label><textarea id="incidentCloseNote" placeholder="結案時填寫處理結果"></textarea></div><div class="incident-event-actions"><div class="section-title"><h2 style="font-size:16px">從異況建立行程</h2><span class="muted">會建立到執行者行程總覽，並保留來源異況紀錄。</span></div><div class="row"><div class="field"><label>行程類型</label><select id="incidentEventType"></select></div><div class="field"><label>執行者</label><select id="incidentEventPerson"></select></div></div><div class="row"><div class="field"><label>日期</label><input id="incidentEventDate" type="date"></div><div class="field"><label>時間</label><select id="incidentEventTime"><option value="上午">上午</option><option value="下午">下午</option><option value="晚上">晚上</option><option value="08:00">08:00</option><option value="08:30">08:30</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option></select></div></div><div class="row"><div class="field"><label>辦理內容</label><input id="incidentEventName"></div><div class="field"><label>地點 / 客戶</label><input id="incidentEventLocation"></div></div><div class="field"><label>內容說明</label><textarea id="incidentEventNote"></textarea></div><button id="createIncidentEventBtn" class="primary" type="button">建立到執行者行事曆</button></div><div class="panel" style="box-shadow:none;margin-top:12px"><div class="section-title"><h2 style="font-size:16px">追蹤紀錄</h2><span class="muted">可往下新增，永久保存在異況案件中。</span></div><div id="incidentLogList" class="incident-log-list"></div><div class="field"><label>新增追蹤內容</label><textarea id="incidentLogContent" placeholder="例如：已聯繫工人未接，已通知雇主，明日再追蹤。"></textarea></div><div class="row"><div class="field"><label>本次追蹤後狀態</label><select id="incidentLogStatus"><option>待處理</option><option>處理中</option><option>待追蹤</option><option>已建立行程</option><option>已結案</option><option>取消 / 誤登</option></select></div><div class="field"><label>下次追蹤日期</label><input id="incidentLogNextFollow" type="date"></div><div class="field"><label>下次追蹤時間</label><select id="incidentLogNextFollowTime"><option value="">不指定</option><option value="上午">上午</option><option value="下午">下午</option><option value="晚上">晚上</option><option value="08:00">08:00</option><option value="08:30">08:30</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option></select></div></div><button id="addIncidentLogBtn" type="button">新增追蹤紀錄</button></div><div class="modal-actions"><button id="deleteIncidentBtn" class="danger hide">刪除</button><button id="closeIncidentBtn">取消</button><button id="saveIncidentBtn" class="primary">儲存異況</button></div></div></div>
+<div id="incidentModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="incidentModalTitle">新增異況</h2><button id="closeIncidentX" class="ghost">✕</button></div><input type="hidden" id="incidentId"><div class="row"><div class="field"><label>發生日期</label><input id="incidentDate" type="date"></div><div class="field"><label>發生時間</label><select id="incidentTime"><option value="">不指定</option><option value="上午">上午</option><option value="下午">下午</option><option value="晚上">晚上</option><option value="08:00">08:00</option><option value="08:30">08:30</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option></select></div></div><div class="row"><div class="field"><label>異況類型</label><select id="incidentType"></select></div><div class="field"><label>緊急程度</label><select id="incidentUrgency"><option>一般</option><option>需追蹤</option><option>緊急</option><option>重大異況</option></select></div></div><div class="row"><div class="field"><label>地點 / 客戶</label><input id="incidentCustomer" placeholder="例如：宏志祥 / 宿舍名稱"></div><div class="field"><label>發生地點</label><input id="incidentLocation" placeholder="工廠 / 宿舍 / 醫院 / 其他"></div></div><div class="row"><div class="field"><label>工人姓名</label><input id="incidentWorkerName"></div><div class="field"><label>證件號碼</label><input id="incidentWorkerId" placeholder="護照號 / 居留證號，可留空"></div></div><div class="row"><div class="field"><label>負責人</label><select id="incidentOwner"></select></div><div class="field"><label>目前狀態</label><select id="incidentStatus"><option>待處理</option><option>處理中</option><option>待追蹤</option><option>已建立行程</option><option>已結案</option><option>取消 / 誤登</option></select></div></div><div class="row"><div class="field"><label>下次追蹤日期</label><input id="incidentNextFollow" type="date"></div><div class="field"><label>下次追蹤時間</label><select id="incidentNextFollowTime"><option value="">不指定</option><option value="上午">上午</option><option value="下午">下午</option><option value="晚上">晚上</option><option value="08:00">08:00</option><option value="08:30">08:30</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option></select></div></div><div class="field"><label>協助人員</label><div id="incidentHelpers" class="checkbox-list"></div></div><div class="field"><label>異況標題</label><input id="incidentTitle" placeholder="例如：工人未到工廠 / 宿舍衝突 / 雇主客訴"></div><div class="field"><label>異況內容</label><textarea id="incidentDescription" placeholder="請記錄發生原因、目前狀況、已通知對象等"></textarea></div><div class="field"><label>結案說明</label><textarea id="incidentCloseNote" placeholder="結案時填寫處理結果"></textarea></div><div class="incident-event-actions"><div class="section-title"><h2 style="font-size:16px">從異況建立行程</h2><span class="muted">會建立到執行者行程總覽，並保留來源異況紀錄。</span></div><div class="row"><div class="field"><label>行程類型</label><select id="incidentEventType"></select></div><div class="field"><label>執行者</label><select id="incidentEventPerson"></select></div></div><div class="row"><div class="field"><label>日期</label><input id="incidentEventDate" type="date"></div><div class="field"><label>時間</label><select id="incidentEventTime"><option value="上午">上午</option><option value="下午">下午</option><option value="晚上">晚上</option><option value="08:00">08:00</option><option value="08:30">08:30</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option></select></div></div><div class="row"><div class="field"><label>辦理內容</label><input id="incidentEventName"></div><div class="field"><label>地點 / 客戶</label><input id="incidentEventLocation"></div></div><div class="field"><label>內容說明</label><textarea id="incidentEventNote"></textarea></div><button id="createIncidentEventBtn" class="primary" type="button">建立到執行者行事曆</button></div><div class="panel" style="box-shadow:none;margin-top:12px"><div class="section-title"><h2 style="font-size:16px">追蹤紀錄</h2><span class="muted">可往下新增，永久保存在異況案件中。</span></div><div id="incidentLogList" class="incident-log-list"></div><div class="field"><label>新增追蹤內容</label><textarea id="incidentLogContent" placeholder="例如：已聯繫工人未接，已通知雇主，明日再追蹤。"></textarea></div><div class="row"><div class="field"><label>本次追蹤後狀態</label><select id="incidentLogStatus"><option>待處理</option><option>處理中</option><option>待追蹤</option><option>已建立行程</option><option>已結案</option><option>取消 / 誤登</option></select></div><div class="field"><label>下次追蹤日期</label><input id="incidentLogNextFollow" type="date"></div><div class="field"><label>下次追蹤時間</label><select id="incidentLogNextFollowTime"><option value="">不指定</option><option value="上午">上午</option><option value="下午">下午</option><option value="晚上">晚上</option><option value="08:00">08:00</option><option value="08:30">08:30</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option></select></div></div><button id="addIncidentLogBtn" type="button">新增追蹤紀錄</button></div><div class="modal-actions"><button id="deleteIncidentBtn" class="danger hide">刪除</button><button id="closeIncidentBtn">取消</button><button id="saveIncidentBtn" class="primary">儲存異況</button></div></div></div>
 <div id="eventModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="eventModalTitle">新增行程</h2><button id="closeEventX" class="ghost">✕</button></div><input type="hidden" id="eventId"><div class="row"><div class="field"><label>類別</label><select id="eventKind"></select></div><div class="field"><label>行程狀態</label><select id="eventStatus"><option>未完成</option><option>已完成</option><option>取消</option></select></div></div><div class="row"><div class="field"><label>起日</label><input id="startDate" type="date"></div><div class="field"><label>迄日</label><input id="endDate" type="date"></div></div><div class="row"><div class="field"><label>開始時間</label><select id="startTime"></select></div><div class="field"><label>結束時間</label><select id="endTime"></select></div></div><div class="row"><div class="field"><label>地點 / 客戶</label><input id="locationName" placeholder="例如：宏志祥 / 桃園醫院"></div><div class="field"><label>地址</label><input id="address"></div></div><div class="field"><label>行程類型 / 翻譯狀態</label><select id="eventType"></select></div><div class="field"><label>辦理內容</label><input id="eventName" placeholder="例如：體檢陪同 / 協調會翻譯"></div><div class="row"><div class="field"><label>附加行程類型選項</label><select id="additionalType"></select></div><div class="field"><label>附加行程備註</label><input id="additionalNote" placeholder="補充說明" maxlength="60"></div></div><div class="field"><label>內容說明</label><textarea id="note" placeholder="請輸入內容說明 / 補充說明"></textarea></div><div id="serviceRecordBox" class="panel hide" style="box-shadow:none;margin:8px 0;background:#fff8f1"><div class="row"><div class="field"><label><input id="serviceRecordSubmitted" type="checkbox" style="width:auto"> 服務紀錄單已繳交</label><div class="muted">銀行、定期、送工(新入境、承接)、車禍處理、面談、醫療、上線/教育訓練需勾選並填繳交日期後才能選擇已完成。</div></div><div class="field"><label>服務紀錄單繳交日期</label><input id="serviceRecordDate" type="date"></div></div><div id="medicalFollowupBox" class="hide"><div class="row"><div class="field"><label>下次回診日期</label><input id="followupDate" type="date"></div><div class="field"><label>下次回診時間</label><select id="followupTime"></select></div></div><div class="row"><div class="field"><label>下次服務人員</label><select id="followupPerson"></select><div class="muted">選擇後會將下次回診行程加入該人員行事曆。</div></div><div class="field"><label>掛號號碼</label><input id="followupRegNo" placeholder="例如：123號 / 掛號序號"></div></div></div></div><div class="row"><div class="field"><label>公務車調整（選擇調整後的車號）</label><select id="vehicleNo"></select></div><div class="field"><label class="muted">提醒</label><div class="muted" style="padding:9px 0">請從下拉選單選擇調整後車號；會議室選項已取消。</div></div></div><div class="row"><div class="field"><label>新增、挪動給哪位人員/相關人員</label><div id="participantsBox" class="checkbox-list"></div></div><div class="field"><label>連續/重複</label><select id="repeatWeeks"><option value="1">只新增本次</option><option value="4">每週（連續一個月）</option><option value="13">每週（連續三個月）</option><option value="26">每週（連續六個月）</option><option value="custom">每週指定日期區間</option></select><div id="repeatCustomBox" class="hide" style="margin-top:10px"><div class="row"><div><label>每週起日</label><input id="repeatStartDate" type="date"></div><div><label>每週迄日</label><input id="repeatEndDate" type="date"></div></div><div class="muted">例：2026/06/01～2026/08/31，系統會每週建立一筆。</div></div></div></div><div class="row" id="v228EventColorRow"><div class="field"><label>行程顏色</label><input id="eventColorPicker" type="color" value="#fce7f3"><input id="eventCustomColor" type="hidden"><div class="muted">手動選擇後會優先於類型預設顏色。</div></div><div class="field"><label class="muted">顏色操作</label><div class="toolbar" style="padding-top:8px"><button type="button" id="clearEventColorBtn" class="small">使用預設顏色</button></div></div></div><div class="modal-actions"><button id="deleteEventBtn" class="danger hide">刪除/取消顯示</button><button id="closeEventBtn">取消</button><button id="saveEventBtn" class="primary">儲存</button></div></div></div>
 <div id="fieldModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="fieldModalTitle">新增外務行程</h2><button id="closeFieldX" class="ghost">✕</button></div><input type="hidden" id="editFieldId"><div class="row"><div class="field"><label>人員名稱</label><select id="fieldPerson"></select></div><div class="field"><label>日期</label><input id="fieldDate" type="date"></div></div><div class="row"><div class="field"><label>時間</label><select id="fieldTime"></select></div><div class="field"><label>行程狀態</label><select id="fieldStatus"><option selected>未完成</option><option>已完成</option><option>已送件</option><option>異常</option><option>要補件</option><option>送件失敗</option></select></div></div><div class="field" id="fieldFailureBox"><label>送件失敗原因</label><input id="fieldFailureReason" placeholder="若送件失敗，請填寫原因"></div><div class="row"><div class="field"><label>地點</label><input id="fieldLocation" list="fieldLocationDatalist" placeholder="可直接輸入或選擇地點"><datalist id="fieldLocationDatalist"></datalist></div><div class="field"><label>地址</label><input id="fieldAddress" placeholder="可直接輸入地址"></div></div><div class="row"><div class="field"><label>目的</label><select id="fieldPurpose"></select></div><div class="field"><label>連續/重複性</label><select id="fieldRepeat"><option value="1">只新增本次</option><option value="4">每週（連續一個月）</option><option value="13">每週（連續三個月）</option><option value="26">每週（連續六個月）</option><option value="custom">每週指定日期區間</option></select><div id="fieldRepeatCustomBox" class="hide" style="margin-top:10px"><div class="row"><div><label>每週起日</label><input id="fieldRepeatStart" type="date"></div><div><label>每週迄日</label><input id="fieldRepeatEnd" type="date"></div></div></div></div></div><div class="field"><label>內容</label><textarea id="fieldNote"></textarea></div><div class="row"><div class="field"><label>現金</label><input id="fieldCash" placeholder="例：有 / 無 / 金額"></div><div class="field"><label>印章</label><input id="fieldStamp" placeholder="例：有 / 無 / 需帶"></div></div><div class="row"><div class="field"><label>證件</label><input id="fieldDocument" placeholder="例：ARC / 護照 / 公司大小章"></div><div class="field"><label>特殊提醒</label><label class="checkline"><input id="fieldMustSend" type="checkbox"> 必送件</label><label class="checkline"><input id="fieldCannotChange" type="checkbox"> 無法更換外務</label></div></div><div class="row"><div class="field"><label>下次領件/送審日期</label><input id="fieldPickupDate" type="date"></div><div class="field"><label>下次領件/送審外務人員</label><select id="fieldPickupPerson"></select><div class="muted">填寫後會自動在該日期與人員行程內新增「領件」。</div></div></div><div class="modal-actions"><button id="deleteFieldBtn" class="danger hide">刪除</button><button id="closeFieldBtn">取消</button><button id="saveFieldBtn" class="primary">儲存</button></div></div></div>
 <div id="personModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="personModalTitle">新增人員名稱</h2><button id="closePersonX" class="ghost">✕</button></div><input type="hidden" id="editPersonId"><div class="row"><div class="field"><label>姓名</label><input id="newPersonName"></div><div class="field"><label>職務</label><select id="newPersonLang"><option>越南</option><option>印尼</option><option>泰國</option><option>菲律賓</option><option>其他</option></select></div></div><div class="row"><div class="field"><label>部門</label><select id="newPersonDept"></select></div><div class="field"><label>群組</label><input id="newPersonGroup" placeholder="一部翻譯 / 二部翻譯 / 營運處"></div></div><div class="row"><div class="field"><label>狀態</label><select id="newPersonActive"><option value="true">啟用</option><option value="false">停用</option></select></div><div class="field"></div></div><div class="field"><label>LINE ID</label><input id="newPersonLineId" placeholder="可填 LINE User ID / 群組 ID / 備註代碼"></div><div class="modal-actions"><button id="closePersonBtn">取消</button><button id="savePersonBtn" class="primary">儲存</button></div></div></div><div id="userModal" class="modal hide"><div class="modal-card"><div class="modal-head"><h2 id="userModalTitle">修改帳號</h2><button id="closeUserX" class="ghost">✕</button></div><input type="hidden" id="editUserId"><div class="row"><div class="field"><label>姓名</label><input id="editUserName"></div><div class="field"><label>Email / 帳號</label><input id="editUserEmail"></div></div><div class="field"><label>LINE ID</label><input id="editUserLineId" placeholder="可填 LINE User ID / 群組 ID / 備註代碼"></div><div class="row"><div class="field"><label>密碼</label><input id="editUserPassword"></div><div class="field"><label>角色</label><select id="editUserRole"><option value="admin">系統管理員</option><option value="supervisor">主管</option><option value="adminStaff">行政系</option><option value="general">一般人員</option><option value="staff">翻譯</option></select></div></div><div class="row"><div class="field"><label>對應人員</label><select id="editUserPerson"></select></div><div class="field"><label>帳號狀態</label><select id="editUserActive"><option value="true">啟用</option><option value="false">停用</option></select><div class="muted">停用後不可登入；刪除後不顯示於帳號清單。</div></div></div><div class="modal-actions"><button id="closeUserBtn">取消</button><button id="saveUserBtn" class="primary">儲存帳號</button></div></div></div>
@@ -1353,7 +1349,7 @@ function userPersonId(){return (currentUser?currentUser.personId:null)} function
   if(currentUser.role==='admin'||currentUser.role==='options')return 'admin';
   if(currentUser.role==='supervisor')return 'supervisor'; if(currentUser.role==='admin_staff'||currentUser.role==='adminStaff')return 'adminStaff';
   return 'staff';
-} function isAdmin(){return true;} function isSupervisor(){return true;} function isStaff(){return false;} function canManageOptions(){return true;} function canEdit(){return !!currentUser} function canDelete(){return true;} function canManagePeople(){return isAdmin()||isSupervisor()} function canAddPeople(){return true;} function canSeePage(page){return true;} function isCalendarPerson(pid){const p=state.people.find(x=>x.id===pid); return !!(p&&p.active!==false)} function linesToArray(v){return String(v||'').split(/\n|,/).map(x=>x.trim()).filter(Boolean)} function normalizeEventTypeName(t){t=String(t||'').trim(); return t==='送工'?'送工(新入境、承接)':t} function cleanEventTypeList(arr){return [...new Set((arr||[]).map(normalizeEventTypeName).filter(t=>t&&t!=='外務'))]} function cleanAlertEventTypeList(arr){return [...new Set([...(arr||[]).map(normalizeEventTypeName), '驗證提醒','提醒事項'].filter(t=>t&&t!=='外務'))]} function eventTypeList(){const arr=(state.options&&state.options.eventTypes&&state.options.eventTypes.length)?state.options.eventTypes:defaultEventTypes; return cleanEventTypeList(arr)} function alertEventTypeList(){const arr=(state.options&&state.options.alertEventTypes&&state.options.alertEventTypes.length)?state.options.alertEventTypes:alertEventTypes; return cleanAlertEventTypeList(arr)} function eventTypeContentMap(){const m=Object.assign({},defaultEventTypeContents,(state.options&&state.options.eventTypeContents)||{}); delete m['外務']; if(m['送工']&&!m['送工(新入境、承接)'])m['送工(新入境、承接)']=m['送工']; delete m['送工']; return m} function eventTypeContentText(type){const m=eventTypeContentMap(); const arr=m[type]||m[displayEventType(type)]||[]; return Array.isArray(arr)?arr.join('\n'):String(arr||'')} function allEventTypeContentTexts(){const m=eventTypeContentMap(); return Object.values(m).map(v=>Array.isArray(v)?v.join('\n'):String(v||'')).filter(Boolean)} function formatEventTypeContents(map){return Object.entries(map||{}).map(([k,v])=>k+'｜'+(Array.isArray(v)?v.join('、'):String(v||''))).join('\n')} function parseEventTypeContentsText(text){const out={}; String(text||'').split(/\n/).forEach(line=>{const s=line.trim(); if(!s)return; const parts=s.split(/\s*[｜|]\s*/); const key=(parts.shift()||'').trim(); if(!key)return; const vals=parts.join('｜').split(/[、,，]/).map(x=>x.trim()).filter(Boolean); out[key]=vals.length?vals:[];}); return out} 
+} function isAdmin(){return normalizedRole()==='admin'} function isSupervisor(){return normalizedRole()==='supervisor'} function isStaff(){return normalizedRole()==='staff'} function canManageOptions(){return isAdmin()} function canEdit(){return !!currentUser} function canDelete(){return isAdmin()} function canManagePeople(){return isAdmin()||isSupervisor()} function canAddPeople(){return isAdmin()} function canSeePage(page){const r=normalizedRole(); if(r==='admin')return true; if(r==='supervisor')return ['calendar','roomBooking','today','mobile','reports','serviceRecords','line','theme','users'].includes(page); return ['calendar','roomBooking','mobile','line','theme','users'].includes(page)} function isCalendarPerson(pid){const p=state.people.find(x=>x.id===pid); return !!(p&&p.active!==false)} function linesToArray(v){return String(v||'').split(/\n|,/).map(x=>x.trim()).filter(Boolean)} function normalizeEventTypeName(t){t=String(t||'').trim(); return t==='送工'?'送工(新入境、承接)':t} function cleanEventTypeList(arr){return [...new Set((arr||[]).map(normalizeEventTypeName).filter(t=>t&&t!=='外務'))]} function cleanAlertEventTypeList(arr){return [...new Set([...(arr||[]).map(normalizeEventTypeName), '驗證提醒','提醒事項'].filter(t=>t&&t!=='外務'))]} function eventTypeList(){const arr=(state.options&&state.options.eventTypes&&state.options.eventTypes.length)?state.options.eventTypes:defaultEventTypes; return cleanEventTypeList(arr)} function alertEventTypeList(){const arr=(state.options&&state.options.alertEventTypes&&state.options.alertEventTypes.length)?state.options.alertEventTypes:alertEventTypes; return cleanAlertEventTypeList(arr)} function eventTypeContentMap(){const m=Object.assign({},defaultEventTypeContents,(state.options&&state.options.eventTypeContents)||{}); delete m['外務']; if(m['送工']&&!m['送工(新入境、承接)'])m['送工(新入境、承接)']=m['送工']; delete m['送工']; return m} function eventTypeContentText(type){const m=eventTypeContentMap(); const arr=m[type]||m[displayEventType(type)]||[]; return Array.isArray(arr)?arr.join('\n'):String(arr||'')} function allEventTypeContentTexts(){const m=eventTypeContentMap(); return Object.values(m).map(v=>Array.isArray(v)?v.join('\n'):String(v||'')).filter(Boolean)} function formatEventTypeContents(map){return Object.entries(map||{}).map(([k,v])=>k+'｜'+(Array.isArray(v)?v.join('、'):String(v||''))).join('\n')} function parseEventTypeContentsText(text){const out={}; String(text||'').split(/\n/).forEach(line=>{const s=line.trim(); if(!s)return; const parts=s.split(/\s*[｜|]\s*/); const key=(parts.shift()||'').trim(); if(!key)return; const vals=parts.join('｜').split(/[、,，]/).map(x=>x.trim()).filter(Boolean); out[key]=vals.length?vals:[];}); return out} 
 let eventTypeContentEditingType='';
 function splitEventTypeContentEditor(text){return String(text||'').split(/\n|[、,，]/).map(x=>x.trim()).filter(Boolean)}
 function getOptionEventTypeContentMap(){return Object.assign({},defaultEventTypeContents,parseEventTypeContentsText($('optEventTypeContents')?$('optEventTypeContents').value:''))}
@@ -1435,13 +1431,16 @@ function showApp(){
 function logout(){safeRemoveSession(); currentUser=null; $('appView').classList.add('hide'); $('loginView').classList.remove('hide')}
 
 function applyPermissionsUI(){
-  document.querySelectorAll('.navbtn').forEach(btn=>{
-    btn.classList.remove('hide','role-hidden');
-    btn.style.removeProperty('display');
-  });
-  ['addEventBtn','addPersonBtn','addUserBtn'].forEach(function(id){
-    var el=document.getElementById(id); if(el) el.classList.remove('hide');
-  });
+  document.querySelectorAll('.navbtn').forEach(btn=>{btn.classList.toggle('hide',!canSeePage(btn.dataset.page));});
+  if($('addEventBtn'))$('addEventBtn').classList.toggle('hide',!canEdit());
+  if($('addPersonBtn'))$('addPersonBtn').classList.toggle('hide',!canAddPeople());
+  if($('addUserBtn'))$('addUserBtn').classList.toggle('hide',!isAdmin());
+  const exportIds=['exportCsvBtn','fieldExportBtn','exportFieldDetailsBtn','exportPersonalDetailsBtn','exportIncidentsBtn','exportReportBtn','exportLogBtn','exportServiceRecordsBtn'];
+  const hideExport=isStaff()||window.innerWidth<=760;
+  exportIds.forEach(id=>{const el=$(id); if(el)el.classList.toggle('hide', hideExport || (id==='exportLogBtn'&&!isAdmin()));});
+  if($('saveOptions'))$('saveOptions').disabled=!canManageOptions();
+  if($('resetOptions'))$('resetOptions').disabled=!canManageOptions();
+  if(currentPage&&!canSeePage(currentPage)){currentPage='calendar';document.querySelectorAll('.page').forEach(p=>p.classList.add('hide'));$('calendarPage').classList.remove('hide');document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page==='calendar'));}
 }
 
 function syncEventDateRange(){
@@ -2142,7 +2141,7 @@ function saveReportSnapshot(){if(!$('reportMonth'))return; const snap=currentRep
 function exportReports(){if(!$('reportMonth'))return; const ym=$('reportMonth').value||monthISO(); const year=Number($('reportYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym); const monthData=buildReportData(ms,me); const yearData=buildReportData(`${year}-01-01`,`${year}-12-31`); const rows=[['區間','部門','人員名稱','職務','總數','未完成','已完成','取消','分類','分類數']]; function addRows(label,data){const activeTypes=data.types.filter(t=>data.rows.some(r=>(r.byType[t]||0)>0)); data.rows.forEach(r=>{rows.push([label,r.person.group,r.person.name,r.person.lang,r.total,r.undone,r.done,r.cancel,'全部',r.total]); activeTypes.forEach(t=>rows.push([label,r.person.group,r.person.name,r.person.lang,r.total,r.undone,r.done,r.cancel,t,r.byType[t]||0]));}); ['一部翻譯','二部翻譯','總計'].forEach(g=>{const r=data.dept[g]; rows.push([label,g,'部門總計','',r.total,r.undone,r.done,r.cancel,'全部',r.total]);});} addRows(`月統計 ${ym}`,monthData); addRows(`年度統計 ${year}`,yearData); exportCsv(rows,`行程統計_${ym}_${year}.csv`)}
 function initServiceFilters(){if(!$('serviceMonth'))return; if(!$('serviceMonth').value)$('serviceMonth').value=monthISO(); if(!$('serviceYear').value)$('serviceYear').value=($('serviceMonth').value||monthISO()).slice(0,4)}
 function serviceFilterPeople(){let people=state.people.filter(reportEligiblePerson); const g=$('serviceGroup')?$('serviceGroup').value:''; if(g)people=people.filter(p=>p.group===g); return people}
-function renderServiceRecords(){/* V273: 已移除 staff 限制 */if(!$('serviceMonth'))return; initServiceFilters(); const ym=$('serviceMonth').value||monthISO(); const year=Number($('serviceYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym); const people=serviceFilterPeople(); const md=serviceRecordsInRange(ms,me,people).filter(x=>!x.submitted); const yd=serviceRecordsInRange(`${year}-01-01`,`${year}-12-31`,people).filter(x=>!x.submitted); function stats(rows){const one=rows.filter(x=>x.person.group==='一部翻譯').length,two=rows.filter(x=>x.person.group==='二部翻譯').length; return `<div class="stat"><div class="muted">未交總數</div><b>${rows.length}</b></div><div class="stat"><div class="muted">一部翻譯未交</div><b>${one}</b></div><div class="stat"><div class="muted">二部翻譯未交</div><b>${two}</b></div>`} if($('serviceMonthStats'))$('serviceMonthStats').innerHTML=stats(md); if($('serviceYearStats'))$('serviceYearStats').innerHTML=stats(yd); const rowHtml=rows=>rows.sort((a,b)=>(a.date+a.person.group+a.person.name).localeCompare(b.date+b.person.group+b.person.name)).map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.person.group)}</td><td>${esc(x.person.name)}</td><td>${esc(x.person.lang)}</td><td>${esc(displayEventType(x.event.type))}</td><td>${esc(x.event.name)}</td><td>${esc(x.event.locationName||'')}</td><td>${esc(x.event.status)}</td><td>🔴 未交</td></tr>`).join('')||'<tr><td colspan="9" class="muted">沒有未交明細</td></tr>'; if($('serviceMonthDetailRows'))$('serviceMonthDetailRows').innerHTML=rowHtml(md); if($('serviceYearDetailRows'))$('serviceYearDetailRows').innerHTML=rowHtml(yd)}
+function renderServiceRecords(){if(typeof normalizedRole==='function'&&normalizedRole()==='staff'){return;}if(!$('serviceMonth'))return; initServiceFilters(); const ym=$('serviceMonth').value||monthISO(); const year=Number($('serviceYear').value||ym.slice(0,4)); const [ms,me]=monthRange(ym); const people=serviceFilterPeople(); const md=serviceRecordsInRange(ms,me,people).filter(x=>!x.submitted); const yd=serviceRecordsInRange(`${year}-01-01`,`${year}-12-31`,people).filter(x=>!x.submitted); function stats(rows){const one=rows.filter(x=>x.person.group==='一部翻譯').length,two=rows.filter(x=>x.person.group==='二部翻譯').length; return `<div class="stat"><div class="muted">未交總數</div><b>${rows.length}</b></div><div class="stat"><div class="muted">一部翻譯未交</div><b>${one}</b></div><div class="stat"><div class="muted">二部翻譯未交</div><b>${two}</b></div>`} if($('serviceMonthStats'))$('serviceMonthStats').innerHTML=stats(md); if($('serviceYearStats'))$('serviceYearStats').innerHTML=stats(yd); const rowHtml=rows=>rows.sort((a,b)=>(a.date+a.person.group+a.person.name).localeCompare(b.date+b.person.group+b.person.name)).map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.person.group)}</td><td>${esc(x.person.name)}</td><td>${esc(x.person.lang)}</td><td>${esc(displayEventType(x.event.type))}</td><td>${esc(x.event.name)}</td><td>${esc(x.event.locationName||'')}</td><td>${esc(x.event.status)}</td><td>🔴 未交</td></tr>`).join('')||'<tr><td colspan="9" class="muted">沒有未交明細</td></tr>'; if($('serviceMonthDetailRows'))$('serviceMonthDetailRows').innerHTML=rowHtml(md); if($('serviceYearDetailRows'))$('serviceYearDetailRows').innerHTML=rowHtml(yd)}
 function exportServiceRecords(){if(!$('serviceMonth'))return; initServiceFilters(); const ym=$('serviceMonth').value||monthISO(); const [ms,me]=monthRange(ym); const people=serviceFilterPeople(); const rows=[['日期','部門','人員','職務','行程類型','辦理內容','地點 / 客戶','狀態','繳交狀態']]; serviceRecordsInRange(ms,me,people).filter(x=>!x.submitted).forEach(x=>rows.push([x.date,x.person.group,x.person.name,x.person.lang,displayEventType(x.event.type),x.event.name,x.event.locationName||'',x.event.status,'未交'])); exportCsv(rows,`未交服務紀錄單_${ym}.csv`)}
 
 function exportEvents(){const rows=[['行程ID','類別','狀態','起日','迄日','開始時間','結束時間','類型','附加行程類型','附加行程備註','辦理內容','地點 / 客戶','地址','公務車調整','相關人員','建立人','建立時間','最後修改人','最後修改時間','是否刪除','刪除原因','服務紀錄單','繳交日期','下次回診日期','下次回診時間','下次回診人員','掛號號碼','內容說明']]; state.events.forEach(e=>rows.push([e.id,e.kind,e.status,e.startDate,e.endDate,e.startTime,e.endTime,e.type,e.additionalType||'',e.additionalNote||'',e.name,e.locationName,e.address,e.vehicleNo||'',e.participants.map(id=>getPerson(id).name).join('、'),getUser(e.createdBy).name,e.createdAt,getUser(e.updatedBy).name,e.updatedAt,e.deleted?'是':'否',e.deleteReason||'',requiresServiceRecord(e)?(e.serviceRecordSubmitted?'已交':'未交'):'',e.serviceRecordDate||'',e.followupDate||'',e.followupTime||'',e.followupPersonId?getPerson(e.followupPersonId).name:'',e.followupRegNo||'',e.note])); exportCsv(rows,'翻譯行程匯出.csv')}
@@ -2906,7 +2905,7 @@ renderUsers=function(){
 
 /* V105 異況紀錄追蹤 × 行程系統整合 */
 const incidentTypesDefault=['逃跑 / 失聯','轉出異常','住變異常','醫療 / 受傷','車禍','宿舍異常','雇主客訴','工人客訴','工人不適任','薪資 / 扣款爭議','文件 / 證件異常','入境 / 送工異常','返台 / 離境異常','驗證 / 文件提醒','其他'];
-const incidentStatusesDefault=['未結案','追蹤中','已完成','取消 / 誤登'];
+const incidentStatusesDefault=['尚未結案','追蹤中','已完成','取消 / 誤登'];
 const incidentUrgenciesDefault=['一般','需追蹤','緊急','重大異況'];
 const incidentActionEventTypes=['逃跑通知','轉出追蹤','住變資訊','返台提醒','驗證提醒','提醒事項'];
 function ensureIncidentState(){
@@ -2938,7 +2937,7 @@ function incidentStatusDisplay(status){
   if(g==='done')return '已完成';
   if(g==='tracking')return '追蹤中';
   if(g==='cancel')return '取消 / 誤登';
-  return '未結案';
+  return '尚未結案';
 }
 function incidentStatusChip(status){
   const g=incidentStatusGroup(status);
@@ -2953,7 +2952,7 @@ function renderIncidentOptions(){
   ['incidentStatus','incidentLogStatus'].forEach(id=>{if($(id))$(id).innerHTML=statusOpts});
   const pOpts=incidentPeople().map(p=>`<option value="${esc(p.id)}">${esc(p.name)}${p.group?'｜'+esc(p.group):''}</option>`).join('');
   ['incidentOwner','incidentEventPerson'].forEach(id=>{if($(id))$(id).innerHTML=pOpts});
-  const helpers=$('incidentHelpers'); if(helpers){const helperOpts=incidentPeople().filter(p=>p&&p.active!==false&&p.deleted!==true).map(p=>`<option value="${esc(p.id)}">${esc(p.name)}${(p.department||p.group||p.dept)?' ｜ '+esc(p.department||p.group||p.dept):''}</option>`).join(''); if(helpers.tagName==='SELECT'){helpers.innerHTML=helperOpts}else{helpers.innerHTML=incidentPeople().filter(p=>p&&p.active!==false&&p.deleted!==true).map(p=>`<label class="checkline"><input type="checkbox" value="${esc(p.id)}"> ${esc(p.name)} <span class="muted">${esc(p.department||p.group||p.dept||'')}</span></label>`).join('')}}
+  const helpers=$('incidentHelpers'); if(helpers){helpers.innerHTML=incidentPeople().map(p=>`<label class="checkline"><input type="checkbox" value="${esc(p.id)}"> ${esc(p.name)} <span class="muted">${esc(p.group||'')}</span></label>`).join('')}
   if($('incidentEventType'))$('incidentEventType').innerHTML=incidentActionEventTypes.map(t=>`<option>${esc(t)}</option>`).join('');
   if($('incidentTypeFilter'))$('incidentTypeFilter').innerHTML='<option value="">全部異況類型</option>'+((state.options.incidentTypes||incidentTypesDefault).map(x=>`<option>${esc(x)}</option>`).join(''));
   if($('incidentStatusFilter'))$('incidentStatusFilter').innerHTML='<option value="">全部狀態</option>'+([...new Set([...(state.options.incidentStatuses||[]),...incidentStatusesDefault])].map(x=>`<option>${esc(x)}</option>`).join(''));
@@ -2989,9 +2988,9 @@ function openIncidentModal(id){
   ensureIncidentState(); renderIncidentOptions(); const inc=id?(state.incidents||[]).find(x=>x.id===id):null;
   if(id&&!inc)return toast('找不到異況'); if(id&&!canManageIncident(inc))return toast('目前帳號只能查看自己負責的異況');
   $('incidentModal').classList.remove('hide'); $('incidentModalTitle').textContent=inc?'修改異況':'新增異況'; $('incidentId').value=inc?inc.id:''; $('deleteIncidentBtn').classList.toggle('hide',!inc||!isAdmin());
-  const today=todayISO(); $('incidentDate').value=inc&&inc.occurrenceDate||today; $('incidentTime').value=inc&&inc.occurrenceTime||''; $('incidentType').value=inc&&inc.incidentType||'其他'; $('incidentUrgency').value=inc&&inc.urgency||'一般'; $('incidentCustomer').value=inc&&inc.customerName||''; $('incidentLocation').value=inc&&inc.location||''; $('incidentWorkerName').value=inc&&inc.workerName||''; $('incidentWorkerId').value=inc&&inc.workerId||''; $('incidentOwner').value=inc&&inc.ownerPersonId||currentPersonIdSafe()||((incidentPeople()[0]||{}).id||''); $('incidentStatus').value=inc&&inc.status||'未結案'; $('incidentNextFollow').value=inc&&inc.nextFollowDate||''; $('incidentTitle').value=inc&&inc.title||''; $('incidentDescription').value=inc&&inc.description||''; $('incidentCloseNote').value=inc&&inc.closeNote||'';
-  const helpers=new Set(inc&&inc.helperPersonIds||[]); const helperEl=$('incidentHelpers'); if(helperEl&&helperEl.tagName==='SELECT'){[...helperEl.options].forEach(o=>o.selected=helpers.has(o.value));}else{document.querySelectorAll('#incidentHelpers input[type=checkbox]').forEach(cb=>cb.checked=helpers.has(cb.value));}
-  $('incidentLogContent').value=''; $('incidentLogStatus').value=inc&&inc.status||'未結案'; $('incidentLogNextFollow').value=inc&&inc.nextFollowDate||'';
+  const today=todayISO(); $('incidentDate').value=inc&&inc.occurrenceDate||today; $('incidentTime').value=inc&&inc.occurrenceTime||''; $('incidentType').value=inc&&inc.incidentType||'其他'; $('incidentUrgency').value=inc&&inc.urgency||'一般'; $('incidentCustomer').value=inc&&inc.customerName||''; $('incidentLocation').value=inc&&inc.location||''; $('incidentWorkerName').value=inc&&inc.workerName||''; $('incidentWorkerId').value=inc&&inc.workerId||''; $('incidentOwner').value=inc&&inc.ownerPersonId||currentPersonIdSafe()||((incidentPeople()[0]||{}).id||''); $('incidentStatus').value=inc&&inc.status||'尚未結案'; $('incidentNextFollow').value=inc&&inc.nextFollowDate||''; $('incidentTitle').value=inc&&inc.title||''; $('incidentDescription').value=inc&&inc.description||''; $('incidentCloseNote').value=inc&&inc.closeNote||'';
+  const helpers=new Set(inc&&inc.helperPersonIds||[]); document.querySelectorAll('#incidentHelpers input[type=checkbox]').forEach(cb=>cb.checked=helpers.has(cb.value));
+  $('incidentLogContent').value=''; $('incidentLogStatus').value=inc&&inc.status||'尚未結案'; $('incidentLogNextFollow').value=inc&&inc.nextFollowDate||'';
   $('incidentEventDate').value=inc&&inc.nextFollowDate||today; $('incidentEventTime').value='上午'; $('incidentEventPerson').value=inc&&inc.ownerPersonId||$('incidentOwner').value; $('incidentEventLocation').value=inc&&inc.customerName||''; $('incidentEventName').value=inc&&inc.title||inc&&inc.workerName||''; $('incidentEventType').value='提醒事項'; $('incidentEventNote').value=eventTypeContentText('提醒事項');
   renderIncidentLogList(inc&&inc.id);
 }
@@ -3001,7 +3000,7 @@ function renderIncidentLogList(incidentId){
 }
 function collectIncident(){
   const id=$('incidentId').value||uid('inc');
-  const now=new Date().toISOString(); const helperEl=$('incidentHelpers'); const helpers=helperEl&&helperEl.tagName==='SELECT'?[...helperEl.selectedOptions].map(o=>o.value):[...document.querySelectorAll('#incidentHelpers input[type=checkbox]:checked')].map(cb=>cb.value);
+  const now=new Date().toISOString(); const helpers=[...document.querySelectorAll('#incidentHelpers input[type=checkbox]:checked')].map(cb=>cb.value);
   return {id,occurrenceDate:$('incidentDate').value||todayISO(),occurrenceTime:$('incidentTime').value||'',incidentType:$('incidentType').value||'其他',urgency:$('incidentUrgency').value||'一般',customerName:$('incidentCustomer').value.trim(),location:$('incidentLocation').value.trim(),workerName:$('incidentWorkerName').value.trim(),workerId:$('incidentWorkerId').value.trim(),ownerPersonId:$('incidentOwner').value,helperPersonIds:helpers,title:$('incidentTitle').value.trim(),description:$('incidentDescription').value.trim(),status:$('incidentStatus').value||'待處理',nextFollowDate:$('incidentNextFollow').value||'',closeNote:$('incidentCloseNote').value.trim(),updatedAt:now,updatedBy:currentUser.id,deleted:false};
 }
 function saveIncident(){
@@ -5203,7 +5202,6 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
   }
 
   function cleanServiceRecordNav(){
-    if(!currentUser) return; // 尚未登入 / 使用者尚未載入時，不先隱藏服務紀錄單
     const r=normalizedRole();
     const allow=r==='admin'||r==='supervisor';
     document.querySelectorAll('.navbtn[data-page="translatorService"]').forEach(x=>x.remove());
@@ -8970,7 +8968,7 @@ setInterval(v206SetupNavOrder,1500);
       const wrap=document.createElement('div');
       wrap.id='incidentNextFollowHelpersWrap';
       wrap.className='field follow-helper-wrap';
-      wrap.innerHTML='<label>下次追蹤協助人員</label><div class="helper-title"></div><select multiple id="incidentNextFollowHelpers" class="incident-helper-select" title="按住 Ctrl（Mac: Cmd）可多選"></select><div class="muted">按住 Ctrl（Mac: Cmd）可多選</div>';
+      wrap.innerHTML='<label>下次追蹤協助人員</label><div class="helper-title"></div><div id="incidentNextFollowHelpers" class="follow-helper-box"></div>';
       const row=mainTimeField.parentElement;
       if(row && row.classList.contains('row')) row.insertAdjacentElement('afterend', wrap);
       else mainTimeField.insertAdjacentElement('afterend', wrap);
@@ -9416,32 +9414,19 @@ setInterval(v206SetupNavOrder,1500);
     return row;
   }
   function activePeople(){
-    return ((typeof state!=='undefined'&&state.people)?state.people:[]).filter(p=>p&&p.active!==false&&p.deleted!==true);
+    return ((typeof state!=='undefined'&&state.people)?state.people:[]).filter(p=>p&&p.active!==false);
   }
   function renderFollowHelpers(containerId, checkedIds){
-    let box=byId(containerId);
+    const box=byId(containerId);
     if(!box)return;
-    if(box.tagName!=='SELECT'){
-      const sel=document.createElement('select');
-      sel.id=containerId;
-      sel.multiple=true;
-      sel.className='incident-helper-select';
-      sel.title='按住 Ctrl（Mac: Cmd）可多選';
-      box.parentNode.replaceChild(sel,box);
-      box=sel;
-      if(!box.nextElementSibling||box.nextElementSibling.textContent!=='按住 Ctrl（Mac: Cmd）可多選'){
-        const hint=document.createElement('div'); hint.className='muted'; hint.textContent='按住 Ctrl（Mac: Cmd）可多選'; box.insertAdjacentElement('afterend',hint);
-      }
-    }
-    const checked=new Set((checkedIds||[]).map(String));
+    const checked=new Set(checkedIds||[]);
     const people=activePeople();
-    box.innerHTML=people.map(p=>`<option value="${escText(p.id)}" ${checked.has(String(p.id))?'selected':''}>${escText(p.name)}${(p.department||p.group||p.dept)?' ｜ '+escText(p.department||p.group||p.dept):''}</option>`).join('');
+    box.innerHTML=people.map(p=>`<label><input type="checkbox" value="${escText(p.id)}"> <span>${escText(p.name)}</span></label>`).join('')||'<div class="muted">尚無可選人員</div>';
+    box.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=checked.has(cb.value));
   }
   function checked(containerId){
     const box=byId(containerId);
-    if(!box)return [];
-    if(box.tagName==='SELECT')return [...box.selectedOptions].map(o=>o.value);
-    return [...box.querySelectorAll('input[type=checkbox]:checked')].map(cb=>cb.value);
+    return box?[...box.querySelectorAll('input[type=checkbox]:checked')].map(cb=>cb.value):[];
   }
   function currentInc(){
     const id=byId('incidentId')?.value||'';
@@ -9532,7 +9517,7 @@ setInterval(v206SetupNavOrder,1500);
         helperWrap=document.createElement('div');
         helperWrap.id='incidentNextFollowHelpersWrap';
         helperWrap.className='field follow-helper-wrap';
-        helperWrap.innerHTML='<label>下次追蹤協助人員</label><select multiple id="incidentNextFollowHelpers" class="incident-helper-select" title="按住 Ctrl（Mac: Cmd）可多選"></select><div class="muted">按住 Ctrl（Mac: Cmd）可多選</div>';
+        helperWrap.innerHTML='<label>下次追蹤協助人員</label><div id="incidentNextFollowHelpers" class="follow-helper-box"></div>';
       }else{
         const lab=helperWrap.querySelector('label');
         if(lab)lab.textContent='下次追蹤協助人員';
@@ -14995,13 +14980,12 @@ window.v249HolidayTagsReport={
   },true);
 
   function incidentPeopleOptions(){return forePeopleAll().map(function(p){return '<option value="'+attr(p.id)+'">'+esc(p.name)+'</option>'}).join('')}
-  function incidentHelperChecks(ids){var set=new Set((ids||[]).map(String));return forePeopleAll().filter(function(p){return p&&p.active!==false&&p.deleted!==true}).map(function(p){return '<label class="checkline"><input type="checkbox" value="'+attr(p.id)+'" '+(set.has(String(p.id))?'checked':'')+'> '+esc(p.name)+' <span class="muted">'+esc(p.department||p.group||p.dept||'')+'</span></label>'}).join('')}
-  function incidentHelperOptions(ids){var set=new Set((ids||[]).map(String));return forePeopleAll().filter(function(p){return p&&p.active!==false&&p.deleted!==true}).map(function(p){return '<option value="'+attr(p.id)+'" '+(set.has(String(p.id))?'selected':'')+'>'+esc(p.name)+(p.department||p.group||p.dept?' ｜ '+esc(p.department||p.group||p.dept):'')+'</option>'}).join('')}
+  function incidentHelperChecks(ids){var set=new Set((ids||[]).map(String));return forePeopleAll().map(function(p){return '<label class="checkline"><input type="checkbox" value="'+attr(p.id)+'" '+(set.has(p.id)?'checked':'')+'> '+esc(p.name)+' <span class="muted">'+esc(p.group||'')+'</span></label>'}).join('')}
   function refreshIncidentPeopleInputs(inc){
     var owner=$('incidentOwner'), eventPerson=$('incidentEventPerson');
     if(owner){var ov=owner.value;owner.innerHTML=incidentPeopleOptions();owner.value=(inc&&inc.ownerPersonId)||ov||currentPid()||((forePeopleAll()[0]||{}).id||'');}
     if(eventPerson){var ev=eventPerson.value;eventPerson.innerHTML=incidentPeopleOptions();eventPerson.value=(inc&&inc.ownerPersonId)||ev||owner&&owner.value||currentPid()||'';}
-    if($('incidentHelpers')){$('incidentHelpers').innerHTML=$('incidentHelpers').tagName==='SELECT'?incidentHelperOptions(inc&&inc.helperPersonIds||[]):incidentHelperChecks(inc&&inc.helperPersonIds||[]);}
+    if($('incidentHelpers'))$('incidentHelpers').innerHTML=incidentHelperChecks(inc&&inc.helperPersonIds||[]);
   }
   var oldOpenIncidentModal=window.openIncidentModal;
   window.openIncidentModal=function(id){
@@ -15013,8 +14997,7 @@ window.v249HolidayTagsReport={
   function collectIncidentSafe(){
     var oldId=$('incidentId')&&$('incidentId').value||'';
     var id=oldId||uid('inc');
-    var helperEl=$('incidentHelpers');
-    var helpers=helperEl&&helperEl.tagName==='SELECT'?Array.from(helperEl.selectedOptions||[]).map(function(o){return o.value}).filter(Boolean):qa('#incidentHelpers input[type=checkbox]:checked').map(function(cb){return cb.value}).filter(Boolean);
+    var helpers=qa('#incidentHelpers input[type=checkbox]:checked').map(function(cb){return cb.value}).filter(Boolean);
     return {id:id,occurrenceDate:$('incidentDate')&&$('incidentDate').value||today(),occurrenceTime:$('incidentTime')&&$('incidentTime').value||'',incidentType:$('incidentType')&&$('incidentType').value||'其他',urgency:$('incidentUrgency')&&$('incidentUrgency').value||'一般',customerName:($('incidentCustomer')&&$('incidentCustomer').value||'').trim(),location:($('incidentLocation')&&$('incidentLocation').value||'').trim(),workerName:($('incidentWorkerName')&&$('incidentWorkerName').value||'').trim(),workerId:($('incidentWorkerId')&&$('incidentWorkerId').value||'').trim(),ownerPersonId:$('incidentOwner')&&$('incidentOwner').value||currentPid(),helperPersonIds:helpers,title:($('incidentTitle')&&$('incidentTitle').value||'').trim(),description:($('incidentDescription')&&$('incidentDescription').value||'').trim(),status:$('incidentStatus')&&$('incidentStatus').value||'待處理',nextFollowDate:$('incidentNextFollow')&&$('incidentNextFollow').value||'',nextFollowTime:$('incidentNextFollowTime')&&$('incidentNextFollowTime').value||'',closeNote:($('incidentCloseNote')&&$('incidentCloseNote').value||'').trim(),updatedAt:now(),updatedBy:currentUid(),deleted:false};
   }
   function saveIncidentSafe(e){
@@ -15330,9 +15313,8 @@ window.v249HolidayTagsReport={
   function setIncidentToday(){
     var s=$id('incidentStart'),e=$id('incidentEnd');
     var t=today();
-    if(s)s.value=t;
-    if(e)e.value=t;
-    var cf=$id('incidentClosedFilter'); if(cf)cf.value='all';
+    if(s&&!s.dataset.v266Set){s.value=t;s.dataset.v266Set='1';}
+    if(e&&!e.dataset.v266Set){e.value=t;e.dataset.v266Set='1';}
     try{if(typeof renderIncidents==='function')renderIncidents();}catch(_){}
   }
 
@@ -15414,592 +15396,6 @@ window.v249HolidayTagsReport={
   }
   setTimeout(fixServiceNav,1200);
   setTimeout(fixServiceNav,2500);
-})();
-</script>
-
-<script id="v267-incident-service-record-fix">
-(function(){
-  'use strict';
-  if(window.__V267_INCIDENT_SERVICE_FIX__) return;
-  window.__V267_INCIDENT_SERVICE_FIX__=true;
-  function byId(id){return document.getElementById(id)}
-  function todayISO(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-  function appState(){try{if(typeof state!=='undefined'&&state)return state}catch(_){ } return window.state||{};}
-  function people(){var s=appState();return (s.people||[]).filter(function(p){return p&&p.active!==false&&p.deleted!==true})}
-  function optionHtml(selectedIds){var set=new Set((selectedIds||[]).map(String));return people().map(function(p){var dept=p.department||p.group||p.dept||'';return '<option value="'+String(p.id).replace(/"/g,'&quot;')+'" '+(set.has(String(p.id))?'selected':'')+'>'+String(p.name||'')+(dept?' ｜ '+String(dept):'')+'</option>'}).join('')}
-  function ensureSelect(id, selectedIds){
-    var el=byId(id); if(!el) return null;
-    if(el.tagName!=='SELECT'){
-      var sel=document.createElement('select'); sel.id=id; sel.multiple=true; sel.className='incident-helper-select'; sel.title='按住 Ctrl（Mac: Cmd）可多選';
-      el.parentNode.replaceChild(sel,el); el=sel;
-    }
-    el.multiple=true; el.classList.add('incident-helper-select'); el.title='按住 Ctrl（Mac: Cmd）可多選';
-    el.innerHTML=optionHtml(selectedIds);
-    if(!el.nextElementSibling || !/Ctrl（Mac: Cmd）可多選/.test(el.nextElementSibling.textContent||'')){
-      var hint=document.createElement('div'); hint.className='muted'; hint.textContent='按住 Ctrl（Mac: Cmd）可多選'; el.insertAdjacentElement('afterend',hint);
-    }
-    return el;
-  }
-  function selected(id){var el=byId(id); if(!el)return []; if(el.tagName==='SELECT')return Array.from(el.selectedOptions||[]).map(function(o){return o.value}); return Array.from(el.querySelectorAll('input[type=checkbox]:checked')).map(function(cb){return cb.value})}
-  window.__foreIncidentSelectedHelpers=function(id){return selected(id)};
-  function currentInc(){var s=appState(), id=byId('incidentId')&&byId('incidentId').value; return id?(s.incidents||[]).find(function(x){return x.id===id}):null}
-  function refreshIncidentSelects(){var inc=currentInc(); ensureSelect('incidentHelpers',inc&&inc.helperPersonIds||selected('incidentHelpers')); ensureSelect('incidentNextFollowHelpers',inc&&(inc.nextFollowHelperPersonIds&&inc.nextFollowHelperPersonIds.length?inc.nextFollowHelperPersonIds:inc.helperPersonIds)||selected('incidentNextFollowHelpers'));}
-  function initIncidentToday(){var t=todayISO(); if(byId('incidentStart'))byId('incidentStart').value=t; if(byId('incidentEnd'))byId('incidentEnd').value=t; if(byId('incidentClosedFilter'))byId('incidentClosedFilter').value='all'; try{if(typeof renderIncidents==='function')renderIncidents()}catch(_){}}
-  document.addEventListener('click',function(e){var nav=e.target&&e.target.closest&&e.target.closest('.navbtn[data-page="incidents"],button[data-page="incidents"]'); if(nav){setTimeout(initIncidentToday,30);setTimeout(initIncidentToday,220);} if(e.target&&e.target.closest&&e.target.closest('#addIncidentBtn,[onclick^="openIncidentModal"]')){setTimeout(refreshIncidentSelects,120);setTimeout(refreshIncidentSelects,420);}},true);
-  document.addEventListener('change',function(e){if(e.target&&e.target.id==='incidentHelpers'){setTimeout(function(){ensureSelect('incidentNextFollowHelpers',selected('incidentHelpers'))},30);}},true);
-  setTimeout(refreshIncidentSelects,800);
-})();
-</script>
-
-
-<script id="v268-service-records-page-and-incident-status-fix">
-(function(){
-  'use strict';
-  if(window.__V268_SERVICE_RECORDS_PAGE__)return;
-  window.__V268_SERVICE_RECORDS_PAGE__=true;
-  var STORE_KEY='translator_calendar_v81';
-  function $(id){return document.getElementById(id)}
-  function q(sel,root){return (root||document).querySelector(sel)}
-  function qa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
-  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-  function todayISO(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-  function monthISO(){return todayISO().slice(0,7)}
-  function stateObj(){
-    if(window.state&&typeof window.state==='object')return window.state;
-    try{var raw=localStorage.getItem(STORE_KEY); if(raw)return JSON.parse(raw)}catch(_){ }
-    return {people:[],events:[],incidents:[]};
-  }
-  function saveState(s){
-    try{localStorage.setItem(STORE_KEY,JSON.stringify(s));}catch(_){ }
-    if(window.state&&s===window.state){try{if(typeof window.save==='function')window.save();}catch(_){ }}
-  }
-  function normRole(raw){
-    raw=String(raw||'').trim();
-    var map={admin:'admin','管理員':'admin',supervisor:'supervisor','主管':'supervisor',adminStaff:'adminStaff','行政':'adminStaff',general:'general','一般人員':'general',staff:'staff',translator:'staff','翻譯':'staff'};
-    return map[raw]||raw;
-  }
-  function role(){
-    try{if(typeof window.normalizedRole==='function')return window.normalizedRole();}catch(_){ }
-    var u=window.currentUser||{};
-    return normRole(u.role||u.type||'');
-  }
-  function allowed(){var r=role();return r==='admin'||r==='supervisor'}
-  function personDept(p){return p.department||p.group||p.dept||p.team||'未分部門'}
-  function personName(p){return p.name||p.displayName||p.nickname||p.id||''}
-  function people(){
-    var s=stateObj();
-    return (s.people||[]).filter(function(p){return p&&p.deleted!==true&&p.active!==false}).sort(function(a,b){return (personDept(a)+personName(a)).localeCompare(personDept(b)+personName(b),'zh-Hant',{numeric:true})});
-  }
-  function eventDate(e){return e.startDate||e.date||e.eventDate||''}
-  function eventType(e){return e.type||e.eventType||e.category||''}
-  function eventTitle(e){return e.name||e.title||e.subject||e.note||''}
-  function locationName(e){return e.locationName||e.location||e.clientName||e.address||''}
-  function participantIds(e){
-    var ids=[];
-    ['participants','assigneeIds','personIds','helperPersonIds'].forEach(function(k){if(Array.isArray(e[k]))ids=ids.concat(e[k]);});
-    ['personId','ownerPersonId','assigneeId','translatorId','userId'].forEach(function(k){if(e[k])ids.push(e[k]);});
-    return Array.from(new Set(ids.map(String).filter(Boolean)));
-  }
-  function requiresRecord(e){
-    if(!e||e.deleted===true||e.kind==='translatorStatus')return false;
-    if(e.serviceRecordRequired===true||e.needServiceRecord===true||e.requiresServiceRecord===true)return true;
-    if(e.serviceRecordSubmitted||e.serviceRecordDate)return true;
-    var t=String(eventType(e)+' '+eventTitle(e));
-    return /(醫療|看診|回診|住院|急診|開刀|銀行|開戶|補辦|領錢|異動|定期|送工|新入境|承接|車禍|筆錄|和解|出庭|面談|上線|教育訓練)/.test(t);
-  }
-  function submitted(e){return !!(e&&(e.serviceRecordSubmitted===true||String(e.serviceRecordStatus||'').includes('已繳'))&&e.serviceRecordDate)}
-  function monthRange(ym){
-    var y=Number((ym||monthISO()).slice(0,4)),m=Number((ym||monthISO()).slice(5,7));
-    var last=new Date(y,m,0).getDate();
-    return [ym+'-01',ym+'-'+String(last).padStart(2,'0')];
-  }
-  function inRange(d,start,end){return d&&(!start||d>=start)&&(!end||d<=end)}
-  function buildRows(start,end,personList){
-    var s=stateObj(), pmap={}; personList.forEach(function(p){pmap[String(p.id)]=p});
-    var rows=[];
-    (s.events||[]).forEach(function(e){
-      var d=eventDate(e); if(!inRange(d,start,end)||!requiresRecord(e))return;
-      participantIds(e).forEach(function(pid){
-        var p=pmap[String(pid)]; if(!p)return;
-        rows.push({date:d,person:p,event:e,submitted:submitted(e)});
-      });
-    });
-    return rows.sort(function(a,b){return (a.date+personDept(a.person)+personName(a.person)).localeCompare(b.date+personDept(b.person)+personName(b.person),'zh-Hant',{numeric:true})});
-  }
-  function currentPeople(){
-    var dept=$('serviceDeptFilter')&&$('serviceDeptFilter').value||'';
-    var pid=$('servicePersonFilter')&&$('servicePersonFilter').value||'';
-    return people().filter(function(p){return (!dept||personDept(p)===dept)&&(!pid||String(p.id)===String(pid))});
-  }
-  function applyRowFilters(rows){
-    var status=$('serviceSubmitFilter')&&$('serviceSubmitFilter').value||'';
-    var kw=String($('serviceKeyword')&&$('serviceKeyword').value||'').trim().toLowerCase();
-    if(status==='submitted')rows=rows.filter(function(x){return x.submitted});
-    if(status==='unsubmitted')rows=rows.filter(function(x){return !x.submitted});
-    if(kw)rows=rows.filter(function(x){var e=x.event,p=x.person;return [x.date,personDept(p),personName(p),eventType(e),eventTitle(e),locationName(e),e.status,e.serviceRecordDate].join(' ').toLowerCase().includes(kw)});
-    return rows;
-  }
-  function statCards(rows,monthAll,yearAll){
-    var sub=rows.filter(function(x){return x.submitted}).length, un=rows.length-sub;
-    var depts=new Set(rows.map(function(x){return personDept(x.person)}));
-    return '<div class="stat"><div class="muted">篩選後筆數</div><b>'+rows.length+'</b></div>'+ 
-      '<div class="stat"><div class="muted">已繳交</div><b>'+sub+'</b></div>'+ 
-      '<div class="stat"><div class="muted">未繳交</div><b>'+un+'</b></div>'+ 
-      '<div class="stat"><div class="muted">涉及部門</div><b>'+depts.size+'</b></div>'+ 
-      '<div class="stat"><div class="muted">本月需繳總數</div><b>'+monthAll.length+'</b></div>'+ 
-      '<div class="stat"><div class="muted">本年需繳總數</div><b>'+yearAll.length+'</b></div>';
-  }
-  function count(rows,fn){return rows.filter(fn).length}
-  function renderDeptTable(rows){
-    var body=$('serviceDeptRowsV268'); if(!body)return;
-    var allPeople=currentPeople();
-    var depts=Array.from(new Set(allPeople.map(personDept))).sort(function(a,b){return a.localeCompare(b,'zh-Hant')});
-    body.innerHTML=depts.map(function(d){
-      var r=rows.filter(function(x){return personDept(x.person)===d});
-      return '<tr><td><b>'+esc(d)+'</b></td><td>'+allPeople.filter(function(p){return personDept(p)===d}).length+'</td><td><b>'+r.length+'</b></td><td>'+count(r,function(x){return x.submitted})+'</td><td>'+count(r,function(x){return !x.submitted})+'</td></tr>';
-    }).join('')||'<tr><td colspan="5" class="muted">沒有部門資料</td></tr>';
-  }
-  function renderPersonTable(monthRows,yearRows){
-    var body=$('servicePersonRowsV268'); if(!body)return;
-    body.innerHTML=currentPeople().map(function(p){
-      var mr=monthRows.filter(function(x){return String(x.person.id)===String(p.id)}), yr=yearRows.filter(function(x){return String(x.person.id)===String(p.id)});
-      return '<tr><td>'+esc(personDept(p))+'</td><td><b>'+esc(personName(p))+'</b></td><td>'+esc(p.lang||p.roleName||p.position||'')+'</td><td><b>'+mr.length+'</b></td><td>'+count(mr,function(x){return x.submitted})+'</td><td>'+count(mr,function(x){return !x.submitted})+'</td><td><b>'+yr.length+'</b></td><td>'+count(yr,function(x){return x.submitted})+'</td><td>'+count(yr,function(x){return !x.submitted})+'</td></tr>';
-    }).join('')||'<tr><td colspan="9" class="muted">沒有符合篩選的人員</td></tr>';
-  }
-  function renderDetail(rows){
-    var body=$('serviceDetailRowsV268'); if(!body)return;
-    body.innerHTML=rows.map(function(x){var e=x.event;return '<tr><td>'+esc(x.date)+'</td><td>'+esc(personDept(x.person))+'</td><td>'+esc(personName(x.person))+'</td><td>'+esc(eventType(e))+'</td><td>'+esc(eventTitle(e))+'</td><td>'+esc(locationName(e))+'</td><td>'+esc(e.status||'')+'</td><td><span class="badge">'+(x.submitted?'🟢 已繳交':'🔴 未繳交')+'</span></td><td>'+esc(e.serviceRecordDate||'')+'</td></tr>';}).join('')||'<tr><td colspan="9" class="muted">沒有符合篩選的服務紀錄單明細</td></tr>';
-  }
-  function fillFilters(){
-    var ps=people();
-    var deptEl=$('serviceDeptFilter'), personEl=$('servicePersonFilter');
-    if(deptEl){var keep=deptEl.value; var depts=Array.from(new Set(ps.map(personDept))).sort(function(a,b){return a.localeCompare(b,'zh-Hant')}); deptEl.innerHTML='<option value="">全部部門</option>'+depts.map(function(d){return '<option value="'+esc(d)+'">'+esc(d)+'</option>';}).join(''); if(depts.includes(keep))deptEl.value=keep;}
-    if(personEl){var keepP=personEl.value, dept=deptEl&&deptEl.value||''; var list=ps.filter(function(p){return !dept||personDept(p)===dept}); personEl.innerHTML='<option value="">全部人員</option>'+list.map(function(p){return '<option value="'+esc(p.id)+'">'+esc(personName(p))+'｜'+esc(personDept(p))+'</option>';}).join(''); if(list.some(function(p){return String(p.id)===String(keepP)}))personEl.value=keepP;}
-  }
-  function ensurePage(){
-    var page=$('serviceRecordsPage');
-    var main=q('.main')||q('main');
-    if(!page&&main){page=document.createElement('section');page.id='serviceRecordsPage';page.className='page hide';main.appendChild(page);}
-    if(!page)return null;
-    page.innerHTML='<div class="panel"><div class="section-title"><h2>服務紀錄單</h2><div class="toolbar"><button id="refreshServiceRecords" class="primary" type="button">重新整理</button><button id="exportServiceRecordsBtn" type="button">匯出 CSV</button></div></div><div class="toolbar"><label class="muted">月份</label><input id="serviceMonthV268" type="month" class="mini"><label class="muted">年度</label><input id="serviceYearV268" type="number" class="mini" min="2024" max="2035"><label class="muted">部門</label><select id="serviceDeptFilter" class="mini"></select><label class="muted">人員</label><select id="servicePersonFilter" class="mini"></select><select id="serviceSubmitFilter" class="mini"><option value="">全部繳交狀態</option><option value="submitted">已繳交</option><option value="unsubmitted">未繳交</option></select><input id="serviceKeyword" class="mini" placeholder="搜尋人員 / 類型 / 地點 / 內容"></div><div class="muted" style="margin-top:8px">僅管理員與主管可查看。統計每個部門、每個人服務紀錄單已繳 / 未繳狀況，可依月份、年度、部門、人員、狀態與關鍵字篩選。</div></div><div class="panel"><h2>繳交統計總覽</h2><div id="serviceOverviewStatsV268" class="statgrid"></div></div><div class="panel"><h2>各部門繳交狀況</h2><div class="detail-table-wrap"><table class="table"><thead><tr><th>部門</th><th>人員數</th><th>需繳總數</th><th>已繳交</th><th>未繳交</th></tr></thead><tbody id="serviceDeptRowsV268"></tbody></table></div></div><div class="panel"><h2>每個人繳交狀況</h2><div class="detail-table-wrap"><table class="table"><thead><tr><th>部門</th><th>人員</th><th>職務</th><th>當月需繳</th><th>當月已繳</th><th>當月未繳</th><th>當年需繳</th><th>當年已繳</th><th>當年未繳</th></tr></thead><tbody id="servicePersonRowsV268"></tbody></table></div></div><div class="panel"><h2>服務紀錄單明細</h2><div class="detail-table-wrap"><table class="table"><thead><tr><th>日期</th><th>部門</th><th>人員</th><th>行程類型</th><th>辦理內容</th><th>地點 / 客戶</th><th>行程狀態</th><th>服務紀錄單</th><th>繳交日期</th></tr></thead><tbody id="serviceDetailRowsV268"></tbody></table></div></div>';
-    return page;
-  }
-  function ensureNav(){
-    var side=q('.side');
-    if(side&&!q('.side .navbtn[data-page="serviceRecords"]')){
-      var btn=document.createElement('button');btn.className='navbtn';btn.dataset.page='serviceRecords';btn.innerHTML='<span class="mono-ico ico-clipboard"></span>服務紀錄單';
-      var ref=q('.side .navbtn[data-page="reports"]')||q('.side .navbtn[data-page="incidents"]');
-      if(ref)ref.insertAdjacentElement('afterend',btn);else side.appendChild(btn);
-    }
-    var show=allowed();
-    qa('.navbtn[data-page="serviceRecords"]').forEach(function(btn){btn.classList.toggle('hide',!show);btn.classList.toggle('role-hidden',!show);btn.style.display=show?'':'none';});
-  }
-  function render(){
-    ensureNav();
-    var page=$('serviceRecordsPage')||ensurePage(); if(!page)return;
-    if(!allowed()){page.innerHTML='<div class="panel"><h2>服務紀錄單</h2><div class="muted">此頁僅主管、管理員可以查看。</div></div>';return;}
-    if(!$('serviceOverviewStatsV268'))ensurePage();
-    var m=$('serviceMonthV268'), y=$('serviceYearV268');
-    if(m&&!m.value)m.value=monthISO();
-    if(y&&!y.value)y.value=(m&&m.value?m.value:monthISO()).slice(0,4);
-    fillFilters();
-    var ym=m&&m.value||monthISO(), year=String(y&&y.value||ym.slice(0,4));
-    var rng=monthRange(ym), ps=currentPeople();
-    var monthAll=buildRows(rng[0],rng[1],ps), yearAll=buildRows(year+'-01-01',year+'-12-31',ps);
-    var detail=applyRowFilters(yearAll);
-    $('serviceOverviewStatsV268').innerHTML=statCards(detail,monthAll,yearAll);
-    renderDeptTable(detail);
-    renderPersonTable(applyRowFilters(monthAll),detail);
-    renderDetail(detail);
-  }
-  function csvCell(v){v=String(v==null?'':v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
-  function exportCsv(){
-    if(!allowed())return;
-    var rows=[['日期','部門','人員','行程類型','辦理內容','地點 / 客戶','行程狀態','服務紀錄單','繳交日期']];
-    qa('#serviceDetailRowsV268 tr').forEach(function(tr){var cells=qa('td',tr).map(function(td){return td.textContent.trim()});if(cells.length===9)rows.push(cells);});
-    var csv='\ufeff'+rows.map(function(r){return r.map(csvCell).join(',')}).join('\n');
-    var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='服務紀錄單繳交狀況_'+todayISO()+'.csv';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},0);
-  }
-  function bind(){
-    ensurePage(); ensureNav();
-    ['serviceMonthV268','serviceYearV268','serviceDeptFilter','servicePersonFilter','serviceSubmitFilter','serviceKeyword'].forEach(function(id){var el=$(id);if(el&&!el.dataset.v268){el.dataset.v268='1';el.addEventListener('input',render);el.addEventListener('change',render);}});
-    var r=$('refreshServiceRecords'); if(r&&!r.dataset.v268){r.dataset.v268='1';r.onclick=render;}
-    var ex=$('exportServiceRecordsBtn'); if(ex&&!ex.dataset.v268){ex.dataset.v268='1';ex.onclick=exportCsv;}
-  }
-  function fixIncidentStatus(){
-    var s=stateObj(), changed=false;
-    (s.incidents||[]).forEach(function(i){if(i&&i.status==='尚未結案'){i.status='未結案';changed=true;}});
-    try{if(s.options&&Array.isArray(s.options.incidentStatuses)){s.options.incidentStatuses=s.options.incidentStatuses.map(function(x){return x==='尚未結案'?'未結案':x});changed=true;}}catch(_){ }
-    qa('option').forEach(function(o){if(o.textContent.trim()==='尚未結案')o.textContent='未結案'; if(o.value==='尚未結案')o.value='未結案';});
-    if(changed)saveState(s);
-  }
-  var oldRender=window.renderServiceRecords;
-  window.renderServiceRecords=function(){bind();render();};
-  window.exportServiceRecords=exportCsv;
-  document.addEventListener('click',function(e){var nav=e.target&&e.target.closest&&e.target.closest('[data-page="serviceRecords"]'); if(nav)setTimeout(function(){bind();render();},80);},true);
-  document.addEventListener('DOMContentLoaded',function(){setTimeout(function(){bind();fixIncidentStatus();render();},500);});
-  setTimeout(function(){bind();fixIncidentStatus();render();},1000);
-  setTimeout(function(){ensureNav();fixIncidentStatus();},2200);
-})();
-</script>
-
-
-
-<script id="v269-true-root-cause-service-incident-fix">
-(function(){
-  'use strict';
-  if(window.__V269_TRUE_ROOT_CAUSE_FIX__)return;
-  window.__V269_TRUE_ROOT_CAUSE_FIX__=true;
-  var STORE_KEY='translator_calendar_v81';
-  function $(id){return document.getElementById(id)}
-  function qa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
-  function q(sel,root){return (root||document).querySelector(sel)}
-  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-  function attr(v){return esc(v)}
-  function todayISO(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-  function stateObj(){
-    try{if(typeof state!=='undefined'&&state&&typeof state==='object'){window.state=state;return state}}catch(_){ }
-    if(window.state&&typeof window.state==='object')return window.state;
-    try{var raw=localStorage.getItem(STORE_KEY);if(raw){window.state=JSON.parse(raw);return window.state}}catch(_){ }
-    window.state={people:[],events:[],incidents:[],incidentLogs:[]};return window.state;
-  }
-  function saveState(){try{if(typeof save==='function')save();else localStorage.setItem(STORE_KEY,JSON.stringify(stateObj()))}catch(_){try{localStorage.setItem(STORE_KEY,JSON.stringify(stateObj()))}catch(__){}}}
-  function normRole(raw){raw=String(raw||'').trim();var map={admin:'admin','管理員':'admin',options:'admin',supervisor:'supervisor','主管':'supervisor',adminStaff:'adminStaff','行政':'adminStaff',general:'general','一般人員':'general',staff:'staff',translator:'staff','翻譯':'staff'};return map[raw]||raw}
-  function role(){try{if(typeof normalizedRole==='function')return normalizedRole()}catch(_){ }var u=window.currentUser||{};return normRole(u.role||u.type||'')}
-  function canService(){var r=role();return r==='admin'||r==='supervisor'}
-  function canIncidents(){var r=role();return r==='admin'||r==='supervisor'||r==='adminStaff'||r==='staff'}
-  function people(){var s=stateObj();return (s.people||[]).filter(function(p){return p&&p.deleted!==true&&p.active!==false&&p.id}).sort(function(a,b){return String((a.department||a.group||a.dept||'')+(a.name||'')).localeCompare(String((b.department||b.group||b.dept||'')+(b.name||'')),'zh-Hant',{numeric:true})})}
-  function personName(id){var p=people().find(function(x){return String(x.id)===String(id)});return p?p.name||'':''}
-  function selectedIds(id){var el=$(id);if(!el)return[];if(el.tagName==='SELECT')return Array.from(el.selectedOptions||[]).map(function(o){return o.value}).filter(Boolean);return qa('input[type=checkbox]:checked',el).map(function(x){return x.value}).filter(Boolean)}
-  function optionsHtml(ids){var set=new Set((ids||[]).map(String));return people().map(function(p){var dept=p.department||p.group||p.dept||p.team||'';return '<option value="'+attr(p.id)+'" '+(set.has(String(p.id))?'selected':'')+'>'+esc(p.name||p.id)+(dept?' ｜ '+esc(dept):'')+'</option>'}).join('')}
-  function ensureMultiSelect(id,ids){
-    var old=$(id), parent=null, next=null;
-    if(old){parent=old.parentNode;next=old.nextSibling}
-    if(!old){return null}
-    if(old.tagName!=='SELECT'){
-      var sel=document.createElement('select');sel.id=id;sel.multiple=true;sel.className='incident-helper-select';sel.title='按住 Ctrl（Mac: Cmd）可多選';
-      parent.replaceChild(sel,old);old=sel;
-    }
-    old.multiple=true;old.classList.add('incident-helper-select');old.title='按住 Ctrl（Mac: Cmd）可多選';old.style.minHeight='98px';old.innerHTML=optionsHtml(ids);
-    if(!old.nextElementSibling||!/Ctrl（Mac: Cmd）可多選/.test(old.nextElementSibling.textContent||'')){var hint=document.createElement('div');hint.className='muted';hint.textContent='按住 Ctrl（Mac: Cmd）可多選';old.insertAdjacentElement('afterend',hint)}
-    return old;
-  }
-  function currentIncident(){var id=$('incidentId')&&$('incidentId').value;var s=stateObj();return id?(s.incidents||[]).find(function(x){return String(x.id)===String(id)}):null}
-  function ensureIncidentHelperSelects(){
-    var inc=currentIncident();
-    var helperIds=inc&&Array.isArray(inc.helperPersonIds)?inc.helperPersonIds:selectedIds('incidentHelpers');
-    ensureMultiSelect('incidentHelpers',helperIds);
-    var mainIds=inc&&Array.isArray(inc.nextFollowHelperPersonIds)&&inc.nextFollowHelperPersonIds.length?inc.nextFollowHelperPersonIds:(helperIds||selectedIds('incidentNextFollowHelpers'));
-    ensureMultiSelect('incidentNextFollowHelpers',mainIds);
-    // log 區塊仍可能被舊版建立為 checkbox-list；一起轉成 select，避免舊閉包 selected() 讀不到。
-    var logIds=selectedIds('incidentLogNextFollowHelpers');
-    ensureMultiSelect('incidentLogNextFollowHelpers',logIds.length?logIds:mainIds);
-  }
-  function patchPermissions(){
-    var old=window.canSeePage;
-    if(!old||old.__v269)return;
-    window.canSeePage=canSeePage=function(page){
-      if(page==='serviceRecords')return canService();
-      if(page==='incidents')return canIncidents();
-      return old.apply(this,arguments);
-    };
-    window.canSeePage.__v269=true;try{canSeePage.__v269=true}catch(_){ }
-    var oldAllowed=window.v105AllowedPages;
-    window.v105AllowedPages=function(){
-      var arr=[];try{arr=oldAllowed?oldAllowed():[]}catch(_){arr=[]}
-      if(canIncidents()&&!arr.includes('incidents'))arr.push('incidents');
-      if(canService()&&!arr.includes('serviceRecords'))arr.push('serviceRecords');
-      if(!canService())arr=arr.filter(function(x){return x!=='serviceRecords'});
-      return Array.from(new Set(arr));
-    };
-  }
-  function ensureNav(){
-    var side=q('.side');
-    if(side&&!q('.side .navbtn[data-page="serviceRecords"]')){var b=document.createElement('button');b.className='navbtn';b.dataset.page='serviceRecords';b.innerHTML='<span class="mono-ico ico-clipboard"></span>服務紀錄單';var ref=q('.side .navbtn[data-page="reports"]')||q('.side .navbtn[data-page="incidents"]');ref?ref.insertAdjacentElement('afterend',b):side.appendChild(b)}
-    qa('.navbtn[data-page="serviceRecords"]').forEach(function(btn){var ok=canService();btn.classList.toggle('hide',!ok);btn.classList.toggle('role-hidden',!ok);btn.style.display=ok?'flex':'none'});
-    qa('.navbtn[data-page="incidents"]').forEach(function(btn){var ok=canIncidents();btn.classList.toggle('hide',!ok);btn.classList.toggle('role-hidden',!ok);btn.style.display=ok?'flex':'none'});
-  }
-  function setIncidentToday(){var t=todayISO();if($('incidentStart'))$('incidentStart').value=t;if($('incidentEnd'))$('incidentEnd').value=t;if($('incidentClosedFilter'))$('incidentClosedFilter').value='all'}
-  function showPage(page){
-    if(page==='serviceRecords'&&!canService()){try{toast('此頁僅主管、管理員可以查看')}catch(_){ }return false}
-    if(page==='incidents'&&!canIncidents()){try{toast('此權限無法開啟此頁面')}catch(_){ }return false}
-    try{currentPage=page}catch(_){ }
-    qa('.page').forEach(function(p){p.classList.add('hide')});
-    var pg=$(page+'Page');if(pg)pg.classList.remove('hide');
-    qa('.navbtn').forEach(function(b){b.classList.toggle('active',b.dataset.page===page)});
-    if(page==='serviceRecords')try{if(typeof renderServiceRecords==='function')renderServiceRecords()}catch(e){console.warn('[V269] renderServiceRecords',e)}
-    if(page==='incidents'){setIncidentToday();syncIncidentFollowEvents();try{if(typeof renderIncidents==='function')renderIncidents()}catch(e){console.warn('[V269] renderIncidents',e)}}
-    try{if(typeof renderAll==='function'&&page!=='serviceRecords'&&page!=='incidents')renderAll()}catch(_){ }
-    return true;
-  }
-  function syncIncidentFollowEvents(){
-    var s=stateObj();s.events=Array.isArray(s.events)?s.events:[];s.incidents=Array.isArray(s.incidents)?s.incidents:[];var changed=false;
-    s.incidents.forEach(function(inc){
-      if(!inc||inc.deleted)return;var id=inc.id;if(!id)return;var closed=(inc.status==='已結案'||inc.status==='取消 / 誤登');
-      var ev=s.events.find(function(x){return x&&(x.sourceType==='incidentFollow'||x.externalKind==='incidentFollow')&&String(x.sourceIncidentId)===String(id)});
-      if(!inc.nextFollowDate){if(ev&&!ev.deleted){ev.deleted=true;changed=true}return;}
-      var ids=Array.from(new Set([inc.ownerPersonId,inc.owner].concat(inc.nextFollowHelperPersonIds||[],inc.helperPersonIds||[]).map(String).filter(Boolean)));
-      var data={kind:'schedule',status:'未完成',startDate:inc.nextFollowDate,endDate:inc.nextFollowDate,startTime:inc.nextFollowTime||'上午',endTime:'',type:'提醒事項',name:'異況追蹤：'+(inc.title||inc.workerName||inc.incidentType||'異況'),locationName:inc.customerName||'',address:inc.location||'',participants:ids,assigneeIds:ids,assignedPersonIds:ids,note:'來源：異況追蹤。請點選後回到異況案件更新追蹤紀錄。',sourceType:'incidentFollow',externalKind:'incidentFollow',sourceIncidentId:id,incidentId:id,incidentOwnerPersonId:inc.ownerPersonId||inc.owner||'',incidentHelperPersonIds:ids,deleted:closed,updatedAt:new Date().toISOString()};
-      if(ev){Object.assign(ev,data);changed=true}else{s.events.push(Object.assign({id:'incident_follow_'+id,createdAt:new Date().toISOString(),createdBy:(window.currentUser&&window.currentUser.id)||'system'},data));changed=true}
-    });
-    if(changed)saveState();return changed;
-  }
-  function patchIncidentSave(){
-    var oldSave=window.saveIncident;if(oldSave&&!oldSave.__v269){
-      window.saveIncident=saveIncident=function(){
-        var r=oldSave.apply(this,arguments);var inc=currentIncident();if(inc){inc.helperPersonIds=selectedIds('incidentHelpers');inc.nextFollowHelperPersonIds=selectedIds('incidentNextFollowHelpers');saveState();syncIncidentFollowEvents();}
-        return r;
-      };window.saveIncident.__v269=true;try{saveIncident.__v269=true}catch(_){ }
-    }
-    var oldLog=window.addIncidentLog;if(oldLog&&!oldLog.__v269){
-      window.addIncidentLog=addIncidentLog=function(){var r=oldLog.apply(this,arguments);var inc=currentIncident();if(inc){var ids=selectedIds('incidentLogNextFollowHelpers');if(ids.length){inc.nextFollowHelperPersonIds=ids;saveState();syncIncidentFollowEvents();}}return r};window.addIncidentLog.__v269=true;try{addIncidentLog.__v269=true}catch(_){ }
-    }
-  }
-  function patchOpenIncident(){
-    var oldOpen=window.openIncidentModal;if(oldOpen&&!oldOpen.__v269){
-      window.openIncidentModal=function(){var r=oldOpen.apply(this,arguments);setTimeout(ensureIncidentHelperSelects,80);setTimeout(ensureIncidentHelperSelects,280);setTimeout(ensureIncidentHelperSelects,700);return r};window.openIncidentModal.__v269=true;
-    }
-  }
-  function bindClicks(){
-    if(window.__V269_CLICKS_BOUND__)return;window.__V269_CLICKS_BOUND__=true;
-    document.addEventListener('click',function(e){
-      var nav=e.target&&e.target.closest&&e.target.closest('.navbtn[data-page="serviceRecords"],.navbtn[data-page="incidents"]');
-      if(nav){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();showPage(nav.dataset.page);return false}
-    },true);
-    document.addEventListener('click',function(e){
-      var card=e.target&&e.target.closest&&e.target.closest('.event[data-id],[data-event-id]');if(!card)return;var id=card.dataset.id||card.dataset.eventId;var ev=(stateObj().events||[]).find(function(x){return x&&String(x.id)===String(id)});if(ev&&(ev.sourceType==='incidentFollow'||ev.externalKind==='incidentFollow'||ev.sourceIncidentId||ev.incidentId)){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();if(typeof openIncidentModal==='function')openIncidentModal(ev.sourceIncidentId||ev.incidentId);return false}
-    },true);
-    document.addEventListener('click',function(e){if(e.target&&e.target.closest&&e.target.closest('#addIncidentBtn,#saveIncidentBtn,#addIncidentLogBtn'))setTimeout(function(){ensureIncidentHelperSelects();syncIncidentFollowEvents()},180)},true);
-    document.addEventListener('change',function(e){if(e.target&&e.target.id==='incidentHelpers')setTimeout(function(){ensureMultiSelect('incidentNextFollowHelpers',selectedIds('incidentHelpers'))},20);if(e.target&&/incidentNextFollow|incidentLogNextFollow|incidentHelpers/.test(e.target.id||''))setTimeout(syncIncidentFollowEvents,80)},true);
-  }
-  function fixIncidentStatusText(){
-    qa('option').forEach(function(o){if(o.textContent.trim()==='尚未結案')o.textContent='未結案';if(o.value==='尚未結案')o.value='未結案'});
-    var s=stateObj(),changed=false;(s.incidents||[]).forEach(function(i){if(i&&i.status==='尚未結案'){i.status='未結案';changed=true}});if(changed)saveState();
-  }
-  function init(){patchPermissions();ensureNav();patchIncidentSave();patchOpenIncident();bindClicks();fixIncidentStatusText();syncIncidentFollowEvents();if($('incidentModal')&&!$('incidentModal').classList.contains('hide'))ensureIncidentHelperSelects();}
-  var oldRenderAll=window.renderAll;if(oldRenderAll&&!oldRenderAll.__v269){window.renderAll=renderAll=function(){var r=oldRenderAll.apply(this,arguments);setTimeout(init,60);return r};window.renderAll.__v269=true}
-  var oldApply=window.applyPermissionsUI;if(oldApply&&!oldApply.__v269){window.applyPermissionsUI=applyPermissionsUI=function(){var r=oldApply.apply(this,arguments);setTimeout(init,60);return r};window.applyPermissionsUI.__v269=true}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(init,300);setTimeout(init,1200)});else{setTimeout(init,100);setTimeout(init,900)}
-  // V273: 停用
-  // setInterval(function(){ensureNav();fixIncidentStatusText();},2500);
-  window.v269TrueRootCauseReport={
-    serviceRecords:'舊版多段 canSeePage/v105AllowedPages 與 cleanServiceRecordNav 互相覆蓋，導致 serviceRecords 按鈕/頁面被後段權限清理隱藏；V269 在最後統一權限、導覽與點擊流程。',
-    incidentOverview:'異況下次追蹤建立到行程總覽後，沒有最後一道同步與點擊轉回異況案件的保護；V269 由 syncIncidentFollowEvents 統一把 incidents -> events，並攔截 incidentFollow 卡片開啟 openIncidentModal。',
-    nextFollowHelpers:'舊版 V232/V128 仍把 incidentNextFollowHelpers 當 checkbox 容器重畫，覆蓋 V267 的 select multiple，導致 select/checkbox 無人員；V269 在 modal 開啟與保存前最後統一轉成 select multiple 並從全部啟用人員產生 options。'
-  };
-})();
-</script>
-
-
-
-<script id="v270-restore-incidents-and-show-service-records">
-(function(){
-  'use strict';
-  if(window.__V270_RESTORE_INCIDENTS_SHOW_SERVICE_RECORDS__)return;
-  window.__V270_RESTORE_INCIDENTS_SHOW_SERVICE_RECORDS__=true;
-
-  /*
-    V270 修正重點
-    1. 恢復異況追蹤：不再讓 V269 的權限攔截把 incidents nav 擋掉。
-    2. 服務紀錄單取消權限：所有登入角色都可看到、可點選。
-    3. 使用 window capture listener 比 document capture 更早執行，避免 V269 delegated click 先 stopImmediatePropagation。
-  */
-
-  function $(id){return document.getElementById(id)}
-  function qa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
-  function q(sel,root){return (root||document).querySelector(sel)}
-  function todayISO(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-  function getState(){
-    try{if(typeof state!=='undefined'&&state&&typeof state==='object')return state}catch(_){ }
-    if(window.state&&typeof window.state==='object')return window.state;
-    return {people:[],events:[],incidents:[],incidentLogs:[]};
-  }
-
-  function ensureNavButton(page,label,icon,afterPage){
-    var side=q('.side');
-    if(side&&!q('.side .navbtn[data-page="'+page+'"]')){
-      var b=document.createElement('button');
-      b.type='button';
-      b.className='navbtn';
-      b.dataset.page=page;
-      b.innerHTML='<span class="mono-ico '+icon+'"></span>'+label;
-      var ref=q('.side .navbtn[data-page="'+afterPage+'"]')||q('.side .navbtn[data-page="reports"]')||q('.side .navbtn[data-page="calendar"]');
-      if(ref)ref.insertAdjacentElement('afterend',b);else side.appendChild(b);
-    }
-  }
-
-  function forceVisibleNav(){
-    ensureNavButton('incidents','異況追蹤','ico-warning','today');
-    ensureNavButton('serviceRecords','服務紀錄單','ico-clipboard','reports');
-    qa('.navbtn[data-page="incidents"],.navbtn[data-page="serviceRecords"]').forEach(function(btn){
-      btn.classList.remove('hide','role-hidden');
-      btn.hidden=false;
-      btn.removeAttribute('aria-hidden');
-      btn.style.removeProperty('display');
-      if(btn.closest('.side'))btn.style.display='flex';
-      btn.disabled=false;
-      btn.type='button';
-    });
-  }
-
-  function showTargetPage(page){
-    forceVisibleNav();
-    try{window.currentPage=page;if(typeof currentPage!=='undefined')currentPage=page}catch(_){ }
-    qa('.page').forEach(function(p){p.classList.add('hide');p.style.display='none'});
-    var pg=$(page+'Page');
-    if(pg){pg.classList.remove('hide');pg.style.display='block'}
-    qa('.navbtn').forEach(function(btn){btn.classList.toggle('active',btn.dataset.page===page)});
-
-    if(page==='incidents'){
-      var t=todayISO();
-      if($('incidentStart'))$('incidentStart').value=t;
-      if($('incidentEnd'))$('incidentEnd').value=t;
-      if($('incidentClosedFilter'))$('incidentClosedFilter').value='all';
-      try{if(typeof renderIncidents==='function')renderIncidents()}catch(e){console.warn('[V270] renderIncidents failed',e)}
-    }
-    if(page==='serviceRecords'){
-      try{if(typeof renderServiceRecords==='function')renderServiceRecords()}catch(e){console.warn('[V270] renderServiceRecords failed',e)}
-    }
-    return false;
-  }
-
-  /* 取消 serviceRecords / incidents 的權限限制，避免舊 canSeePage / v105AllowedPages 再清掉。 */
-  var oldCanSee=window.canSeePage;
-  window.canSeePage=function(page){
-    if(page==='serviceRecords'||page==='incidents')return true;
-    return oldCanSee?oldCanSee.apply(this,arguments):true;
-  };
-  try{canSeePage=window.canSeePage}catch(_){ }
-
-  var oldAllowed=window.v105AllowedPages;
-  window.v105AllowedPages=function(){
-    var arr=[];
-    try{arr=oldAllowed?oldAllowed():[]}catch(_){arr=[]}
-    if(!Array.isArray(arr))arr=[];
-    ['incidents','serviceRecords'].forEach(function(p){if(!arr.includes(p))arr.push(p)});
-    return Array.from(new Set(arr));
-  };
-
-  /* 不再讓 cleanServiceRecordNav 隱藏服務紀錄單。 */
-  window.cleanServiceRecordNav=function(){forceVisibleNav();};
-  try{cleanServiceRecordNav=window.cleanServiceRecordNav}catch(_){ }
-
-  /* 在 window capture 階段先接住點擊，阻止 V269 document capture 的權限攔截。 */
-  window.addEventListener('click',function(e){
-    var nav=e.target&&e.target.closest&&e.target.closest('.navbtn[data-page="incidents"],.navbtn[data-page="serviceRecords"],button[data-page="incidents"],button[data-page="serviceRecords"]');
-    if(!nav)return;
-    e.preventDefault();
-    e.stopPropagation();
-    if(e.stopImmediatePropagation)e.stopImmediatePropagation();
-    showTargetPage(nav.dataset.page);
-    return false;
-  },true);
-
-  /* applyPermissionsUI / renderAll 執行後，再補回導覽。 */
-  var oldApply=window.applyPermissionsUI;
-  if(oldApply&&!oldApply.__v270){
-    window.applyPermissionsUI=applyPermissionsUI=function(){
-      var r=oldApply.apply(this,arguments);
-      setTimeout(forceVisibleNav,0);
-      setTimeout(forceVisibleNav,120);
-      return r;
-    };
-    window.applyPermissionsUI.__v270=true;
-  }
-
-  var oldRenderAll=window.renderAll;
-  if(oldRenderAll&&!oldRenderAll.__v270){
-    window.renderAll=renderAll=function(){
-      var r=oldRenderAll.apply(this,arguments);
-      setTimeout(forceVisibleNav,0);
-      setTimeout(forceVisibleNav,160);
-      return r;
-    };
-    window.renderAll.__v270=true;
-  }
-
-  function fixIncidentOpenText(){
-    qa('option').forEach(function(o){
-      if((o.textContent||'').trim()==='尚未結案')o.textContent='未結案';
-      if(o.value==='尚未結案')o.value='未結案';
-    });
-    var s=getState();
-    if(Array.isArray(s.incidents)){
-      var changed=false;
-      s.incidents.forEach(function(i){if(i&&i.status==='尚未結案'){i.status='未結案';changed=true}});
-      if(changed){try{if(typeof save==='function')save()}catch(_){ }}
-    }
-  }
-
-  function init(){forceVisibleNav();fixIncidentOpenText();}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(init,80);setTimeout(init,600);setTimeout(init,1600)});
-  else{setTimeout(init,20);setTimeout(init,500);setTimeout(init,1500)}
-  // V273: 停用
-  // setInterval(function(){forceVisibleNav();fixIncidentOpenText();},1800);
-
-  window.v270RestoreReport={
-    incidents:'已恢復異況追蹤按鈕顯示與點擊；用 window capture 先處理，避開 V269 document capture 權限攔截。',
-    serviceRecords:'服務紀錄單已取消權限限制，所有角色都顯示、可點選。',
-    statusText:'異況狀態文字「尚未結案」維持統一顯示為「未結案」。'
-  };
-})();
-</script>
-
-
-<script id="v273-open-all-permissions">
-(function(){
-  'use strict';
-  if(window.__V273__) return;
-  window.__V273__ = true;
-
-  // 全部權限開放
-  window.canSeePage    = function(){ return true; };
-  window.canEdit       = function(){ return true; };
-  window.canDelete     = function(){ return true; };
-  window.canAddPeople  = function(){ return true; };
-  window.canManageOptions = function(){ return true; };
-  window.canService    = function(){ return true; };
-  window.canIncidents  = function(){ return true; };
-  window.isAdmin       = function(){ return true; };
-  window.isSupervisor  = function(){ return true; };
-  window.isStaff       = function(){ return false; };
-
-  // 顯示所有 navbtn（移除重複，只保留第一個）
-  function showAll(){
-    var seen = {};
-    document.querySelectorAll('.side .navbtn[data-page]').forEach(function(btn){
-      var pg = btn.dataset.page;
-      if(seen[pg]){
-        if(btn.parentNode) btn.parentNode.removeChild(btn);
-      } else {
-        seen[pg] = true;
-        btn.classList.remove('hide','role-hidden');
-        btn.hidden = false;
-        btn.removeAttribute('aria-hidden');
-        btn.style.removeProperty('display');
-      }
-    });
-    document.querySelectorAll('.bottom-nav .navbtn[data-page]').forEach(function(btn){
-      btn.classList.remove('hide','role-hidden');
-      btn.hidden = false;
-      btn.style.removeProperty('display');
-    });
-  }
-
-  // applyPermissionsUI 只顯示，不隱藏
-  window.applyPermissionsUI = function(){ showAll(); };
-
-  function init(){
-    showAll();
-  }
-
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded', function(){ setTimeout(init,100); });
-  } else {
-    setTimeout(init,100);
-  }
-  setTimeout(init,600);
-  setTimeout(init,1500);
 })();
 </script>
 </body></html>
