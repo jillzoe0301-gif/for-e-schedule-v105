@@ -1353,7 +1353,7 @@ function userPersonId(){return (currentUser?currentUser.personId:null)} function
   if(currentUser.role==='admin'||currentUser.role==='options')return 'admin';
   if(currentUser.role==='supervisor')return 'supervisor'; if(currentUser.role==='admin_staff'||currentUser.role==='adminStaff')return 'adminStaff';
   return 'staff';
-} function isAdmin(){return normalizedRole()==='admin'} function isSupervisor(){return normalizedRole()==='supervisor'} function isStaff(){return normalizedRole()==='staff'} function canManageOptions(){return isAdmin()} function canEdit(){return !!currentUser} function canDelete(){return isAdmin()} function canManagePeople(){return isAdmin()||isSupervisor()} function canAddPeople(){return isAdmin()} function canSeePage(page){return true; /* V271: 權限已全部開放，由管理員重新設定 */} function isCalendarPerson(pid){const p=state.people.find(x=>x.id===pid); return !!(p&&p.active!==false)} function linesToArray(v){return String(v||'').split(/\n|,/).map(x=>x.trim()).filter(Boolean)} function normalizeEventTypeName(t){t=String(t||'').trim(); return t==='送工'?'送工(新入境、承接)':t} function cleanEventTypeList(arr){return [...new Set((arr||[]).map(normalizeEventTypeName).filter(t=>t&&t!=='外務'))]} function cleanAlertEventTypeList(arr){return [...new Set([...(arr||[]).map(normalizeEventTypeName), '驗證提醒','提醒事項'].filter(t=>t&&t!=='外務'))]} function eventTypeList(){const arr=(state.options&&state.options.eventTypes&&state.options.eventTypes.length)?state.options.eventTypes:defaultEventTypes; return cleanEventTypeList(arr)} function alertEventTypeList(){const arr=(state.options&&state.options.alertEventTypes&&state.options.alertEventTypes.length)?state.options.alertEventTypes:alertEventTypes; return cleanAlertEventTypeList(arr)} function eventTypeContentMap(){const m=Object.assign({},defaultEventTypeContents,(state.options&&state.options.eventTypeContents)||{}); delete m['外務']; if(m['送工']&&!m['送工(新入境、承接)'])m['送工(新入境、承接)']=m['送工']; delete m['送工']; return m} function eventTypeContentText(type){const m=eventTypeContentMap(); const arr=m[type]||m[displayEventType(type)]||[]; return Array.isArray(arr)?arr.join('\n'):String(arr||'')} function allEventTypeContentTexts(){const m=eventTypeContentMap(); return Object.values(m).map(v=>Array.isArray(v)?v.join('\n'):String(v||'')).filter(Boolean)} function formatEventTypeContents(map){return Object.entries(map||{}).map(([k,v])=>k+'｜'+(Array.isArray(v)?v.join('、'):String(v||''))).join('\n')} function parseEventTypeContentsText(text){const out={}; String(text||'').split(/\n/).forEach(line=>{const s=line.trim(); if(!s)return; const parts=s.split(/\s*[｜|]\s*/); const key=(parts.shift()||'').trim(); if(!key)return; const vals=parts.join('｜').split(/[、,，]/).map(x=>x.trim()).filter(Boolean); out[key]=vals.length?vals:[];}); return out} 
+} function isAdmin(){return normalizedRole()==='admin'} function isSupervisor(){return normalizedRole()==='supervisor'} function isStaff(){return normalizedRole()==='staff'} function canManageOptions(){return isAdmin()} function canEdit(){return !!currentUser} function canDelete(){return isAdmin()} function canManagePeople(){return isAdmin()||isSupervisor()} function canAddPeople(){return isAdmin()} function canSeePage(page){return true; /* V272: 全部開放，後續重新設定 */} function isCalendarPerson(pid){const p=state.people.find(x=>x.id===pid); return !!(p&&p.active!==false)} function linesToArray(v){return String(v||'').split(/\n|,/).map(x=>x.trim()).filter(Boolean)} function normalizeEventTypeName(t){t=String(t||'').trim(); return t==='送工'?'送工(新入境、承接)':t} function cleanEventTypeList(arr){return [...new Set((arr||[]).map(normalizeEventTypeName).filter(t=>t&&t!=='外務'))]} function cleanAlertEventTypeList(arr){return [...new Set([...(arr||[]).map(normalizeEventTypeName), '驗證提醒','提醒事項'].filter(t=>t&&t!=='外務'))]} function eventTypeList(){const arr=(state.options&&state.options.eventTypes&&state.options.eventTypes.length)?state.options.eventTypes:defaultEventTypes; return cleanEventTypeList(arr)} function alertEventTypeList(){const arr=(state.options&&state.options.alertEventTypes&&state.options.alertEventTypes.length)?state.options.alertEventTypes:alertEventTypes; return cleanAlertEventTypeList(arr)} function eventTypeContentMap(){const m=Object.assign({},defaultEventTypeContents,(state.options&&state.options.eventTypeContents)||{}); delete m['外務']; if(m['送工']&&!m['送工(新入境、承接)'])m['送工(新入境、承接)']=m['送工']; delete m['送工']; return m} function eventTypeContentText(type){const m=eventTypeContentMap(); const arr=m[type]||m[displayEventType(type)]||[]; return Array.isArray(arr)?arr.join('\n'):String(arr||'')} function allEventTypeContentTexts(){const m=eventTypeContentMap(); return Object.values(m).map(v=>Array.isArray(v)?v.join('\n'):String(v||'')).filter(Boolean)} function formatEventTypeContents(map){return Object.entries(map||{}).map(([k,v])=>k+'｜'+(Array.isArray(v)?v.join('、'):String(v||''))).join('\n')} function parseEventTypeContentsText(text){const out={}; String(text||'').split(/\n/).forEach(line=>{const s=line.trim(); if(!s)return; const parts=s.split(/\s*[｜|]\s*/); const key=(parts.shift()||'').trim(); if(!key)return; const vals=parts.join('｜').split(/[、,，]/).map(x=>x.trim()).filter(Boolean); out[key]=vals.length?vals:[];}); return out} 
 let eventTypeContentEditingType='';
 function splitEventTypeContentEditor(text){return String(text||'').split(/\n|[、,，]/).map(x=>x.trim()).filter(Boolean)}
 function getOptionEventTypeContentMap(){return Object.assign({},defaultEventTypeContents,parseEventTypeContentsText($('optEventTypeContents')?$('optEventTypeContents').value:''))}
@@ -11129,6 +11129,8 @@ setInterval(v206SetupNavOrder,1500);
     return page;
   }
   function ensurePersonalTodoNavV200(){
+    // V272: 停用動態插入 personalTodo navbtn
+    return;
     const side=q('.side');
     if(side && !side.querySelector('[data-page="personalTodo"]')){
       const btn=document.createElement('button');
@@ -15783,7 +15785,8 @@ window.v249HolidayTagsReport={
   var oldRenderAll=window.renderAll;if(oldRenderAll&&!oldRenderAll.__v269){window.renderAll=renderAll=function(){var r=oldRenderAll.apply(this,arguments);setTimeout(init,60);return r};window.renderAll.__v269=true}
   var oldApply=window.applyPermissionsUI;if(oldApply&&!oldApply.__v269){window.applyPermissionsUI=applyPermissionsUI=function(){var r=oldApply.apply(this,arguments);setTimeout(init,60);return r};window.applyPermissionsUI.__v269=true}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(init,300);setTimeout(init,1200)});else{setTimeout(init,100);setTimeout(init,900)}
-  setInterval(function(){ensureNav();fixIncidentStatusText();},2500);
+  // V272: 停用 v269 setInterval 隱藏按鈕
+  // setInterval(function(){ensureNav();fixIncidentStatusText();},2500);
   window.v269TrueRootCauseReport={
     serviceRecords:'舊版多段 canSeePage/v105AllowedPages 與 cleanServiceRecordNav 互相覆蓋，導致 serviceRecords 按鈕/頁面被後段權限清理隱藏；V269 在最後統一權限、導覽與點擊流程。',
     incidentOverview:'異況下次追蹤建立到行程總覽後，沒有最後一道同步與點擊轉回異況案件的保護；V269 由 syncIncidentFollowEvents 統一把 incidents -> events，並攔截 incidentFollow 卡片開啟 openIncidentModal。',
@@ -15818,16 +15821,7 @@ window.v249HolidayTagsReport={
   }
 
   function ensureNavButton(page,label,icon,afterPage){
-    var side=q('.side');
-    if(side&&!q('.side .navbtn[data-page="'+page+'"]')){
-      var b=document.createElement('button');
-      b.type='button';
-      b.className='navbtn';
-      b.dataset.page=page;
-      b.innerHTML='<span class="mono-ico '+icon+'"></span>'+label;
-      var ref=q('.side .navbtn[data-page="'+afterPage+'"]')||q('.side .navbtn[data-page="reports"]')||q('.side .navbtn[data-page="calendar"]');
-      if(ref)ref.insertAdjacentElement('afterend',b);else side.appendChild(b);
-    }
+    // V272: 不再動態插入 navbtn，原始 HTML 已有所有按鈕
   }
 
   function forceVisibleNav(){
@@ -15936,7 +15930,8 @@ window.v249HolidayTagsReport={
   function init(){forceVisibleNav();fixIncidentOpenText();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(init,80);setTimeout(init,600);setTimeout(init,1600)});
   else{setTimeout(init,20);setTimeout(init,500);setTimeout(init,1500)}
-  setInterval(function(){forceVisibleNav();fixIncidentOpenText();},1800);
+  // V272: 停用 v270 setInterval
+  // setInterval(function(){forceVisibleNav();fixIncidentOpenText();},1800);
 
   window.v270RestoreReport={
     incidents:'已恢復異況追蹤按鈕顯示與點擊；用 window capture 先處理，避開 V269 document capture 權限攔截。',
@@ -15947,27 +15942,20 @@ window.v249HolidayTagsReport={
 </script>
 
 
-<script id="v271-final-permission-fix">
+<script id="v272-stable-nav-fix">
 /*
-  V271: 最終修正
-  1. 取消所有頁面的權限限制（統一顯示所有按鈕）
-  2. 停用 v269/v270 的互相搶奪 interval
-  3. 確保 incidents/serviceRecords 按鈕永遠可見
-  4. 異況追蹤預設顯示當天全部異況
-  5. 協助人員改為下拉選取
+  V272: 穩定導覽列
+  - 原始 HTML 已有所有 navbtn，不再動態插入
+  - 停用所有 setInterval 隱藏/顯示搶奪
+  - 一次性確保所有按鈕可見
+  - 取消所有權限設置
 */
 (function(){
   'use strict';
-  if(window.__V271_FINAL__) return;
-  window.__V271_FINAL__ = true;
+  if(window.__V272__) return;
+  window.__V272__ = true;
 
-  /* ── 工具函式 ── */
-  function $id(id){return document.getElementById(id);}
-  function qa(sel){return Array.from(document.querySelectorAll(sel));}
-  function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-  function getS(){try{if(typeof state!=='undefined'&&state)return state;}catch(_){}return window.state||null;}
-
-  /* ── 1. 覆寫所有權限函式為永遠允許 ── */
+  /* 取消所有權限 */
   window.canSeePage   = function(){ return true; };
   window.canEdit      = function(){ return true; };
   window.canAddPeople = function(){ return true; };
@@ -15976,170 +15964,68 @@ window.v249HolidayTagsReport={
   window.isAdmin      = function(){ return true; };
   window.isSupervisor = function(){ return true; };
 
-  /* ── 2. 強制顯示所有 navbtn（取消隱藏） ── */
-  function showAllNav(){
-    qa('.navbtn').forEach(function(btn){
+  /* 一次性顯示所有 navbtn，不使用 setInterval */
+  function showAllNavOnce(){
+    document.querySelectorAll('.navbtn').forEach(function(btn){
       btn.classList.remove('hide','role-hidden');
       btn.hidden = false;
       btn.removeAttribute('aria-hidden');
       btn.style.removeProperty('display');
     });
-    // 確保 incidents 和 serviceRecords 按鈕存在
-    var side = document.querySelector('.side');
-    if(!side) return;
-    function ensureBtn(page, label, icon, afterPage){
-      if(side.querySelector('.navbtn[data-page="'+page+'"]')) return;
-      var b = document.createElement('button');
-      b.type = 'button'; b.className = 'navbtn';
-      b.dataset.page = page;
-      b.innerHTML = '<span class="mono-ico '+icon+'"></span>'+label;
-      var ref = side.querySelector('.navbtn[data-page="'+afterPage+'"]')
-             || side.querySelector('.navbtn[data-page="reports"]')
-             || side.lastElementChild;
-      if(ref) ref.insertAdjacentElement('afterend', b);
-      else side.appendChild(b);
-    }
-    ensureBtn('incidents','異況追蹤','ico-warning','today');
-    ensureBtn('serviceRecords','服務紀錄單','ico-clipboard','reports');
+    // 移除多餘的重複按鈕（同一 data-page 只保留第一個）
+    var seen = {};
+    document.querySelectorAll('.side .navbtn[data-page]').forEach(function(btn){
+      var page = btn.dataset.page;
+      if(seen[page]){
+        btn.parentNode && btn.parentNode.removeChild(btn);
+      } else {
+        seen[page] = true;
+      }
+    });
   }
 
-  /* ── 3. 覆寫 applyPermissionsUI 不再隱藏任何按鈕 ── */
+  /* applyPermissionsUI 不隱藏任何按鈕 */
   window.applyPermissionsUI = function(){
-    showAllNav();
-    // 只控制新增/匯出按鈕的顯示（保留原有功能）
-    var addBtn = $id('addEventBtn');
-    if(addBtn) addBtn.classList.remove('hide');
-    var addPerson = $id('addPersonBtn');
-    if(addPerson) addPerson.classList.remove('hide');
-    var addUser = $id('addUserBtn');
-    if(addUser) addUser.classList.remove('hide');
+    showAllNavOnce();
+    ['addEventBtn','addPersonBtn','addUserBtn'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) el.classList.remove('hide');
+    });
   };
 
-  /* ── 4. 覆寫 v269 的 ensureNav（核心衝突來源）── */
-  window.__v269EnsureNavOverridden = true;
-
-  /* ── 5. 異況追蹤預設顯示當天全部異況 ── */
+  /* 異況追蹤預設顯示當天全部 */
   function initIncidentPage(){
-    var s = $id('incidentStart'), e = $id('incidentEnd');
-    var t = today();
-    if(s){ s.value = t; }
-    if(e){ e.value = t; }
-    var cf = $id('incidentClosedFilter');
-    if(cf){ cf.value = 'all'; }
+    var t = new Date();
+    var td = t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+    var s = document.getElementById('incidentStart');
+    var e = document.getElementById('incidentEnd');
+    var cf = document.getElementById('incidentClosedFilter');
+    if(s) s.value = td;
+    if(e) e.value = td;
+    if(cf) cf.value = 'all';
     try{ if(typeof renderIncidents==='function') renderIncidents(); }catch(_){}
   }
 
-  /* ── 6. 協助人員改為下拉選取 ── */
-  function upgradeHelperSelect(boxId){
-    var box = $id(boxId);
-    if(!box || box.tagName==='SELECT') return;
-    var s = getS();
-    var people = s ? (s.people||[]).filter(function(p){
-      return p&&p.active!==false&&p.deleted!==true;
-    }) : [];
-    // 取得目前已勾選
-    var checked = [];
-    box.querySelectorAll('input:checked').forEach(function(cb){ checked.push(cb.value); });
-    // 建立 select multiple
-    var sel = document.createElement('select');
-    sel.id = boxId;
-    sel.multiple = true;
-    sel.style.cssText = 'width:100%;border:1px solid #d8dde8;border-radius:10px;padding:6px;min-height:90px;font-size:14px;';
-    sel.title = '按住 Ctrl（Mac: Cmd）可多選';
-    people.forEach(function(p){
-      var o = document.createElement('option');
-      o.value = p.id;
-      o.textContent = p.name + (p.group?' ｜ '+p.group:'');
-      if(checked.indexOf(p.id)>=0) o.selected = true;
-      sel.appendChild(o);
-    });
-    var hint = document.createElement('div');
-    hint.className='muted'; hint.style.fontSize='12px'; hint.style.marginTop='4px';
-    hint.textContent = '按住 Ctrl（Mac: Cmd）可多選';
-    box.parentNode.replaceChild(sel, box);
-    sel.parentNode.insertBefore(hint, sel.nextSibling);
-  }
-
-  function upgradeAllHelpers(){
-    upgradeHelperSelect('incidentHelpers');
-    upgradeHelperSelect('incidentNextFollowHelpers');
-  }
-
-  /* patch collectIncident */
-  function patchCollect(){
-    if(window.__v271CollectPatched) return;
-    var orig = window.collectIncident;
-    if(!orig) return;
-    window.__v271CollectPatched = true;
-    window.collectIncident = function(){
-      var data = orig.apply(this, arguments);
-      var sel = $id('incidentHelpers');
-      if(sel&&sel.tagName==='SELECT'){
-        data.helperPersonIds = Array.from(sel.selectedOptions||[]).map(function(o){return o.value;});
-      }
-      var sel2 = $id('incidentNextFollowHelpers');
-      if(sel2&&sel2.tagName==='SELECT'){
-        data.nextFollowHelperIds = Array.from(sel2.selectedOptions||[]).map(function(o){return o.value;});
-      }
-      return data;
-    };
-  }
-
-  /* ── 7. renderAll hook ── */
-  function hookRenderAll(){
-    if(typeof renderAll!=='function'||renderAll.__v271) return;
-    var orig = renderAll;
-    window.renderAll = renderAll = function(){
-      var r; try{r=orig.apply(this,arguments);}catch(e){console.warn('[V271]',e);}
-      showAllNav();
-      return r;
-    };
-    renderAll.__v271 = true;
-  }
-
-  /* ── 8. 點擊 incidents navbtn 時初始化當天 ── */
-  document.addEventListener('click', function(e){
-    var btn = e.target && e.target.closest && e.target.closest('[data-page="incidents"]');
-    if(btn) setTimeout(function(){initIncidentPage();upgradeAllHelpers();patchCollect();},300);
-    var btn2 = e.target && e.target.closest && e.target.closest('#addIncidentBtn,#openIncidentModalBtn');
-    if(btn2) setTimeout(function(){upgradeAllHelpers();patchCollect();},200);
+  /* 點擊異況追蹤時初始化 */
+  document.addEventListener('click', function(ev){
+    var btn = ev.target && ev.target.closest && ev.target.closest('[data-page="incidents"]');
+    if(btn) setTimeout(initIncidentPage, 250);
   }, true);
 
-  /* ── openIncidentModal hook ── */
-  if(typeof window.openIncidentModal==='function'&&!window.openIncidentModal.__v271){
-    var origOpen = window.openIncidentModal;
-    window.openIncidentModal = function(){
-      var r = origOpen.apply(this, arguments);
-      setTimeout(function(){upgradeAllHelpers();patchCollect();},150);
-      return r;
-    };
-    window.openIncidentModal.__v271 = true;
-  }
-
-  /* ── init ── */
+  /* 執行一次 */
   function init(){
-    showAllNav();
-    upgradeAllHelpers();
-    patchCollect();
-    hookRenderAll();
-    // 若目前在 incidentsPage
-    var ip = $id('incidentsPage');
-    if(ip&&!ip.classList.contains('hide')) initIncidentPage();
+    showAllNavOnce();
+    var ip = document.getElementById('incidentsPage');
+    if(ip && !ip.classList.contains('hide')) initIncidentPage();
   }
 
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',function(){setTimeout(init,300);});
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(init, 200); });
   } else {
-    setTimeout(init,300);
+    setTimeout(init, 200);
   }
-  // 確保不被其他腳本蓋掉
-  setTimeout(showAllNav, 800);
-  setTimeout(showAllNav, 1500);
-  setTimeout(showAllNav, 3000);
-  // 每秒確認一次（覆蓋 v269 的 2500ms interval）
-  setInterval(showAllNav, 900);
-
-  console.log('[V271] 權限已全部開放，incidents/serviceRecords 按鈕已恢復');
+  // 只執行兩次確保穩定，不使用 setInterval
+  setTimeout(init, 800);
 })();
 </script>
 </body></html>
