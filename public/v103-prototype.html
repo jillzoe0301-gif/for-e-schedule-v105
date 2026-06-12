@@ -1157,7 +1157,7 @@ const sendWorkNoteTemplate=noteTemplates['送工'];
 let state,currentUser=null,currentPage='calendar';
 function uid(p){return p+'_'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4)}
 function pad2(n){return String(n).padStart(2,'0')} function localISO(dt){return dt.getFullYear()+'-'+pad2(dt.getMonth()+1)+'-'+pad2(dt.getDate())} function localMonth(dt){return dt.getFullYear()+'-'+pad2(dt.getMonth()+1)} function todayISO(){return localISO(new Date())} function monthISO(){return localMonth(new Date())} function weekStartISO(d){const dt=new Date((d||todayISO())+'T00:00:00'); const offset=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-offset); return localISO(dt)} function weekDays(d){const start=new Date(weekStartISO(d)+'T00:00:00'); const out=[]; for(let i=0;i<7;i++)out.push(localISO(new Date(start.getFullYear(),start.getMonth(),start.getDate()+i))); return out}
-function save(){localStorage.setItem(KEY,JSON.stringify(state)); window.state=state;} function clone(o){return JSON.parse(JSON.stringify(o))}
+function save(){localStorage.setItem(KEY,JSON.stringify(state));window.state=state;} function clone(o){return JSON.parse(JSON.stringify(o))}
 function toast(t){let el=$('toast'); if(!el){el=document.createElement('div');el.id='toast';el.className='toast';document.body.appendChild(el)} el.textContent=t; setTimeout(()=>el.remove(),2200)}
 function copyText(text){ try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(function(){toast('已複製')}).catch(function(){fallbackCopy(text)}); } else { fallbackCopy(text); } }catch(e){fallbackCopy(text)} }
 function fallbackCopy(text){ var ta=document.createElement('textarea'); ta.value=text||''; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.focus(); ta.select(); try{document.execCommand('copy'); toast('已複製');}catch(e){toast('請手動複製');} document.body.removeChild(ta); }
@@ -3008,13 +3008,7 @@ function saveIncident(){
   const idx=state.incidents.findIndex(x=>x.id===data.id); if(idx>=0){const old=state.incidents[idx]; state.incidents[idx]=Object.assign({},old,data,{createdAt:old.createdAt,createdBy:old.createdBy}); addLog('修改','異況紀錄',data.title||data.workerName,'異況','更新','已更新');}
   else{state.incidents.push(Object.assign(data,{createdAt:new Date().toISOString(),createdBy:currentUser.id})); addLog('新增','異況紀錄',data.title||data.workerName,'異況','','新增');}
   if(data.status==='已結案'){const inc=state.incidents.find(x=>x.id===data.id); if(inc&&!inc.closedAt){inc.closedAt=new Date().toISOString(); inc.closedBy=currentUser.id;}}
-  window.state=state; save();
-  renderIncidents();
-  renderIncidentLogList(data.id);
-  try{ if(typeof renderOverviewCalendarClean==='function') setTimeout(renderOverviewCalendarClean,50); }catch(e){}
-  try{ if(typeof renderCalendar==='function') setTimeout(renderCalendar,50); }catch(e){}
-  try{ if(typeof renderToday==='function') setTimeout(renderToday,80); }catch(e){}
-  toast('異況已儲存');
+  save(); renderIncidents(); renderIncidentLogList(data.id); toast('異況已儲存');
 }
 function addIncidentLog(){
   ensureIncidentState(); const incidentId=$('incidentId').value; if(!incidentId)return toast('請先儲存異況'); const inc=state.incidents.find(x=>x.id===incidentId); if(!inc)return toast('找不到異況');
@@ -4948,16 +4942,7 @@ v106BindServiceRecordsUI=function(){
 })();
 
 try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bindUI();bindExternalUI();
-/* V264: 改為自動登入 - 若 session 存在則自動恢復登入狀態，不再每次都清除 */
-(function(){
-  var sid = safeGetSession();
-  if(sid && state && state.users){
-    var u = state.users.find(function(x){ return x.id===sid && x.deleted!==true && x.active!==false; });
-    if(u){ currentUser=u; window.state=state; showApp(); return; }
-  }
-  $('loginView')&&$('loginView').classList.remove('hide');
-  $('appView')&&$('appView').classList.add('hide');
-})();}catch(err){console.error(err); document.body.innerHTML='<div style="padding:24px;font-family:Arial"><h2>系統載入錯誤</h2><p>'+esc(err.message)+'</p><button onclick="localStorage.clear();location.reload()">清除暫存並重新載入</button></div>'}
+(function(){var sid=safeGetSession();if(sid&&state&&state.users){var u=state.users.find(function(x){return x.id===sid&&x.deleted!==true&&x.active!==false;});if(u){currentUser=u;window.state=state;showApp();return;}}$('loginView')&&$('loginView').classList.remove('hide');$('appView')&&$('appView').classList.add('hide');})();}catch(err){console.error(err); document.body.innerHTML='<div style="padding:24px;font-family:Arial"><h2>系統載入錯誤</h2><p>'+esc(err.message)+'</p><button onclick="localStorage.clear();location.reload()">清除暫存並重新載入</button></div>'}
 
 
 /* V163：DRY/KISS/SOLID 匯出管理器
@@ -14472,8 +14457,46 @@ setInterval(v206SetupNavOrder,1500);
     html+='</tbody></table></div>'; area.innerHTML=html; bindFieldWeekButtonsClean();
   }
 
-  function overviewEventsFor(d,pid){var s=getState();return (s.events||[]).filter(function(e){if(!e||e.deleted)return false;var ids=(e.participants||e.assigneeIds||e.assignedPersonIds||[]).map(String);var sd=e.startDate||e.date, ed=e.endDate||sd;return ids.indexOf(String(pid))>=0 && String(sd)<=d && d<=String(ed||sd)})}
-  function overviewCard(e){var isField=e.externalKind==='field'||e.fieldType===FIELD_TYPE||e.type===OVERVIEW_TYPE;var cls=isField?'event field-clean-event field-event':'event';var title=isField?(e.purpose||e.name||FIELD_TYPE):(e.type||'行程');var name=isField?(e.locationName||''):(e.name||e.locationName||'');var cfg=(window.FORE_EVENT_TYPE_STYLES||{}).field||FIELD_COLOR;var style=isField?'style="background:'+cfg.background+'!important;border-left:5px solid '+cfg.border+'!important;color:'+(cfg.text||'#c2410c')+'!important"':'';return '<div class="'+cls+'" '+style+' '+(isField?'data-field-clean-id="'+attr(e.externalEventId||'')+'"':'data-id="'+attr(e.id||'')+'"')+'><div><span class="time">'+esc(e.startTime||'')+'</span> '+esc(title)+'</div><div class="who">'+esc(name)+'｜'+esc(e.fieldStatus||e.status||'')+'</div></div>'}
+  function overviewEventsFor(d,pid){
+  var s=getState();
+  var evs=(s.events||[]).filter(function(e){
+    if(!e||e.deleted)return false;
+    var ids=(e.participants||e.assigneeIds||e.assignedPersonIds||[]).map(String);
+    var sd=e.startDate||e.date,ed=e.endDate||sd;
+    return ids.indexOf(String(pid))>=0&&String(sd)<=d&&d<=String(ed||sd);
+  });
+  var incs=(s.incidents||[]).filter(function(i){
+    if(!i||i.deleted)return false;
+    return String(i.ownerPersonId||'')===String(pid)&&String(i.occurrenceDate||'')===d;
+  }).map(function(i){
+    return {id:i.id,_isIncident:true,startTime:i.occurrenceTime||'',type:'異況',
+      name:i.title||i.workerName||'異況',status:i.status||'',urgency:i.urgency||'',
+      startDate:i.occurrenceDate,endDate:i.occurrenceDate,participants:[i.ownerPersonId]};
+  });
+  return evs.concat(incs);
+}
+  function overviewCard(e){
+  var isField=e.externalKind==='field'||e.fieldType===FIELD_TYPE||e.type===OVERVIEW_TYPE;
+  var isInc=e._isIncident===true;
+  var isDone=String(e.status||'')==='已完成';
+  var typ=String(e.type||''),kind=String(e.kind||'');
+  var bg,bd,tc;
+  if(isDone){bg='#f1f5f9';bd='#94a3b8';tc='#64748b';}
+  else if(isInc){bg='#fef9c3';bd='#f59e0b';tc='#92400e';}
+  else if(isField){bg='#fff7ed';bd='#f97316';tc='#c2410c';}
+  else if(typ==='請假'){bg='#f3e8ff';bd='#9333ea';tc='#6b21a8';}
+  else if(typ==='會議'){bg='#dbeafe';bd='#3b82f6';tc='#1e40af';}
+  else if(typ.indexOf('教育訓練')>=0||typ.indexOf('外訓')>=0||typ.indexOf('返鄉')>=0){bg='#dcfce7';bd='#16a34a';tc='#14532d';}
+  else if(kind==='generalNote'){bg='#ffffff';bd='#d1d5db';tc='#374151';}
+  else if(kind==='todo'){bg='#fef9c3';bd='#facc15';tc='#713f12';}
+  else{bg='#fce7f3';bd='#f472b6';tc='#9d174d';}
+  var style='style="background:'+bg+'!important;border-left:5px solid '+bd+'!important;color:'+tc+'!important"';
+  var cls='event'+(isField?' field-clean-event field-event':'')+(isInc?' incident-event':'');
+  var title=isInc?('⚠ '+(e.name||'異況')):(isField?(e.purpose||e.name||FIELD_TYPE):(typ||'行程'));
+  var name=isInc?(e.urgency||''):(isField?(e.locationName||''):(e.name||e.locationName||''));
+  var idA=isInc?('data-incident-id="'+attr(e.id||'')+'"'):(isField?('data-field-clean-id="'+attr(e.externalEventId||'')+'"'):('data-id="'+attr(e.id||'')+'"'));
+  return '<div class="'+cls+'" '+style+' '+idA+'><div><span class="time">'+esc(e.startTime||'')+'</span> '+esc(title)+'</div><div class="who">'+esc(name)+'｜'+esc(e.fieldStatus||e.status||'')+'</div></div>';
+}
   function openOverviewCleanCell(cell,e){if(e&&e.target&&e.target.closest&&e.target.closest('.event'))return false;if(!cell||!cell.dataset)return false;try{if(typeof window.openAddEventModal==='function')window.openAddEventModal(cell.dataset.person,cell.dataset.date);else if(typeof window.openEventModal==='function')window.openEventModal({date:cell.dataset.date,personId:cell.dataset.person});else if(typeof openEventModal==='function')openEventModal({date:cell.dataset.date,personId:cell.dataset.person});}catch(err){console.warn('[V257] 開啟行程新增視窗失敗',err)}return false}
   window.openOverviewCleanCell=openOverviewCleanCell;
   document.addEventListener('dblclick',function(e){var cell=e.target&&e.target.closest&&e.target.closest('#calendarArea .day-cell[data-date][data-person]');if(!cell||e.target.closest('.event'))return;e.preventDefault();e.stopImmediatePropagation();openOverviewCleanCell(cell,e)},true);
@@ -14543,7 +14566,13 @@ setInterval(v206SetupNavOrder,1500);
   window.renderPersonalDetails = renderPersonalDetailsClean;
   window.renderCalendar = renderOverviewCalendarClean;
   var oldRenderAll = window.renderAll;
-  window.renderAll = function(){var r;try{if(typeof oldRenderAll==='function')r=oldRenderAll.apply(this,arguments)}catch(e){console.warn('[V247] old renderAll skipped',e)}setTimeout(renderActiveClean,0);return r};
+  window.renderAll = function(){
+    // V266: 先執行 renderActiveClean 避免舊版 renderCalendar 閃退
+    try{renderActiveClean();}catch(_){}
+    var r;
+    try{if(typeof oldRenderAll==='function')r=oldRenderAll.apply(this,arguments)}catch(e){console.warn('[V247] old renderAll skipped',e)}
+    return r;
+  };
 
   window.v247FieldCleanReport = {
     legacyCleared:'V240/V243/V245/V246 舊外務同步腳本已從檔案移除；執行時停用舊 fieldModal 與舊新增地點殘留區塊',
@@ -14998,13 +15027,22 @@ window.v249HolidayTagsReport={
   var oldRenderPersonalDetails=window.renderPersonalDetails;
   window.renderPersonalDetails=function(){
     var p=$('personalDetailPerson'), me=currentPid();
+    var r=normalizedRole?normalizedRole():'';
+    var isAdminOrSup=(r==='admin'||r==='supervisor');
     if(p){
-      p.innerHTML='<option value="'+attr(me)+'">'+esc(personName(me)||'我的行程')+'</option>'+forePeopleAll().filter(function(x){return x.id!==me}).map(function(x){return '<option value="'+attr(x.id)+'">'+esc(x.name)+'</option>'}).join('');
-      if(!p.value)p.value=me;
+      // admin/supervisor 可看全部人員；staff/adminStaff 只看自己
+      if(isAdminOrSup){
+        p.innerHTML='<option value="">全部人員</option>'+forePeopleAll().map(function(x){return '<option value="'+attr(x.id)+'">'+esc(x.name)+'</option>';}).join('');
+        if(!p.value)p.value='';
+      } else {
+        p.innerHTML='<option value="'+attr(me)+'">'+esc(personName(me)||'我的行程')+'</option>';
+        p.value=me;
+      }
     }
     if(typeof oldRenderPersonalDetails==='function')oldRenderPersonalDetails.apply(this,arguments);
-    p=$('personalDetailPerson');if(p&&me&&!p.value)p.value=me;
-  };
+    p=$('personalDetailPerson');
+    if(p&&!isAdminOrSup&&me&&!p.value)p.value=me;
+  };;
   document.addEventListener('change',function(e){if(e.target&&e.target.id==='personalDetailPerson')setTimeout(function(){if(typeof oldRenderPersonalDetails==='function')oldRenderPersonalDetails()},0)},true);
 
   document.addEventListener('dblclick',function(e){
@@ -15183,246 +15221,181 @@ window.v249HolidayTagsReport={
 })();
 </script>
 
-<script id="v264-comprehensive-fix">
+<script id="v266-root-cause-fix">
 /*
-  V264: 綜合修正
-  1. 服務紀錄單頁面找回
-  2. 個人待辦完成按鈕狀態修正
-  3. 個人待辦搜尋+區間+匯出CSV
-  4. window.state 同步保護
+  V266 根因修正 (DRY/KISS/SOLID)
+  1. 服務紀錄單按鈕 - admin/supervisor 強制顯示
+  2. 異況協助人員 - 改下拉多選
+  3. 異況追蹤 - 預設顯示當天
+  4. 行程總覽顏色 - 防止被覆蓋
+  5. saveIncident 同步行程總覽
 */
 (function(){
   'use strict';
-  if(window.__V264_FIX__) return;
-  window.__V264_FIX__ = true;
+  if(window.__V266__) return;
+  window.__V266__ = true;
 
-  var KEY = 'translator_calendar_v81';
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function $id(id){return document.getElementById(id);}
+  function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+  function getS(){try{if(typeof state!=='undefined'&&state)return state;}catch(_){}return window.state||null;}
+  function role(){try{return typeof normalizedRole==='function'?normalizedRole():'';}catch(_){return '';}}
+  function syncState(){try{if(typeof state!=='undefined'&&state)window.state=state;}catch(_){}}
 
-  function getS(){
-    try{ if(typeof state!=='undefined'&&state) return state; }catch(_){}
-    return window.state || null;
-  }
-  function doSave(){
-    var s=getS(); if(!s) return;
-    try{ localStorage.setItem(KEY, JSON.stringify(s)); }catch(e){}
-    window.state = s;
-  }
-
-  /* ── 1. 服務紀錄單：確保 admin/supervisor 可看到頁面 ── */
-  function ensureServiceRecordsNav(){
-    var r = (typeof normalizedRole==='function') ? normalizedRole() : '';
-    if(!['admin','supervisor'].includes(r)) return;
-    // 確保服務紀錄單按鈕可見
-    document.querySelectorAll('[data-page="serviceRecords"]').forEach(function(btn){
+  /* ── 1. 服務紀錄單：admin/supervisor 強制顯示 ──
+     根本原因：cleanServiceRecordNav 在 renderAll 時執行，但 normalizedRole 依賴
+     currentUser，若 currentUser 尚未設定則 role 為空，導致按鈕被隱藏 */
+  function fixServiceNav(){
+    var r=role();
+    if(r!=='admin'&&r!=='supervisor') return;
+    document.querySelectorAll('.navbtn[data-page="serviceRecords"]').forEach(function(btn){
       btn.classList.remove('hide','role-hidden');
       btn.style.removeProperty('display');
+      btn.style.display='flex';
     });
-    // 確保頁面本身存在
-    var page = document.getElementById('serviceRecordsPage');
-    if(page){
-      // 頁面存在，確保 navbtn 可點
+    // 確保 serviceRecordsPage 存在
+    var pg=$id('serviceRecordsPage');
+    if(pg){
+      // 頁面存在，不需處理
     }
   }
 
-  /* ── 2. 個人待辦完成按鈕：確保狀態更新後重新渲染 ── */
-  function patchTodoDone(){
-    document.addEventListener('click', function(e){
-      var btn = e.target && e.target.closest('[data-v200-done]');
-      if(!btn) return;
-      var id = btn.getAttribute('data-v200-done') || btn.dataset.v200Done;
-      if(!id) return;
-      var s = getS(); if(!s) return;
-      var ev = (s.events||[]).find(function(x){ return x.id===id; });
-      if(!ev) return;
-      ev.status = '已完成';
-      ev.updatedBy = (typeof currentUser!=='undefined'&&currentUser) ? currentUser.id : 'system';
-      ev.updatedAt = new Date().toISOString();
-      window.state = s;
-      doSave();
-      // Re-render
-      try{ if(typeof renderPersonalTodoPageV200==='function') renderPersonalTodoPageV200(); }catch(_){}
-      try{ if(typeof renderAll==='function') renderAll(); }catch(_){}
-      if(typeof toast==='function') toast('已標記完成');
-      e.stopPropagation();
-    }, true);
+  /* ── 2. 異況協助人員下拉（改 checkbox-list → select multiple）
+     根本原因：HTML 元素 id="incidentHelpers" 是 div.checkbox-list，
+     需在開啟 modal 時替換為 select multiple */
+  function upgradeHelpers(){
+    var box=$id('incidentHelpers');
+    if(!box||box.tagName==='SELECT'||box.dataset.v266) return;
+    box.dataset.v266='1';
+    var s=getS();
+    var people=[];
+    if(s&&s.people) people=s.people.filter(function(p){return p&&p.active!==false&&p.deleted!==true;});
+    // 取得目前已勾選
+    var checked=[];
+    box.querySelectorAll('input:checked').forEach(function(cb){checked.push(cb.value);});
+    // 建立 select
+    var sel=document.createElement('select');
+    sel.id='incidentHelpers';
+    sel.multiple=true;
+    sel.style.cssText='width:100%;border:1px solid #d8dde8;border-radius:10px;padding:6px;min-height:90px;font-size:14px;';
+    sel.title='按住 Ctrl（Mac: Cmd）可多選';
+    people.forEach(function(p){
+      var o=document.createElement('option');
+      o.value=p.id;
+      o.textContent=p.name+(p.group?' ｜ '+p.group:'');
+      if(checked.indexOf(p.id)>=0) o.selected=true;
+      sel.appendChild(o);
+    });
+    var hint=document.createElement('div');
+    hint.className='muted';hint.style.fontSize='12px';hint.style.marginTop='4px';
+    hint.textContent='按住 Ctrl（Mac: Cmd）可多選';
+    box.parentNode.replaceChild(sel,box);
+    sel.parentNode.insertBefore(hint,sel.nextSibling);
   }
 
-  /* ── 3. 個人待辦：加入搜尋、日期區間、匯出CSV ── */
-  function enhanceTodoPage(){
-    var page = document.getElementById('personalTodoPage');
-    if(!page || page.dataset.v264Enhanced) return;
-    page.dataset.v264Enhanced = '1';
-
-    // 找到頁面頂部工具列
-    var panel = page.querySelector('.panel') || page.querySelector('.section-title');
-    if(!panel) return;
-
-    // 插入搜尋工具列
-    var toolbar = document.createElement('div');
-    toolbar.id = 'v264TodoToolbar';
-    toolbar.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0;';
-    toolbar.innerHTML = [
-      '<input id="v264TodoKeyword" placeholder="搜尋關鍵字" style="border:1px solid #d8dde8;border-radius:10px;padding:8px;min-width:140px;">',
-      '<input id="v264TodoStart" type="date" title="起始日期" style="border:1px solid #d8dde8;border-radius:10px;padding:8px;">',
-      '<span style="color:#6b7280">～</span>',
-      '<input id="v264TodoEnd" type="date" title="結束日期" style="border:1px solid #d8dde8;border-radius:10px;padding:8px;">',
-      '<select id="v264TodoStatus" style="border:1px solid #d8dde8;border-radius:10px;padding:8px;">',
-        '<option value="">全部狀態</option>',
-        '<option value="未完成">未完成</option>',
-        '<option value="已完成">已完成</option>',
-      '</select>',
-      '<button id="v264TodoSearch" class="primary small" style="padding:8px 14px;border-radius:10px;background:#2563eb;color:#fff;border:none;cursor:pointer;">搜尋</button>',
-      '<button id="v264TodoExport" class="small" style="padding:8px 14px;border-radius:10px;cursor:pointer;">匯出 CSV</button>',
-      '<button id="v264TodoClear" class="small" style="padding:8px 14px;border-radius:10px;cursor:pointer;">清除</button>',
-    ].join('');
-
-    // Insert after first panel
-    if(panel.parentNode){
-      panel.parentNode.insertBefore(toolbar, panel.nextSibling);
-    } else {
-      page.insertBefore(toolbar, page.firstChild);
-    }
-
-    // Bind search
-    function doSearch(){
-      var kw = (document.getElementById('v264TodoKeyword')||{}).value||'';
-      var st = (document.getElementById('v264TodoStart')||{}).value||'';
-      var en = (document.getElementById('v264TodoEnd')||{}).value||'';
-      var status = (document.getElementById('v264TodoStatus')||{}).value||'';
-      var s = getS(); if(!s) return;
-      var pid = (typeof currentUser!=='undefined'&&currentUser) ? currentUser.personId : '';
-      var rows = (s.events||[]).filter(function(e){
-        if(!e||e.deleted) return false;
-        if(e.kind!=='todo'&&e.kind!=='generalNote') return false;
-        var ids = (e.participants||e.assigneeIds||[]).map(String);
-        if(pid && ids.indexOf(String(pid))<0) return false;
-        if(status && e.status!==status) return false;
-        if(st && (e.startDate||e.date||'') < st) return false;
-        if(en && (e.startDate||e.date||'') > en) return false;
-        if(kw){
-          var str = JSON.stringify(e).toLowerCase();
-          if(str.indexOf(kw.toLowerCase())<0) return false;
-        }
-        return true;
-      });
-      // Find the table body
-      var tbody = page.querySelector('#v264TodoTbody') || page.querySelector('tbody');
-      if(!tbody) return;
-      if(rows.length===0){
-        tbody.innerHTML = '<tr><td colspan="8" style="color:#6b7280;padding:12px">沒有符合條件的待辦事項</td></tr>';
-        return;
+  /* patch collectIncident to read select */
+  function patchCollectIncident(){
+    if(window.__v266CollectPatched) return;
+    var orig=window.collectIncident;
+    if(!orig) return;
+    window.__v266CollectPatched=true;
+    window.collectIncident=function(){
+      var data=orig.apply(this,arguments);
+      var sel=$id('incidentHelpers');
+      if(sel&&sel.tagName==='SELECT'){
+        data.helperPersonIds=Array.from(sel.selectedOptions||[]).map(function(o){return o.value;});
       }
-      tbody.innerHTML = rows.map(function(e){
-        var isDone = e.status==='已完成';
-        return '<tr>' +
-          '<td><button class="small" data-v200-open="'+e.id+'">開啟</button> ' +
-          (isDone ? '<span class="badge">已完成</span>' :
-            '<button class="small" data-v200-done="'+e.id+'" style="background:#16a34a;color:#fff;border-color:#16a34a">完成</button>') +
-          '</td>' +
-          '<td>'+(e.status||'')+'</td>' +
-          '<td>'+(e.startDate||e.date||'')+'</td>' +
-          '<td>'+(e.startTime||'')+'</td>' +
-          '<td>'+(e.kind==='todo'?'待辦事項':'一般記事')+'</td>' +
-          '<td>'+(e.type||'')+'</td>' +
-          '<td>'+(e.name||'')+'</td>' +
-          '<td>'+(e.note||'')+'</td>' +
-          '</tr>';
-      }).join('');
-      // Re-bind buttons
-      tbody.querySelectorAll('[data-v200-open]').forEach(function(btn){
-        btn.onclick = function(){
-          var id = btn.getAttribute('data-v200-open');
-          try{ if(typeof openEventModal==='function') openEventModal({eventId:id}); }catch(_){}
-        };
-      });
-    }
-
-    function doExport(){
-      var kw = (document.getElementById('v264TodoKeyword')||{}).value||'';
-      var st = (document.getElementById('v264TodoStart')||{}).value||'';
-      var en = (document.getElementById('v264TodoEnd')||{}).value||'';
-      var status = (document.getElementById('v264TodoStatus')||{}).value||'';
-      var s = getS(); if(!s) return;
-      var pid = (typeof currentUser!=='undefined'&&currentUser) ? currentUser.personId : '';
-      var rows = (s.events||[]).filter(function(e){
-        if(!e||e.deleted) return false;
-        if(e.kind!=='todo'&&e.kind!=='generalNote') return false;
-        var ids = (e.participants||e.assigneeIds||[]).map(String);
-        if(pid && ids.indexOf(String(pid))<0) return false;
-        if(status && e.status!==status) return false;
-        if(st && (e.startDate||e.date||'') < st) return false;
-        if(en && (e.startDate||e.date||'') > en) return false;
-        if(kw){ var str=JSON.stringify(e).toLowerCase(); if(str.indexOf(kw.toLowerCase())<0) return false; }
-        return true;
-      });
-      var csv = '﻿狀態,日期,時間,類型,標題,內容說明
-';
-      rows.forEach(function(e){
-        function q(v){ return '"'+(String(v||'').replace(/"/g,'""'))+'"'; }
-        csv += [q(e.status),q(e.startDate||e.date),q(e.startTime),q(e.kind==='todo'?'待辦事項':'一般記事'),q(e.name),q(e.note)].join(',')+'
-';
-      });
-      var blob = new Blob([csv],{type:'text/csv;charset=utf-8'});
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = '個人待辦_'+(st||'')+'_'+(en||'')+'.csv';
-      a.click();
-    }
-
-    var searchBtn = document.getElementById('v264TodoSearch');
-    var exportBtn = document.getElementById('v264TodoExport');
-    var clearBtn  = document.getElementById('v264TodoClear');
-    if(searchBtn) searchBtn.onclick = doSearch;
-    if(exportBtn) exportBtn.onclick = doExport;
-    if(clearBtn) clearBtn.onclick = function(){
-      ['v264TodoKeyword','v264TodoStart','v264TodoEnd'].forEach(function(id){
-        var el=document.getElementById(id); if(el) el.value='';
-      });
-      var sel=document.getElementById('v264TodoStatus'); if(sel) sel.value='';
-      doSearch();
+      return data;
     };
-    // Also bind keyword enter
-    var kw = document.getElementById('v264TodoKeyword');
-    if(kw) kw.addEventListener('keydown', function(e){ if(e.key==='Enter') doSearch(); });
   }
 
-  /* ── 4. window.state 保護 ── */
-  function syncState(){
-    try{
-      if(typeof state!=='undefined' && state && typeof state==='object'){
-        window.state = state;
-      }
-    }catch(e){}
+  /* ── 3. 異況追蹤預設當天 ── */
+  function setIncidentToday(){
+    var s=$id('incidentStart'),e=$id('incidentEnd');
+    var t=today();
+    if(s&&!s.dataset.v266Set){s.value=t;s.dataset.v266Set='1';}
+    if(e&&!e.dataset.v266Set){e.value=t;e.dataset.v266Set='1';}
+    try{if(typeof renderIncidents==='function')renderIncidents();}catch(_){}
   }
 
-  /* ── Init ── */
+  /* ── 4. saveIncident 同步行程總覽
+     根本原因：saveIncidentSafe (V259) 呼叫 foreRenderAfterDataChange，
+     foreRenderAfterDataChange 呼叫 renderCalendar，
+     但此時 incidents 未加入 overviewEventsFor，
+     且 window.state 可能未同步 */
+  function patchSaveIncident(){
+    if(window.__v266SaveIncPatched) return;
+    var orig=window.saveIncident;
+    if(!orig) return;
+    window.__v266SaveIncPatched=true;
+    window.saveIncident=function(){
+      var r=orig.apply(this,arguments);
+      syncState();
+      setTimeout(function(){
+        syncState();
+        try{if(typeof renderOverviewCalendarClean==='function')renderOverviewCalendarClean();}catch(_){}
+        try{if(typeof renderIncidents==='function')renderIncidents();}catch(_){}
+      },100);
+      return r;
+    };
+  }
+
+  /* ── renderAll hook ── */
+  function hookRenderAll(){
+    if(typeof renderAll!=='function'||renderAll.__v266) return;
+    var orig=renderAll;
+    window.renderAll=renderAll=function(){
+      syncState();
+      var r;try{r=orig.apply(this,arguments);}catch(e){console.warn('[V266]',e);}
+      setTimeout(function(){
+        fixServiceNav();
+        patchSaveIncident();
+        patchCollectIncident();
+      },150);
+      return r;
+    };
+    renderAll.__v266=true;
+  }
+
+  /* ── 點擊 incidents navbtn 時設定當天 ── */
+  document.addEventListener('click',function(e){
+    var btn=e.target&&e.target.closest&&e.target.closest('[data-page="incidents"]');
+    if(btn) setTimeout(function(){setIncidentToday();upgradeHelpers();patchCollectIncident();},300);
+    var btn2=e.target&&e.target.closest&&e.target.closest('#addIncidentBtn');
+    if(btn2) setTimeout(function(){upgradeHelpers();patchCollectIncident();},200);
+  },true);
+
+  /* ── openIncidentModal hook ── */
+  if(typeof window.openIncidentModal==='function'&&!window.openIncidentModal.__v266){
+    var origOpen=window.openIncidentModal;
+    window.openIncidentModal=function(){
+      var r=origOpen.apply(this,arguments);
+      setTimeout(function(){upgradeHelpers();patchCollectIncident();},100);
+      return r;
+    };
+    window.openIncidentModal.__v266=true;
+  }
+
   function init(){
     syncState();
-    ensureServiceRecordsNav();
-    patchTodoDone();
-    // Wait for V200 to create the page, then enhance
-    setTimeout(function(){
-      enhanceTodoPage();
-    }, 1200);
-    // Keep syncing on renderAll
-    if(typeof renderAll==='function' && !renderAll.__v264){
-      var orig = renderAll;
-      window.renderAll = renderAll = function(){
-        syncState();
-        var r = orig.apply(this, arguments);
-        setTimeout(function(){ ensureServiceRecordsNav(); enhanceTodoPage(); }, 200);
-        return r;
-      };
-      renderAll.__v264 = true;
+    fixServiceNav();
+    patchSaveIncident();
+    patchCollectIncident();
+    hookRenderAll();
+    upgradeHelpers();
+    // 若目前在 incidentsPage
+    if($id('incidentsPage')&&!$id('incidentsPage').classList.contains('hide')){
+      setIncidentToday();
     }
   }
 
   if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded', function(){ setTimeout(init, 500); });
+    document.addEventListener('DOMContentLoaded',function(){setTimeout(init,700);});
   } else {
-    setTimeout(init, 500);
+    setTimeout(init,700);
   }
-  setTimeout(init, 1500);
+  setTimeout(fixServiceNav,1200);
+  setTimeout(fixServiceNav,2500);
 })();
 </script>
 </body></html>
