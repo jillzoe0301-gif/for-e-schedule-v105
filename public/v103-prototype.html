@@ -15422,8 +15422,7 @@ window.v249HolidayTagsReport={
   var NAV_BUTTONS = [
     { page:'serviceRecords', label:'服務紀錄單', icon:'ico-clipboard', after:'reports'    },
     { page:'scheduleSearch', label:'行程搜尋',   icon:'ico-list',      after:'incidents'  },
-    { page:'personalTodo',   label:'個人待辦',   icon:'ico-list',      after:'today'      },
-    { page:'recordSubmit',   label:'紀錄單繳交', icon:'ico-clipboard', after:'personalTodo'},
+    { page:'recordSubmit',   label:'紀錄單繳交', icon:'ico-clipboard', after:'today'      },
   ];
 
   /* ── 確保頁面 section 存在 ── */
@@ -15603,24 +15602,16 @@ window.v249HolidayTagsReport={
     }
   }
 
-  /* ── 確保 personalTodo 按鈕有正確的 onclick ── */
-  function fixPersonalTodoBtn(){
-    document.querySelectorAll('.navbtn[data-page="personalTodo"]').forEach(function(btn){
-      if(btn.__v277onclick) return;
-      btn.__v277onclick = true;
-      btn.addEventListener('click', function(e){
-        e.stopPropagation();
-        try{ if(typeof showPersonalTodoPageV200==='function') showPersonalTodoPageV200(); }catch(_){}
-        try{ if(typeof renderPersonalTodoPageV202==='function') renderPersonalTodoPageV202(); }catch(_){}
-        // 手動顯示頁面
-        document.querySelectorAll('.page').forEach(function(p){ p.classList.add('hide'); });
-        var pg = document.getElementById('personalTodoPage');
-        if(pg){ pg.classList.remove('hide'); }
-        document.querySelectorAll('.navbtn').forEach(function(b){
-          b.classList.toggle('active', b.dataset.page==='personalTodo');
-        });
-      });
+  /* ── V278：個人待辦為舊隱藏頁面，改為移除，不再綁定 onclick ── */
+  function removePersonalTodoArtifacts(){
+    document.querySelectorAll('.navbtn[data-page="personalTodo"],button[data-page="personalTodo"],[data-page="personalTodo"]').forEach(function(el){
+      el.remove();
     });
+    var pg = document.getElementById('personalTodoPage');
+    if(pg) pg.remove();
+  }
+  function fixPersonalTodoBtn(){
+    removePersonalTodoArtifacts();
   }
 
   /* ── 確保 recordSubmit 按鈕有正確的 onclick ── */
@@ -15667,4 +15658,82 @@ window.v249HolidayTagsReport={
   }, true);
 })();
 </script>
+
+<script id="v278-remove-personal-todo-page">
+/*
+  V278：刪除舊版「個人待辦」隱藏頁面
+  根因：V274/V277 後段補丁會重新建立 data-page="personalTodo" 按鈕，
+  且 V200/V202 的 showPersonalTodoPage/renderPersonalTodoPage 會動態建立 #personalTodoPage。
+  結果點其他導覽時，舊頁面會被後段 setTimeout / click listener 短暫顯示，造成「個人待辦」閃出來。
+  修正：不再只隱藏，改成移除按鈕、移除頁面、停用舊函式、攔截舊導覽。
+*/
+(function(){
+  'use strict';
+  if(window.__V278_REMOVE_PERSONAL_TODO__) return;
+  window.__V278_REMOVE_PERSONAL_TODO__ = true;
+
+  function removePersonalTodo(){
+    document.querySelectorAll('.navbtn[data-page="personalTodo"],button[data-page="personalTodo"],[data-page="personalTodo"]').forEach(function(el){
+      el.remove();
+    });
+    var page = document.getElementById('personalTodoPage');
+    if(page) page.remove();
+    if(window.currentPage === 'personalTodo'){
+      window.currentPage = '';
+      var fallback = document.querySelector('.navbtn[data-page="mobile"]') || document.querySelector('.navbtn[data-page="calendar"]');
+      if(fallback) setTimeout(function(){ fallback.click(); }, 0);
+    }
+  }
+
+  // 直接停用會動態產生舊頁面的函式
+  window.showPersonalTodoPageV200 = function(){ removePersonalTodo(); return false; };
+  window.renderPersonalTodoPageV202 = function(){ removePersonalTodo(); return false; };
+
+  // 若舊版 showPage 被呼叫 personalTodo，導回行程/個人頁，不讓舊頁面出現
+  if(typeof window.showPage === 'function' && !window.showPage.__v278NoPersonalTodo){
+    var oldShowPage = window.showPage;
+    window.showPage = function(page){
+      if(page === 'personalTodo'){
+        removePersonalTodo();
+        return oldShowPage.call(this, document.getElementById('mobilePage') ? 'mobile' : 'calendar');
+      }
+      removePersonalTodo();
+      return oldShowPage.apply(this, arguments);
+    };
+    window.showPage.__v278NoPersonalTodo = true;
+  }
+
+  // 攔截任何殘留按鈕
+  document.addEventListener('click', function(e){
+    var personalBtn = e.target && e.target.closest && e.target.closest('[data-page="personalTodo"]');
+    if(personalBtn){
+      e.preventDefault();
+      e.stopPropagation();
+      removePersonalTodo();
+      return false;
+    }
+    setTimeout(removePersonalTodo, 0);
+    setTimeout(removePersonalTodo, 120);
+  }, true);
+
+  // 後段補丁若又新增，馬上刪除
+  var observer = new MutationObserver(function(){
+    removePersonalTodo();
+  });
+  function start(){
+    removePersonalTodo();
+    observer.observe(document.documentElement, {childList:true, subtree:true});
+    setTimeout(removePersonalTodo, 300);
+    setTimeout(removePersonalTodo, 900);
+    setTimeout(removePersonalTodo, 2000);
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  }else{
+    start();
+  }
+})();
+</script>
+
 </body></html>
