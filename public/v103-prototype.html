@@ -15646,4 +15646,150 @@ window.v249HolidayTagsReport={
 })();
 </script>
 
+
+
+<script id="v269-true-root-cause-service-incident-fix">
+(function(){
+  'use strict';
+  if(window.__V269_TRUE_ROOT_CAUSE_FIX__)return;
+  window.__V269_TRUE_ROOT_CAUSE_FIX__=true;
+  var STORE_KEY='translator_calendar_v81';
+  function $(id){return document.getElementById(id)}
+  function qa(sel,root){return Array.from((root||document).querySelectorAll(sel))}
+  function q(sel,root){return (root||document).querySelector(sel)}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function attr(v){return esc(v)}
+  function todayISO(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+  function stateObj(){
+    try{if(typeof state!=='undefined'&&state&&typeof state==='object'){window.state=state;return state}}catch(_){ }
+    if(window.state&&typeof window.state==='object')return window.state;
+    try{var raw=localStorage.getItem(STORE_KEY);if(raw){window.state=JSON.parse(raw);return window.state}}catch(_){ }
+    window.state={people:[],events:[],incidents:[],incidentLogs:[]};return window.state;
+  }
+  function saveState(){try{if(typeof save==='function')save();else localStorage.setItem(STORE_KEY,JSON.stringify(stateObj()))}catch(_){try{localStorage.setItem(STORE_KEY,JSON.stringify(stateObj()))}catch(__){}}}
+  function normRole(raw){raw=String(raw||'').trim();var map={admin:'admin','管理員':'admin',options:'admin',supervisor:'supervisor','主管':'supervisor',adminStaff:'adminStaff','行政':'adminStaff',general:'general','一般人員':'general',staff:'staff',translator:'staff','翻譯':'staff'};return map[raw]||raw}
+  function role(){try{if(typeof normalizedRole==='function')return normalizedRole()}catch(_){ }var u=window.currentUser||{};return normRole(u.role||u.type||'')}
+  function canService(){var r=role();return r==='admin'||r==='supervisor'}
+  function canIncidents(){var r=role();return r==='admin'||r==='supervisor'||r==='adminStaff'||r==='staff'}
+  function people(){var s=stateObj();return (s.people||[]).filter(function(p){return p&&p.deleted!==true&&p.active!==false&&p.id}).sort(function(a,b){return String((a.department||a.group||a.dept||'')+(a.name||'')).localeCompare(String((b.department||b.group||b.dept||'')+(b.name||'')),'zh-Hant',{numeric:true})})}
+  function personName(id){var p=people().find(function(x){return String(x.id)===String(id)});return p?p.name||'':''}
+  function selectedIds(id){var el=$(id);if(!el)return[];if(el.tagName==='SELECT')return Array.from(el.selectedOptions||[]).map(function(o){return o.value}).filter(Boolean);return qa('input[type=checkbox]:checked',el).map(function(x){return x.value}).filter(Boolean)}
+  function optionsHtml(ids){var set=new Set((ids||[]).map(String));return people().map(function(p){var dept=p.department||p.group||p.dept||p.team||'';return '<option value="'+attr(p.id)+'" '+(set.has(String(p.id))?'selected':'')+'>'+esc(p.name||p.id)+(dept?' ｜ '+esc(dept):'')+'</option>'}).join('')}
+  function ensureMultiSelect(id,ids){
+    var old=$(id), parent=null, next=null;
+    if(old){parent=old.parentNode;next=old.nextSibling}
+    if(!old){return null}
+    if(old.tagName!=='SELECT'){
+      var sel=document.createElement('select');sel.id=id;sel.multiple=true;sel.className='incident-helper-select';sel.title='按住 Ctrl（Mac: Cmd）可多選';
+      parent.replaceChild(sel,old);old=sel;
+    }
+    old.multiple=true;old.classList.add('incident-helper-select');old.title='按住 Ctrl（Mac: Cmd）可多選';old.style.minHeight='98px';old.innerHTML=optionsHtml(ids);
+    if(!old.nextElementSibling||!/Ctrl（Mac: Cmd）可多選/.test(old.nextElementSibling.textContent||'')){var hint=document.createElement('div');hint.className='muted';hint.textContent='按住 Ctrl（Mac: Cmd）可多選';old.insertAdjacentElement('afterend',hint)}
+    return old;
+  }
+  function currentIncident(){var id=$('incidentId')&&$('incidentId').value;var s=stateObj();return id?(s.incidents||[]).find(function(x){return String(x.id)===String(id)}):null}
+  function ensureIncidentHelperSelects(){
+    var inc=currentIncident();
+    var helperIds=inc&&Array.isArray(inc.helperPersonIds)?inc.helperPersonIds:selectedIds('incidentHelpers');
+    ensureMultiSelect('incidentHelpers',helperIds);
+    var mainIds=inc&&Array.isArray(inc.nextFollowHelperPersonIds)&&inc.nextFollowHelperPersonIds.length?inc.nextFollowHelperPersonIds:(helperIds||selectedIds('incidentNextFollowHelpers'));
+    ensureMultiSelect('incidentNextFollowHelpers',mainIds);
+    // log 區塊仍可能被舊版建立為 checkbox-list；一起轉成 select，避免舊閉包 selected() 讀不到。
+    var logIds=selectedIds('incidentLogNextFollowHelpers');
+    ensureMultiSelect('incidentLogNextFollowHelpers',logIds.length?logIds:mainIds);
+  }
+  function patchPermissions(){
+    var old=window.canSeePage;
+    if(!old||old.__v269)return;
+    window.canSeePage=canSeePage=function(page){
+      if(page==='serviceRecords')return canService();
+      if(page==='incidents')return canIncidents();
+      return old.apply(this,arguments);
+    };
+    window.canSeePage.__v269=true;try{canSeePage.__v269=true}catch(_){ }
+    var oldAllowed=window.v105AllowedPages;
+    window.v105AllowedPages=function(){
+      var arr=[];try{arr=oldAllowed?oldAllowed():[]}catch(_){arr=[]}
+      if(canIncidents()&&!arr.includes('incidents'))arr.push('incidents');
+      if(canService()&&!arr.includes('serviceRecords'))arr.push('serviceRecords');
+      if(!canService())arr=arr.filter(function(x){return x!=='serviceRecords'});
+      return Array.from(new Set(arr));
+    };
+  }
+  function ensureNav(){
+    var side=q('.side');
+    if(side&&!q('.side .navbtn[data-page="serviceRecords"]')){var b=document.createElement('button');b.className='navbtn';b.dataset.page='serviceRecords';b.innerHTML='<span class="mono-ico ico-clipboard"></span>服務紀錄單';var ref=q('.side .navbtn[data-page="reports"]')||q('.side .navbtn[data-page="incidents"]');ref?ref.insertAdjacentElement('afterend',b):side.appendChild(b)}
+    qa('.navbtn[data-page="serviceRecords"]').forEach(function(btn){var ok=canService();btn.classList.toggle('hide',!ok);btn.classList.toggle('role-hidden',!ok);btn.style.display=ok?'flex':'none'});
+    qa('.navbtn[data-page="incidents"]').forEach(function(btn){var ok=canIncidents();btn.classList.toggle('hide',!ok);btn.classList.toggle('role-hidden',!ok);btn.style.display=ok?'flex':'none'});
+  }
+  function setIncidentToday(){var t=todayISO();if($('incidentStart'))$('incidentStart').value=t;if($('incidentEnd'))$('incidentEnd').value=t;if($('incidentClosedFilter'))$('incidentClosedFilter').value='all'}
+  function showPage(page){
+    if(page==='serviceRecords'&&!canService()){try{toast('此頁僅主管、管理員可以查看')}catch(_){ }return false}
+    if(page==='incidents'&&!canIncidents()){try{toast('此權限無法開啟此頁面')}catch(_){ }return false}
+    try{currentPage=page}catch(_){ }
+    qa('.page').forEach(function(p){p.classList.add('hide')});
+    var pg=$(page+'Page');if(pg)pg.classList.remove('hide');
+    qa('.navbtn').forEach(function(b){b.classList.toggle('active',b.dataset.page===page)});
+    if(page==='serviceRecords')try{if(typeof renderServiceRecords==='function')renderServiceRecords()}catch(e){console.warn('[V269] renderServiceRecords',e)}
+    if(page==='incidents'){setIncidentToday();syncIncidentFollowEvents();try{if(typeof renderIncidents==='function')renderIncidents()}catch(e){console.warn('[V269] renderIncidents',e)}}
+    try{if(typeof renderAll==='function'&&page!=='serviceRecords'&&page!=='incidents')renderAll()}catch(_){ }
+    return true;
+  }
+  function syncIncidentFollowEvents(){
+    var s=stateObj();s.events=Array.isArray(s.events)?s.events:[];s.incidents=Array.isArray(s.incidents)?s.incidents:[];var changed=false;
+    s.incidents.forEach(function(inc){
+      if(!inc||inc.deleted)return;var id=inc.id;if(!id)return;var closed=(inc.status==='已結案'||inc.status==='取消 / 誤登');
+      var ev=s.events.find(function(x){return x&&(x.sourceType==='incidentFollow'||x.externalKind==='incidentFollow')&&String(x.sourceIncidentId)===String(id)});
+      if(!inc.nextFollowDate){if(ev&&!ev.deleted){ev.deleted=true;changed=true}return;}
+      var ids=Array.from(new Set([inc.ownerPersonId,inc.owner].concat(inc.nextFollowHelperPersonIds||[],inc.helperPersonIds||[]).map(String).filter(Boolean)));
+      var data={kind:'schedule',status:'未完成',startDate:inc.nextFollowDate,endDate:inc.nextFollowDate,startTime:inc.nextFollowTime||'上午',endTime:'',type:'提醒事項',name:'異況追蹤：'+(inc.title||inc.workerName||inc.incidentType||'異況'),locationName:inc.customerName||'',address:inc.location||'',participants:ids,assigneeIds:ids,assignedPersonIds:ids,note:'來源：異況追蹤。請點選後回到異況案件更新追蹤紀錄。',sourceType:'incidentFollow',externalKind:'incidentFollow',sourceIncidentId:id,incidentId:id,incidentOwnerPersonId:inc.ownerPersonId||inc.owner||'',incidentHelperPersonIds:ids,deleted:closed,updatedAt:new Date().toISOString()};
+      if(ev){Object.assign(ev,data);changed=true}else{s.events.push(Object.assign({id:'incident_follow_'+id,createdAt:new Date().toISOString(),createdBy:(window.currentUser&&window.currentUser.id)||'system'},data));changed=true}
+    });
+    if(changed)saveState();return changed;
+  }
+  function patchIncidentSave(){
+    var oldSave=window.saveIncident;if(oldSave&&!oldSave.__v269){
+      window.saveIncident=saveIncident=function(){
+        var r=oldSave.apply(this,arguments);var inc=currentIncident();if(inc){inc.helperPersonIds=selectedIds('incidentHelpers');inc.nextFollowHelperPersonIds=selectedIds('incidentNextFollowHelpers');saveState();syncIncidentFollowEvents();}
+        return r;
+      };window.saveIncident.__v269=true;try{saveIncident.__v269=true}catch(_){ }
+    }
+    var oldLog=window.addIncidentLog;if(oldLog&&!oldLog.__v269){
+      window.addIncidentLog=addIncidentLog=function(){var r=oldLog.apply(this,arguments);var inc=currentIncident();if(inc){var ids=selectedIds('incidentLogNextFollowHelpers');if(ids.length){inc.nextFollowHelperPersonIds=ids;saveState();syncIncidentFollowEvents();}}return r};window.addIncidentLog.__v269=true;try{addIncidentLog.__v269=true}catch(_){ }
+    }
+  }
+  function patchOpenIncident(){
+    var oldOpen=window.openIncidentModal;if(oldOpen&&!oldOpen.__v269){
+      window.openIncidentModal=function(){var r=oldOpen.apply(this,arguments);setTimeout(ensureIncidentHelperSelects,80);setTimeout(ensureIncidentHelperSelects,280);setTimeout(ensureIncidentHelperSelects,700);return r};window.openIncidentModal.__v269=true;
+    }
+  }
+  function bindClicks(){
+    if(window.__V269_CLICKS_BOUND__)return;window.__V269_CLICKS_BOUND__=true;
+    document.addEventListener('click',function(e){
+      var nav=e.target&&e.target.closest&&e.target.closest('.navbtn[data-page="serviceRecords"],.navbtn[data-page="incidents"]');
+      if(nav){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();showPage(nav.dataset.page);return false}
+    },true);
+    document.addEventListener('click',function(e){
+      var card=e.target&&e.target.closest&&e.target.closest('.event[data-id],[data-event-id]');if(!card)return;var id=card.dataset.id||card.dataset.eventId;var ev=(stateObj().events||[]).find(function(x){return x&&String(x.id)===String(id)});if(ev&&(ev.sourceType==='incidentFollow'||ev.externalKind==='incidentFollow'||ev.sourceIncidentId||ev.incidentId)){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();if(typeof openIncidentModal==='function')openIncidentModal(ev.sourceIncidentId||ev.incidentId);return false}
+    },true);
+    document.addEventListener('click',function(e){if(e.target&&e.target.closest&&e.target.closest('#addIncidentBtn,#saveIncidentBtn,#addIncidentLogBtn'))setTimeout(function(){ensureIncidentHelperSelects();syncIncidentFollowEvents()},180)},true);
+    document.addEventListener('change',function(e){if(e.target&&e.target.id==='incidentHelpers')setTimeout(function(){ensureMultiSelect('incidentNextFollowHelpers',selectedIds('incidentHelpers'))},20);if(e.target&&/incidentNextFollow|incidentLogNextFollow|incidentHelpers/.test(e.target.id||''))setTimeout(syncIncidentFollowEvents,80)},true);
+  }
+  function fixIncidentStatusText(){
+    qa('option').forEach(function(o){if(o.textContent.trim()==='尚未結案')o.textContent='未結案';if(o.value==='尚未結案')o.value='未結案'});
+    var s=stateObj(),changed=false;(s.incidents||[]).forEach(function(i){if(i&&i.status==='尚未結案'){i.status='未結案';changed=true}});if(changed)saveState();
+  }
+  function init(){patchPermissions();ensureNav();patchIncidentSave();patchOpenIncident();bindClicks();fixIncidentStatusText();syncIncidentFollowEvents();if($('incidentModal')&&!$('incidentModal').classList.contains('hide'))ensureIncidentHelperSelects();}
+  var oldRenderAll=window.renderAll;if(oldRenderAll&&!oldRenderAll.__v269){window.renderAll=renderAll=function(){var r=oldRenderAll.apply(this,arguments);setTimeout(init,60);return r};window.renderAll.__v269=true}
+  var oldApply=window.applyPermissionsUI;if(oldApply&&!oldApply.__v269){window.applyPermissionsUI=applyPermissionsUI=function(){var r=oldApply.apply(this,arguments);setTimeout(init,60);return r};window.applyPermissionsUI.__v269=true}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(init,300);setTimeout(init,1200)});else{setTimeout(init,100);setTimeout(init,900)}
+  setInterval(function(){ensureNav();fixIncidentStatusText();},2500);
+  window.v269TrueRootCauseReport={
+    serviceRecords:'舊版多段 canSeePage/v105AllowedPages 與 cleanServiceRecordNav 互相覆蓋，導致 serviceRecords 按鈕/頁面被後段權限清理隱藏；V269 在最後統一權限、導覽與點擊流程。',
+    incidentOverview:'異況下次追蹤建立到行程總覽後，沒有最後一道同步與點擊轉回異況案件的保護；V269 由 syncIncidentFollowEvents 統一把 incidents -> events，並攔截 incidentFollow 卡片開啟 openIncidentModal。',
+    nextFollowHelpers:'舊版 V232/V128 仍把 incidentNextFollowHelpers 當 checkbox 容器重畫，覆蓋 V267 的 select multiple，導致 select/checkbox 無人員；V269 在 modal 開啟與保存前最後統一轉成 select multiple 並從全部啟用人員產生 options。'
+  };
+})();
+</script>
+
 </body></html>
