@@ -1641,7 +1641,14 @@ function openEventModal(opts={}){renderTimeSelects();renderKindOptions();setEven
 function closeEventModal(){$('eventModal').classList.add('hide')}
 function collectEvent(){const kind=$('eventKind').value; const isNote=kind==='generalNote'; const isTodo=kind==='todo'; const isActivity=kind==='translatorStatus'; const compact=isNote||isTodo; let selectedParticipants=[...$('participantsBox').querySelectorAll('input:checked')].map(i=>i.value).filter(isCalendarPerson); let participants=[...selectedParticipants]; const cp=userPersonId(); if(compact){participants=[]; if(isCalendarPerson(cp))participants.push(cp); if(!participants.length){const first=calendarPeople()[0]; if(first)participants.push(first.id);}}else if(isExecutablePerson(cp)&&!participants.includes(cp))participants.push(cp); const assigneeIds=compact?[]:[...new Set(selectedParticipants.filter(isExecutablePerson))]; const st=$('startTime').value; const et=st==='整天'?'':$('endTime').value; return {kind,status:$('eventStatus').value,startDate:$('startDate').value,endDate:$('endDate').value||$('startDate').value,startTime:st,endTime:et,type:isNote?'一般記事':($('eventType').value||''),name:$('eventName').value.trim()||(($('eventKind').value==='todo')?'待辦事項':(($('eventKind').value==='generalNote')?'一般記事':'未命名行程')),additionalType:(compact||isActivity)?'':($('additionalType')?$('additionalType').value.trim():''),additionalNote:(compact||isActivity)?'':($('additionalNote')?$('additionalNote').value.trim():''),locationName:(compact||isActivity)?'':$('locationName').value.trim(),address:(compact||isActivity)?'':$('address').value.trim(),vehicleNo:(compact||isActivity)?'':$('vehicleNo').value.trim(),meetingRoom:'不指定',participants,assigneeIds,note:$('note').value.trim(),serviceRecordSubmitted:(compact||isActivity)?false:($('serviceRecordSubmitted')?$('serviceRecordSubmitted').checked:false),serviceRecordDate:(compact||isActivity)?'':($('serviceRecordDate')?$('serviceRecordDate').value:''),followupDate:(compact||isActivity)?'':($('followupDate')?$('followupDate').value:''),followupTime:(compact||isActivity)?'':($('followupTime')?$('followupTime').value:''),followupPersonId:(compact||isActivity)?'':($('followupPerson')?$('followupPerson').value:''),followupRegNo:(compact||isActivity)?'':($('followupRegNo')?$('followupRegNo').value.trim():'')}}
 function setViewToEvent(e){if(!e)return; if($('weekPicker'))$('weekPicker').value=weekStartISO(e.startDate); $('viewMode').value='all'; ['groupFilter','jobFilter','personFilter','typeFilter'].forEach(id=>clearMulti(id)); ['statusFilter','keywordFilter'].forEach(id=>{if($(id))$(id).value=''}); currentPage='calendar'; document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page==='calendar')); document.querySelectorAll('.page').forEach(p=>p.classList.add('hide')); $('calendarPage').classList.remove('hide');} 
-function syncScheduleEvent(e){save();try{renderAll()}catch(err){console.warn('[V255] 行程總覽重繪失敗',err)}try{if(typeof renderPersonalDetails==='function')renderPersonalDetails()}catch(err){console.warn('[V255] 個人行程表重繪失敗',err)}return e}
+function syncScheduleEvent(e){
+  save();
+  try{ renderAll(); }catch(err){ console.warn('[V261] renderAll',err); }
+  try{ if(typeof renderPersonalDetails==='function') renderPersonalDetails(); }catch(err){ console.warn('[V261] personalDetails',err); }
+  try{ if(typeof renderIncidents==='function') renderIncidents(); }catch(err){ console.warn('[V261] incidents',err); }
+  try{ if(typeof renderFieldCalendar==='function') renderFieldCalendar(); }catch(err){ console.warn('[V261] fieldCalendar',err); }
+  return e;
+}
 window.syncScheduleEvent=syncScheduleEvent;
 window.openEventModal=openEventModal;
 window.openAddEventModal=function(personId,dateStr){return openEventModal({date:dateStr||todayISO(),personId:personId||''})};
@@ -12001,13 +12008,8 @@ setInterval(v206SetupNavOrder,1500);
     for(var i=0;i<markerKeys.length;i++){
       if(x[markerKeys[i]]) return true;
     }
-    var s=v220Stringify(x);
-    var words=[
-      '測試行程','測試外務','測試會議','測試資料','測試待辦','測試一般','測試醫療','測試醫院','測試地點','測試客戶','測試工人','測試工廠','測試文件','測試提醒','測試驗證','測試一般事項','測試一般記事','外務測試','一般行程測試','含服務紀錄單與下次看診','6/11 測試','V203','V204','V205','V206','V208','V210','V211','V212','黃明書基本測試','黃明書測試','催繳測試','1週提醒測試','已繳交測試','sample schedule','sample event','mock schedule','mock event','test schedule','test event'
-    ];
-    if(v220HasAny(s,words)) return true; // 已重新啟用測試資料清除
-    // 只刪「資料內容」有 Demo + 行程測試特徵者；不刪帳號本身。
-    if(v220HasAny(s,['Demo']) && v220HasAny(s,['陪同看診','桃園醫院','提醒事項','醫療(看診','schedule'])) return true;
+    // V261: 文字比對已完全停用，避免誤刪正式新增行程
+    // 只依 marker key 判斷（上方 for loop 已處理）
     return false;
   }
 
@@ -12109,8 +12111,8 @@ setInterval(v206SetupNavOrder,1500);
   }
 
   // renderAll 前後都清，避免舊版 seed 腳本再次寫入。
-  if(typeof window.renderAll==='function' && !window.__v220RenderPatched){
-    window.__v220RenderPatched=true;
+  if(false && typeof window.renderAll==='function' && !window.__v220RenderPatched){
+    window.__v220RenderPatched=true; // V261: 停用 renderAll 觸發清除
     var oldRenderAll=window.renderAll;
     window.renderAll=function(){
       v220Run(false);
@@ -12122,10 +12124,12 @@ setInterval(v206SetupNavOrder,1500);
 
   document.addEventListener('DOMContentLoaded',function(){v220Run(true);});
   window.addEventListener('load',function(){v220Run(true);});
-  document.addEventListener('click',function(){setTimeout(function(){v220Run(false);},80);},true);
+  // V261: 停用 click 觸發清除，避免每次點擊誤刪正式行程
+  // document.addEventListener('click',function(){setTimeout(function(){v220Run(false);},80);},true);
   setTimeout(function(){v220Run(true);},100);
-  setTimeout(function(){v220Run(true);},600);
-  setTimeout(function(){v220Run(true);},1500);
+  // V261: 停用重複清除計時器
+  // setTimeout(function(){v220Run(true);},600);
+  // setTimeout(function(){v220Run(true);},1500);
   setInterval(function(){v220DisableLoginReminder();v220RelaxRequired();v220CleanRuntimeState(false);},1200);
 
   window.v220CleanAllTestSchedules=function(){return v220Run(true);};
@@ -15164,111 +15168,6 @@ window.v249HolidayTagsReport={
     at:new Date().toISOString()
   };
   console.info('[V262 Disable Test Cleanup Write Guard]',window.__v262WriteGuardReport);
-})();
-</script>
-
-<script id="v260-cleanup-and-fix">
-(function(){
-  'use strict';
-  if(window.__V260_CLEANUP_AND_FIX__) return;
-  window.__V260_CLEANUP_AND_FIX__ = true;
-
-  function doCleanup(){
-    try{
-      var s = (typeof state !== 'undefined') ? state : null;
-      if(!s){ try{ if(typeof load==='function') load(false); s=state; }catch(e){} }
-      if(!s) return;
-      var testWords = [
-        'v203Marker','v204Marker','v205Marker','v206Marker',
-        'v208Marker','v210Marker','v211Marker','v212Marker',
-        '測試行程','測試外務','測試異況','測試資料','測試待辦',
-        '測試地點','測試客戶','測試工人','測試文件','測試醫院',
-        '6/11 V208','6/11測試','黃明書基本測試','黃明書測試',
-        'V210外務測試地點','V211測試異況','V212測試異況',
-        'V206 測試','臺灣脈思','inc_demo_oil_burn'
-      ];
-      function hasTest(x){
-        var str = JSON.stringify(x)||'';
-        return testWords.some(function(w){ return str.indexOf(w)>=0; });
-      }
-      var rEv=0,rEx=0,rInc=0,rLog=0;
-      if(Array.isArray(s.events)){
-        var b1=s.events.length;
-        s.events=s.events.filter(function(x){return !hasTest(x);});
-        rEv=b1-s.events.length;
-      }
-      if(Array.isArray(s.externalEvents)){
-        var b2=s.externalEvents.length;
-        s.externalEvents=s.externalEvents.filter(function(x){return !hasTest(x);});
-        rEx=b2-s.externalEvents.length;
-      }
-      if(Array.isArray(s.incidents)){
-        var b3=s.incidents.length;
-        s.incidents=s.incidents.filter(function(x){
-          return !hasTest(x)&&x.id!=='inc_demo_oil_burn';
-        });
-        rInc=b3-s.incidents.length;
-      }
-      if(Array.isArray(s.incidentLogs)){
-        var incIds=new Set((s.incidents||[]).map(function(x){return x.id;}));
-        var b4=s.incidentLogs.length;
-        s.incidentLogs=s.incidentLogs.filter(function(l){
-          return !hasTest(l)&&(!l.incidentId||incIds.has(l.incidentId));
-        });
-        rLog=b4-s.incidentLogs.length;
-      }
-      if(rEv+rEx+rInc+rLog>0){
-        try{if(typeof save==='function')save();}catch(e){}
-        console.log('[V260] 清除：行程'+rEv+' 外務'+rEx+' 異況'+rInc+' 追蹤'+rLog);
-        try{if(typeof renderAll==='function')renderAll();}catch(e){}
-      }
-    }catch(err){console.warn('[V260]',err);}
-  }
-
-  function ensureIncidentArrays(){
-    try{
-      var s=(typeof state!=='undefined')?state:null;
-      if(!s)return;
-      if(!Array.isArray(s.incidents))s.incidents=[];
-      if(!Array.isArray(s.incidentLogs))s.incidentLogs=[];
-      try{if(typeof save==='function')save();}catch(e){}
-    }catch(e){}
-  }
-
-  function patchSaveForSync(){
-    if(window.__V260_SAVE_PATCHED__) return;
-    if(typeof window.saveEvent!=='function') return;
-    window.__V260_SAVE_PATCHED__=true;
-    var orig=window.saveEvent;
-    window.saveEvent=function(){
-      try{
-        var r=orig.apply(this,arguments);
-        setTimeout(function(){
-          try{
-            if(typeof renderAll==='function') renderAll();
-            if(typeof renderCalendar==='function') renderCalendar();
-          }catch(e){}
-        },120);
-        return r;
-      }catch(err){
-        console.error('[V260 saveEvent]',err);
-        try{if(typeof toast==='function')toast('儲存失敗：'+err.message);}catch(e){}
-      }
-    };
-  }
-
-  function run(){
-    ensureIncidentArrays();
-    doCleanup();
-    setTimeout(patchSaveForSync,500);
-  }
-
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',function(){setTimeout(run,800);});
-  } else {
-    setTimeout(run,800);
-  }
-  setTimeout(doCleanup,3500);
 })();
 </script>
 </body></html>
