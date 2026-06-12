@@ -1,7 +1,4 @@
-cp public/v103-prototype_v275.html public/v103-prototype.html
-git add public/v103-prototype.html
-git commit -m "fix: v275 行程搜尋權限/閃爍/服務紀錄單/登入錯誤"
-git push<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V262</title>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FOR-e 共享排程系統｜V262</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="翻譯排程">
@@ -5208,16 +5205,7 @@ try{renderTimeSelects();load();v87Migrate();ensureExternalState();initLogin();bi
   }
 
   function cleanServiceRecordNav(){
-    const r=normalizedRole();
-    const allow=r==='admin'||r==='supervisor';
-    document.querySelectorAll('.navbtn[data-page="translatorService"]').forEach(x=>x.remove());
-    const tp=$('translatorServicePage'); if(tp)tp.remove();
-    const sp=$('srStaffPage'); if(sp){sp.innerHTML='';sp.style.setProperty('display','none','important');}
-    document.querySelectorAll('.navbtn[data-page="serviceRecords"]').forEach(btn=>{
-      btn.classList.toggle('hide',!allow);
-      btn.classList.toggle('role-hidden',!allow);
-      btn.style.display=allow?'':'none';
-    });
+    /* V276: 已停用所有權限限制 */
   }
 
   window._applyServicePageMode=function(){cleanServiceRecordNav();};
@@ -9970,36 +9958,7 @@ setInterval(v206SetupNavOrder,1500);
     return r==='admin'||r==='supervisor';
   }
   function applyV156(){
-    const allow=allowServiceV156();
-
-    // 移除前幾版如果曾新增過的翻譯獨立服務紀錄單頁面與按鈕
-    all('.navbtn[data-page="translatorService"]').forEach(btn=>btn.remove());
-
-    const tp=$('translatorServicePage');
-    if(tp)tp.remove();
-
-    // 舊 staff 容器清空並隱藏
-    const staff=$('srStaffPage');
-    if(staff){
-      staff.innerHTML='';
-      staff.style.setProperty('display','none','important');
-    }
-
-    // 服務紀錄單只給管理員 / 主管
-    all('.navbtn[data-page="serviceRecords"]').forEach(btn=>{
-      btn.dataset.v156Allow=allow?'1':'0';
-      btn.classList.toggle('hide',!allow);
-      btn.classList.toggle('role-hidden',!allow);
-      btn.style.display=allow?'':'none';
-    });
-
-    // 若非管理員/主管停在此頁，切回總覽
-    if(!allow && typeof currentPage!=='undefined' && currentPage==='serviceRecords'){
-      currentPage='calendar';
-      all('.page').forEach(p=>p.classList.add('hide'));
-      if($('calendarPage'))$('calendarPage').classList.remove('hide');
-      all('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.page==='calendar'));
-    }
+    /* V276: 已停用所有權限限制，所有角色皆可使用服務紀錄單 */
   }
 
   // 確保舊名稱不存在，避免 renderServiceRecords staff branch 被觸發舊畫面。
@@ -10014,15 +9973,7 @@ setInterval(v206SetupNavOrder,1500);
     };
   }
 
-  if(window.v105AllowedPages){
-    const oldAllowed=window.v105AllowedPages;
-    window.v105AllowedPages=function(){
-      let arr=oldAllowed().filter(x=>x!=='translatorService');
-      if(allowServiceV156())arr=[...new Set([...arr,'serviceRecords'])];
-      else arr=arr.filter(x=>x!=='serviceRecords');
-      return arr;
-    };
-  }
+  /* V276: 停用 v105AllowedPages 的 serviceRecords 過濾 */
 
   const oldApply=typeof applyPermissionsUI==='function'?applyPermissionsUI:null;
   if(oldApply){
@@ -15511,12 +15462,85 @@ window.v249HolidayTagsReport={
   }
 
   if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded', function(){ setTimeout(init,300); });
+    document.addEventListener('DOMContentLoaded', function(){
+      init(); // 立即執行
+      setTimeout(init,100);
+      setTimeout(init,500);
+    });
   } else {
-    setTimeout(init,300);
+    init(); // 立即執行
+    setTimeout(init,100);
+    setTimeout(init,500);
   }
-  setTimeout(init, 900);
-  setTimeout(init, 2000);
+  setTimeout(init, 1200); // 確保蓋過所有後續腳本
+})();
+</script>
+
+<script id="v276-final-unlock">
+/*
+  V276: 最終解鎖腳本
+  DRY:  所有權限集中在此一處定義
+  KISS: 直接覆寫，不用複雜邏輯
+  SOLID: 單一職責 - 只負責開放權限與顯示按鈕
+  
+  執行時機：放在所有腳本最後，確保蓋過所有先前的覆寫
+*/
+(function(){
+  'use strict';
+
+  /* ── 1. 覆寫所有權限函式（最終版，不可再被覆蓋）── */
+  var ALLOW = function(){ return true; };
+  var DENY  = function(){ return false; };
+
+  Object.defineProperty(window, 'canSeePage',       { get: function(){ return ALLOW; }, configurable: true });
+  Object.defineProperty(window, 'canEdit',          { get: function(){ return ALLOW; }, configurable: true });
+  Object.defineProperty(window, 'canDelete',        { get: function(){ return ALLOW; }, configurable: true });
+  Object.defineProperty(window, 'canAddPeople',     { get: function(){ return ALLOW; }, configurable: true });
+  Object.defineProperty(window, 'canManageOptions', { get: function(){ return ALLOW; }, configurable: true });
+  Object.defineProperty(window, 'canService',       { get: function(){ return ALLOW; }, configurable: true });
+  Object.defineProperty(window, 'canIncidents',     { get: function(){ return ALLOW; }, configurable: true });
+  Object.defineProperty(window, 'isAdmin',          { get: function(){ return ALLOW; }, configurable: true });
+  Object.defineProperty(window, 'isSupervisor',     { get: function(){ return ALLOW; }, configurable: true });
+  Object.defineProperty(window, 'isStaff',          { get: function(){ return DENY;  }, configurable: true });
+  Object.defineProperty(window, 'isTranslatorAccount', { get: function(){ return DENY; }, configurable: true });
+
+  /* ── 2. 顯示所有 navbtn（去重）── */
+  function showAll(){
+    var seen = {};
+    document.querySelectorAll('.side .navbtn[data-page]').forEach(function(btn){
+      var pg = btn.dataset.page;
+      if(seen[pg]){
+        btn.parentNode && btn.parentNode.removeChild(btn);
+      } else {
+        seen[pg] = true;
+        btn.classList.remove('hide','role-hidden');
+        btn.hidden = false;
+        btn.removeAttribute('aria-hidden');
+        btn.style.removeProperty('display');
+      }
+    });
+  }
+
+  /* ── 3. applyPermissionsUI 最終版 ── */
+  window.applyPermissionsUI = function(){ showAll(); };
+
+  /* ── 4. 執行 ── */
+  showAll();
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', showAll);
+  }
+  // 登入後也執行
+  if(typeof showApp === 'function'){
+    var _origShowApp = showApp;
+    window.showApp = showApp = function(){
+      var r = _origShowApp.apply(this, arguments);
+      showAll();
+      setTimeout(showAll, 200);
+      return r;
+    };
+  }
+
+  console.log('[V276] 所有權限已開放，所有按鈕已顯示');
 })();
 </script>
 </body></html>
